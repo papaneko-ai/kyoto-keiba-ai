@@ -13,26 +13,35 @@ st.set_page_config(
 )
 
 # ---------------------------------------------------------
-# 上下すべてのGitHub・管理バー・フッターの完全非表示化
+# 上下および右下フローティングアイコンの完全非表示化
 # ---------------------------------------------------------
 hide_all_styles = """
     <style>
     /* 上部ヘッダー・GitHubリンク・三本線メニューの非表示 */
-    #MainMenu {visibility: hidden;}
-    header {visibility: hidden;}
-    .stAppHeader {display: none;}
+    #MainMenu {visibility: hidden !important;}
+    header {visibility: hidden !important;}
+    .stAppHeader {display: none !important;}
     
     /* 下部フッター・Manage app・ツールバー類の非表示 */
-    footer {visibility: hidden;}
-    .stAppFooter {display: none;}
-    div[data-testid="stStatusWidget"] {visibility: hidden;}
-    div[data-testid="stDecoration"] {display: none;}
-    #stDecoration {display: none;}
+    footer {visibility: hidden !important;}
+    .stAppFooter {display: none !important;}
+    div[data-testid="stStatusWidget"] {visibility: hidden !important;}
+    div[data-testid="stDecoration"] {display: none !important;}
+    #stDecoration {display: none !important;}
     
-    /* 埋め込み時の余計な余白調整 */
+    /* 右下のStreamlitロゴ・フローティングツールバー（赤・青アイコン）の非表示 */
+    .stViewerBadge {display: none !important;}
+    div[data-testid="stToolbar"] {display: none !important;}
+    iframe[title="streamlit_app"] {bottom: 0 !important;}
+    button[title="View app in Streamlit Community Cloud"] {display: none !important;}
+    [data-testid="stToolbarActionButton"] {display: none !important;}
+    .viewerBadge_container__1QSob {display: none !important;}
+    a[href*="streamlit.io"] {display: none !important;}
+    
+    /* 画面下部の不要な余白調整 */
     .block-container {
-        padding-top: 2rem;
-        padding-bottom: 2rem;
+        padding-top: 1.5rem !important;
+        padding-bottom: 1rem !important;
     }
     </style>
 """
