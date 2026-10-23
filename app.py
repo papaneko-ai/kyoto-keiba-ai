@@ -15,7 +15,7 @@ st.set_page_config(
 )
 
 # ---------------------------------------------------------
-# カスタムCSS（スマホ表示の文字崩れ・改行不具合を完全修復）
+# カスタムCSS（スマホ表示の改行・文字位置完全最適化）
 # ---------------------------------------------------------
 custom_css = """
     <style>
@@ -72,13 +72,13 @@ custom_css = """
         color: #f8fafc;
     }
     .hero-subtitle {
-        font-size: 12px;
+        font-size: 11.5px;
         color: #94a3b8;
         margin-bottom: 0;
         line-height: 1.4;
+        white-space: nowrap; /* はみ出し・不自然な改行を完全防止 */
     }
 
-    /* 情報ボックス：崩れない安全な通常ブロック配置 */
     .info-summary-box {
         background-color: #eff6ff;
         border: 1px solid #bfdbfe;
@@ -269,7 +269,7 @@ if st.session_state.step == 1:
     st.markdown("""
         <div class="hero-card">
             <div class="hero-title">🏇 KYOTO RACECOURSE AI</div>
-            <div class="hero-subtitle">京都競馬特化型 ｜ 馬連・ワイド集中投資＆期待値最大化エンジン</div>
+            <div class="hero-subtitle">京都競馬特化型 ｜ 馬連・ワイド集中投資＆期待値最大化</div>
         </div>
     """, unsafe_allow_html=True)
 
@@ -309,7 +309,6 @@ elif st.session_state.step == 2:
     
     st.subheader("📊 2. レース選定＆予算配分")
     
-    # 完全に崩れない通常の縦並びブロックに変更
     st.markdown(f"""
         <div class="info-summary-box">
             <div class="info-summary-row">📅 <strong>開催日</strong>: {st.session_state.race_date}</div>
