@@ -13,17 +13,30 @@ st.set_page_config(
 )
 
 # ---------------------------------------------------------
-# GitHubボタン・右上ヘッダーの非表示化
+# 上下すべてのGitHub・管理バー・フッターの完全非表示化
 # ---------------------------------------------------------
-hide_streamlit_style = """
+hide_all_styles = """
     <style>
+    /* 上部ヘッダー・GitHubリンク・三本線メニューの非表示 */
     #MainMenu {visibility: hidden;}
     header {visibility: hidden;}
-    footer {visibility: hidden;}
     .stAppHeader {display: none;}
+    
+    /* 下部フッター・Manage app・ツールバー類の非表示 */
+    footer {visibility: hidden;}
+    .stAppFooter {display: none;}
+    div[data-testid="stStatusWidget"] {visibility: hidden;}
+    div[data-testid="stDecoration"] {display: none;}
+    #stDecoration {display: none;}
+    
+    /* 埋め込み時の余計な余白調整 */
+    .block-container {
+        padding-top: 2rem;
+        padding-bottom: 2rem;
+    }
     </style>
 """
-st.markdown(hide_streamlit_style, unsafe_allow_html=True)
+st.markdown(hide_all_styles, unsafe_allow_html=True)
 
 st.title("🏇 京都競馬 集中投資AI")
 st.caption("馬連・ワイド特化 / マルチファクター解析・期待値最大化エンジン")
