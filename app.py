@@ -153,7 +153,6 @@ def fetch_race_results_safely(target_date, race_id):
     try:
         response = requests.get(target_url, headers=headers, timeout=5)
         
-        # 404エラー（ページが存在しない＝開催日ではない、または未開催）
         if response.status_code == 404:
             return {"status": "not_found", "message": f"📅 指定された日（{target_date.strftime('%Y年%m月%d日')}）は京都競馬の開催日ではないか、まだレース結果データが公開されていません。"}
         
@@ -212,7 +211,7 @@ if st.session_state.step == 1:
         st.rerun()
 
 # ---------------------------------------------------------
-# ステップ 2：全レース予想一覧 ＆ お勧め3レース選定 ＆ 厳密資金配分
+# ステップ 2：全レース予想一覧 ＆ レース選択 ＆ 厳密資金配分
 # ---------------------------------------------------------
 elif st.session_state.step == 2:
     st.button("🏠 最初（起動画面）からやり直す", on_click=reset_to_step1)
@@ -274,17 +273,18 @@ elif st.session_state.step == 2:
             "rec": factor_data["is_rec"]
         })
 
-    st.markdown(f"### 📋 参戦可能レース一覧（🔥=AIお勧め3レース ｜ 全 {len(all_races)} レース）")
-    st.caption("購入したいレースにチェックを入れてください（推奨3レース以外も選択可能です）。")
+    st.markdown(f"### 📋 参戦可能レース一覧（🔥=AIお勧め ｜ 全 {len(all_races)} レース）")
+    st.caption("購入したいレースにチェックを入れてください（お勧めレースも初期値は未選択となり、ご自身で自由に選べます）。")
 
     selected_race_ids = []
     
     for r in all_races:
         badge = " 🔥 【AIお勧め】" if r["rec"] else ""
         with st.expander(f"京都 {r['id']}R ｜ {r['name']} （発走 {r['time']}）{badge} ｜ 期待値(EV): {r['eval_score']}%"):
+            # 修正点：value=False に統一し、ユーザーがチェックを入れたレースのみを正確に取得
             is_checked = st.checkbox(
                 f"このレース（京都{r['id']}R）を購入候補に含める",
-                value=r["rec"],
+                value=False,
                 key=f"chk_r_{r['id']}"
             )
             if is_checked:
