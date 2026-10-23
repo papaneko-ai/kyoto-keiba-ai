@@ -1,4 +1,5 @@
 import streamlit as st
+import streamlit.components.v1 as components
 import pandas as pd
 import datetime
 import hashlib
@@ -13,7 +14,7 @@ st.set_page_config(
 )
 
 # ---------------------------------------------------------
-# 上下および右下フローティングアイコンの完全非表示化
+# 上下CSS非表示 ＋ 右下ホストバッジ強制削除（JS実行）
 # ---------------------------------------------------------
 hide_all_styles = """
     <style>
@@ -29,16 +30,7 @@ hide_all_styles = """
     div[data-testid="stDecoration"] {display: none !important;}
     #stDecoration {display: none !important;}
     
-    /* 右下のStreamlitロゴ・フローティングツールバー（赤・青アイコン）の非表示 */
-    .stViewerBadge {display: none !important;}
-    div[data-testid="stToolbar"] {display: none !important;}
-    iframe[title="streamlit_app"] {bottom: 0 !important;}
-    button[title="View app in Streamlit Community Cloud"] {display: none !important;}
-    [data-testid="stToolbarActionButton"] {display: none !important;}
-    .viewerBadge_container__1QSob {display: none !important;}
-    a[href*="streamlit.io"] {display: none !important;}
-    
-    /* 画面下部の不要な余白調整 */
+    /* 余白調整 */
     .block-container {
         padding-top: 1.5rem !important;
         padding-bottom: 1rem !important;
@@ -46,6 +38,37 @@ hide_all_styles = """
     </style>
 """
 st.markdown(hide_all_styles, unsafe_allow_html=True)
+
+# 右下フローティングアイコン（親ドキュメント要素）を強制非表示にするJS
+components.html("""
+    <script>
+    function removeBadge() {
+        const parentDocs = [window.document, window.top.document, window.parent.document];
+        parentDocs.forEach(doc => {
+            if (doc) {
+                // 右下のStreamlitホストバッジ・ボタンを検索して消去
+                const selectors = [
+                    '[href*="streamlit.io"]',
+                    'a[href*="streamlit"]',
+                    'button[title*="Streamlit"]',
+                    '.stViewerBadge',
+                    '#manage-app-button',
+                    '[data-testid="stStatusWidget"]'
+                ];
+                selectors.forEach(s => {
+                    doc.querySelectorAll(s).forEach(el => {
+                        el.style.display = 'none';
+                        el.style.visibility = 'hidden';
+                    });
+                });
+            }
+        });
+    }
+    // 読み込み時および定期監視で確実に消去
+    removeBadge();
+    setInterval(removeBadge, 500);
+    </script>
+""", height=0, width=0)
 
 st.title("🏇 京都競馬 集中投資AI")
 st.caption("馬連・ワイド特化 / マルチファクター解析・期待値最大化エンジン")
