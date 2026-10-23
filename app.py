@@ -15,7 +15,7 @@ st.set_page_config(
 )
 
 # ---------------------------------------------------------
-# カスタムCSS（見えないテーブルで項目名を完璧に揃える）
+# カスタムCSS（スマホ表示の改行・文字位置完全最適化）
 # ---------------------------------------------------------
 custom_css = """
     <style>
@@ -76,10 +76,9 @@ custom_css = """
         color: #94a3b8;
         margin-bottom: 0;
         line-height: 1.4;
-        white-space: nowrap;
+        white-space: nowrap; /* はみ出し・不自然な改行を完全防止 */
     }
 
-    /* 見えないレイアウトテーブル（項目名と値を美しく揃える） */
     .info-summary-box {
         background-color: #eff6ff;
         border: 1px solid #bfdbfe;
@@ -87,24 +86,14 @@ custom_css = """
         padding: 12px 14px;
         color: #1e40af;
         font-size: 13px;
+        line-height: 1.6;
         margin-bottom: 16px;
     }
-    .align-table {
-        width: 100%;
-        border-collapse: collapse;
+    .info-summary-row {
+        margin-bottom: 6px;
     }
-    .align-table td {
-        padding: 3px 0;
-        vertical-align: top;
-        border: none !important;
-        background: transparent !important;
-        text-align: left !important;
-        color: #1e40af !important;
-    }
-    .label-col {
-        width: 85px;
-        font-weight: 700;
-        white-space: nowrap;
+    .info-summary-row:last-child {
+        margin-bottom: 0;
     }
 
     .stButton > button {
@@ -118,7 +107,7 @@ custom_css = """
         width: 100% !important;
         overflow-x: auto !important;
     }
-    table.data-table {
+    table {
         border-collapse: collapse !important;
         width: 100% !important;
         border-radius: 8px !important;
@@ -320,23 +309,11 @@ elif st.session_state.step == 2:
     
     st.subheader("📊 2. レース選定＆予算配分")
     
-    # 見えないテーブルタグで項目名と値を美しく一直線に整列
     st.markdown(f"""
         <div class="info-summary-box">
-            <table class="align-table">
-                <tr>
-                    <td class="label-col">📅 開催日</td>
-                    <td>: {st.session_state.race_date}</td>
-                </tr>
-                <tr>
-                    <td class="label-col">⏱️ 参戦時間</td>
-                    <td>: {st.session_state.start_time_str}</td>
-                </tr>
-                <tr>
-                    <td class="label-col">🎯 選択方針</td>
-                    <td>: {st.session_state.strategy_mode}</td>
-                </tr>
-            </table>
+            <div class="info-summary-row">📅 <strong>開催日</strong>: {st.session_state.race_date}</div>
+            <div class="info-summary-row">⏱️ <strong>参戦時間</strong>: {st.session_state.start_time_str}</div>
+            <div class="info-summary-row">🎯 <strong>選択方針</strong>: {st.session_state.strategy_mode}</div>
         </div>
     """, unsafe_allow_html=True)
 
