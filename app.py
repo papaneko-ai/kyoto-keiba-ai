@@ -15,23 +15,19 @@ st.set_page_config(
 )
 
 # ---------------------------------------------------------
-# カスタムCSS（おしゃれなデザイン・カードUI・ボタン装飾）
+# カスタムCSS（全体をプロ仕様のモダンUIに装飾）
 # ---------------------------------------------------------
 custom_css = """
     <style>
-    /* 上部ヘッダー・GitHubリンク・三本線メニューの非表示 */
+    /* 不要なデフォルト要素の完全非表示 */
     #MainMenu {visibility: hidden !important;}
     header {visibility: hidden !important;}
     .stAppHeader {display: none !important;}
-    
-    /* 下部フッター・ツールバー類の非表示 */
     footer {visibility: hidden !important;}
     .stAppFooter {display: none !important;}
     div[data-testid="stStatusWidget"] {visibility: hidden !important;}
     div[data-testid="stDecoration"] {display: none !important;}
     #stDecoration {display: none !important;}
-    
-    /* 右下のStreamlitロゴ・フローティングツールバーの非表示 */
     .stViewerBadge {display: none !important;}
     div[data-testid="stToolbar"] {display: none !important;}
     iframe[title="streamlit_app"] {bottom: 0 !important;}
@@ -40,13 +36,13 @@ custom_css = """
     .viewerBadge_container__1QSob {display: none !important;}
     a[href*="streamlit.io"] {display: none !important;}
     
-    /* 余白調整 */
+    /* 画面全体のパディング調整 */
     .block-container {
         padding-top: 1.5rem !important;
-        padding-bottom: 2rem !important;
+        padding-bottom: 2.5rem !important;
     }
 
-    /* ヒーローヘッダー風カード */
+    /* ヒーローヘッダー（起動画面用） */
     .hero-card {
         background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
         border-radius: 16px;
@@ -70,21 +66,30 @@ custom_css = """
         margin-bottom: 0;
     }
 
-    /* 設定フォームをまとめる枠 */
-    .setting-card {
-        background-color: #ffffff;
-        border-radius: 12px;
-        padding: 20px;
-        border: 1px solid #e2e8f0;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-        margin-bottom: 20px;
-    }
-
-    /* ボタンデザインの微調整 */
+    /* ボタン全体のデザイン統一 */
     .stButton > button {
         border-radius: 10px !important;
         font-weight: bold !important;
         height: 3rem !important;
+        transition: all 0.2s ease-in-out;
+    }
+
+    /* テーブル・データフレームの見た目をスタイリッシュに */
+    table {
+        border-collapse: collapse !important;
+        width: 100% !important;
+        border-radius: 8px !important;
+        overflow: hidden !important;
+    }
+    th {
+        background-color: #f1f5f9 !important;
+        color: #334155 !important;
+        font-weight: 700 !important;
+        text-align: center !important;
+    }
+    td {
+        text-align: center !important;
+        color: #1e293b !important;
     }
     </style>
 """
@@ -216,7 +221,6 @@ def fetch_race_results_safely(target_date, race_id):
 # ステップ 1：起動条件設定画面（スタイリッシュデザイン）
 # ---------------------------------------------------------
 if st.session_state.step == 1:
-    # ヒーローヘッダー
     st.markdown("""
         <div class="hero-card">
             <div class="hero-title">🏇 KYOTO RACECOURSE AI</div>
@@ -256,7 +260,7 @@ if st.session_state.step == 1:
         st.rerun()
 
 # ---------------------------------------------------------
-# ステップ 2：全レース予想一覧 ＆ レース選択 ＆ 厳密資金配分
+# ステップ 2：全レース予想一覧 ＆ レース選択 ＆ 厳密資金配分（モダンデザイン）
 # ---------------------------------------------------------
 elif st.session_state.step == 2:
     st.button("🏠 最初（起動画面）からやり直す", on_click=reset_to_step1)
@@ -319,7 +323,7 @@ elif st.session_state.step == 2:
         })
 
     st.markdown(f"### 📋 参戦可能レース一覧（🔥=AIお勧め ｜ 全 {len(all_races)} レース）")
-    st.caption("購入したいレースにチェックを入れてください（お勧めレースも初期値は未選択となり、ご自身で自由に選べます）。")
+    st.caption("購入したいレースにチェックを入れてください。")
 
     selected_race_ids = []
     
@@ -334,7 +338,7 @@ elif st.session_state.step == 2:
             if is_checked:
                 selected_race_ids.append(r["id"])
             
-            st.write(f"・**推奨軸馬**: **{r['axis']}** （マルチファクター解析完了）")
+            st.markdown(f"**🎯 推奨軸馬**: **{r['axis']}** （マルチファクター解析完了）")
             
             if "穴馬" in mode_key:
                 bets_preview = [
