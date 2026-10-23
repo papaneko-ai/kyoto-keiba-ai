@@ -15,7 +15,7 @@ st.set_page_config(
 )
 
 # ---------------------------------------------------------
-# カスタムCSS（スマホ表示の改行・文字位置完全最適化）
+# カスタムCSS（テーブルの罫線を完全に消し、余白を美しく調整）
 # ---------------------------------------------------------
 custom_css = """
     <style>
@@ -76,10 +76,10 @@ custom_css = """
         color: #94a3b8;
         margin-bottom: 0;
         line-height: 1.4;
-        white-space: nowrap; /* 「ン」の改行を防ぐため1行固定 */
+        white-space: nowrap;
     }
 
-    /* 見えないテーブルで項目名と値を美しく揃える */
+    /* 情報ボックスと見えないテーブルの完全最適化（罫線・余白の排除） */
     .info-summary-box {
         background-color: #eff6ff;
         border: 1px solid #bfdbfe;
@@ -90,14 +90,19 @@ custom_css = """
         margin-bottom: 16px;
     }
     .align-table {
-        width: 100%;
-        border-collapse: collapse;
+        width: 100% !important;
+        border-collapse: collapse !important;
+        border: none !important;
+        box-shadow: none !important;
     }
-    .align-table td {
-        padding: 4px 0;
-        vertical-align: top;
+    .align-table tr, .align-table td, .align-table th {
         border: none !important;
         background: transparent !important;
+        box-shadow: none !important;
+    }
+    .align-table td {
+        padding: 3px 0 !important;
+        vertical-align: top !important;
         text-align: left !important;
         color: #1e40af !important;
     }
@@ -118,7 +123,7 @@ custom_css = """
         width: 100% !important;
         overflow-x: auto !important;
     }
-    table {
+    table.data-table {
         border-collapse: collapse !important;
         width: 100% !important;
         border-radius: 8px !important;
@@ -320,7 +325,7 @@ elif st.session_state.step == 2:
     
     st.subheader("📊 2. レース選定＆予算配分")
     
-    # 見えないテーブルで項目名と値を完璧に縦ライン合わせ
+    # 完全に罫線と余白を排除した整列テーブル
     st.markdown(f"""
         <div class="info-summary-box">
             <table class="align-table">
