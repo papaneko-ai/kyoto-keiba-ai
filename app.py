@@ -15,7 +15,7 @@ st.set_page_config(
 )
 
 # ---------------------------------------------------------
-# カスタムCSS（スマホ表示でのテーブル崩れ・文字折り返し完全修復）
+# カスタムCSS（スマホ完全対応・文字折り返し＆レイアウト最適化）
 # ---------------------------------------------------------
 custom_css = """
     <style>
@@ -32,46 +32,61 @@ custom_css = """
     div[data-testid="stToolbar"] {display: hidden !important;}
     iframe[title="streamlit_app"] {bottom: 0 !important;}
     button[title="View app in Streamlit Community Cloud"] {display: none !important;}
-    [data-testid="stToolbarActionButton"] {display: none !important;}
-    .viewerBadge_container__1QSob {display: none !important;}
-    a[href*="streamlit.io"] {display: none !important;}
+    [data-testid="stToolbarActionButton"] {display: hidden !important;}
+    .viewerBadge_container__1QSob {display: hidden !important;}
+    a[href*="streamlit.io"] {display: hidden !important;}
     
-    /* 画面全体のパディング調整 */
+    /* 画面全体のパディング・幅調整 */
     .block-container {
-        padding-top: 1.5rem !important;
-        padding-bottom: 2.5rem !important;
-        max-width: 800px !important;
+        padding-top: 1rem !important;
+        padding-bottom: 2rem !important;
+        max-width: 750px !important;
+        padding-left: 1rem !important;
+        padding-right: 1rem !important;
+    }
+
+    /* モバイルでの見出し文字サイズ調整 */
+    h2 {
+        font-size: 1.25rem !important;
+        font-weight: 700 !important;
+        line-height: 1.4 !important;
+    }
+    h3 {
+        font-size: 1.1rem !important;
+        font-weight: 700 !important;
+        line-height: 1.4 !important;
     }
 
     /* ヒーローヘッダー（起動画面用） */
     .hero-card {
         background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
         border-radius: 16px;
-        padding: 24px 20px;
+        padding: 20px 16px;
         color: #ffffff;
         text-align: center;
         box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.2);
-        margin-bottom: 24px;
+        margin-bottom: 20px;
         border: 1px solid rgba(255, 255, 255, 0.1);
     }
     .hero-title {
-        font-size: 24px;
+        font-size: 20px;
         font-weight: 800;
-        margin-bottom: 6px;
+        margin-bottom: 4px;
         letter-spacing: 0.5px;
         color: #f8fafc;
     }
     .hero-subtitle {
-        font-size: 13px;
+        font-size: 12px;
         color: #94a3b8;
         margin-bottom: 0;
+        line-height: 1.4;
     }
 
     /* ボタン全体のデザイン統一 */
     .stButton > button {
         border-radius: 10px !important;
         font-weight: bold !important;
-        height: 3rem !important;
+        height: 2.8rem !important;
         transition: all 0.2s ease-in-out;
     }
 
@@ -83,45 +98,45 @@ custom_css = """
     table {
         border-collapse: collapse !important;
         width: 100% !important;
-        border-radius: 10px !important;
+        border-radius: 8px !important;
         overflow: hidden !important;
         box-shadow: 0 1px 3px rgba(0,0,0,0.05) !important;
         border: 1px solid #e2e8f0 !important;
-        font-size: 13px !important;
+        font-size: 12px !important;
     }
     th {
         background-color: #f1f5f9 !important;
         color: #334155 !important;
         font-weight: 700 !important;
         text-align: center !important;
-        padding: 8px 4px !important;
-        word-break: normal !important;
+        padding: 6px 4px !important;
     }
     td {
         text-align: center !important;
         vertical-align: middle !important;
         color: #1e293b !important;
-        padding: 8px 4px !important;
+        padding: 6px 4px !important;
     }
 
     /* レース詳細枠（expander）のスタイリング */
     div[data-testid="stExpander"] {
-        border-radius: 12px !important;
+        border-radius: 10px !important;
         border: 1px solid #e2e8f0 !important;
         background-color: #ffffff !important;
-        margin-bottom: 12px !important;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.02) !important;
+        margin-bottom: 10px !important;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.02) !important;
     }
     
     /* 軸馬ハイライトカード */
     .axis-highlight {
         background-color: #f0fdf4;
         border-left: 4px solid #22c55e;
-        padding: 10px 14px;
+        padding: 8px 12px;
         border-radius: 6px;
-        margin-bottom: 12px;
+        margin-bottom: 10px;
         font-weight: 600;
         color: #15803d;
+        font-size: 13px;
     }
     </style>
 """
@@ -227,7 +242,7 @@ def fetch_race_results_safely(target_date, race_id):
         response = requests.get(target_url, headers=headers, timeout=5)
         
         if response.status_code == 404:
-            return {"status": "not_found", "message": f"📅 指定された日（{target_date.strftime('%Y年%m月%d日')}）は京都競馬の開催日ではないか、まだレース結果データが公開されていません。"}
+            return {"status": "not_found", "message": f"📅 指定された日（{target_date.strftime('%Y年%m月%d日')}）は京都競馬の開催日ではないか、まだ結果データが公開されていません。"}
         
         if response.status_code == 403 or response.status_code == 429:
             return {"status": "blocked", "message": "⚠️ 競馬情報サイトからのアクセス制限（ブロック）を検知しました。時間をおいて再度お試しください。"}
@@ -297,20 +312,21 @@ if st.session_state.step == 1:
 elif st.session_state.step == 2:
     st.button("🏠 最初（起動画面）からやり直す", on_click=reset_to_step1)
     
-    st.subheader("📊 2. レース選定 ＆ 予算配分 ＆ 結果確認")
+    st.subheader("📊 レース選定 ＆ 予算配分 ＆ 結果確認")
     
-    st.info(f"📅 **開催日**: {st.session_state.race_date} ｜ ⏱️ **参戦以降**: {st.session_state.start_time_str}\n\n"
+    st.info(f"📅 **開催日**: {st.session_state.race_date}\n"
+            f"⏱️ **参戦以降**: {st.session_state.start_time_str}\n\n"
             f"🎯 **選択方針**: {st.session_state.strategy_mode}")
 
     # --- 自動振り返り・結果取得セクション ---
-    with st.expander("🔍 【自動振り返り】 本日のレース結果を自動取得して検証する"):
-        st.caption("結果確認画面を開いたタイミングで、最新のレース結果を安全に取得・照合します。")
-        if st.button("📡 最新レース結果を自動取得して照合する"):
-            with st.spinner("外部サイトから結果データを安全に取得中..."):
+    with st.expander("🔍 【自動振り返り】 本日のレース結果を確認"):
+        st.caption("最新のレース結果を安全に取得・照合します。")
+        if st.button("📡 結果を自動取得して照合"):
+            with st.spinner("外部サイトから結果データを取得中..."):
                 fetch_test = fetch_race_results_safely(st.session_state.race_date, 8)
                 
                 if fetch_test["status"] == "success":
-                    st.success("✅ レース結果の自動取得に成功しました！（直近成績の照合完了）")
+                    st.success("✅ レース結果の自動取得に成功しました！")
                 elif fetch_test["status"] == "not_found":
                     st.warning(fetch_test["message"])
                 else:
@@ -354,7 +370,7 @@ elif st.session_state.step == 2:
             "rec": factor_data["is_rec"]
         })
 
-    st.markdown(f"### 📋 参戦可能レース一覧（🔥=AIお勧め ｜ 全 {len(all_races)} レース）")
+    st.markdown(f"### 📋 参戦可能レース一覧（🔥お勧め ｜ 全{len(all_races)}R）")
     st.caption("購入したいレースにチェックを入れてください。")
 
     selected_race_ids = []
@@ -363,7 +379,7 @@ elif st.session_state.step == 2:
         badge = " 🔥" if r["rec"] else ""
         with st.expander(f"京都 {r['id']}R {r['name']} ({r['time']}){badge} | EV:{r['eval_score']}%"):
             is_checked = st.checkbox(
-                f"このレース（京都{r['id']}R）を購入候補に含める",
+                f"京都{r['id']}Rを購入候補に含める",
                 value=False,
                 key=f"chk_r_{r['id']}"
             )
@@ -372,7 +388,7 @@ elif st.session_state.step == 2:
             
             st.markdown(f"""
                 <div class="axis-highlight">
-                    🎯 推奨軸馬: <strong>{r['axis']}</strong> <span style="font-size:11px; font-weight:normal; color:#475569;">（マルチファクター解析完了）</span>
+                    🎯 推奨軸馬: <strong>{r['axis']}</strong>
                 </div>
             """, unsafe_allow_html=True)
             
@@ -397,7 +413,7 @@ elif st.session_state.step == 2:
 
     st.markdown("---")
     
-    st.subheader("💰 投資予算の設定と自動配分")
+    st.subheader("💰 投資予算と自動配分")
     budget = st.number_input(
         "本日の総投資予算（円）", 
         min_value=1000, 
@@ -408,14 +424,14 @@ elif st.session_state.step == 2:
 
     col1, col2 = st.columns(2)
     with col1:
-        st.button("⬅️ 条件を再設定する", use_container_width=True, on_click=reset_to_step1)
+        st.button("⬅️ 条件再設定", use_container_width=True, on_click=reset_to_step1)
             
     with col2:
-        calc_btn = st.button("🚀 予算を効率配分する", type="primary", use_container_width=True)
+        calc_btn = st.button("🚀 予算を配分する", type="primary", use_container_width=True)
 
     if calc_btn:
         if not selected_race_ids:
-            st.error("⚠️ 購入するレースが1つも選択されていません。少なくとも1つ以上のレースにチェックを入れてください。")
+            st.error("⚠️ 購入するレースが選択されていません。")
         else:
             st.markdown("---")
             st.success(f"✅ 予算配分完了！（総予算: {budget:,} 円 ｜ 選択数: {len(selected_race_ids)}R）")
