@@ -15,7 +15,7 @@ st.set_page_config(
 )
 
 # ---------------------------------------------------------
-# カスタムCSS（スマホ完全対応・文字折り返し＆レイアウト最適化）
+# カスタムCSS（スマホ完全レイアウト修正）
 # ---------------------------------------------------------
 custom_css = """
     <style>
@@ -32,44 +32,44 @@ custom_css = """
     div[data-testid="stToolbar"] {display: hidden !important;}
     iframe[title="streamlit_app"] {bottom: 0 !important;}
     button[title="View app in Streamlit Community Cloud"] {display: none !important;}
-    [data-testid="stToolbarActionButton"] {display: hidden !important;}
-    .viewerBadge_container__1QSob {display: hidden !important;}
-    a[href*="streamlit.io"] {display: hidden !important;}
+    [data-testid="stToolbarActionButton"] {display: none !important;}
+    .viewerBadge_container__1QSob {display: none !important;}
+    a[href*="streamlit.io"] {display: none !important;}
     
     /* 画面全体のパディング・幅調整 */
     .block-container {
         padding-top: 1rem !important;
         padding-bottom: 2rem !important;
         max-width: 750px !important;
-        padding-left: 1rem !important;
-        padding-right: 1rem !important;
+        padding-left: 0.8rem !important;
+        padding-right: 0.8rem !important;
     }
 
     /* モバイルでの見出し文字サイズ調整 */
     h2 {
-        font-size: 1.25rem !important;
+        font-size: 1.2rem !important;
         font-weight: 700 !important;
-        line-height: 1.4 !important;
+        line-height: 1.3 !important;
     }
     h3 {
-        font-size: 1.1rem !important;
+        font-size: 1.05rem !important;
         font-weight: 700 !important;
-        line-height: 1.4 !important;
+        line-height: 1.3 !important;
     }
 
     /* ヒーローヘッダー（起動画面用） */
     .hero-card {
         background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
-        border-radius: 16px;
-        padding: 20px 16px;
+        border-radius: 14px;
+        padding: 18px 14px;
         color: #ffffff;
         text-align: center;
-        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.2);
-        margin-bottom: 20px;
+        box-shadow: 0 8px 20px -5px rgba(0, 0, 0, 0.2);
+        margin-bottom: 18px;
         border: 1px solid rgba(255, 255, 255, 0.1);
     }
     .hero-title {
-        font-size: 20px;
+        font-size: 19px;
         font-weight: 800;
         margin-bottom: 4px;
         letter-spacing: 0.5px;
@@ -80,6 +80,27 @@ custom_css = """
         color: #94a3b8;
         margin-bottom: 0;
         line-height: 1.4;
+    }
+
+    /* 設定確認用の美しい情報ボックス */
+    .info-summary-box {
+        background-color: #eff6ff;
+        border: 1px solid #bfdbfe;
+        border-radius: 10px;
+        padding: 12px 14px;
+        color: #1e40af;
+        font-size: 13px;
+        line-height: 1.6;
+        margin-bottom: 16px;
+    }
+    .info-summary-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 6px;
+        margin-bottom: 4px;
+    }
+    .info-summary-item:last-child {
+        margin-bottom: 0;
     }
 
     /* ボタン全体のデザイン統一 */
@@ -242,27 +263,27 @@ def fetch_race_results_safely(target_date, race_id):
         response = requests.get(target_url, headers=headers, timeout=5)
         
         if response.status_code == 404:
-            return {"status": "not_found", "message": f"📅 指定された日（{target_date.strftime('%Y年%m月%d日')}）は京都競馬の開催日ではないか、まだ結果データが公開されていません。"}
+            return {"status": "not_found", "message": f"📅 指定日（{target_date.strftime('%Y-%m-%d')}）は非開催かデータ未確定です。"}
         
         if response.status_code == 403 or response.status_code == 429:
-            return {"status": "blocked", "message": "⚠️ 競馬情報サイトからのアクセス制限（ブロック）を検知しました。時間をおいて再度お試しください。"}
+            return {"status": "blocked", "message": "⚠️ アクセス制限を検知しました。時間をおいて再試行してください。"}
         elif response.status_code != 200:
-            return {"status": "error", "message": f"⚠️ サーバーエラー（HTTPコード: {response.status_code}）が発生しました。"}
+            return {"status": "error", "message": f"⚠️ サーバーエラー（HTTP: {response.status_code}）"}
             
         soup = BeautifulSoup(response.text, 'html.parser')
         result_table = soup.find('table', class_='race_table_01')
         
         if not result_table:
-            return {"status": "ui_changed", "message": "⚠️ サイト側の仕様変更（UI変更）またはデータ未確定による読み込みエラーです。レース終了直後はデータが反映されていない場合があります。"}
+            return {"status": "ui_changed", "message": "⚠️ サイト仕様変更またはデータ未確定による読み込みエラーです。"}
             
         return {"status": "success", "data": "取得成功"}
         
     except requests.exceptions.Timeout:
-        return {"status": "timeout", "message": "⚠️ 接続がタイムアウトしました。インターネット接続またはサイトの混雑状況を確認してください。"}
+        return {"status": "timeout", "message": "⚠️ 接続タイムアウト。通信状態を確認してください。"}
     except requests.exceptions.RequestException as e:
-        return {"status": "network_error", "message": f"⚠️ ネットワーク通信エラーが発生しました: {str(e)}"}
+        return {"status": "network_error", "message": f"⚠️ 通信エラー: {str(e)}"}
     except Exception as e:
-        return {"status": "unknown_error", "message": f"⚠️ 予期せぬエラーが発生しました: {str(e)}"}
+        return {"status": "unknown_error", "message": f"⚠️ 予期せぬエラー: {str(e)}"}
 
 # ---------------------------------------------------------
 # ステップ 1：起動条件設定画面
@@ -276,7 +297,7 @@ if st.session_state.step == 1:
     """, unsafe_allow_html=True)
 
     st.subheader("⚙️ 参戦条件の設定")
-    st.caption("対象日とご自身の投資スタイルを選択し、AI解析を実行してください。")
+    st.caption("対象日と投資スタイルを選択し、AI解析を実行してください。")
 
     default_date = datetime.date.today()
     race_date = st.date_input("📅 開催日の選択", value=default_date)
@@ -312,17 +333,22 @@ if st.session_state.step == 1:
 elif st.session_state.step == 2:
     st.button("🏠 最初（起動画面）からやり直す", on_click=reset_to_step1)
     
-    st.subheader("📊 レース選定 ＆ 予算配分 ＆ 結果確認")
+    st.subheader("📊 2. レース選定＆予算配分")
     
-    st.info(f"📅 **開催日**: {st.session_state.race_date}\n"
-            f"⏱️ **参戦以降**: {st.session_state.start_time_str}\n\n"
-            f"🎯 **選択方針**: {st.session_state.strategy_mode}")
+    # 完全に整列された情報要約ボックス
+    st.markdown(f"""
+        <div class="info-summary-box">
+            <div class="info-summary-item">📅 <strong>開催日</strong>: {st.session_state.race_date}</div>
+            <div class="info-summary-item">⏱️ <strong>参戦時間</strong>: {st.session_state.start_time_str}</div>
+            <div class="info-summary-item">🎯 <strong>選択方針</strong>: {st.session_state.strategy_mode}</div>
+        </div>
+    """, unsafe_allow_html=True)
 
     # --- 自動振り返り・結果取得セクション ---
     with st.expander("🔍 【自動振り返り】 本日のレース結果を確認"):
-        st.caption("最新のレース結果を安全に取得・照合します。")
-        if st.button("📡 結果を自動取得して照合"):
-            with st.spinner("外部サイトから結果データを取得中..."):
+        st.caption("最新のレース結果を自動取得して照合します。")
+        if st.button("📡 結果を照合する"):
+            with st.spinner("結果取得中..."):
                 fetch_test = fetch_race_results_safely(st.session_state.race_date, 8)
                 
                 if fetch_test["status"] == "success":
@@ -370,7 +396,7 @@ elif st.session_state.step == 2:
             "rec": factor_data["is_rec"]
         })
 
-    st.markdown(f"### 📋 参戦可能レース一覧（🔥お勧め ｜ 全{len(all_races)}R）")
+    st.markdown(f"### 📋 参戦可能レース（🔥=推奨 ｜ 全{len(all_races)}R）")
     st.caption("購入したいレースにチェックを入れてください。")
 
     selected_race_ids = []
@@ -401,7 +427,7 @@ elif st.session_state.step == 2:
             elif "的中率重視" in mode_key:
                 bets_preview = [
                     {"券種": "馬連", "組番": f"{r['axis']}-{r['p1']}", "オッズ": r["odds_p1"], "評価": "本線"},
-                    {"券種": "ワイド", "組番": f"{r['axis']}-{r['p2']}", "オッズ": r["odds_p2"], "評価": "安全本線"}
+                    {"券种": "ワイド", "組番": f"{r['axis']}-{r['p2']}", "オッズ": r["odds_p2"], "評価": "安全本線"}
                 ]
             else:
                 bets_preview = [
@@ -460,40 +486,4 @@ elif st.session_state.step == 2:
                         {"type": "馬連", "comb": f"{r_data['axis']}-{r_data['p1']}", "odds": r_data["odds_p1"], "tag": "中穴", "ratio": 0.3},
                         {"type": "ワイド", "comb": f"{r_data['axis']}-{r_data['p2']}", "odds": r_data["odds_p2"], "tag": "押さえ", "ratio": 0.3}
                     ]
-                elif "的中率重視" in mode_key:
-                    raw_bets = [
-                        {"type": "馬連", "comb": f"{r_data['axis']}-{r_data['p1']}", "odds": r_data["odds_p1"], "tag": "本線", "ratio": 0.6},
-                        {"type": "ワイド", "comb": f"{r_data['axis']}-{r_data['p2']}", "odds": r_data["odds_p2"], "tag": "安全本線", "ratio": 0.4}
-                    ]
-                else:
-                    raw_bets = [
-                        {"type": "馬連", "comb": f"{r_data['axis']}-{r_data['p1']}", "odds": r_data["odds_p1"], "tag": "本線", "ratio": 0.5},
-                        {"type": "馬連", "comb": f"{r_data['axis']}-{r_data['ana']}", "odds": r_data["odds_ana"], "tag": "中穴", "ratio": 0.3},
-                        {"type": "ワイド", "comb": f"{r_data['axis']}-{r_data['p2']}", "odds": r_data["odds_p2"], "tag": "押さえ", "ratio": 0.2}
-                    ]
-
-                bet_rows = []
-                sub_allocated = 0
-                n_b = len(raw_bets)
-                
-                for b_idx, b_item in enumerate(raw_bets):
-                    if b_idx == n_b - 1:
-                        b_amt = this_race_budget - sub_allocated
-                    else:
-                        b_amt = int((this_race_budget * b_item["ratio"]) // 100 * 100)
-                        if b_amt < 100:
-                            b_amt = 100
-                    sub_allocated += b_amt
-                    
-                    bet_rows.append({
-                        "券種": b_item["type"],
-                        "組番": b_item["comb"],
-                        "オッズ": b_item["odds"],
-                        "評価": b_item["tag"],
-                        "金額": f"{b_amt:,}円"
-                    })
-                
-                st.table(pd.DataFrame(bet_rows))
-                st.markdown("---")
-                
-            st.success(f"💡 合計購入金額: **{allocated_total:,} 円**（端数完全消化）")
+                elif "的中率重視"
