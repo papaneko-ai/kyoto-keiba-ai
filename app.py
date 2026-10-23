@@ -15,7 +15,7 @@ st.set_page_config(
 )
 
 # ---------------------------------------------------------
-# カスタムCSS（文字折り返し・配置・デザイン完全最適化）
+# カスタムCSS（スマホ表示でのテーブル崩れ・文字折り返し完全修復）
 # ---------------------------------------------------------
 custom_css = """
     <style>
@@ -26,10 +26,10 @@ custom_css = """
     footer {visibility: hidden !important;}
     .stAppFooter {display: none !important;}
     div[data-testid="stStatusWidget"] {visibility: hidden !important;}
-    div[data-testid="stDecoration"] {display: none !important;}
-    #stDecoration {display: none !important;}
-    .stViewerBadge {display: none !important;}
-    div[data-testid="stToolbar"] {display: none !important;}
+    div[data-testid="stDecoration"] {display: hidden !important;}
+    #stDecoration {display: hidden !important;}
+    .stViewerBadge {display: hidden !important;}
+    div[data-testid="stToolbar"] {display: hidden !important;}
     iframe[title="streamlit_app"] {bottom: 0 !important;}
     button[title="View app in Streamlit Community Cloud"] {display: none !important;}
     [data-testid="stToolbarActionButton"] {display: none !important;}
@@ -75,7 +75,7 @@ custom_css = """
         transition: all 0.2s ease-in-out;
     }
 
-    /* テーブル・データフレームの見た目＆位置調整 */
+    /* テーブル・データフレームのスマホ最適化 */
     div[data-testid="stTable"] {
         width: 100% !important;
         overflow-x: auto !important;
@@ -87,23 +87,21 @@ custom_css = """
         overflow: hidden !important;
         box-shadow: 0 1px 3px rgba(0,0,0,0.05) !important;
         border: 1px solid #e2e8f0 !important;
+        font-size: 13px !important;
     }
     th {
         background-color: #f1f5f9 !important;
         color: #334155 !important;
         font-weight: 700 !important;
         text-align: center !important;
-        white-space: nowrap !important; /* ヘッダー文字の途中で折り返さない */
-        padding: 10px 8px !important;
-        font-size: 14px !important;
+        padding: 8px 4px !important;
+        word-break: normal !important;
     }
     td {
         text-align: center !important;
         vertical-align: middle !important;
         color: #1e293b !important;
-        padding: 10px 8px !important;
-        font-size: 14px !important;
-        white-space: nowrap !important; /* データセルの不自然な改行を防止 */
+        padding: 8px 4px !important;
     }
 
     /* レース詳細枠（expander）のスタイリング */
@@ -333,9 +331,9 @@ elif st.session_state.step == 2:
     race_names = {
         1: "2歳未勝利", 2: "2歳未勝利", 3: "2歳未勝利", 4: "3歳以上1勝クラス",
         5: "3歳以上1勝クラス", 6: "3歳以上1勝クラス", 7: "3歳以上2勝クラス",
-        8: "第8レース（3歳以上2勝クラス）", 9: "第9レース（醍醐ステークス）",
-        10: "第10レース（長岡京ステークス）", 11: "第11レース（カシオペアステークス）",
-        12: "第12レース（3歳以上1勝クラス）"
+        8: "第8R（3歳以上2勝）", 9: "第9R（醍醐S）",
+        10: "第10R（長岡京S）", 11: "第11R（カシオペアS）",
+        12: "第12R（3歳以上1勝）"
     }
 
     all_races = []
@@ -362,8 +360,8 @@ elif st.session_state.step == 2:
     selected_race_ids = []
     
     for r in all_races:
-        badge = " 🔥 【AIお勧め】" if r["rec"] else ""
-        with st.expander(f"京都 {r['id']}R ｜ {r['name']} （発走 {r['time']}）{badge} ｜ 期待値: {r['eval_score']}%"):
+        badge = " 🔥" if r["rec"] else ""
+        with st.expander(f"京都 {r['id']}R {r['name']} ({r['time']}){badge} | EV:{r['eval_score']}%"):
             is_checked = st.checkbox(
                 f"このレース（京都{r['id']}R）を購入候補に含める",
                 value=False,
@@ -372,29 +370,28 @@ elif st.session_state.step == 2:
             if is_checked:
                 selected_race_ids.append(r["id"])
             
-            # 推奨軸馬を分かりやすいハイライトカードで表示
             st.markdown(f"""
                 <div class="axis-highlight">
-                    🎯 推奨軸馬: <strong>{r['axis']}</strong> <span style="font-size:12px; font-weight:normal; color:#475569;">（マルチファクター解析完了）</span>
+                    🎯 推奨軸馬: <strong>{r['axis']}</strong> <span style="font-size:11px; font-weight:normal; color:#475569;">（マルチファクター解析完了）</span>
                 </div>
             """, unsafe_allow_html=True)
             
             if "穴馬" in mode_key:
                 bets_preview = [
-                    {"券種": "馬連", "組番（マークシート）": f"{r['axis']} - {r['ana']}", "参考オッズ": r["odds_ana"], "評価": "特注大穴"},
-                    {"券種": "馬連", "組番（マークシート）": f"{r['axis']} - {r['p1']}", "参考オッズ": r["odds_p1"], "評価": "中穴"},
-                    {"券種": "ワイド", "組番（マークシート）": f"{r['axis']} - {r['p2']}", "参考オッズ": r["odds_p2"], "評価": "押さえ"}
+                    {"券種": "馬連", "組番": f"{r['axis']}-{r['ana']}", "オッズ": r["odds_ana"], "評価": "特注大穴"},
+                    {"券種": "馬連", "組番": f"{r['axis']}-{r['p1']}", "オッズ": r["odds_p1"], "評価": "中穴"},
+                    {"券種": "ワイド", "組番": f"{r['axis']}-{r['p2']}", "オッズ": r["odds_p2"], "評価": "押さえ"}
                 ]
             elif "的中率重視" in mode_key:
                 bets_preview = [
-                    {"券種": "馬連", "組番（マークシート）": f"{r['axis']} - {r['p1']}", "参考オッズ": r["odds_p1"], "評価": "本線"},
-                    {"券種": "ワイド", "組番（マークシート）": f"{r['axis']} - {r['p2']}", "参考オッズ": r["odds_p2"], "評価": "安全本線"}
+                    {"券種": "馬連", "組番": f"{r['axis']}-{r['p1']}", "オッズ": r["odds_p1"], "評価": "本線"},
+                    {"券種": "ワイド", "組番": f"{r['axis']}-{r['p2']}", "オッズ": r["odds_p2"], "評価": "安全本線"}
                 ]
             else:
                 bets_preview = [
-                    {"券種": "馬連", "組番（マークシート）": f"{r['axis']} - {r['p1']}", "参考オッズ": r["odds_p1"], "評価": "本線"},
-                    {"券種": "馬連", "組番（マークシート）": f"{r['axis']} - {r['ana']}", "参考オッズ": r["odds_ana"], "評価": "中穴"},
-                    {"券種": "ワイド", "組番（マークシート）": f"{r['axis']} - {r['p2']}", "参考オッズ": r["odds_p2"], "評価": "押さえ"}
+                    {"券種": "馬連", "組番": f"{r['axis']}-{r['p1']}", "オッズ": r["odds_p1"], "評価": "本線"},
+                    {"券種": "馬連", "組番": f"{r['axis']}-{r['ana']}", "オッズ": r["odds_ana"], "評価": "中穴"},
+                    {"券種": "ワイド", "組番": f"{r['axis']}-{r['p2']}", "オッズ": r["odds_p2"], "評価": "押さえ"}
                 ]
             st.table(pd.DataFrame(bets_preview))
 
@@ -411,17 +408,17 @@ elif st.session_state.step == 2:
 
     col1, col2 = st.columns(2)
     with col1:
-        st.button("⬅️ 条件を再設定する（起動画面へ）", use_container_width=True, on_click=reset_to_step1)
+        st.button("⬅️ 条件を再設定する", use_container_width=True, on_click=reset_to_step1)
             
     with col2:
-        calc_btn = st.button("🚀 選択レースに予算を効率配分する", type="primary", use_container_width=True)
+        calc_btn = st.button("🚀 予算を効率配分する", type="primary", use_container_width=True)
 
     if calc_btn:
         if not selected_race_ids:
             st.error("⚠️ 購入するレースが1つも選択されていません。少なくとも1つ以上のレースにチェックを入れてください。")
         else:
             st.markdown("---")
-            st.success(f"✅ 予算配分が完了しました！（総予算: {budget:,} 円 ｜ 選択レース数: {len(selected_race_ids)}レース）")
+            st.success(f"✅ 予算配分完了！（総予算: {budget:,} 円 ｜ 選択数: {len(selected_race_ids)}R）")
             
             n_races = len(selected_race_ids)
             race_budget_base = int((budget // n_races) // 100 * 100)
@@ -438,25 +435,25 @@ elif st.session_state.step == 2:
                 
                 allocated_total += this_race_budget
                 
-                st.markdown(f"### 🎯 【購入対象】 京都 {r_data['id']}R ｜ {r_data['name']}")
-                st.caption(f"発走 {r_data['time']} ｜ 割り割り投資額: **{this_race_budget:,} 円** ｜ 軸馬: **{r_data['axis']}**")
+                st.markdown(f"### 🎯 京都 {r_data['id']}R ｜ {r_data['name']}")
+                st.caption(f"発走 {r_data['time']} | 割当: **{this_race_budget:,}円** | 軸: **{r_data['axis']}**")
                 
                 if "穴馬" in mode_key:
                     raw_bets = [
-                        {"type": "馬連", "comb": f"{r_data['axis']} - {r_data['ana']}", "odds": r_data["odds_ana"], "tag": "特注大穴", "ratio": 0.4},
-                        {"type": "馬連", "comb": f"{r_data['axis']} - {r_data['p1']}", "odds": r_data["odds_p1"], "tag": "中穴", "ratio": 0.3},
-                        {"type": "ワイド", "comb": f"{r_data['axis']} - {r_data['p2']}", "odds": r_data["odds_p2"], "tag": "押さえ", "ratio": 0.3}
+                        {"type": "馬連", "comb": f"{r_data['axis']}-{r_data['ana']}", "odds": r_data["odds_ana"], "tag": "特注大穴", "ratio": 0.4},
+                        {"type": "馬連", "comb": f"{r_data['axis']}-{r_data['p1']}", "odds": r_data["odds_p1"], "tag": "中穴", "ratio": 0.3},
+                        {"type": "ワイド", "comb": f"{r_data['axis']}-{r_data['p2']}", "odds": r_data["odds_p2"], "tag": "押さえ", "ratio": 0.3}
                     ]
                 elif "的中率重視" in mode_key:
                     raw_bets = [
-                        {"type": "馬連", "comb": f"{r_data['axis']} - {r_data['p1']}", "odds": r_data["odds_p1"], "tag": "本線", "ratio": 0.6},
-                        {"type": "ワイド", "comb": f"{r_data['axis']} - {r_data['p2']}", "odds": r_data["odds_p2"], "tag": "安全本線", "ratio": 0.4}
+                        {"type": "馬連", "comb": f"{r_data['axis']}-{r_data['p1']}", "odds": r_data["odds_p1"], "tag": "本線", "ratio": 0.6},
+                        {"type": "ワイド", "comb": f"{r_data['axis']}-{r_data['p2']}", "odds": r_data["odds_p2"], "tag": "安全本線", "ratio": 0.4}
                     ]
                 else:
                     raw_bets = [
-                        {"type": "馬連", "comb": f"{r_data['axis']} - {r_data['p1']}", "odds": r_data["odds_p1"], "tag": "本線", "ratio": 0.5},
-                        {"type": "馬連", "comb": f"{r_data['axis']} - {r_data['ana']}", "odds": r_data["odds_ana"], "tag": "中穴", "ratio": 0.3},
-                        {"type": "ワイド", "comb": f"{r_data['axis']} - {r_data['p2']}", "odds": r_data["odds_p2"], "tag": "押さえ", "ratio": 0.2}
+                        {"type": "馬連", "comb": f"{r_data['axis']}-{r_data['p1']}", "odds": r_data["odds_p1"], "tag": "本線", "ratio": 0.5},
+                        {"type": "馬連", "comb": f"{r_data['axis']}-{r_data['ana']}", "odds": r_data["odds_ana"], "tag": "中穴", "ratio": 0.3},
+                        {"type": "ワイド", "comb": f"{r_data['axis']}-{r_data['p2']}", "odds": r_data["odds_p2"], "tag": "押さえ", "ratio": 0.2}
                     ]
 
                 bet_rows = []
@@ -474,13 +471,13 @@ elif st.session_state.step == 2:
                     
                     bet_rows.append({
                         "券種": b_item["type"],
-                        "組番（マークシート）": b_item["comb"],
-                        "参考オッズ": b_item["odds"],
+                        "組番": b_item["comb"],
+                        "オッズ": b_item["odds"],
                         "評価": b_item["tag"],
-                        "購入金額": f"{b_amt:,} 円"
+                        "金額": f"{b_amt:,}円"
                     })
                 
                 st.table(pd.DataFrame(bet_rows))
                 st.markdown("---")
                 
-            st.success(f"💡 合計購入金額: **{allocated_total:,} 円**（余り・端数なし ｜ 完全消化完了）")
+            st.success(f"💡 合計購入金額: **{allocated_total:,} 円**（端数完全消化）")
