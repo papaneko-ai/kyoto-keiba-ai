@@ -19,24 +19,22 @@ st.set_page_config(
 # ---------------------------------------------------------
 custom_css = """
     <style>
-    /* 不要なデフォルト要素の完全非表示 */
     #MainMenu {visibility: hidden !important;}
     header {visibility: hidden !important;}
     .stAppHeader {display: none !important;}
     footer {visibility: hidden !important;}
     .stAppFooter {display: none !important;}
     div[data-testid="stStatusWidget"] {visibility: hidden !important;}
-    div[data-testid="stDecoration"] {display: hidden !important;}
-    #stDecoration {display: hidden !important;}
-    .stViewerBadge {display: hidden !important;}
-    div[data-testid="stToolbar"] {display: hidden !important;}
+    div[data-testid="stDecoration"] {visibility: hidden !important;}
+    #stDecoration {visibility: hidden !important;}
+    .stViewerBadge {visibility: hidden !important;}
+    div[data-testid="stToolbar"] {visibility: hidden !important;}
     iframe[title="streamlit_app"] {bottom: 0 !important;}
     button[title="View app in Streamlit Community Cloud"] {display: none !important;}
-    [data-testid="stToolbarActionButton"] {display: none !important;}
-    .viewerBadge_container__1QSob {display: none !important;}
-    a[href*="streamlit.io"] {display: none !important;}
+    [data-testid="stToolbarActionButton"] {display: hidden !important;}
+    .viewerBadge_container__1QSob {display: hidden !important;}
+    a[href*="streamlit.io"] {display: hidden !important;}
     
-    /* 画面全体のパディング・幅調整 */
     .block-container {
         padding-top: 1rem !important;
         padding-bottom: 2rem !important;
@@ -45,7 +43,6 @@ custom_css = """
         padding-right: 0.8rem !important;
     }
 
-    /* モバイルでの見出し文字サイズ調整 */
     h2 {
         font-size: 1.2rem !important;
         font-weight: 700 !important;
@@ -57,7 +54,6 @@ custom_css = """
         line-height: 1.3 !important;
     }
 
-    /* ヒーローヘッダー（起動画面用） */
     .hero-card {
         background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
         border-radius: 14px;
@@ -82,7 +78,6 @@ custom_css = """
         line-height: 1.4;
     }
 
-    /* 設定確認用の美しい情報ボックス */
     .info-summary-box {
         background-color: #eff6ff;
         border: 1px solid #bfdbfe;
@@ -103,7 +98,6 @@ custom_css = """
         margin-bottom: 0;
     }
 
-    /* ボタン全体のデザイン統一 */
     .stButton > button {
         border-radius: 10px !important;
         font-weight: bold !important;
@@ -111,7 +105,6 @@ custom_css = """
         transition: all 0.2s ease-in-out;
     }
 
-    /* テーブル・データフレームのスマホ最適化 */
     div[data-testid="stTable"] {
         width: 100% !important;
         overflow-x: auto !important;
@@ -139,7 +132,6 @@ custom_css = """
         padding: 6px 4px !important;
     }
 
-    /* レース詳細枠（expander）のスタイリング */
     div[data-testid="stExpander"] {
         border-radius: 10px !important;
         border: 1px solid #e2e8f0 !important;
@@ -148,7 +140,6 @@ custom_css = """
         box-shadow: 0 1px 3px rgba(0,0,0,0.02) !important;
     }
     
-    /* 軸馬ハイライトカード */
     .axis-highlight {
         background-color: #f0fdf4;
         border-left: 4px solid #22c55e;
@@ -163,7 +154,6 @@ custom_css = """
 """
 st.markdown(custom_css, unsafe_allow_html=True)
 
-# 右下フローティングアイコン（親ドキュメント要素）を強制非表示にするJS
 st.components.v1.html("""
     <script>
     function removeBadge() {
@@ -192,18 +182,12 @@ st.components.v1.html("""
     </script>
 """, height=0, width=0)
 
-# ---------------------------------------------------------
-# セッション状態の初期化＆クリア処理
-# ---------------------------------------------------------
 if 'step' not in st.session_state:
     st.session_state.step = 1
 
 def reset_to_step1():
     st.session_state.step = 1
 
-# ---------------------------------------------------------
-# プロ仕様：5大ファクター連動型・動的解析アルゴリズム
-# ---------------------------------------------------------
 def analyze_pro_factors(date_obj, race_id, strategy_mode):
     seed_str = f"{date_obj.strftime('%Y%m%d')}_{race_id}_{strategy_mode}"
     hash_val = int(hashlib.md5(seed_str.encode()).hexdigest(), 16)
@@ -232,6 +216,7 @@ def analyze_pro_factors(date_obj, race_id, strategy_mode):
         base_ev += 4.0
         odds_p1, odds_p2, odds_ana = "12.5倍", "24.0倍", "68.5倍"
     elif "的中率重視" in strategy_mode:
+        base_ev += 4.5
         odds_p1, odds_p2, odds_ana = "4.5倍", "7.2倍", "18.0倍"
     else:
         odds_p1, odds_p2, odds_ana = "7.8倍", "15.2倍", "38.0倍"
@@ -248,9 +233,6 @@ def analyze_pro_factors(date_obj, race_id, strategy_mode):
         "is_rec": is_recommended
     }
 
-# ---------------------------------------------------------
-# 自動結果取得・状況別メッセージ通知付きスクレイピング関数
-# ---------------------------------------------------------
 def fetch_race_results_safely(target_date, race_id):
     date_str = target_date.strftime('%Y%m%d')
     target_url = f"https://db.netkeiba.com/race/{date_str}080401{str(race_id).zfill(2)}/"
@@ -285,9 +267,6 @@ def fetch_race_results_safely(target_date, race_id):
     except Exception as e:
         return {"status": "unknown_error", "message": f"⚠️ 予期せぬエラー: {str(e)}"}
 
-# ---------------------------------------------------------
-# ステップ 1：起動条件設定画面
-# ---------------------------------------------------------
 if st.session_state.step == 1:
     st.markdown("""
         <div class="hero-card">
@@ -327,15 +306,11 @@ if st.session_state.step == 1:
         st.session_state.step = 2
         st.rerun()
 
-# ---------------------------------------------------------
-# ステップ 2：全レース予想一覧 ＆ レース選択 ＆ 厳密資金配分
-# ---------------------------------------------------------
 elif st.session_state.step == 2:
     st.button("🏠 最初（起動画面）からやり直す", on_click=reset_to_step1)
     
     st.subheader("📊 2. レース選定＆予算配分")
     
-    # 完全に整列された情報要約ボックス
     st.markdown(f"""
         <div class="info-summary-box">
             <div class="info-summary-item">📅 <strong>開催日</strong>: {st.session_state.race_date}</div>
@@ -344,7 +319,6 @@ elif st.session_state.step == 2:
         </div>
     """, unsafe_allow_html=True)
 
-    # --- 自動振り返り・結果取得セクション ---
     with st.expander("🔍 【自動振り返り】 本日のレース結果を確認"):
         st.caption("最新のレース結果を自動取得して照合します。")
         if st.button("📡 結果を照合する"):
@@ -427,7 +401,7 @@ elif st.session_state.step == 2:
             elif "的中率重視" in mode_key:
                 bets_preview = [
                     {"券種": "馬連", "組番": f"{r['axis']}-{r['p1']}", "オッズ": r["odds_p1"], "評価": "本線"},
-                    {"券种": "ワイド", "組番": f"{r['axis']}-{r['p2']}", "オッズ": r["odds_p2"], "評価": "安全本線"}
+                    {"券種": "ワイド", "組番": f"{r['axis']}-{r['p2']}", "オッズ": r["odds_p2"], "評価": "安全本線"}
                 ]
             else:
                 bets_preview = [
@@ -486,4 +460,40 @@ elif st.session_state.step == 2:
                         {"type": "馬連", "comb": f"{r_data['axis']}-{r_data['p1']}", "odds": r_data["odds_p1"], "tag": "中穴", "ratio": 0.3},
                         {"type": "ワイド", "comb": f"{r_data['axis']}-{r_data['p2']}", "odds": r_data["odds_p2"], "tag": "押さえ", "ratio": 0.3}
                     ]
-                elif "的中率重視"
+                elif "的中率重視" in mode_key:
+                    raw_bets = [
+                        {"type": "馬連", "comb": f"{r_data['axis']}-{r_data['p1']}", "odds": r_data["odds_p1"], "tag": "本線", "ratio": 0.6},
+                        {"type": "ワイド", "comb": f"{r_data['axis']}-{r_data['p2']}", "odds": r_data["odds_p2"], "tag": "安全本線", "ratio": 0.4}
+                    ]
+                else:
+                    raw_bets = [
+                        {"type": "馬連", "comb": f"{r_data['axis']}-{r_data['p1']}", "odds": r_data["odds_p1"], "tag": "本線", "ratio": 0.5},
+                        {"type": "馬連", "comb": f"{r_data['axis']}-{r_data['ana']}", "odds": r_data["odds_ana"], "tag": "中穴", "ratio": 0.3},
+                        {"type": "ワイド", "comb": f"{r_data['axis']}-{r_data['p2']}", "odds": r_data["odds_p2"], "tag": "押さえ", "ratio": 0.2}
+                    ]
+
+                bet_rows = []
+                sub_allocated = 0
+                n_b = len(raw_bets)
+                
+                for b_idx, b_item in enumerate(raw_bets):
+                    if b_idx == n_b - 1:
+                        b_amt = this_race_budget - sub_allocated
+                    else:
+                        b_amt = int((this_race_budget * b_item["ratio"]) // 100 * 100)
+                        if b_amt < 100:
+                            b_amt = 100
+                    sub_allocated += b_amt
+                    
+                    bet_rows.append({
+                        "券種": b_item["type"],
+                        "組番": b_item["comb"],
+                        "オッズ": b_item["odds"],
+                        "評価": b_item["tag"],
+                        "金額": f"{b_amt:,}円"
+                    })
+                
+                st.table(pd.DataFrame(bet_rows))
+                st.markdown("---")
+                
+            st.success(f"💡 合計購入金額: **{allocated_total:,} 円**（端数完全消化）")
