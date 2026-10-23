@@ -15,7 +15,7 @@ st.set_page_config(
 )
 
 # ---------------------------------------------------------
-# カスタムCSS（スマホ完全レイアウト修正）
+# カスタムCSS（スマホ表示の文字崩れ・改行不具合を完全修復）
 # ---------------------------------------------------------
 custom_css = """
     <style>
@@ -78,6 +78,7 @@ custom_css = """
         line-height: 1.4;
     }
 
+    /* 情報ボックス：崩れない安全な通常ブロック配置 */
     .info-summary-box {
         background-color: #eff6ff;
         border: 1px solid #bfdbfe;
@@ -88,13 +89,10 @@ custom_css = """
         line-height: 1.6;
         margin-bottom: 16px;
     }
-    .info-summary-item {
-        display: flex;
-        align-items: flex-start;
-        gap: 6px;
-        margin-bottom: 4px;
+    .info-summary-row {
+        margin-bottom: 6px;
     }
-    .info-summary-item:last-child {
+    .info-summary-row:last-child {
         margin-bottom: 0;
     }
 
@@ -311,11 +309,12 @@ elif st.session_state.step == 2:
     
     st.subheader("📊 2. レース選定＆予算配分")
     
+    # 完全に崩れない通常の縦並びブロックに変更
     st.markdown(f"""
         <div class="info-summary-box">
-            <div class="info-summary-item">📅 <strong>開催日</strong>: {st.session_state.race_date}</div>
-            <div class="info-summary-item">⏱️ <strong>参戦時間</strong>: {st.session_state.start_time_str}</div>
-            <div class="info-summary-item">🎯 <strong>選択方針</strong>: {st.session_state.strategy_mode}</div>
+            <div class="info-summary-row">📅 <strong>開催日</strong>: {st.session_state.race_date}</div>
+            <div class="info-summary-row">⏱️ <strong>参戦時間</strong>: {st.session_state.start_time_str}</div>
+            <div class="info-summary-row">🎯 <strong>選択方針</strong>: {st.session_state.strategy_mode}</div>
         </div>
     """, unsafe_allow_html=True)
 
