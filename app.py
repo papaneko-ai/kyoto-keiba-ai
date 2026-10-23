@@ -15,7 +15,7 @@ st.set_page_config(
 )
 
 # ---------------------------------------------------------
-# カスタムCSS（全体をプロ仕様のモダンUIに装飾）
+# カスタムCSS（文字折り返し・配置・デザイン完全最適化）
 # ---------------------------------------------------------
 custom_css = """
     <style>
@@ -40,11 +40,12 @@ custom_css = """
     .block-container {
         padding-top: 1.5rem !important;
         padding-bottom: 2.5rem !important;
+        max-width: 800px !important;
     }
 
     /* ヒーローヘッダー（起動画面用） */
     .hero-card {
-        background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+        background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
         border-radius: 16px;
         padding: 24px 20px;
         color: #ffffff;
@@ -74,22 +75,55 @@ custom_css = """
         transition: all 0.2s ease-in-out;
     }
 
-    /* テーブル・データフレームの見た目をスタイリッシュに */
+    /* テーブル・データフレームの見た目＆位置調整 */
+    div[data-testid="stTable"] {
+        width: 100% !important;
+        overflow-x: auto !important;
+    }
     table {
         border-collapse: collapse !important;
         width: 100% !important;
-        border-radius: 8px !important;
+        border-radius: 10px !important;
         overflow: hidden !important;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05) !important;
+        border: 1px solid #e2e8f0 !important;
     }
     th {
         background-color: #f1f5f9 !important;
         color: #334155 !important;
         font-weight: 700 !important;
         text-align: center !important;
+        white-space: nowrap !important; /* ヘッダー文字の途中で折り返さない */
+        padding: 10px 8px !important;
+        font-size: 14px !important;
     }
     td {
         text-align: center !important;
+        vertical-align: middle !important;
         color: #1e293b !important;
+        padding: 10px 8px !important;
+        font-size: 14px !important;
+        white-space: nowrap !important; /* データセルの不自然な改行を防止 */
+    }
+
+    /* レース詳細枠（expander）のスタイリング */
+    div[data-testid="stExpander"] {
+        border-radius: 12px !important;
+        border: 1px solid #e2e8f0 !important;
+        background-color: #ffffff !important;
+        margin-bottom: 12px !important;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.02) !important;
+    }
+    
+    /* 軸馬ハイライトカード */
+    .axis-highlight {
+        background-color: #f0fdf4;
+        border-left: 4px solid #22c55e;
+        padding: 10px 14px;
+        border-radius: 6px;
+        margin-bottom: 12px;
+        font-weight: 600;
+        color: #15803d;
     }
     </style>
 """
@@ -218,7 +252,7 @@ def fetch_race_results_safely(target_date, race_id):
         return {"status": "unknown_error", "message": f"⚠️ 予期せぬエラーが発生しました: {str(e)}"}
 
 # ---------------------------------------------------------
-# ステップ 1：起動条件設定画面（スタイリッシュデザイン）
+# ステップ 1：起動条件設定画面
 # ---------------------------------------------------------
 if st.session_state.step == 1:
     st.markdown("""
@@ -260,7 +294,7 @@ if st.session_state.step == 1:
         st.rerun()
 
 # ---------------------------------------------------------
-# ステップ 2：全レース予想一覧 ＆ レース選択 ＆ 厳密資金配分（モダンデザイン）
+# ステップ 2：全レース予想一覧 ＆ レース選択 ＆ 厳密資金配分
 # ---------------------------------------------------------
 elif st.session_state.step == 2:
     st.button("🏠 最初（起動画面）からやり直す", on_click=reset_to_step1)
@@ -329,7 +363,7 @@ elif st.session_state.step == 2:
     
     for r in all_races:
         badge = " 🔥 【AIお勧め】" if r["rec"] else ""
-        with st.expander(f"京都 {r['id']}R ｜ {r['name']} （発走 {r['time']}）{badge} ｜ 期待値(EV): {r['eval_score']}%"):
+        with st.expander(f"京都 {r['id']}R ｜ {r['name']} （発走 {r['time']}）{badge} ｜ 期待値: {r['eval_score']}%"):
             is_checked = st.checkbox(
                 f"このレース（京都{r['id']}R）を購入候補に含める",
                 value=False,
@@ -338,7 +372,12 @@ elif st.session_state.step == 2:
             if is_checked:
                 selected_race_ids.append(r["id"])
             
-            st.markdown(f"**🎯 推奨軸馬**: **{r['axis']}** （マルチファクター解析完了）")
+            # 推奨軸馬を分かりやすいハイライトカードで表示
+            st.markdown(f"""
+                <div class="axis-highlight">
+                    🎯 推奨軸馬: <strong>{r['axis']}</strong> <span style="font-size:12px; font-weight:normal; color:#475569;">（マルチファクター解析完了）</span>
+                </div>
+            """, unsafe_allow_html=True)
             
             if "穴馬" in mode_key:
                 bets_preview = [
@@ -400,7 +439,7 @@ elif st.session_state.step == 2:
                 allocated_total += this_race_budget
                 
                 st.markdown(f"### 🎯 【購入対象】 京都 {r_data['id']}R ｜ {r_data['name']}")
-                st.caption(f"発走 {r_data['time']} ｜ 割り当て投資額: **{this_race_budget:,} 円** ｜ 軸馬: **{r_data['axis']}**")
+                st.caption(f"発走 {r_data['time']} ｜ 割り割り投資額: **{this_race_budget:,} 円** ｜ 軸馬: **{r_data['axis']}**")
                 
                 if "穴馬" in mode_key:
                     raw_bets = [
