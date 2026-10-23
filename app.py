@@ -15,7 +15,7 @@ st.set_page_config(
 )
 
 # ---------------------------------------------------------
-# カスタムCSS（コロンを廃止し、折り返しと余白を完全に最適化）
+# カスタムCSS（スマホ表示のレイアウト最適化）
 # ---------------------------------------------------------
 custom_css = """
     <style>
@@ -79,7 +79,6 @@ custom_css = """
         white-space: nowrap;
     }
 
-    /* コロンをなくして自然に並べるすっきりしたレイアウトボックス */
     .info-summary-box {
         background-color: #eff6ff;
         border: 1px solid #bfdbfe;
@@ -322,7 +321,6 @@ elif st.session_state.step == 2:
     
     st.subheader("📊 2. レース選定＆予算配分")
     
-    # コロンを廃止し、余白や不自然な折り返しを完全解消したすっきりレイアウト
     st.markdown(f"""
         <div class="info-summary-box">
             <div class="summary-row">
@@ -481,4 +479,40 @@ elif st.session_state.step == 2:
                         {"type": "馬連", "comb": f"{r_data['axis']}-{r_data['p1']}", "odds": r_data["odds_p1"], "tag": "中穴", "ratio": 0.3},
                         {"type": "ワイド", "comb": f"{r_data['axis']}-{r_data['p2']}", "odds": r_data["odds_p2"], "tag": "押さえ", "ratio": 0.3}
                     ]
-                elif "的中率重視
+                elif "的中率重視" in mode_key:
+                    raw_bets = [
+                        {"type": "馬連", "comb": f"{r_data['axis']}-{r_data['p1']}", "odds": r_data["odds_p1"], "tag": "本線", "ratio": 0.6},
+                        {"type": "ワイド", "comb": f"{r_data['axis']}-{r_data['p2']}", "odds": r_data["odds_p2"], "tag": "安全本線", "ratio": 0.4}
+                    ]
+                else:
+                    raw_bets = [
+                        {"type": "馬連", "comb": f"{r_data['axis']}-{r_data['p1']}", "odds": r_data["odds_p1"], "tag": "本線", "ratio": 0.5},
+                        {"type": "馬連", "comb": f"{r_data['axis']}-{r_data['ana']}", "odds": r_data["odds_ana"], "tag": "中穴", "ratio": 0.3},
+                        {"type": "ワイド", "comb": f"{r_data['axis']}-{r_data['p2']}", "odds": r_data["odds_p2"], "tag": "押さえ", "ratio": 0.2}
+                    ]
+
+                bet_rows = []
+                sub_allocated = 0
+                n_b = len(raw_bets)
+                
+                for b_idx, b_item in enumerate(raw_bets):
+                    if b_idx == n_b - 1:
+                        b_amt = this_race_budget - sub_allocated
+                    else:
+                        b_amt = int((this_race_budget * b_item["ratio"]) // 100 * 100)
+                        if b_amt < 100:
+                            b_amt = 100
+                    sub_allocated += b_amt
+                    
+                    bet_rows.append({
+                        "券種": b_item["type"],
+                        "組番": b_item["comb"],
+                        "オッズ": b_item["odds"],
+                        "評価": b_item["tag"],
+                        "金額": f"{b_amt:,}円"
+                    })
+                
+                st.table(pd.DataFrame(bet_rows))
+                st.markdown("---")
+                
+            st.success(f"💡 合計購入金額: **{allocated_total:,} 円**（端数完全消化）")
