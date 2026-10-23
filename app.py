@@ -140,7 +140,7 @@ def analyze_pro_factors(date_obj, race_id, strategy_mode):
     }
 
 # ---------------------------------------------------------
-# 自動結果取得・例外通知付きスクレイピング関数（オンデマンド）
+# 自動結果取得・状況別メッセージ通知付きスクレイピング関数
 # ---------------------------------------------------------
 def fetch_race_results_safely(target_date, race_id):
     date_str = target_date.strftime('%Y%m%d')
@@ -153,6 +153,10 @@ def fetch_race_results_safely(target_date, race_id):
     try:
         response = requests.get(target_url, headers=headers, timeout=5)
         
+        # 404エラー（ページが存在しない＝開催日ではない、または未開催）
+        if response.status_code == 404:
+            return {"status": "not_found", "message": f"📅 指定された日（{target_date.strftime('%Y年%m月%d日')}）は京都競馬の開催日ではないか、まだレース結果データが公開されていません。"}
+        
         if response.status_code == 403 or response.status_code == 429:
             return {"status": "blocked", "message": "⚠️ 競馬情報サイトからのアクセス制限（ブロック）を検知しました。時間をおいて再度お試しください。"}
         elif response.status_code != 200:
@@ -162,7 +166,7 @@ def fetch_race_results_safely(target_date, race_id):
         result_table = soup.find('table', class_='race_table_01')
         
         if not result_table:
-            return {"status": "ui_changed", "message": "⚠️ サイト側の仕様変更（UI変更）による要素の読み込みエラーを検知しました。データ構造のアップデートが必要です。"}
+            return {"status": "ui_changed", "message": "⚠️ サイト側の仕様変更（UI変更）またはデータ未確定による読み込みエラーです。レース終了直後はデータが反映されていない場合があります。"}
             
         return {"status": "success", "data": "取得成功"}
         
@@ -227,6 +231,8 @@ elif st.session_state.step == 2:
                 
                 if fetch_test["status"] == "success":
                     st.success("✅ レース結果の自動取得に成功しました！（直近成績の照合完了）")
+                elif fetch_test["status"] == "not_found":
+                    st.warning(fetch_test["message"])
                 else:
                     st.error(fetch_test["message"])
 
