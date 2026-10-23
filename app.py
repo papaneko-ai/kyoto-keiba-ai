@@ -15,23 +15,23 @@ st.set_page_config(
 )
 
 # ---------------------------------------------------------
-# 上下CSS非表示 ＋ 右下ホストバッジ強制削除（JS実行）
+# カスタムCSS（おしゃれなデザイン・カードUI・ボタン装飾）
 # ---------------------------------------------------------
-hide_all_styles = """
+custom_css = """
     <style>
     /* 上部ヘッダー・GitHubリンク・三本線メニューの非表示 */
     #MainMenu {visibility: hidden !important;}
     header {visibility: hidden !important;}
     .stAppHeader {display: none !important;}
     
-    /* 下部フッター・Manage app・ツールバー類の非表示 */
+    /* 下部フッター・ツールバー類の非表示 */
     footer {visibility: hidden !important;}
     .stAppFooter {display: none !important;}
     div[data-testid="stStatusWidget"] {visibility: hidden !important;}
     div[data-testid="stDecoration"] {display: none !important;}
     #stDecoration {display: none !important;}
     
-    /* 右下のStreamlitロゴ・フローティングツールバー（赤・青アイコン）の非表示 */
+    /* 右下のStreamlitロゴ・フローティングツールバーの非表示 */
     .stViewerBadge {display: none !important;}
     div[data-testid="stToolbar"] {display: none !important;}
     iframe[title="streamlit_app"] {bottom: 0 !important;}
@@ -40,14 +40,55 @@ hide_all_styles = """
     .viewerBadge_container__1QSob {display: none !important;}
     a[href*="streamlit.io"] {display: none !important;}
     
-    /* 画面下部の不要な余白調整 */
+    /* 余白調整 */
     .block-container {
         padding-top: 1.5rem !important;
-        padding-bottom: 1rem !important;
+        padding-bottom: 2rem !important;
+    }
+
+    /* ヒーローヘッダー風カード */
+    .hero-card {
+        background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+        border-radius: 16px;
+        padding: 24px 20px;
+        color: #ffffff;
+        text-align: center;
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.2);
+        margin-bottom: 24px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    .hero-title {
+        font-size: 24px;
+        font-weight: 800;
+        margin-bottom: 6px;
+        letter-spacing: 0.5px;
+        color: #f8fafc;
+    }
+    .hero-subtitle {
+        font-size: 13px;
+        color: #94a3b8;
+        margin-bottom: 0;
+    }
+
+    /* 設定フォームをまとめる枠 */
+    .setting-card {
+        background-color: #ffffff;
+        border-radius: 12px;
+        padding: 20px;
+        border: 1px solid #e2e8f0;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        margin-bottom: 20px;
+    }
+
+    /* ボタンデザインの微調整 */
+    .stButton > button {
+        border-radius: 10px !important;
+        font-weight: bold !important;
+        height: 3rem !important;
     }
     </style>
 """
-st.markdown(hide_all_styles, unsafe_allow_html=True)
+st.markdown(custom_css, unsafe_allow_html=True)
 
 # 右下フローティングアイコン（親ドキュメント要素）を強制非表示にするJS
 st.components.v1.html("""
@@ -77,11 +118,6 @@ st.components.v1.html("""
     setInterval(removeBadge, 500);
     </script>
 """, height=0, width=0)
-
-st.title("🏇 京都競馬 集中投資AI")
-st.caption("馬連・ワイド特化 / マルチファクター解析・期待値最大化エンジン")
-
-st.markdown("---")
 
 # ---------------------------------------------------------
 # セッション状態の初期化＆クリア処理
@@ -177,22 +213,31 @@ def fetch_race_results_safely(target_date, race_id):
         return {"status": "unknown_error", "message": f"⚠️ 予期せぬエラーが発生しました: {str(e)}"}
 
 # ---------------------------------------------------------
-# ステップ 1：起動条件設定画面
+# ステップ 1：起動条件設定画面（スタイリッシュデザイン）
 # ---------------------------------------------------------
 if st.session_state.step == 1:
-    st.subheader("⚙️ 1. 開催日・予想方針の設定")
+    # ヒーローヘッダー
+    st.markdown("""
+        <div class="hero-card">
+            <div class="hero-title">🏇 KYOTO RACECOURSE AI</div>
+            <div class="hero-subtitle">京都競馬特化型 ｜ 馬連・ワイド集中投資＆期待値最大化エンジン</div>
+        </div>
+    """, unsafe_allow_html=True)
+
+    st.subheader("⚙️ 参戦条件の設定")
+    st.caption("対象日とご自身の投資スタイルを選択し、AI解析を実行してください。")
 
     default_date = datetime.date.today()
-    race_date = st.date_input("開催日の選択", value=default_date)
+    race_date = st.date_input("📅 開催日の選択", value=default_date)
 
     start_time_str = st.selectbox(
-        "参戦開始（発走）時間を選択",
+        "⏱️ 参戦開始（発走）時間を選択",
         ["10:00以降（朝から全12R）", "12:00以降（午後から 5R〜12R）", "13:30以降（後半 8R〜12R）", "14:30以降（メイン中心 9R〜12R）"],
         index=0
     )
 
     strategy_mode = st.selectbox(
-        "予想方針の選択",
+        "🎯 予想方針の選択",
         [
             "的中率と配当のバランス重視（本線＋期待値のある中穴）",
             "的中率重視（上位人気固め・手堅い本線中心）",
@@ -201,7 +246,7 @@ if st.session_state.step == 1:
         index=0
     )
 
-    st.markdown("---")
+    st.markdown("<br>", unsafe_allow_html=True)
 
     if st.button("🚀 対象レースの予想・お勧めを算出する", type="primary", use_container_width=True):
         st.session_state.race_date = race_date
@@ -281,7 +326,6 @@ elif st.session_state.step == 2:
     for r in all_races:
         badge = " 🔥 【AIお勧め】" if r["rec"] else ""
         with st.expander(f"京都 {r['id']}R ｜ {r['name']} （発走 {r['time']}）{badge} ｜ 期待値(EV): {r['eval_score']}%"):
-            # 修正点：value=False に統一し、ユーザーがチェックを入れたレースのみを正確に取得
             is_checked = st.checkbox(
                 f"このレース（京都{r['id']}R）を購入候補に含める",
                 value=False,
