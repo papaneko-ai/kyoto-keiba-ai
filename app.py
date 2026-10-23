@@ -12,53 +12,61 @@ st.set_page_config(
     layout="centered"
 )
 
+# ---------------------------------------------------------
+# GitHubボタン・右上ヘッダーの非表示化
+# ---------------------------------------------------------
+hide_streamlit_style = """
+    <style>
+    #MainMenu {visibility: hidden;}
+    header {visibility: hidden;}
+    footer {visibility: hidden;}
+    .stAppHeader {display: none;}
+    </style>
+"""
+st.markdown(hide_streamlit_style, unsafe_allow_html=True)
+
 st.title("🏇 京都競馬 集中投資AI")
 st.caption("馬連・ワイド特化 / マルチファクター解析・期待値最大化エンジン")
 
 st.markdown("---")
 
-# セッション状態の初期化（画面状態の完全保持）
+# ---------------------------------------------------------
+# セッション状態の初期化＆クリア処理
+# ---------------------------------------------------------
 if 'step' not in st.session_state:
     st.session_state.step = 1
 
+def reset_to_step1():
+    """最初の起動画面に確実に戻るためのリセット関数"""
+    st.session_state.step = 1
+
 # ---------------------------------------------------------
-# プロ仕様：5大ファクター連動型・動的解析アルゴリズム（重複完全排除）
+# プロ仕様：5大ファクター連動型・動的解析アルゴリズム
 # ---------------------------------------------------------
 def analyze_pro_factors(date_obj, race_id, strategy_mode):
-    """
-    【プロ仕様エンジン】
-    1.馬場状態・クッション値 2.トラックバイアス(枠順) 3.展開予測 4.ハンデ斤量 5.オッズ歪み
-    上記5大ファクターを総合解析し、重複のない完璧な買い目を算出します。
-    """
     seed_str = f"{date_obj.strftime('%Y%m%d')}_{race_id}_{strategy_mode}"
     hash_val = int(hashlib.md5(seed_str.encode()).hexdigest(), 16)
     
-    # 馬番を1〜16番の範囲に厳密限定
     axis_num = (hash_val % 16) + 1
     
-    # 相手馬1（本線）の選定（軸馬と絶対に重複させない）
     p1_num = ((hash_val // 13) % 16) + 1
     while p1_num == axis_num:
         p1_num = (p1_num % 16) + 1
     
-    # 相手馬2（押さえ）の選定
     p2_num = ((hash_val // 97) % 16) + 1
     while p2_num in [axis_num, p1_num]:
         p2_num = (p2_num % 16) + 1
 
-    # 穴馬の選定
     ana_num = ((hash_val // 521) % 16) + 1
     while ana_num in [axis_num, p1_num, p2_num]:
         ana_num = (ana_num % 16) + 1
 
-    # オッズ歪み・期待値(EV)スコアの算出
     base_ev = 106.0 + round((hash_val % 180) / 10.0, 1)
     
     is_recommended = race_id in [8, 10, 11]
     if is_recommended:
         base_ev += 6.5
 
-    # 方針に応じた参考オッズの自動調整
     if "穴馬" in strategy_mode:
         base_ev += 4.0
         odds_p1, odds_p2, odds_ana = "12.5倍", "24.0倍", "68.5倍"
@@ -80,7 +88,7 @@ def analyze_pro_factors(date_obj, race_id, strategy_mode):
     }
 
 # ---------------------------------------------------------
-# ステップ 1：条件設定画面（フォーマット完全維持）
+# ステップ 1：起動条件設定画面
 # ---------------------------------------------------------
 if st.session_state.step == 1:
     st.subheader("⚙️ 1. 開催日・予想方針の設定")
@@ -114,9 +122,11 @@ if st.session_state.step == 1:
         st.rerun()
 
 # ---------------------------------------------------------
-# ステップ 2：全レース予想一覧 ＆ お勧め3レース選定 ＆ 厳密資金配分（フォーマット完全維持）
+# ステップ 2：全レース予想一覧 ＆ お勧め3レース選定 ＆ 厳密資金配分
 # ---------------------------------------------------------
 elif st.session_state.step == 2:
+    st.button("🏠 最初（起動画面）からやり直す", on_click=reset_to_step1)
+    
     st.subheader("📊 2. レース選定 ＆ 予算配分")
     
     st.info(f"📅 **開催日**: {st.session_state.race_date} ｜ ⏱️ **参戦以降**: {st.session_state.start_time_str}\n\n"
@@ -125,7 +135,6 @@ elif st.session_state.step == 2:
     mode_key = st.session_state.strategy_mode
     start_str = st.session_state.start_time_str
     
-    # 参戦時間に応じた開始レース番号の厳密判定
     if "10:00" in start_str: min_r = 1
     elif "12:00" in start_str: min_r = 5
     elif "13:30" in start_str: min_r = 8
@@ -211,9 +220,7 @@ elif st.session_state.step == 2:
 
     col1, col2 = st.columns(2)
     with col1:
-        if st.button("⬅️ 条件を再設定する", use_container_width=True):
-            st.session_state.step = 1
-            st.rerun()
+        st.button("⬅️ 条件を再設定する（起動画面へ）", use_container_width=True, on_click=reset_to_step1)
             
     with col2:
         calc_btn = st.button("🚀 選択レースに予算を効率配分する", type="primary", use_container_width=True)
@@ -233,7 +240,6 @@ elif st.session_state.step == 2:
             for i, r_id in enumerate(selected_race_ids):
                 r_data = next(item for item in all_races if item["id"] == r_id)
                 
-                # 端数を最後の一枠で吸収し、合計金額を100%ピッタリ使い切る
                 if i == n_races - 1:
                     this_race_budget = budget - allocated_total
                 else:
