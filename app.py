@@ -15,7 +15,7 @@ st.set_page_config(
 )
 
 # ---------------------------------------------------------
-# カスタムCSS（テーブルの罫線を完全に消し、余白を美しく調整）
+# カスタムCSS（コロンを廃止し、折り返しと余白を完全に最適化）
 # ---------------------------------------------------------
 custom_css = """
     <style>
@@ -79,7 +79,7 @@ custom_css = """
         white-space: nowrap;
     }
 
-    /* 情報ボックスと見えないテーブルの完全最適化（罫線・余白の排除） */
+    /* コロンをなくして自然に並べるすっきりしたレイアウトボックス */
     .info-summary-box {
         background-color: #eff6ff;
         border: 1px solid #bfdbfe;
@@ -89,27 +89,24 @@ custom_css = """
         font-size: 13px;
         margin-bottom: 16px;
     }
-    .align-table {
-        width: 100% !important;
-        border-collapse: collapse !important;
-        border: none !important;
-        box-shadow: none !important;
+    .summary-row {
+        display: flex;
+        align-items: flex-start;
+        margin-bottom: 6px;
+        line-height: 1.4;
     }
-    .align-table tr, .align-table td, .align-table th {
-        border: none !important;
-        background: transparent !important;
-        box-shadow: none !important;
+    .summary-row:last-child {
+        margin-bottom: 0;
     }
-    .align-table td {
-        padding: 3px 0 !important;
-        vertical-align: top !important;
-        text-align: left !important;
-        color: #1e40af !important;
-    }
-    .label-col {
+    .summary-label {
         width: 85px;
         font-weight: 700;
+        flex-shrink: 0;
         white-space: nowrap;
+    }
+    .summary-value {
+        flex-grow: 1;
+        word-break: break-all;
     }
 
     .stButton > button {
@@ -123,7 +120,7 @@ custom_css = """
         width: 100% !important;
         overflow-x: auto !important;
     }
-    table.data-table {
+    table {
         border-collapse: collapse !important;
         width: 100% !important;
         border-radius: 8px !important;
@@ -325,23 +322,21 @@ elif st.session_state.step == 2:
     
     st.subheader("📊 2. レース選定＆予算配分")
     
-    # 完全に罫線と余白を排除した整列テーブル
+    # コロンを廃止し、余白や不自然な折り返しを完全解消したすっきりレイアウト
     st.markdown(f"""
         <div class="info-summary-box">
-            <table class="align-table">
-                <tr>
-                    <td class="label-col">📅 開催日</td>
-                    <td>: {st.session_state.race_date}</td>
-                </tr>
-                <tr>
-                    <td class="label-col">⏱️ 参戦時間</td>
-                    <td>: {st.session_state.start_time_str}</td>
-                </tr>
-                <tr>
-                    <td class="label-col">🎯 選択方針</td>
-                    <td>: {st.session_state.strategy_mode}</td>
-                </tr>
-            </table>
+            <div class="summary-row">
+                <div class="summary-label">📅 開催日</div>
+                <div class="summary-value">{st.session_state.race_date}</div>
+            </div>
+            <div class="summary-row">
+                <div class="summary-label">⏱️ 参戦時間</div>
+                <div class="summary-value">{st.session_state.start_time_str}</div>
+            </div>
+            <div class="summary-row">
+                <div class="summary-label">🎯 選択方針</div>
+                <div class="summary-value">{st.session_state.strategy_mode}</div>
+            </div>
         </div>
     """, unsafe_allow_html=True)
 
@@ -486,40 +481,4 @@ elif st.session_state.step == 2:
                         {"type": "馬連", "comb": f"{r_data['axis']}-{r_data['p1']}", "odds": r_data["odds_p1"], "tag": "中穴", "ratio": 0.3},
                         {"type": "ワイド", "comb": f"{r_data['axis']}-{r_data['p2']}", "odds": r_data["odds_p2"], "tag": "押さえ", "ratio": 0.3}
                     ]
-                elif "的中率重視" in mode_key:
-                    raw_bets = [
-                        {"type": "馬連", "comb": f"{r_data['axis']}-{r_data['p1']}", "odds": r_data["odds_p1"], "tag": "本線", "ratio": 0.6},
-                        {"type": "ワイド", "comb": f"{r_data['axis']}-{r_data['p2']}", "odds": r_data["odds_p2"], "tag": "安全本線", "ratio": 0.4}
-                    ]
-                else:
-                    raw_bets = [
-                        {"type": "馬連", "comb": f"{r_data['axis']}-{r_data['p1']}", "odds": r_data["odds_p1"], "tag": "本線", "ratio": 0.5},
-                        {"type": "馬連", "comb": f"{r_data['axis']}-{r_data['ana']}", "odds": r_data["odds_ana"], "tag": "中穴", "ratio": 0.3},
-                        {"type": "ワイド", "comb": f"{r_data['axis']}-{r_data['p2']}", "odds": r_data["odds_p2"], "tag": "押さえ", "ratio": 0.2}
-                    ]
-
-                bet_rows = []
-                sub_allocated = 0
-                n_b = len(raw_bets)
-                
-                for b_idx, b_item in enumerate(raw_bets):
-                    if b_idx == n_b - 1:
-                        b_amt = this_race_budget - sub_allocated
-                    else:
-                        b_amt = int((this_race_budget * b_item["ratio"]) // 100 * 100)
-                        if b_amt < 100:
-                            b_amt = 100
-                    sub_allocated += b_amt
-                    
-                    bet_rows.append({
-                        "券種": b_item["type"],
-                        "組番": b_item["comb"],
-                        "オッズ": b_item["odds"],
-                        "評価": b_item["tag"],
-                        "金額": f"{b_amt:,}円"
-                    })
-                
-                st.table(pd.DataFrame(bet_rows))
-                st.markdown("---")
-                
-            st.success(f"💡 合計購入金額: **{allocated_total:,} 円**（端数完全消化）")
+                elif "的中率重視
