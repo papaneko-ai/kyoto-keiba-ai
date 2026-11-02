@@ -13,7 +13,7 @@ from urllib.parse import urlsplit
 import requests
 import streamlit as st
 
-APP_VERSION = '2026-10-31-cloud-probe-v2'
+APP_VERSION = '2026-11-02-cloud-probe-v3'
 TARGETS = {
     'JRA公式（トップ）': 'https://www.jra.go.jp/',
     'JRAスマートフォン版（トップ）': 'https://sp.jra.jp/',
@@ -114,8 +114,14 @@ def probe_race(session=None):
         if not received:
             result['判定'] = '内容が空'
             return result
-        r.encoding = r.apparent_encoding or 'utf-8'
-        flags = inspect_race_html(received.decode(r.encoding, errors='replace'))
+        # Streaming responses must not access r.apparent_encoding after iter_content:
+        # requests can raise RuntimeError('content already consumed').
+        # Detect encoding directly from the received byte buffer instead.
+        from bs4 import UnicodeDammit
+        decoded = UnicodeDammit(bytes(received), is_html=True).unicode_markup
+        if decoded is None:
+            decoded = bytes(received).decode('utf-8', errors='replace')
+        flags = inspect_race_html(decoded)
         result.update(flags)
         result['コンテンツ取得'] = True
         result['判定'] = ('対象の出馬表らしきHTMLを確認（再利用許可とは別）'
@@ -153,7 +159,11 @@ def main():
         except requests.RequestException as err:
             st.session_state['race_probe'] = {'判定': type(err).__name__, 'HTTP': '-'}
         except Exception as err:
-            st.session_state['race_probe'] = {'判定': '試験失敗: ' + type(err).__name__}
+            st.session_state['race_probe'] = {
+                '判定': '試験失敗: ' + type(err).__name__,
+                '原因の手がかり': str(err)[:180],
+                'HTTP': '未確定（結果の組み立て前に例外）',
+            }
     if 'race_probe' in st.session_state:
         st.json(st.session_state['race_probe'])
     if 'network' in st.session_state or 'race_probe' in st.session_state:
