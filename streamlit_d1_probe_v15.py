@@ -3,10 +3,10 @@ import hmac
 import json
 import streamlit as st
 
-from d1_connection_probe_v15 import read_only_check, write_once_check
+from d1_connection_probe_v15 import read_only_check, write_once_check, verify_account_token, ProbeError
 
-st.set_page_config(page_title="京都競馬AI D1保存診断 v15")
-st.title("京都競馬AI D1保存診断 v15")
+st.set_page_config(page_title="京都競馬AI D1認証診断 v15.1")
+st.title("京都競馬AI D1認証診断 v15.1")
 st.warning("診断用です。実際の馬券・予想・個人情報は保存しません。")
 
 need = ("CF_ACCOUNT_ID", "CF_D1_DATABASE_ID", "CF_D1_API_TOKEN", "PROBE_PASSWORD")
@@ -25,7 +25,18 @@ config = dict(account_id=str(st.secrets["CF_ACCOUNT_ID"]),
               database_id=str(st.secrets["CF_D1_DATABASE_ID"]),
               token=str(st.secrets["CF_D1_API_TOKEN"]))
 
-st.subheader("① 読み取り専用の接続確認")
+st.subheader("① アカウントAPIトークンの有効性確認")
+st.caption("Cloudflareの公式トークン検証APIへ読み取りリクエストを1回送ります。データベースは変更しません。")
+if st.button("トークン認証を検証", key="verify_account_token"):
+    try:
+        report = verify_account_token(account_id=config["account_id"], token=config["token"])
+        st.json(report)
+    except ProbeError as exc:
+        st.error("トークンの認証確認に失敗しました。")
+        st.code(str(exc))
+
+st.divider()
+st.subheader("② 読み取り専用のD1接続確認")
 st.caption("SELECT 1 のみ実行します。既存テーブルやデータは変更しません。")
 if st.button("接続確認を実行", key="read_only"):
     try:
@@ -39,7 +50,7 @@ if st.button("接続確認を実行", key="read_only"):
                     "HTTP_400", "HTTP_401", "HTTP_403", "HTTP_404", "HTTP_429") else type(exc).__name__))
 
 st.divider()
-st.subheader("② 少量の保存試験（任意）")
+st.subheader("③ 少量の保存試験（任意）")
 st.caption("ボタンを押した場合だけ専用テーブルとランダムな検査記録を1件作ります。削除しません。")
 confirmed = st.checkbox("試験用テーブルと1件の記録を保存することを了承します")
 if st.button("1件の保存と再読込みを検証", disabled=not confirmed, key="write_once"):

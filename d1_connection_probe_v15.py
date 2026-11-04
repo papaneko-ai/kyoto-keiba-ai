@@ -127,3 +127,34 @@ def write_once_check(*, account_id: str, database_id: str, token: str, opener=No
     except Exception:
         result["error_code"] = "UNEXPECTED_ERROR"
     return result
+
+
+def verify_account_token(*, account_id: str, token: str, opener=None) -> dict:
+    """Verify account-owned token only; never expose the credential or response body."""
+    if not _ACCOUNT.fullmatch(account_id):
+        raise ProbeError("INVALID_IDS")
+    if not isinstance(token, str) or not token.strip():
+        raise ProbeError("MISSING_TOKEN")
+    url = "https://api.cloudflare.com/client/v4/accounts/" + account_id + "/tokens/verify"
+    request = urllib.request.Request(url, method="GET", headers={
+        "Authorization": "Bearer " + token, "Accept": "application/json"})
+    fetch = opener or urllib.request.urlopen
+    try:
+        with fetch(request, timeout=15) as response:
+            code = getattr(response, "status", 200)
+            if code != 200:
+                raise ProbeError("VERIFY_HTTP_" + str(code))
+            raw = response.read(64 * 1024)
+    except urllib.error.HTTPError as exc:
+        raise ProbeError("VERIFY_HTTP_" + str(exc.code)) from None
+    except (urllib.error.URLError, TimeoutError, OSError):
+        raise ProbeError("VERIFY_NETWORK_ERROR") from None
+    try:
+        payload = json.loads(raw)
+        status = payload.get("result", {}).get("status")
+        if payload.get("success") is True and status in ("active", "disabled", "expired"):
+            return {"verification": status, "account_token_accepted": status == "active",
+                    "d1_access_tested": False}
+    except (ValueError, TypeError, AttributeError):
+        pass
+    raise ProbeError("VERIFY_UNEXPECTED_RESPONSE")
