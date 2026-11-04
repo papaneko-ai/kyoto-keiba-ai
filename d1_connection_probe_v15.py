@@ -158,3 +158,56 @@ def verify_account_token(*, account_id: str, token: str, opener=None) -> dict:
     except (ValueError, TypeError, AttributeError):
         pass
     raise ProbeError("VERIFY_UNEXPECTED_RESPONSE")
+
+
+def _safe_api_errors(exc: urllib.error.HTTPError) -> list[int]:
+    """Only publish numeric Cloudflare error identifiers; never return messages."""
+    try:
+        payload = json.loads(exc.read(32 * 1024))
+        errors = payload.get("errors", [])
+        return [item["code"] for item in errors if isinstance(item, dict)
+                and type(item.get("code")) is int][:5]
+    except (ValueError, TypeError, AttributeError, OSError):
+        return []
+
+
+def diagnose_d1_access(*, account_id: str, database_id: str, token: str, opener=None) -> dict:
+    """GET database metadata, then POST SELECT 1; no write statements.
+
+    Reports HTTP statuses and Cloudflare numeric error codes only. No response
+    headers, messages, IDs, URLs, secrets, or SQL results are disclosed.
+    """
+    if not _ACCOUNT.fullmatch(account_id) or not _DATABASE.fullmatch(database_id):
+        raise ProbeError("INVALID_IDS")
+    if not isinstance(token, str) or not token.strip():
+        raise ProbeError("MISSING_TOKEN")
+    root = ("https://api.cloudflare.com/client/v4/accounts/" + account_id
+            + "/d1/database/" + database_id)
+    fetch = opener or urllib.request.urlopen
+    report = {"stage": "read_only_access_diagnostic", "steps": [],
+              "database_modified": False}
+    for name, method, suffix, data in (
+        ("database_metadata", "GET", "", None),
+        ("select_one", "POST", "/query", b'{"sql":"SELECT 1 AS connection_ok"}'),
+    ):
+        request = urllib.request.Request(root + suffix, data=data, method=method,
+                  headers={"Authorization": "Bearer " + token,
+                           "Accept": "application/json",
+                           "Content-Type": "application/json"})
+        entry = {"step": name}
+        try:
+            with fetch(request, timeout=15) as response:
+                entry["http_status"] = getattr(response, "status", 200)
+                raw = response.read(32 * 1024)
+                try:
+                    obj = json.loads(raw)
+                    entry["api_success"] = obj.get("success") is True
+                except (ValueError, TypeError, AttributeError):
+                    entry["api_success"] = False
+        except urllib.error.HTTPError as exc:
+            entry["http_status"] = exc.code
+            entry["cf_error_codes"] = _safe_api_errors(exc)
+        except (urllib.error.URLError, TimeoutError, OSError):
+            entry["network_error"] = True
+        report["steps"].append(entry)
+    return report
