@@ -6,6 +6,7 @@ on:
     paths:
       - 'diagnostics/capture_jra_public_html.py'
       - 'diagnostics/discover_jra_links.py'
+      - 'diagnostics/inspect_jra_action.py'
       - '.github/workflows/jra-html-diagnostic.yml'
   workflow_dispatch:
 permissions:
@@ -20,6 +21,8 @@ jobs:
         run: python3 diagnostics/capture_jra_public_html.py
       - name: Inspect racing-page links from live HTML
         run: python3 diagnostics/discover_jra_links.py
+      - name: Inspect live action definition and forms (no POST)
+        run: python3 diagnostics/inspect_jra_action.py
       - name: Upload HTML and connection report
         if: always()
         uses: actions/upload-artifact@v4
