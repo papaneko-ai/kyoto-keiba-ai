@@ -37,7 +37,23 @@ def main():
         position = html.find(needle)
         if position != -1:
             action_snippets.append(html[max(0, position - 80):position + 1800])
-    result = {"forms": inspect.forms[:30], "action_snippets": action_snippets, "scripts": inspect.scripts[:60]}
+    # Inspect only the script URL explicitly referenced by the actual JRA HTML.
+    js_url = "https://www.jra.go.jp/common/js/common2.js"
+    js_details = {"url": js_url, "snippets": [], "error": None}
+    try:
+        with urlopen(Request(js_url, headers={"User-Agent": "Mozilla/5.0"}), timeout=15) as resp:
+            raw = resp.read(200001)
+        if len(raw) > 200000:
+            raise ValueError("script_too_large")
+        js = raw.decode("utf-8", errors="replace")
+        for word in ("function doAction", "function doAction(", "doAction = function", "CNAME", "EXPIRE"):
+            where = js.find(word)
+            if where != -1:
+                js_details["snippets"].append({"needle": word, "text": js[max(0,where-120):where+1500]})
+    except Exception as exc:
+        js_details["error"] = type(exc).__name__
+    print("EXTERNAL_JS", json.dumps(js_details, ensure_ascii=False)[:10000])
+    result = {"forms": inspect.forms[:30], "action_snippets": action_snippets, "scripts": inspect.scripts[:60], "external_js": js_details}
     out = Path("jra_link_discovery")
     out.mkdir(exist_ok=True)
     (out / "action_details.json").write_text(json.dumps(result, ensure_ascii=False, indent=2), encoding="utf-8")
