@@ -67,10 +67,15 @@ def main():
  rlinks=parse(RESULT);elinks=parse(ENTRY)
  entry_choices=[x for x in elinks if "doAction" in x["onclick"] and
                 "accessD.html" in x["onclick"]]
+ target_names=("マルモリマイベスト","ジャスコヒラリアス","ランズエンド")
+ named_links=[x for x in rlinks if any(name in x["text"] for name in target_names)]
+ other_horse_links=[x for x in rlinks if "doAction" in x["onclick"] and any(t in x["onclick"] for t in ("accessU.html","accessR.html","accessE.html"))]
+ print("NAMED_HORSE_LINKS",json.dumps(named_links[:12],ensure_ascii=False))
+ print("OTHER_HORSE_ACTIONS",json.dumps(other_horse_links[:15],ensure_ascii=False))
  report={"checked_at_utc":datetime.now(timezone.utc).isoformat(),
   "result_horse_link_count":sum("accessR.html" in x["onclick"] for x in rlinks),
   "entry_actions":entry_choices[:25],
-  "horse_profile":capture_one(rlinks)}
+  "horse_profile":capture_one(rlinks),"named_links":named_links[:12],"other_horse_actions":other_horse_links[:15]}
  (ROOT/"runner_history_probe.json").write_text(json.dumps(report,ensure_ascii=False,indent=2),encoding="utf8")
  print("ENTRY_ACTIONS",json.dumps({"count":len(entry_choices),"sample":entry_choices[:15]},ensure_ascii=False)[:4500])
  print("RUNNER_HISTORY",json.dumps(report["horse_profile"],ensure_ascii=False)[:8000])
