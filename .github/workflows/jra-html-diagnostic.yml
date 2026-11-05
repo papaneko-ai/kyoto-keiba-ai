@@ -8,6 +8,7 @@ on:
       - 'diagnostics/discover_jra_links.py'
       - 'diagnostics/inspect_jra_action.py'
       - 'diagnostics/capture_jra_actions.py'
+      - 'diagnostics/inspect_jra_selection.py'
       - '.github/workflows/jra-html-diagnostic.yml'
   workflow_dispatch:
 permissions:
@@ -26,6 +27,8 @@ jobs:
         run: python3 diagnostics/inspect_jra_action.py
       - name: Open official racing entries odds and results once
         run: python3 diagnostics/capture_jra_actions.py
+      - name: Inspect captured race selection structure offline
+        run: python3 diagnostics/inspect_jra_selection.py
       - name: Upload HTML and connection report
         if: always()
         uses: actions/upload-artifact@v4
