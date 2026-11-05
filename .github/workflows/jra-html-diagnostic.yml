@@ -10,6 +10,7 @@ on:
       - 'diagnostics/capture_jra_actions.py'
       - 'diagnostics/inspect_jra_selection.py'
       - 'diagnostics/follow_kyoto_result.py'
+      - 'diagnostics/follow_kyoto_all_races.py'
       - '.github/workflows/jra-html-diagnostic.yml'
   workflow_dispatch:
 permissions:
@@ -32,6 +33,8 @@ jobs:
         run: python3 diagnostics/inspect_jra_selection.py
       - name: Follow one Kyoto historical results link
         run: python3 diagnostics/follow_kyoto_result.py
+      - name: Follow official Kyoto all-race results link
+        run: python3 diagnostics/follow_kyoto_all_races.py
       - name: Upload HTML and connection report
         if: always()
         uses: actions/upload-artifact@v4
