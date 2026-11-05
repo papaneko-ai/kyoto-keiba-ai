@@ -17,6 +17,7 @@ on:
       - 'diagnostics/probe_kyoto_bet_types.py'
       - 'diagnostics/inspect_odds_tables.py'
       - 'diagnostics/extract_kyoto_odds_matrix.py'
+      - 'diagnostics/inventory_jra_features.py'
       - '.github/workflows/jra-html-diagnostic.yml'
   workflow_dispatch:
 permissions:
@@ -53,6 +54,8 @@ jobs:
         run: python3 diagnostics/inspect_odds_tables.py
       - name: Extract validated historic Kyoto odds matrices
         run: python3 diagnostics/extract_kyoto_odds_matrix.py
+      - name: Inventory real race and prediction feature HTML
+        run: python3 diagnostics/inventory_jra_features.py
       - name: Upload HTML and connection report
         if: always()
         uses: actions/upload-artifact@v4
@@ -62,5 +65,6 @@ jobs:
             jra_capture/
             jra_link_discovery/
             jra_action_capture/
+            jra_feature_discovery/
           retention-days: 3
           if-no-files-found: error
