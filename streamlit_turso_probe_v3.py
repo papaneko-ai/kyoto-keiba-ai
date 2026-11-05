@@ -1,174 +1,219 @@
-"""Independent Turso v14 atomic 12-race batch probe (v3).
+"""Kyoto Keiba AI - integrated Turso test-only storage diagnostic v3.1.
 
-STRICTLY diagnostic. Only the dedicated kyoto-keiba-ai-test DB is accepted.
-No real race data, v14 code or production app imports. No automatic SQL writes.
-One-shot conditional transaction batch; separate readback. No retry on ambiguity.
+REPLACE ONLY the diagnostic streamlit_turso_probe_v3.py file in GitHub.
+Never import production code or modify production tables. No automatic writes.
+One authenticated, consented run; append-only isolated test tables.
+Existing v1/v2/v3 results are historical evidence, NOT rerun or claimed fresh.
 """
 from __future__ import annotations
 
+from concurrent.futures import ThreadPoolExecutor
+from datetime import datetime, timezone
+import hashlib
 import hmac
+import json
 import uuid
 from urllib.parse import urlsplit
 
 import requests
-import streamlit as st
 
 EXPECTED_HOST = 'kyoto-keiba-ai-test-papaneko-ai.aws-ap-northeast-1.turso.io'
-TABLE = '__kyoto_v14_compat_v3_race_batch'
+PREFIX = '__kyoto_v14_integrated_v31_'
+TIMEOUT_SECONDS = 20
 
 
-def api_endpoint(url: str) -> str:
-    parts = urlsplit(url.strip())
-    if (parts.scheme not in ('libsql', 'https') or parts.hostname != EXPECTED_HOST
-            or parts.username or parts.password or parts.query or parts.fragment
-            or parts.path not in ('', '/') or parts.port is not None):
-        raise ValueError('Only the designated test database is allowed')
-    return 'https://' + EXPECTED_HOST + '/v2/pipeline'
+def endpoint(database_url: str) -> str:
+    p = urlsplit(database_url.strip())
+    if (p.scheme not in ('libsql', 'https') or p.hostname != EXPECTED_HOST
+            or p.username or p.password or p.query or p.fragment
+            or p.path not in ('', '/') or p.port is not None):
+        raise ValueError('Only the designated kyoto-keiba-ai-test database is permitted')
+    return f'https://{EXPECTED_HOST}/v2/pipeline'
 
 
-def stmt(sql: str, *args) -> dict:
-    values = [{'type': 'integer', 'value': str(v)} if isinstance(v, int)
-              else {'type': 'text', 'value': str(v)} for v in args]
-    return {'sql': sql, 'args': values, 'want_rows': True}
+def sql_stmt(sql: str, *args: object) -> dict:
+    def encode(value: object) -> dict:
+        if value is None:
+            return {'type': 'null'}
+        if type(value) is int:
+            return {'type': 'integer', 'value': str(value)}
+        return {'type': 'text', 'value': str(value)}
+    return {'sql': sql, 'args': [encode(x) for x in args], 'want_rows': True}
 
 
-def ok_step(index: int) -> dict:
-    return {'type': 'ok', 'step': index}
+def pipeline(url: str, token: str, actions: list[dict]) -> list[dict]:
+    # Mutations are intentionally not retried: a timeout could mean committed.
+    try:
+        r = requests.post(endpoint(url),
+                          headers={'Authorization': 'Bearer ' + token,
+                                   'Content-Type': 'application/json'},
+                          json={'requests': actions + [{'type': 'close'}]},
+                          timeout=TIMEOUT_SECONDS, allow_redirects=False)
+        if r.status_code != 200:
+            raise RuntimeError('HTTP response not successful; commit state unknown')
+        body = r.json()
+        results = body.get('results')
+        if not isinstance(results, list) or len(results) != len(actions) + 1:
+            raise RuntimeError('Unexpected response size; state unknown')
+        if results[-1].get('type') != 'ok':
+            raise RuntimeError('Stream close unconfirmed; state unknown')
+        return results[:-1]
+    except requests.RequestException as exc:
+        raise RuntimeError('Transport outcome ambiguous; no automatic retry') from exc
 
 
-def make_batch(batch_id: str, inject_failure: bool) -> list[dict]:
-    """Steps: BEGIN(0), inserts(1..12), COMMIT(13), conditional ROLLBACK(14).
-
-    Each insert depends on previous step succeeding. A duplicate race number in
-    slot 8 intentionally violates UNIQUE(batch_id,race_no). Any failed insert
-    skips subsequent INSERTs + COMMIT, then executes ROLLBACK.
-    """
-    steps = [{'stmt': stmt('BEGIN IMMEDIATE')}]
-    for race_no in range(1, 13):
-        actual = 6 if inject_failure and race_no == 8 else race_no
-        steps.append({
-            'condition': ok_step(len(steps) - 1),
-            'stmt': stmt(f'INSERT INTO {TABLE} (batch_id, race_no, marker) VALUES (?, ?, ?)',
-                         batch_id, actual, 'diagnostic-only'),
-        })
-    commit_index = len(steps)
-    steps.append({'condition': ok_step(commit_index - 1), 'stmt': stmt('COMMIT')})
-    steps.append({'condition': {'type': 'not', 'cond': ok_step(commit_index)},
-                  'stmt': stmt('ROLLBACK')})
-    return steps
+def execute(url: str, token: str, sql: str, *args: object) -> dict:
+    result = pipeline(url, token, [{'type': 'execute', 'stmt': sql_stmt(sql, *args)}])[0]
+    if result.get('type') != 'ok' or result.get('response', {}).get('type') != 'execute':
+        raise RuntimeError('SQL request did not succeed; manual inspection needed')
+    return result['response']['result']
 
 
-def pipeline(url: str, token: str, requests_list: list[dict]) -> list[dict]:
-    response = requests.post(
-        api_endpoint(url),
-        headers={'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json'},
-        json={'baton': None, 'requests': requests_list + [{'type': 'close'}]},
-        timeout=25, allow_redirects=False,
-    )
-    if response.status_code != 200:
-        raise RuntimeError('Transport failed or ambiguous; do not retry blindly')
-    body = response.json()
-    results = body.get('results')
-    if (not isinstance(results, list) or len(results) != len(requests_list) + 1
-            or results[-1].get('type') != 'ok'):
-        raise RuntimeError('Unexpected pipeline response; do not retry blindly')
-    return results[:-1]
+def rows(result: dict) -> list[list[object]]:
+    return [[c.get('value') for c in row] for row in result.get('rows', [])]
 
 
-def one_result(url: str, token: str, sql: str, *args) -> dict:
-    results = pipeline(url, token, [{'type': 'execute', 'stmt': stmt(sql, *args)}])
-    if results[0].get('type') != 'ok':
-        raise RuntimeError('SQL request not confirmed')
-    return results[0]['response']['result']
+def count(url: str, token: str, table: str, key: str) -> int:
+    return int(rows(execute(url, token, f'SELECT COUNT(*) FROM {table} WHERE run_id = ?', key))[0][0])
 
 
-def setup(url: str, token: str) -> None:
-    one_result(url, token, f'''CREATE TABLE IF NOT EXISTS {TABLE} (
-        batch_id TEXT NOT NULL, race_no INTEGER NOT NULL CHECK(race_no BETWEEN 1 AND 12),
-        marker TEXT NOT NULL, UNIQUE(batch_id, race_no))''')
+def run_concurrent(url: str, token: str, run_id: str) -> dict:
+    table = PREFIX + 'concurrency'
+    execute(url, token, f'CREATE TABLE IF NOT EXISTS {table} (run_id TEXT PRIMARY KEY, payload TEXT NOT NULL)')
+    # Two independent HTTP requests with different payloads and the SAME primary key.
+    def contender(payload: str) -> int:
+        result = execute(url, token,
+            f'INSERT INTO {table}(run_id, payload) VALUES (?, ?) ON CONFLICT(run_id) DO NOTHING',
+            run_id, payload)
+        return int(result['affected_row_count'])
+    with ThreadPoolExecutor(max_workers=2) as pool:
+        f1 = pool.submit(contender, 'writer-A')
+        f2 = pool.submit(contender, 'writer-B')
+        affected = [f1.result(), f2.result()]
+    persisted = rows(execute(url, token, f'SELECT payload FROM {table} WHERE run_id = ?', run_id))
+    if sorted(affected) != [0, 1] or len(persisted) != 1 or persisted[0][0] not in ('writer-A', 'writer-B'):
+        raise AssertionError('Two-writer uniqueness contract failed')
+    return {'status': 'PASS', 'detail': 'Two simultaneous insert requests; exactly one writer won',
+            'affected_rows': affected, 'row_count': len(persisted)}
 
 
-def count_records(url: str, token: str, batch_id: str) -> int:
-    result = one_result(url, token,
-                        f'SELECT COUNT(*) FROM {TABLE} WHERE batch_id = ?', batch_id)
-    return int(result['rows'][0][0]['value'])
+def run_idempotence(url: str, token: str, run_id: str) -> dict:
+    table = PREFIX + 'idempotence'
+    execute(url, token, f'CREATE TABLE IF NOT EXISTS {table} (run_id TEXT PRIMARY KEY, payload TEXT NOT NULL)')
+    payload = 'synthetic-' + uuid.uuid4().hex
+    first = execute(url, token,
+        f'INSERT INTO {table}(run_id,payload) VALUES (?,?) ON CONFLICT(run_id) DO NOTHING', run_id, payload)
+    if int(first['affected_row_count']) != 1:
+        raise AssertionError('Initial idempotent write not confirmed')
+    # Deliberately discard the successful result in a LOCAL simulation of a lost acknowledgement.
+    # This is NOT an actual induced internet timeout or outage.
+    readback = rows(execute(url, token, f'SELECT payload FROM {table} WHERE run_id=?', run_id))
+    if readback != [[payload]]:
+        raise AssertionError('Reconciliation did not identify the existing record')
+    duplicate = execute(url, token,
+        f'INSERT INTO {table}(run_id,payload) VALUES (?,?) ON CONFLICT(run_id) DO NOTHING', run_id, payload)
+    if int(duplicate['affected_row_count']) != 0 or count(url, token, table, run_id) != 1:
+        raise AssertionError('Retry duplicated or changed the original record')
+    return {'status': 'PASS_SIMULATION', 'detail': 'Simulated lost acknowledgment; read-by-ID and idempotent retry succeeded. Actual network timeout not tested.'}
 
 
-def inspect_batch_response(response: dict, inject_failure: bool) -> bool:
-    if response.get('type') != 'ok' or response.get('response', {}).get('type') != 'batch':
-        raise RuntimeError('Batch execution result unavailable')
-    result = response['response'].get('result', {})
-    successes = result.get('step_results')
-    errors = result.get('step_errors')
-    if not isinstance(successes, list) or not isinstance(errors, list) or len(successes) != 15 or len(errors) != 15:
-        raise RuntimeError('Invalid batch result arrays')
-    if not inject_failure:
-        if any(s is None or e is not None for s, e in zip(successes[:14], errors[:14])):
-            raise AssertionError('Success-path transaction did not complete')
-        if successes[14] is not None or errors[14] is not None:
-            raise AssertionError('Unexpected rollback after successful COMMIT')
-        return True
-    if (any(s is None or e is not None for s, e in zip(successes[:8], errors[:8]))
-            or successes[8] is not None or errors[8] is None):
-        raise AssertionError('Expected duplicate failure at slot 8 was not observed')
-    if any(s is not None or e is not None for s, e in zip(successes[9:14], errors[9:14])):
-        raise AssertionError('Later inserts or COMMIT unexpectedly executed')
-    if successes[14] is None or errors[14] is not None:
-        raise AssertionError('ROLLBACK was not confirmed')
-    return True
+def digest(records: list[list[object]]) -> str:
+    raw = json.dumps(records, separators=(',', ':'), ensure_ascii=False).encode('utf-8')
+    return hashlib.sha256(raw).hexdigest()
 
 
-def run_atomic_test(url: str, token: str, inject_failure: bool) -> tuple[str, int]:
-    setup(url, token)
-    batch_id = str(uuid.uuid4())
-    steps = make_batch(batch_id, inject_failure)
-    results = pipeline(url, token, [{'type': 'batch', 'batch': {'steps': steps}}])
-    inspect_batch_response(results[0], inject_failure)
-    count = count_records(url, token, batch_id)
-    expected = 0 if inject_failure else 12
-    if count != expected:
-        raise AssertionError('Readback count mismatch; expected %d, got %d' % (expected, count))
-    return batch_id, count
+def run_copy_restore(url: str, token: str, run_id: str) -> dict:
+    source = PREFIX + 'archive_source'
+    dest = PREFIX + 'archive_reconstruction'
+    for table in (source, dest):
+        execute(url, token, f'''CREATE TABLE IF NOT EXISTS {table} (
+            run_id TEXT NOT NULL, item_no INTEGER NOT NULL, payload TEXT NOT NULL,
+            PRIMARY KEY(run_id, item_no))''')
+    expected = [[str(i), 'synthetic-record-' + str(i)] for i in range(1, 5)]
+    for i, payload in expected:
+        execute(url, token, f'INSERT INTO {source}(run_id,item_no,payload) VALUES (?,?,?)', run_id, i, payload)
+    source_rows = rows(execute(url, token,
+        f'SELECT item_no,payload FROM {source} WHERE run_id=? ORDER BY item_no', run_id))
+    if source_rows != expected:
+        raise AssertionError('Isolated source readback differs')
+    for i, payload in source_rows:
+        execute(url, token, f'INSERT INTO {dest}(run_id,item_no,payload) VALUES (?,?,?)', run_id, int(i), payload)
+    dest_rows = rows(execute(url, token,
+        f'SELECT item_no,payload FROM {dest} WHERE run_id=? ORDER BY item_no', run_id))
+    if dest_rows != source_rows or digest(dest_rows) != digest(source_rows):
+        raise AssertionError('Isolated reconstruction content/hash mismatch')
+    return {'status': 'PASS_LIMITED', 'detail': 'Diagnostic rows copied to separate table and SHA-256 matched. NOT a full DB export, restore, or independent offsite backup.',
+            'rows': len(dest_rows), 'sha256': digest(dest_rows)}
+
+
+def run_all(url: str, token: str) -> dict:
+    report = {
+        'version': 'integrated-v3.1', 'timestamp_utc': datetime.now(timezone.utc).isoformat(),
+        'database': 'kyoto-keiba-ai-test', 'run_id': str(uuid.uuid4()),
+        'prior_evidence': 'v1/v2/v3 passed in earlier screenshots; not rerun here',
+        'tests': {},
+        'not_verified': ['Actual network outage or ambiguous remote commit',
+                         'Full database export and restore', 'Independent audit archive',
+                         'Whole v14 integration', 'Prediction accuracy or real data ingestion'],
+    }
+    tests = [('concurrent_writers', run_concurrent),
+             ('lost_acknowledgment_simulation', run_idempotence),
+             ('isolated_copy_and_hash', run_copy_restore)]
+    for label, fn in tests:
+        try:
+            report['tests'][label] = fn(url, token, report['run_id'])
+        except Exception as exc:
+            # A failed transport leaves ambiguous state: NEVER automatically retry.
+            report['tests'][label] = {'status': 'INCONCLUSIVE',
+                'detail': f'{type(exc).__name__}: test did not complete; check test-only rows privately before rerun'}
+            break
+    report['overall'] = ('PASS_LIMITED' if len(report['tests']) == len(tests)
+                         and all(t['status'].startswith('PASS') for t in report['tests'].values())
+                         else 'INCONCLUSIVE')
+    return report
 
 
 def main() -> None:
-    st.set_page_config(page_title='Kyoto Keiba AI | Turso atomicity v3', page_icon='🧪')
-    st.title('Turso 12-race atomicity diagnostic (v3)')
-    st.caption('Independent probe only: no production app.py or v14 modifications.')
-    st.warning('Only test against kyoto-keiba-ai-test. Uses synthetic identifiers, never real races.')
+    import streamlit as st
+    st.set_page_config(page_title='Kyoto Keiba AI | Consolidated Turso test', page_icon='🧪')
+    st.title('Turso consolidated diagnostic v3.1')
+    st.caption('Same v3 Streamlit app. Test-only records; no v14 or production app changes.')
+    st.warning('Only kyoto-keiba-ai-test. One click runs 3 additional checks. Results are limited; not production readiness.')
     try:
         url = str(st.secrets['TURSO_DATABASE_URL']).strip()
         token = str(st.secrets['TURSO_AUTH_TOKEN']).strip()
-        password_secret = str(st.secrets['TURSO_PROBE_PASSWORD'])
-        api_endpoint(url)
-        if not token or len(password_secret) < 12:
-            raise ValueError('Missing required credentials')
+        password = str(st.secrets['TURSO_PROBE_PASSWORD'])
+        endpoint(url)
+        if not token or len(password) < 12:
+            raise ValueError('Missing Secrets')
     except Exception:
-        st.error('Dedicated diagnostic Secrets are incomplete. Values will not be shown.')
+        st.error('Diagnostic Secrets missing or wrong DB. No values displayed.')
         st.stop()
     supplied = st.text_input('Diagnostic access password', type='password')
-    if not hmac.compare_digest(supplied, password_secret):
-        st.info('Password required to display diagnostic controls.')
+    if not hmac.compare_digest(supplied, password):
+        st.info('Password required to show controls.')
         st.stop()
-    st.success('Access authorized for dedicated test DB (credential values hidden).')
-    consent = st.checkbox('I understand that these isolated tests create diagnostic-only records.')
+    st.success('Authorized for dedicated test DB.')
+    consent = st.checkbox('I agree to create isolated test-only records. No source data will be modified.')
     if not consent:
         st.stop()
-    if st.button('Test C1: Commit exactly 12 synthetic race records'):
-        try:
-            identifier, count = run_atomic_test(url, token, inject_failure=False)
-            st.success(f'PASS: COMMIT confirmed; {count} records read back')
-            st.caption('Diagnostic batch ID (not secret): ' + identifier)
-        except Exception:
-            st.error('FAIL / INCONCLUSIVE. Do not click again automatically; inspect privately.')
-    if st.button('Test C2: Inject duplicate at race 8; verify full ROLLBACK'):
-        try:
-            identifier, count = run_atomic_test(url, token, inject_failure=True)
-            st.success(f'PASS: ROLLBACK confirmed; {count} records remain')
-            st.caption('Diagnostic batch ID (not secret): ' + identifier)
-        except Exception:
-            st.error('FAIL / INCONCLUSIVE. Do not click again automatically; inspect privately.')
-    st.caption('Not yet validated: concurrent writers, network timeout ambiguity, recovery/export, independent audit archive, full v14 integration.')
+    if st.button('Run all remaining automated checks (once)', type='primary'):
+        st.session_state['integrated_report'] = run_all(url, token)
+    report = st.session_state.get('integrated_report')
+    if report:
+        st.subheader('Automatic test report')
+        for name, outcome in report['tests'].items():
+            if outcome['status'].startswith('PASS'):
+                st.success(name + ': ' + outcome['status'])
+            else:
+                st.error(name + ': ' + outcome['status'])
+            st.caption(outcome['detail'])
+        st.write('Overall: ' + report['overall'])
+        st.info('Not tested: actual network outage, full DB recovery, independent audit archive, full v14 integration.')
+        st.download_button('Download result JSON',
+            data=json.dumps(report, ensure_ascii=False, indent=2),
+            file_name='kyoto_turso_diagnostic_v31_result.json', mime='application/json')
+        st.caption('Do not re-run an INCONCLUSIVE test without inspecting the test-only run ID privately.')
 
 
 if __name__ == '__main__':
