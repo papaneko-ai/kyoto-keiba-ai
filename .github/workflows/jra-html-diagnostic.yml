@@ -20,6 +20,7 @@ on:
       - 'diagnostics/inventory_jra_features.py'
       - 'diagnostics/inspect_predictive_field_structure.py'
       - 'diagnostics/probe_runner_history.py'
+      - 'diagnostics/follow_jra_horse_get.py'
       - '.github/workflows/jra-html-diagnostic.yml'
   workflow_dispatch:
 permissions:
@@ -62,6 +63,8 @@ jobs:
         run: python3 diagnostics/inspect_predictive_field_structure.py
       - name: Probe genuine runner history and racecard paths
         run: python3 diagnostics/probe_runner_history.py
+      - name: Fetch one real horse history page from JRA
+        run: python3 diagnostics/follow_jra_horse_get.py
       - name: Upload HTML and connection report
         if: always()
         uses: actions/upload-artifact@v4
