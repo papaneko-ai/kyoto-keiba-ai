@@ -37,9 +37,9 @@ def parse_payouts(content):
     for idx,start in enumerate(starts):
         segment=text[start:(starts[idx+1] if idx+1<len(starts) else len(text))]
         # '馬連 ... 馬単' and '枠連 ... ワイド' serve as hard boundaries.
-        quinella=re.search(r"馬連\\s+(\\d{1,2})-(\\d{1,2})\\s+([\\d,]+)\\s+円",segment)
-        bracket=re.search(r"枠連\\s+(\\d)-(\\d)\\s+([\\d,]+)\\s+円",segment)
-        absent=bool(re.search(r"枠連\\s+ワイド",segment))
+        quinella=re.search(r"馬連\s+(\d{1,2})-(\d{1,2})\s+([\d,]+)\s+円",segment)
+        bracket=re.search(r"枠連\s+(\d)-(\d)\s+([\d,]+)\s+円",segment)
+        absent=bool(re.search(r"枠連\s+ワイド",segment))
         if not quinella:
             raise ValueError("missing_quinella_section_"+str(idx+1))
         if not (bracket or absent) or (bracket and absent):
