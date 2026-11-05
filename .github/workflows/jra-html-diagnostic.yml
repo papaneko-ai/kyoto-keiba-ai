@@ -15,6 +15,7 @@ on:
       - 'diagnostics/extract_kyoto_payouts.py'
       - 'diagnostics/probe_kyoto_historical_odds.py'
       - 'diagnostics/probe_kyoto_bet_types.py'
+      - 'diagnostics/inspect_odds_tables.py'
       - '.github/workflows/jra-html-diagnostic.yml'
   workflow_dispatch:
 permissions:
@@ -47,6 +48,8 @@ jobs:
         run: python3 diagnostics/probe_kyoto_historical_odds.py
       - name: Inspect historical Kyoto race 1 quinella and bracket-quinella odds
         run: python3 diagnostics/probe_kyoto_bet_types.py
+      - name: Inspect official captured odds tables offline
+        run: python3 diagnostics/inspect_odds_tables.py
       - name: Upload HTML and connection report
         if: always()
         uses: actions/upload-artifact@v4
