@@ -1,0 +1,27 @@
+name: JRA HTML diagnostic (branch only)
+on:
+  push:
+    branches:
+      - jra-html-diagnostic-20261105
+    paths:
+      - 'diagnostics/capture_jra_public_html.py'
+      - '.github/workflows/jra-html-diagnostic.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  capture:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+      - name: Capture two public JRA HTML pages once
+        run: python3 diagnostics/capture_jra_public_html.py
+      - name: Upload HTML and connection report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: jra-public-html-diagnostic
+          path: jra_capture/
+          retention-days: 3
+          if-no-files-found: error
