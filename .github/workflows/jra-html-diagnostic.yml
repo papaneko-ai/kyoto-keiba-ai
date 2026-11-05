@@ -18,6 +18,7 @@ on:
       - 'diagnostics/inspect_odds_tables.py'
       - 'diagnostics/extract_kyoto_odds_matrix.py'
       - 'diagnostics/inventory_jra_features.py'
+      - 'diagnostics/inspect_predictive_field_structure.py'
       - '.github/workflows/jra-html-diagnostic.yml'
   workflow_dispatch:
 permissions:
@@ -56,6 +57,8 @@ jobs:
         run: python3 diagnostics/extract_kyoto_odds_matrix.py
       - name: Inventory real race and prediction feature HTML
         run: python3 diagnostics/inventory_jra_features.py
+      - name: Inspect source fields and links usable by prediction model
+        run: python3 diagnostics/inspect_predictive_field_structure.py
       - name: Upload HTML and connection report
         if: always()
         uses: actions/upload-artifact@v4
