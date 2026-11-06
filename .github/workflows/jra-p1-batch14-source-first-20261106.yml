@@ -1,0 +1,94 @@
+name: Kyoto P1 batch14 six profiles source-first and Kyoto 8R complete
+on:
+  push:
+    branches: [jra-html-diagnostic-20261105]
+    paths: ['diagnostics/activation_batch14_source_first_20261106.txt']
+permissions:
+  contents: write
+  actions: read
+concurrency:
+  group: kyoto-p1-batch14-source-first-reconcile
+  cancel-in-progress: false
+jobs:
+  capture:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    env:
+      PYTHONPATH: .
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: jra-html-diagnostic-20261105
+      - run: python -m pip install 'beautifulsoup4>=4.12,<5'
+      - name: Offline tests and exact two horse preflight
+        run: |
+          python -m compileall -q diagnostics/jra_p1_batch14_source_first.py diagnostics/jra_p1_batch14_original_replay.py diagnostics/jra_p1_batch14_acceptance.py
+          python -m unittest discover -s tests -p 'test_jra_batch14_source_first.py' -v
+          python -m unittest discover -s tests -p 'test_jra_prior_form_transfer_regression.py' -v
+      - name: GET six never-attempted official profiles (>=2 seconds), originals FIRST
+        run: python diagnostics/jra_p1_batch14_source_first.py --out batch14_originals
+      - name: Commit receipt even if parsing fails
+        if: always()
+        run: |
+          if test -f batch14_originals/batch_receipt.json; then
+            mkdir -p docs/diagnostics/jra_p1_profile_batches_20261106
+            cp batch14_originals/batch_receipt.json docs/diagnostics/jra_p1_profile_batches_20261106/batch_14_receipt.json
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add docs/diagnostics/jra_p1_profile_batches_20261106/batch_14_receipt.json
+            git commit -m "Record original-first bounded batch14 remainder outcome"
+            git pull --rebase origin jra-html-diagnostic-20261105
+            git push origin HEAD:jra-html-diagnostic-20261105
+          fi
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: kyoto-batch14-source-first-originals
+          path: batch14_originals/
+          retention-days: 3
+  replay:
+    needs: capture
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      PYTHONPATH: .
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: jra-html-diagnostic-20261105
+      - uses: actions/download-artifact@v4
+        with:
+          name: kyoto-batch14-source-first-originals
+          path: original_sources
+      - run: python -m pip install 'beautifulsoup4>=4.12,<5'
+      - name: Independent offline replay of six exact original SHA
+        run: python diagnostics/jra_p1_batch14_original_replay.py --artifact original_sources --out docs/diagnostics/jra_p1_profile_batches_20261106/replayed_batch_14
+      - name: Commit independent proof
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/diagnostics/jra_p1_profile_batches_20261106/replayed_batch_14/
+          git commit -m "Prove two batch14 source-first originals from SHA-matched bytes offline"
+          git pull --rebase origin jra-html-diagnostic-20261105
+          git push origin HEAD:jra-html-diagnostic-20261105
+  acceptance:
+    needs: replay
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      PYTHONPATH: .
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: jra-html-diagnostic-20261105
+      - run: python -m pip install 'beautifulsoup4>=4.12,<5'
+      - name: Accept six batch14 originals against locked checkpoint
+        run: python diagnostics/jra_p1_batch14_acceptance.py --out docs/diagnostics/jra_p1_batch14_96_profiles_20261106
+      - name: Commit 96 profile checkpoint
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/diagnostics/jra_p1_batch14_96_profiles_20261106/
+          git commit -m "Accept P1 90 profiles with repaired transfer handling and source-first originals"
+          git pull --rebase origin jra-html-diagnostic-20261105
+          git push origin HEAD:jra-html-diagnostic-20261105
