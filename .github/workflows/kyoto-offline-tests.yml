@@ -41,6 +41,8 @@ on:
       - 'tests/test_jra_odds_source_archive.py'
       - 'diagnostics/jra_market_source_chain.py'
       - 'tests/test_jra_market_source_chain.py'
+      - 'diagnostics/jra_one_shot_market_capture.py'
+      - 'tests/test_jra_one_shot_market_capture.py'
       - 'docs/diagnostics/pc_sp_benchmark_20261106/benchmark_report.json'
       - 'docs/diagnostics/JRA_KYOTO_R7_PRERACE_FROZEN_20261106.json'
       - '.github/workflows/kyoto-offline-tests.yml'
@@ -76,3 +78,4 @@ jobs:
           python -m unittest discover -s tests -p 'test_jra_official_odds_chain.py' -v
           python -m unittest discover -s tests -p 'test_jra_odds_source_archive.py' -v
           python -m unittest discover -s tests -p 'test_jra_market_source_chain.py' -v
+          python -m unittest discover -s tests -p 'test_jra_one_shot_market_capture.py' -v
