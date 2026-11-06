@@ -18,7 +18,8 @@
     "EVO-03": "shadow AI pre-race matched comparison P3,P6,P7",
     "EVO-04": "pre-registered counterfactual portfolio P4,P5,P6,P7",
     "EVO-05": "drift and deterioration P3,P5,P7,P8",
-    "EVO-06": "constrained autonomous research P2,P3,P6,P7,P8"
+    "EVO-06": "constrained autonomous research P2,P3,P6,P7,P8",
+    "EVO-07": "independent evolution certification audit P7; supporting evidence P1-P6 and reporting P8"
   },
   "guards": [
     "no_future_data",
@@ -30,9 +31,17 @@
     "keep_champion_when_unproven",
     "separate_virtual_actual_ledger",
     "preserve_main_and_turso",
-    "no_old_app_reuse"
+    "no_old_app_reuse",
+    "independent_precommitted_evaluation_plan",
+    "untouched_time_holdout",
+    "paired_same_race_comparison",
+    "multiple_testing_guard",
+    "certification_separate_from_promotion",
+    "forward_monitoring_after_promotion",
+    "measure_research_engine_efficiency"
   ],
   "implementation": "required_not_yet_implemented",
   "restart": "P1-FB stage5; verified 96/148, 52 remaining, 592 prior histories",
-  "spec": "docs/KYOTO_AI_AUTONOMOUS_EVOLUTION_SIX_CAPABILITIES_REQUIREMENTS_20261106.md"
+  "spec": "docs/KYOTO_AI_AUTONOMOUS_EVOLUTION_SIX_CAPABILITIES_REQUIREMENTS_20261106.md",
+  "audit_spec": "docs/KYOTO_AI_INDEPENDENT_EVOLUTION_CERTIFICATION_AUDIT_20261106.md"
 }
