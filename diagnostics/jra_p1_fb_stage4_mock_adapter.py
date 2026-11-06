@@ -49,6 +49,8 @@ def run(*,folder,primary,secondary,horse_name,race,number,roster_sha,
        or not official(secondary.channel,secondary.url)):
         raise ValueError("invalid_backup_channel_or_url")
     urls=[a.url for a in prior_attempts]
+    if any(a.race==race and a.horse_number==number and a.outcome=="VALIDATED" for a in prior_attempts):
+        raise ValueError("horse_profile_already_verified")
     if primary.url in urls or (secondary and secondary.url in urls):
         raise ValueError("already_requested_url")
     if now.astimezone(timezone.utc)>=cutoff.astimezone(timezone.utc):
