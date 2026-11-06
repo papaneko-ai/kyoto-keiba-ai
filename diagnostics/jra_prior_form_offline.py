@@ -14,7 +14,7 @@ def parse_horse_history(raw:bytes,*,source_url:str,fetched_at_utc:datetime,
                         prediction_cutoff_utc:datetime,target_date:date,
                         expected_horse_name:str|None=None)->dict:
     u=urlsplit(source_url)
-    if u.scheme!='https' or u.hostname not in ('www.jra.go.jp','jra.go.jp') or u.path!='/JRADB/accessU.html':
+    if u.scheme!='https' or u.hostname not in ('www.jra.go.jp','jra.go.jp','jra.jp') or u.path!='/JRADB/accessU.html':
         raise ValueError('jra_profile_url_required')
     if not raw or len(raw)>2_000_000:raise ValueError('invalid_html_size')
     for x in (fetched_at_utc,prediction_cutoff_utc):
