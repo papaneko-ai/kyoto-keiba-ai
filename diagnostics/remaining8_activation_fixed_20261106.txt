@@ -1,0 +1,1 @@
+Retry after root-cause fix for Python import path; prior attempt stopped before any network requests. Fetch each remaining 2026-11-07 Kyoto race once; no production writes.
