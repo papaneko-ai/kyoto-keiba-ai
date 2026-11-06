@@ -1,0 +1,1 @@
+One-time independent offline acceptance of 5 real PC/SP Kyoto paired measurements; no JRA requests, no production writes, retains timing evidence and fail-closed model gates.
