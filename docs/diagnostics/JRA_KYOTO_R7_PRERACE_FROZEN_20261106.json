@@ -1,0 +1,199 @@
+{
+  "schema_version": "jra_prerace_roster_20261107_kyoto7.v1",
+  "venue": "KYOTO",
+  "race_date": "2026-11-07",
+  "race_number": 7,
+  "fetched_at_utc": "2026-11-06T03:25:24.951076+00:00",
+  "source_sha256": "fcba7d4c5c16b7dea2b4092a1fa511afefa891d5c6c3f9d7f7dba485d54d7657",
+  "source_url": "https://jra.jp/JRADB/accessD.html?CNAME=pw01dde0108202605010720261107%2FFF",
+  "source_bytes": 177555,
+  "raw_capture_verified": true,
+  "racecard_horse_rows_verified": true,
+  "runners": [
+    {
+      "horse_number": 1,
+      "frame_number": 1,
+      "horse_name": "タケルハーロック",
+      "horse_profile_href": "/JRADB/accessU.html?CNAME=pw01dud002022100333/F2",
+      "profile_navigation_only": true,
+      "official_permanent_horse_id": null,
+      "prior_race_dates": [
+        "2026-07-18",
+        "2026-06-27",
+        "2026-05-03",
+        "2026-04-04"
+      ],
+      "historical_results_are_prior_by_date": true,
+      "status": "ENTRY_LISTED_NOT_INDEPENDENTLY_CONFIRMED"
+    },
+    {
+      "horse_number": 2,
+      "frame_number": 2,
+      "horse_name": "プレアデスグループ",
+      "horse_profile_href": "/JRADB/accessU.html?CNAME=pw01dud002021104839/C9",
+      "profile_navigation_only": true,
+      "official_permanent_horse_id": null,
+      "prior_race_dates": [
+        "2026-10-17",
+        "2026-08-09",
+        "2026-04-11",
+        "2026-03-29"
+      ],
+      "historical_results_are_prior_by_date": true,
+      "status": "ENTRY_LISTED_NOT_INDEPENDENTLY_CONFIRMED"
+    },
+    {
+      "horse_number": 3,
+      "frame_number": 3,
+      "horse_name": "ヴリトラハン",
+      "horse_profile_href": "/JRADB/accessU.html?CNAME=pw01dud002022105302/FA",
+      "profile_navigation_only": true,
+      "official_permanent_horse_id": null,
+      "prior_race_dates": [
+        "2026-09-06",
+        "2026-06-13",
+        "2026-05-23",
+        "2026-05-02"
+      ],
+      "historical_results_are_prior_by_date": true,
+      "status": "ENTRY_LISTED_NOT_INDEPENDENTLY_CONFIRMED"
+    },
+    {
+      "horse_number": 4,
+      "frame_number": 4,
+      "horse_name": "バトゥカーダ",
+      "horse_profile_href": "/JRADB/accessU.html?CNAME=pw01dud002023105708/FC",
+      "profile_navigation_only": true,
+      "official_permanent_horse_id": null,
+      "prior_race_dates": [
+        "2026-10-07",
+        "2026-06-28",
+        "2026-05-31",
+        "2026-05-03"
+      ],
+      "historical_results_are_prior_by_date": true,
+      "status": "ENTRY_LISTED_NOT_INDEPENDENTLY_CONFIRMED"
+    },
+    {
+      "horse_number": 5,
+      "frame_number": 5,
+      "horse_name": "キントラダンサー",
+      "horse_profile_href": "/JRADB/accessU.html?CNAME=pw01dud002022104387/CA",
+      "profile_navigation_only": true,
+      "official_permanent_horse_id": null,
+      "prior_race_dates": [
+        "2026-08-30",
+        "2026-08-09",
+        "2026-04-04",
+        "2026-03-28"
+      ],
+      "historical_results_are_prior_by_date": true,
+      "status": "ENTRY_LISTED_NOT_INDEPENDENTLY_CONFIRMED"
+    },
+    {
+      "horse_number": 6,
+      "frame_number": 6,
+      "horse_name": "マイティマイティー",
+      "horse_profile_href": "/JRADB/accessU.html?CNAME=pw01dud002021103708/06",
+      "profile_navigation_only": true,
+      "official_permanent_horse_id": null,
+      "prior_race_dates": [
+        "2026-06-07",
+        "2026-05-23",
+        "2026-03-21",
+        "2026-02-14"
+      ],
+      "historical_results_are_prior_by_date": true,
+      "status": "ENTRY_LISTED_NOT_INDEPENDENTLY_CONFIRMED"
+    },
+    {
+      "horse_number": 7,
+      "frame_number": 6,
+      "horse_name": "ゴールデンカイト",
+      "horse_profile_href": "/JRADB/accessU.html?CNAME=pw01dud002022110129/00",
+      "profile_navigation_only": true,
+      "official_permanent_horse_id": null,
+      "prior_race_dates": [
+        "2026-06-21",
+        "2026-01-31",
+        "2025-12-06",
+        "2025-10-11"
+      ],
+      "historical_results_are_prior_by_date": true,
+      "status": "ENTRY_LISTED_NOT_INDEPENDENTLY_CONFIRMED"
+    },
+    {
+      "horse_number": 8,
+      "frame_number": 7,
+      "horse_name": "テーオーパーセル",
+      "horse_profile_href": "/JRADB/accessU.html?CNAME=pw01dud002023105435/40",
+      "profile_navigation_only": true,
+      "official_permanent_horse_id": null,
+      "prior_race_dates": [
+        "2026-10-10",
+        "2026-05-03",
+        "2026-04-12",
+        "2026-02-14"
+      ],
+      "historical_results_are_prior_by_date": true,
+      "status": "ENTRY_LISTED_NOT_INDEPENDENTLY_CONFIRMED"
+    },
+    {
+      "horse_number": 9,
+      "frame_number": 7,
+      "horse_name": "パンサーズ",
+      "horse_profile_href": "/JRADB/accessU.html?CNAME=pw01dud002023104325/10",
+      "profile_navigation_only": true,
+      "official_permanent_horse_id": null,
+      "prior_race_dates": [
+        "2026-10-03",
+        "2026-08-16",
+        "2026-05-24",
+        "2025-09-21"
+      ],
+      "historical_results_are_prior_by_date": true,
+      "status": "ENTRY_LISTED_NOT_INDEPENDENTLY_CONFIRMED"
+    },
+    {
+      "horse_number": 10,
+      "frame_number": 8,
+      "horse_name": "ニホンピロカラット",
+      "horse_profile_href": "/JRADB/accessU.html?CNAME=pw01dud002021103842/C5",
+      "profile_navigation_only": true,
+      "official_permanent_horse_id": null,
+      "prior_race_dates": [
+        "2026-10-25",
+        "2026-09-26",
+        "2026-05-16",
+        "2026-05-02"
+      ],
+      "historical_results_are_prior_by_date": true,
+      "status": "ENTRY_LISTED_NOT_INDEPENDENTLY_CONFIRMED"
+    },
+    {
+      "horse_number": 11,
+      "frame_number": 8,
+      "horse_name": "セールヴォラン",
+      "horse_profile_href": "/JRADB/accessU.html?CNAME=pw01dud002021101057/AE",
+      "profile_navigation_only": true,
+      "official_permanent_horse_id": null,
+      "prior_race_dates": [
+        "2026-10-25",
+        "2026-10-11",
+        "2026-07-04",
+        "2026-06-13"
+      ],
+      "historical_results_are_prior_by_date": true,
+      "status": "ENTRY_LISTED_NOT_INDEPENDENTLY_CONFIRMED"
+    }
+  ],
+  "runner_count": 11,
+  "errors": [],
+  "all_frames_extracted": true,
+  "official_permanent_ids_verified": false,
+  "scratches_verified": false,
+  "odds_snapshot_verified": false,
+  "ready_for_prediction": false,
+  "ready_for_training": false,
+  "reason": "needs_stable_ids_scratches_odds_and_independent_evidence"
+}
