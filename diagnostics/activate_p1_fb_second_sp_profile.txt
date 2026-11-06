@@ -1,0 +1,1 @@
+One official pre-observed SP profile URL from source SHA-locked Kyoto11R SP racecard for horse2. At most one HTTPS GET, zero retries, save original before parsing, hold all captured evidence, never admit as new 97th profile without independent replay.
