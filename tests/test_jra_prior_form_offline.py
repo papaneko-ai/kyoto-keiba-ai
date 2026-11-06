@@ -41,4 +41,26 @@ class PriorFormTest(unittest.TestCase):
     def test_naive_clock(self):
         with self.assertRaises(ValueError):run(prediction_cutoff_utc=datetime(2026,10,31,5))
     def test_finish_percentile(self):self.assertAlmostEqual(run()['prior_rows'][0]['finish_percentile'],13/15)
+    def test_mixed_turf_dirt_obstacle_is_separate_surface(self):
+        raw=make_html().decode('cp932').replace('ダ1400','芝ダ2970').encode('cp932')
+        r=run(raw=raw)
+        self.assertEqual(r['prior_rows'][0]['surface'],'芝ダ')
+        self.assertEqual(r['prior_rows'][0]['distance_m'],2970)
+    def test_nonfinish_exclusion_not_a_finish(self):
+        raw=make_html().decode('cp932').replace('<td>3</td><td>松山 弘平','<td>除外</td><td>松山 弘平').encode('cp932')
+        r=run(raw=raw)
+        self.assertEqual(r['prior_row_count'],0)
+        self.assertEqual(len(r['nonfinish_rows']),1)
+        self.assertEqual(r['nonfinish_rows'][0]['status'],'除外')
+        self.assertFalse(r['nonfinish_rows'][0]['included_in_finish_metrics'])
+    def test_identity_proven_empty_profile_has_no_fake_finish(self):
+        raw='<html><span class="txt"><span class="opt">競走馬情報</span>テスト馬<span class="name_en">Test</span></span><h2>出走履歴</h2></html>'
+        r=run(raw=raw.encode('cp932'),allow_verified_no_history=True)
+        self.assertEqual(r['prior_row_count'],0)
+        self.assertTrue(r['profile_history_table_absent'])
+        self.assertFalse(r['prediction_ready'])
+    def test_empty_profile_default_stays_blocked(self):
+        raw='<html><span class="txt"><span class="opt">競走馬情報</span>テスト馬<span class="name_en">Test</span></span><h2>出走履歴</h2></html>'
+        with self.assertRaises(ValueError):run(raw=raw.encode('cp932'))
+
 if __name__=='__main__':unittest.main()
