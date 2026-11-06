@@ -1,0 +1,1 @@
+Run isolated no-HTTP request budget policy, SP special case and PC/SP symmetric test suites. Never enable automatic live fallback. No change to JRA profile acquisition checkpoint.
