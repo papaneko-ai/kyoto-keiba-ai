@@ -1,0 +1,33 @@
+name: Kyoto batch14 offline proof repair
+on:
+  push:
+    branches: [jra-html-diagnostic-20261105]
+    paths: ['diagnostics/activate_batch14_proof_repair.txt']
+permissions:
+  contents: write
+  actions: read
+jobs:
+  repair:
+    runs-on: ubuntu-latest
+    env:
+      PYTHONPATH: .
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: jra-html-diagnostic-20261105
+      - uses: actions/download-artifact@v4
+        with:
+          run-id: 42172639135
+          name: kyoto-batch14-source-first-originals
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: originals
+      - run: python -m pip install beautifulsoup4
+      - run: python diagnostics/jra_p1_batch14_original_replay.py --artifact originals --out docs/diagnostics/jra_p1_profile_batches_20261106/replayed_batch_14
+      - run: python diagnostics/jra_p1_batch14_acceptance.py --out docs/diagnostics/jra_p1_batch14_96_profiles_20261106
+      - run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/diagnostics/jra_p1_profile_batches_20261106/replayed_batch_14/ docs/diagnostics/jra_p1_batch14_96_profiles_20261106/
+          git commit -m "Reconcile six originals and accept batch14 without HTTP"
+          git pull --rebase origin jra-html-diagnostic-20261105
+          git push origin HEAD:jra-html-diagnostic-20261105
