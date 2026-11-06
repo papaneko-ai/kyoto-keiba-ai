@@ -1,0 +1,1 @@
+Verify six actual JRA source originals from P1 batch03 run 42166373514 by exact SHA, race and horse name, no new JRA requests.
