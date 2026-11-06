@@ -7,9 +7,11 @@
 ## 継続する正本
 - 全13項目のアルゴリズム要件：`docs/KYOTO_AI_ALGORITHM_REQUIREMENTS_REGISTER_v1_20261106.md`
 - P1〜P8の固定工程・完了ゲート：`docs/KYOTO_AI_ALGORITHM_AND_EXECUTION_ROADMAP_20261106.md`
-- **最新の確定進捗・証拠（優先参照）**：`docs/KYOTO_AI_P1_TWO_RACES_COMPLETE_HANDOFF_20261106.md`
+- **最新の確定進捗・証拠（優先参照）**：`docs/KYOTO_AI_P1_THREE_RACES_COMPLETE_HANDOFF_20261106.md`
+- 以前の進捗記録（履歴）：`docs/KYOTO_AI_P1_TWO_RACES_COMPLETE_HANDOFF_20261106.md`
 - 以前の進捗記録（履歴として保持）：`docs/KYOTO_AI_P1_IMPLEMENTATION_HANDOFF_20261106.md`
-- **最新の機械読取可能な進捗・再開位置**：`docs/diagnostics/jra_p1_two_complete_races_20261106/status.json`
+- **最新の機械読取可能な進捗・再開位置**：`docs/diagnostics/jra_p1_three_complete_races_20261106/status.json`
+- 以前の機械読取記録（履歴）：`docs/diagnostics/jra_p1_two_complete_races_20261106/status.json`
 - 以前の再開位置（履歴）：`docs/diagnostics/JRA_P1_18_VERIFIED_130_PENDING_CHECKPOINT_20261106.json`
 - 次工程の取得対象計画：`docs/diagnostics/JRA_PENDING_136_PROFILES_PLAN_20261106.json`
 
@@ -26,7 +28,7 @@ P1 予測用データの取得・欠落と時点の証明
 準備作業が並行できる場合も、未完了の前提を通過したと偽って次段階の性能実証を宣言しない。
 
 ## 現在の再開位置
-2026-11-06時点：P1進行中。2026-11-07京都12レース148頭の基本出馬表を保存。**公式詳細プロフィール36頭、過去着順153件を実原本から確認。京都1Rの9頭、京都2Rの15頭は全頭詳細解析済み**。未取得112頭。第1〜4バッチは実取得・独立原本照合まで完了。**次は `batch_05`**。第1〜4バッチを再取得しない。根拠は `docs/KYOTO_AI_P1_TWO_RACES_COMPLETE_HANDOFF_20261106.md` と `docs/diagnostics/jra_p1_two_complete_races_20261106/status.json`。公式原本HTMLの恒久保管、利用条件、取消や馬場・オッズの時点検証は未完了。予測・学習可能と認定しない。
+2026-11-06時点：P1進行中。2026-11-07京都12Rの出馬表148頭のうち、**詳細プロフィール48頭、過去着順172件**を公式原本のSHA付きで再解析済み。**京都1R（9頭）・2R（15頭）・3R（13頭）は全出走馬について詳細プロフィールを取得・照合済み**。未取得100頭。初回の固定23バッチのうち**batch_01〜batch_06実行済み、次はbatch_07**。1〜6バッチは再取得しない。最新の進捗根拠は `docs/KYOTO_AI_P1_THREE_RACES_COMPLETE_HANDOFF_20261106.md` と `docs/diagnostics/jra_p1_three_complete_races_20261106/status.json`。公式原本HTMLの長期保管・利用条件、取消や馬場・発走前オッズは未完成であり、予測・学習可能と認定しない。
 
 ## 新しいチャットの必須開始手順
 1. 最初に上記の正本要件・工程・直近チェックポイントを確認する。
