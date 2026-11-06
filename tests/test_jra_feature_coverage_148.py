@@ -16,8 +16,13 @@ class RealFrozenFeatureAudit(unittest.TestCase):
   self.assertTrue(r)
   self.assertTrue(all(x["date_only_features"]["date_records_visible"]==0 for x in r))
  def test_genuine_profile_sample(self):
-  self.assertEqual(self.summary["profile_sources_queried"],3)
-  self.assertGreaterEqual(self.summary["profile_sources_with_parsed_form"],2)
+  self.assertEqual(self.summary["profile_sources_queried"],12)
+  self.assertEqual(self.summary["profile_sources_with_parsed_form"],12)
+  self.assertEqual(self.summary["profile_sources_with_actual_finishes"],10)
+  self.assertEqual(self.summary["profile_sources_verified_no_history"],2)
+  self.assertEqual(self.summary["profile_actual_finished_race_rows"],107)
+  self.assertEqual(self.summary["profile_actual_nonfinish_events"],1)
+  self.assertEqual(self.summary["profile_sources_unqueried"],136)
  def test_missing_not_imputed(self):
   for x in self.rows:
    self.assertFalse(x["prediction_ready"])
