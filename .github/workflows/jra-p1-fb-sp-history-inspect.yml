@@ -26,7 +26,7 @@ jobs:
       - run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add docs/diagnostics/jra_p1_fb_offline_20261106/sp_history_shape.json
+          git add docs/diagnostics/jra_p1_fb_offline_20261106/sp_history_shape.json docs/diagnostics/jra_p1_fb_offline_20261106/sp_profile_real_parity.json
           git commit -m "Save source SHA verified SP profile table structure"
           git pull --rebase origin jra-html-diagnostic-20261105
           git push origin HEAD:jra-html-diagnostic-20261105
