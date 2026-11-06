@@ -25,6 +25,8 @@ on:
       - 'diagnostics/jra_freeze_live_roster.py'
       - 'tests/test_jra_frozen_live_roster.py'
       - 'tests/test_jra_pc_sp_11r_evidence.py'
+      - 'diagnostics/jra_source_router.py'
+      - 'tests/test_jra_source_router.py'
       - 'docs/diagnostics/JRA_KYOTO_R7_PRERACE_FROZEN_20261106.json'
       - '.github/workflows/kyoto-offline-tests.yml'
   workflow_dispatch:
@@ -51,3 +53,4 @@ jobs:
           python -m unittest discover -s tests -p 'test_jra_racecard_12r_registry.py' -v
           python -m unittest discover -s tests -p 'test_jra_frozen_live_roster.py' -v
           python -m unittest discover -s tests -p 'test_jra_pc_sp_11r_evidence.py' -v
+          python -m unittest discover -s tests -p 'test_jra_source_router.py' -v
