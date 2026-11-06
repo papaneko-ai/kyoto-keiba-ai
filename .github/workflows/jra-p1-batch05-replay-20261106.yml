@@ -1,0 +1,36 @@
+name: Kyoto P1 independent replay batch05
+on:
+  push:
+    branches: [jra-html-diagnostic-20261105]
+    paths: ['diagnostics/p1_batch05_replay_activation_20261106.txt']
+permissions:
+  contents: write
+  actions: read
+jobs:
+  replay:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      PYTHONPATH: .
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          run-id: 42167231089
+          name: kyoto-p1-batch05-source-20261106
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: original_html
+      - run: python -m pip install 'beautifulsoup4>=4.12,<5'
+      - name: Reparse exact original bytes with SHA and correct horse identity
+        run: |
+          python diagnostics/jra_p1_batches05_06_original_replay.py \
+            --batch batch_05 --artifact original_html \
+            --out docs/diagnostics/jra_p1_profile_batches_20261106/replayed_batch_05
+      - name: Preserve normalized data and verification receipt
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/diagnostics/jra_p1_profile_batches_20261106/replayed_batch_05
+          git commit -m "Verify batch05 six original JRA profiles and record prior forms" || true
+          git pull --rebase origin jra-html-diagnostic-20261105
+          git push origin HEAD:jra-html-diagnostic-20261105
