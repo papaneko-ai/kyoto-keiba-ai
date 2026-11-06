@@ -1,0 +1,1 @@
+One-time GitHub-only end-of-day backup. Checkout immutable backup/p1-fb-20261106-final; download 18 previously captured official-source artifact groups WITHOUT JRA requests; generate repository snapshot ZIP plus official evidence TAR.GZ, SHA manifest and combined ZIP; retain artifact up to 90 days. No main changes.
