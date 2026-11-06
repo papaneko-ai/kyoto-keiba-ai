@@ -1,0 +1,1 @@
+Execute one bounded six-runner JRA official profile batch02 only. Based on proven 18-verified 130-pending checkpoint, no retries, 2s spacing, 2026-11-07T00:00Z cutoff, no production DB changes.
