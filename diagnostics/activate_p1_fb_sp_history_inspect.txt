@@ -1,3 +1,5 @@
 Offline SHA verification of SP profile saved in run 42173462385. Inspect 32-row race table structure with no network.
 
 Second offline SP source verification using independent parser.
+
+Run with real SP parser invocation enabled.
