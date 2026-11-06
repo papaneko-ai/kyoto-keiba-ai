@@ -4,7 +4,7 @@ from hashlib import sha256
 from datetime import date
 import re
 DATE=re.compile(r"^(\d{4})年(\d{1,2})月(\d{1,2})日\s+")
-COURSE=re.compile(r"(芝ダ|ダート|芝|ダ|障)(\d{3,4})")
+COURSE=re.compile(r"(障芝|障ダ|芝ダ|ダート|芝|ダ|障)(\d{3,4})")
 FIELD=re.compile(r"(\d{1,2})頭")
 FINISH=re.compile(r"^(\d+)着\s+(\d+)人気")
 VENUES=("札幌","函館","福島","新潟","東京","中山","中京","京都","阪神","小倉")
