@@ -1,0 +1,1 @@
+Offline-only rescue for existing GitHub Actions artifact from run 42170611153. No new official JRA requests. SHA replay first three successfully parsed R7 profiles only, quarantine R8 horse2 invalid history rows, retain batch13 blocked state.
