@@ -1,0 +1,1 @@
+Run injected-transport PC/SP mocked fallback only. No official HTTP calls, no model/production changes. Preserve source before parse, fail closed on identity, duplicates, cutoff, response, and parser errors. Save immutable receipts.
