@@ -1,0 +1,37 @@
+name: Verify JRA SP runner parity against PC frozen racecard
+on:
+  push:
+    branches: [jra-html-diagnostic-20261105]
+    paths: ['diagnostics/sp_parity_activation_20261106.txt']
+permissions:
+  contents: write
+jobs:
+  parity:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+      - run: python -m pip install 'beautifulsoup4>=4.12,<5'
+      - name: One official mobile 11R GET and offline runner-row parity
+        run: python diagnostics/jra_sp_runner_parity.py --out jra_sp_parity
+      - name: Persist structured findings, not raw SP page
+        if: always()
+        run: |
+          mkdir -p docs/diagnostics
+          cp jra_sp_parity/receipt.json docs/diagnostics/JRA_SP_RUNNER_PARITY_RECEIPT_20261106.json
+          if test -f jra_sp_parity/sp_runner_comparison.json; then
+            cp jra_sp_parity/sp_runner_comparison.json docs/diagnostics/JRA_SP_RUNNER_PARITY_20261106.json
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/diagnostics/JRA_SP_RUNNER_PARITY_*.json
+          git commit -m "Verify JRA mobile 11R runner-number parity" || true
+          git pull --rebase origin jra-html-diagnostic-20261105
+          git push origin HEAD:jra-html-diagnostic-20261105
+      - name: Preserve raw HTML for 3 days
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: jra-mobile-parity-evidence-20261106
+          path: jra_sp_parity/
+          retention-days: 3
