@@ -2,7 +2,11 @@ name: Offline replay three saved official JRA horse profile originals
 on:
   push:
     branches: [jra-html-diagnostic-20261105]
-    paths: ['diagnostics/profile_replay_activation_20261106.txt']
+    paths:
+      - 'diagnostics/profile_replay_activation_20261106.txt'
+      - 'diagnostics/jra_prior_form_offline.py'
+      - 'diagnostics/jra_profile_artifact_replay.py'
+      - '.github/workflows/jra-profile-artifact-replay-20261106.yml'
 permissions:
   contents: write
   actions: read
