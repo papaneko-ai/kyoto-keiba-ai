@@ -16,6 +16,8 @@ on:
       - 'tests/test_jra_roster_crosswalk.py'
       - 'tests/test_jra_pre_race_audit.py'
       - 'tests/test_jra_racecard_bridge.py'
+      - 'diagnostics/jra_evidence_pipeline.py'
+      - 'tests/test_jra_evidence_pipeline.py'
       - '.github/workflows/kyoto-offline-tests.yml'
   workflow_dispatch:
 permissions:
@@ -34,3 +36,4 @@ jobs:
           python -m unittest discover -s tests -p 'test_jra_roster_crosswalk.py' -v
           python -m unittest discover -s tests -p 'test_jra_pre_race_audit.py' -v
           python -m unittest discover -s tests -p 'test_jra_racecard_bridge.py' -v
+          python -m unittest discover -s tests -p 'test_jra_evidence_pipeline.py' -v
