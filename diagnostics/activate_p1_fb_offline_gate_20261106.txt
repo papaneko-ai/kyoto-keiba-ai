@@ -1,0 +1,1 @@
+P1-FB first offline stage: 12 synthetic symmetric PC/SP switching, conflict, no-future, identity guards and zero network. No live fallback until official SP profile parser verified.
