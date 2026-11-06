@@ -1,0 +1,14 @@
+{
+  "channel": "PC",
+  "race": 12,
+  "source_url": "https://jra.jp/JRADB/accessD.html?CNAME=pw01dde0108202605011220261107%2FC8",
+  "recorded_at_utc": "2026-11-06T03:58:17.580819+00:00",
+  "status": "PARSED",
+  "network_ms": 772.96,
+  "parse_ms": 86.13,
+  "prediction_ready": false,
+  "training_ready": false,
+  "source_sha256": "6c374a4438ed53d268a3f8a044bf015a7fa19bec4c53df22b29e322ca08944fe",
+  "raw_bytes": 231189,
+  "rows": 17
+}

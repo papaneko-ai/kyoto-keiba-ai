@@ -1,0 +1,14 @@
+{
+  "channel": "SP",
+  "race": 6,
+  "source_url": "https://sp.jra.jp/JRADB/accessD.html?CNAME=sw01dde0108202605010620261107%2FD7",
+  "recorded_at_utc": "2026-11-06T03:58:11.789280+00:00",
+  "status": "PARSED",
+  "network_ms": 800.41,
+  "parse_ms": 32.92,
+  "prediction_ready": false,
+  "training_ready": false,
+  "source_sha256": "e41a50b86e5e99b09067a1c02d52affc5287fb3c322d03b0130d566437ac6582",
+  "raw_bytes": 92608,
+  "rows": 11
+}
