@@ -44,7 +44,7 @@ def first_features(rows):
    "recent_three_mean_finish_percentile":round(statistics.mean(values),6),
    "recent_three_mean_distance_m":round(statistics.mean(distance),2),
    "recent_three_wins":sum(r.get("finish_position")==1 for r in items),
-   "recent_three_surface_counts":{k:sum(x.get("surface")==k for x in items) for k in ("芝","ダ","ダート","障")}}
+   "recent_three_surface_counts":{k:sum(x.get("surface")==k for x in items) for k in ("芝","ダ","ダート","芝ダ","障")}}
 def build():
  profile_report=load(ROOT/"jra_profile_replay_20261106"/"replay_report.json")
  nine_report=load(ROOT/"jra_nine_profiles_reparsed_20261106"/"replay_report.json")
