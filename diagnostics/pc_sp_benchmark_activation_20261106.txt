@@ -1,0 +1,1 @@
+One-time paired five-race benchmark (Kyoto 1,5,6,11,12) using officially discovered PC/SP links. At most one GET per channel per race, at least 1-second spacing. Only diagnostic branch; no production writes or betting.
