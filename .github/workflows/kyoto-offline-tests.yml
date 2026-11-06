@@ -33,6 +33,10 @@ on:
       - 'tests/test_jra_market_integrity_gate.py'
       - 'diagnostics/jra_odds_matrix_parser.py'
       - 'tests/test_jra_odds_matrix_parser.py'
+      - 'diagnostics/jra_official_market_navigation.py'
+      - 'tests/test_jra_official_market_navigation.py'
+      - 'diagnostics/jra_official_odds_chain.py'
+      - 'tests/test_jra_official_odds_chain.py'
       - 'docs/diagnostics/pc_sp_benchmark_20261106/benchmark_report.json'
       - 'docs/diagnostics/JRA_KYOTO_R7_PRERACE_FROZEN_20261106.json'
       - '.github/workflows/kyoto-offline-tests.yml'
@@ -64,3 +68,5 @@ jobs:
           python -m unittest discover -s tests -p 'test_jra_benchmark_acceptance.py' -v
           python -m unittest discover -s tests -p 'test_jra_market_integrity_gate.py' -v
           python -m unittest discover -s tests -p 'test_jra_odds_matrix_parser.py' -v
+          python -m unittest discover -s tests -p 'test_jra_official_market_navigation.py' -v
+          python -m unittest discover -s tests -p 'test_jra_official_odds_chain.py' -v
