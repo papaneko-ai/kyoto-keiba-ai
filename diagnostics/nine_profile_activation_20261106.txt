@@ -1,0 +1,1 @@
+One additional actual JRA source-backed horse profile per remaining Kyoto 2R,3R,4R,6R,7R,8R,9R,10R,12R; no retries, 2 second spacing, profile history capture only before race, preserve raw HTML for 3 days, no production writes.
