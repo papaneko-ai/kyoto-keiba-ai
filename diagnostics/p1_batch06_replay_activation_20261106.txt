@@ -1,0 +1,1 @@
+Offline independent replay from GitHub Actions run 42167373275 of exact six JRA profiles batch06, SHA verification, zero network, preserve normalized prior-form records.
