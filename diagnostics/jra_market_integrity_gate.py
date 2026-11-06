@@ -93,7 +93,7 @@ def check(e,*,race_start_utc,source_bytes=None):
             return block("duplicate_or_ineligible_pair")
         try:odds=Decimal(str(value))
         except (InvalidOperation,ValueError):return block("unpriced_or_invalid_quote")
-        if not odds.is_finite() or odds<=1:return block("invalid_decimal_odds")
+        if not odds.is_finite() or odds<1:return block("invalid_decimal_odds")
         observed[(a,b)]=odds
     if set(observed)!=expected:return block("incomplete_pair_matrix")
     return {"state":"VALIDATED_MARKET_SOURCE","reason":"source_bytes_and_pairs_verified",
