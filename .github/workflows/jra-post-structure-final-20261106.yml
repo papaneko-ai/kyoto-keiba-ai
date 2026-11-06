@@ -1,0 +1,42 @@
+name: JRA racecard POST structural diagnosis final
+on:
+  push:
+    branches: [jra-html-diagnostic-20261105]
+    paths: ['diagnostics/post_structure_activation_20261106.txt']
+permissions:
+  contents: write
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install parser dependency
+        run: python -m pip install 'beautifulsoup4>=4.12,<5'
+      - name: Single POST using previously proven JRA official navigation method
+        run: python diagnostics/jra_one_post_racecard.py --output jra_post_probe
+      - name: Inspect stored raw response offline
+        run: |
+          if test -f jra_post_probe/jra_post_racecard_response.html; then
+            python diagnostics/jra_post_structure_inspector.py --source jra_post_probe/jra_post_racecard_response.html --out jra_post_probe/structure.json
+          fi
+      - name: Persist status and structure without the HTML
+        run: |
+          mkdir -p docs/diagnostics
+          cp jra_post_probe/receipt.json docs/diagnostics/JRA_POST_STRUCTURE_RECEIPT_20261106.json
+          if test -f jra_post_probe/structure.json; then
+            cp jra_post_probe/structure.json docs/diagnostics/JRA_POST_STRUCTURE_RESULT_20261106.json
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/diagnostics/JRA_POST_STRUCTURE_*.json
+          git commit -m "Persist official JRA POST structure evidence" || true
+          git push origin HEAD:jra-html-diagnostic-20261105
+      - name: Store raw HTML temporarily
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: jra-structure-final-20261106
+          path: jra_post_probe/
+          retention-days: 3
+          if-no-files-found: warn
