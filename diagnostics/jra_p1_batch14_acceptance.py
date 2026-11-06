@@ -33,7 +33,7 @@ def build():
         row["profile_status"]=d["history_status"]
         row["profile_source_sha256"]=d["source_sha256"]
         row["profile_captured_at_utc"]=d["captured_at_utc"]
-        row["profile_source_batch"]="batch_13_SOURCE_FIRST_REMAINDER"
+        row["profile_source_batch"]="batch_14_SOURCE_FIRST"
         row["nonfinish_event_count"]=len(d["nonfinish_rows"])
         row["administrative_event_count"]=len(d["administrative_events"])
         row["performance_features"]=first_features(d["prior_rows"])
