@@ -1,1 +1,1 @@
-{"actual_network_requests": 0, "automatic_live_fallback_authorized": false, "mock_tests_passed": true, "prediction_ready": false, "production_adopted": false, "schema": "p1_fb_stage4_injected_transport.v1", "training_ready": false}
+{"actual_network_requests": 0, "automatic_live_fallback_authorized": false, "mock_tests_passed": true, "prediction_ready": false, "production_adopted": false, "schema": "p1_fb_stage4_injected_transport.v1", "total_offline_tests_count": 59, "training_ready": false}
