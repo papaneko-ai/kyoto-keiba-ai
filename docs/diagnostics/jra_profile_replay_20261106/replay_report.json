@@ -1,7 +1,7 @@
 {
   "schema": "real_three_horse_profile_replay.v1",
   "replayed_originals": 3,
-  "parsed": 2,
+  "parsed": 3,
   "items": [
     {
       "race": 1,
@@ -15,6 +15,8 @@
       "total_rows": 2,
       "excluded_rows": 0,
       "invalid_rows": 0,
+      "nonfinish_rows": 0,
+      "history_status": "HISTORY_TABLE_PARSED",
       "extracted_fields": [
         "date",
         "venue",
@@ -38,11 +40,19 @@
       "race": 5,
       "number": 1,
       "name": "ロードラムセス",
-      "status": "BLOCKED",
+      "status": "PARSED",
       "original_source_sha256": "642b5494743c0892fe01534be2bf419e1f1ebb0c7ecaa11c89157feffdcd920b",
       "prediction_ready": false,
       "training_ready": false,
-      "reason": "ValueError:history_table_missing"
+      "prior_rows": 0,
+      "total_rows": 0,
+      "excluded_rows": 0,
+      "invalid_rows": 0,
+      "nonfinish_rows": 0,
+      "history_status": "NO_HISTORY_TABLE_WITH_IDENTITY_PROOF",
+      "extracted_fields": [],
+      "profile_before_cutoff": true,
+      "empty_history_verified": true
     },
     {
       "race": 11,
@@ -55,7 +65,9 @@
       "prior_rows": 30,
       "total_rows": 31,
       "excluded_rows": 0,
-      "invalid_rows": 1,
+      "invalid_rows": 0,
+      "nonfinish_rows": 1,
+      "history_status": "HISTORY_TABLE_PARSED",
       "extracted_fields": [
         "date",
         "venue",

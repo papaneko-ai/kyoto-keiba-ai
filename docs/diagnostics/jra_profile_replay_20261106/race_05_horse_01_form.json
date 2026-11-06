@@ -1,0 +1,13 @@
+{
+  "race": 5,
+  "horse_name": "ロードラムセス",
+  "source_sha256": "642b5494743c0892fe01534be2bf419e1f1ebb0c7ecaa11c89157feffdcd920b",
+  "fetched_at_utc": "2026-11-06T04:31:32.624068+00:00",
+  "prior_rows": [],
+  "excluded_rows": [],
+  "invalid_rows": [],
+  "nonfinish_rows": [],
+  "history_status": "NO_HISTORY_TABLE_WITH_IDENTITY_PROOF",
+  "prediction_ready": false,
+  "training_ready": false
+}

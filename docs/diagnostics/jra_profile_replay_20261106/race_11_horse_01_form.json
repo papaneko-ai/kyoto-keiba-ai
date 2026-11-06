@@ -486,12 +486,20 @@
     }
   ],
   "excluded_rows": [],
-  "invalid_rows": [
+  "invalid_rows": [],
+  "nonfinish_rows": [
     {
       "row": 1,
-      "reason": "missing_or_invalid_finish"
+      "date": "2026-09-12",
+      "status": "除外",
+      "venue": "中山",
+      "race_title": "ラジオ日本賞",
+      "surface": "ダ",
+      "distance_m": 1200,
+      "included_in_finish_metrics": false
     }
   ],
+  "history_status": "HISTORY_TABLE_PARSED",
   "prediction_ready": false,
   "training_ready": false
 }

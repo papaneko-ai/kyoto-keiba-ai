@@ -39,6 +39,8 @@
   ],
   "excluded_rows": [],
   "invalid_rows": [],
+  "nonfinish_rows": [],
+  "history_status": "HISTORY_TABLE_PARSED",
   "prediction_ready": false,
   "training_ready": false
 }
