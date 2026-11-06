@@ -36,8 +36,13 @@ def run(out,opener=urlopen,clock=lambda:datetime.now(timezone.utc)):
    ct=resp.headers.get("Content-Type","")
   if r["http_status"]!=200:raise ValueError("bad_http_status")
   if not raw or len(raw)>2_000_000 or "html" not in ct.lower():raise ValueError("not_bounded_html")
+  (p/"jra_response_unclassified.html").write_bytes(raw)
+  r.update(html_saved=True,html_sha256=sha256(raw).hexdigest(),html_bytes=len(raw),content_type=ct,final_url=resp.geturl() if False else URL)
+  r["head_sample_text"]=raw[:500].decode("cp932",errors="replace")
   summary=Summary();summary.feed(raw.decode("cp932",errors="replace"))
-  if summary.tables==0 or not summary.title.strip():raise ValueError("not_racecard_html_shape")
+  if summary.tables==0 or not summary.title.strip():
+   r.update(status="HTML_RECEIVED_NOT_RACECARD",html_title=summary.title.strip(),html_tables=summary.tables)
+   return r
   r.update(status="CAPTURED_STRUCTURE_UNVERIFIED",html_saved=True,html_sha256=sha256(raw).hexdigest(),html_bytes=len(raw),html_tables=summary.tables,html_title=summary.title.strip())
   (p/"jra_racecard_response.html").write_bytes(raw)
  except Exception as exc:
