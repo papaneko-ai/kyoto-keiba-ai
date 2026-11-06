@@ -1,0 +1,1 @@
+Independent offline P1 acceptance for Kyoto R1 all 9 and R2 all 15 actual runner profiles. Verify 4 completed 6-horse batches with source SHA replay and 148 row integrity, next batch05; no JRA HTTP.
