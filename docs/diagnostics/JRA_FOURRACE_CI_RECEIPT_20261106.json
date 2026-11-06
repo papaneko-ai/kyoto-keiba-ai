@@ -1,0 +1,7 @@
+{
+  "verification": "2026-11-07 Kyoto four actual pre-race structured snapshots",
+  "test_pattern": "test_jra_real_4race_milestone.py",
+  "outcome": "success",
+  "completed_at_utc": "2026-11-06T03:31:50.006225+00:00",
+  "verified_in_scope": "4 race structured source JSON; not downloaded original HTML, no live odds"
+}
