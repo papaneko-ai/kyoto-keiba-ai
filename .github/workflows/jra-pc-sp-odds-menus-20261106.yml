@@ -1,0 +1,33 @@
+name: JRA PC SP odds menu evidence
+on:
+  push:
+    branches: [jra-html-diagnostic-20261105]
+    paths: ['diagnostics/odds_menus_activation_20261106.txt']
+permissions:
+  contents: write
+jobs:
+  menus:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - run: python -m pip install 'beautifulsoup4>=4.12,<5'
+      - name: Inspect official PC SP odds menu endpoints
+        run: python diagnostics/jra_pc_sp_odds_menu.py --out odds_menus
+      - name: Save discovered market navigation only
+        run: |
+          mkdir -p docs/diagnostics
+          cp odds_menus/menus.json docs/diagnostics/JRA_PC_SP_ODDS_MENU_20261106.json
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/diagnostics/JRA_PC_SP_ODDS_MENU_20261106.json
+          git commit -m "Record official odds menu and publication state" || true
+          git pull --rebase origin jra-html-diagnostic-20261105
+          git push origin HEAD:jra-html-diagnostic-20261105
+      - name: Temporary source HTML only
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: jra-odds-menu-original-20261106
+          path: odds_menus/
+          retention-days: 3
