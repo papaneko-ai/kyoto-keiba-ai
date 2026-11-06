@@ -1,0 +1,1 @@
+One-time bounded P1 batch_11 JRA official profile GET, frozen 148-runner ledger and source identities, strict UTC pre-race cutoff, six requests max, >=2s interval, no retries; independent zero-HTTP SHA replay; Kyoto 6R all-horse acceptance. Never change main/Turso/models.
