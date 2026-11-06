@@ -1,0 +1,290 @@
+{
+  "schema_version": "jra_pc_sp_11r_runner_comparison.v1",
+  "pc_runner_count": 16,
+  "sp_runner_candidate_count": 16,
+  "unique_sp_candidate_names": 16,
+  "number_match_count": 16,
+  "full_number_name_parity": true,
+  "sp_extracted_rows": [
+    {
+      "number": 1,
+      "name": "モンドプリューム",
+      "profile_path": "/JRADB/accessU.html?CNAME=sj01ude002020103876/AA",
+      "number_cell_text": "1",
+      "frame_cell_text": "1",
+      "row_classes": []
+    },
+    {
+      "number": 2,
+      "name": "エティエンヌ",
+      "profile_path": "/JRADB/accessU.html?CNAME=sj01ude002019105761/89",
+      "number_cell_text": "2",
+      "frame_cell_text": null,
+      "row_classes": []
+    },
+    {
+      "number": 3,
+      "name": "エコロレーヴ",
+      "profile_path": "/JRADB/accessU.html?CNAME=sj01ude002023110090/35",
+      "number_cell_text": "3",
+      "frame_cell_text": "2",
+      "row_classes": []
+    },
+    {
+      "number": 4,
+      "name": "ナムラフランク",
+      "profile_path": "/JRADB/accessU.html?CNAME=sj01ude002019101975/0B",
+      "number_cell_text": "4",
+      "frame_cell_text": null,
+      "row_classes": []
+    },
+    {
+      "number": 5,
+      "name": "ノボリショウリュウ",
+      "profile_path": "/JRADB/accessU.html?CNAME=sj01ude002021102718/9C",
+      "number_cell_text": "5",
+      "frame_cell_text": "3",
+      "row_classes": []
+    },
+    {
+      "number": 6,
+      "name": "アメリカンチケット",
+      "profile_path": "/JRADB/accessU.html?CNAME=sj01ude002021110122/C4",
+      "number_cell_text": "6",
+      "frame_cell_text": null,
+      "row_classes": []
+    },
+    {
+      "number": 7,
+      "name": "コウセキ",
+      "profile_path": "/JRADB/accessU.html?CNAME=sj01ude002022110026/EB",
+      "number_cell_text": "7",
+      "frame_cell_text": "4",
+      "row_classes": []
+    },
+    {
+      "number": 8,
+      "name": "メイショウホウレン",
+      "profile_path": "/JRADB/accessU.html?CNAME=sj01ude002021103716/A5",
+      "number_cell_text": "8",
+      "frame_cell_text": null,
+      "row_classes": []
+    },
+    {
+      "number": 9,
+      "name": "ゼットエール",
+      "profile_path": "/JRADB/accessU.html?CNAME=sj01ude002022107278/3E",
+      "number_cell_text": "9",
+      "frame_cell_text": "5",
+      "row_classes": []
+    },
+    {
+      "number": 10,
+      "name": "ジョーメッドヴィン",
+      "profile_path": "/JRADB/accessU.html?CNAME=sj01ude002021100522/BA",
+      "number_cell_text": "10",
+      "frame_cell_text": null,
+      "row_classes": []
+    },
+    {
+      "number": 11,
+      "name": "ジョーローリット",
+      "profile_path": "/JRADB/accessU.html?CNAME=sj01ude002021100768/0E",
+      "number_cell_text": "11",
+      "frame_cell_text": "6",
+      "row_classes": []
+    },
+    {
+      "number": 12,
+      "name": "アブキールベイ",
+      "profile_path": "/JRADB/accessU.html?CNAME=sj01ude002022101623/D9",
+      "number_cell_text": "12",
+      "frame_cell_text": null,
+      "row_classes": []
+    },
+    {
+      "number": 13,
+      "name": "ファムエレガンテ",
+      "profile_path": "/JRADB/accessU.html?CNAME=sj01ude002022110142/70",
+      "number_cell_text": "13",
+      "frame_cell_text": "7",
+      "row_classes": []
+    },
+    {
+      "number": 14,
+      "name": "ルージュラナキラ",
+      "profile_path": "/JRADB/accessU.html?CNAME=sj01ude002022102434/E9",
+      "number_cell_text": "14",
+      "frame_cell_text": null,
+      "row_classes": []
+    },
+    {
+      "number": 15,
+      "name": "シークレットヴァウ",
+      "profile_path": "/JRADB/accessU.html?CNAME=sj01ude002021102413/CA",
+      "number_cell_text": "15",
+      "frame_cell_text": "8",
+      "row_classes": []
+    },
+    {
+      "number": 16,
+      "name": "イツモニコニコ",
+      "profile_path": "/JRADB/accessU.html?CNAME=sj01ude002021107063/01",
+      "number_cell_text": "16",
+      "frame_cell_text": null,
+      "row_classes": []
+    }
+  ],
+  "checks": [
+    {
+      "pc_horse_number": 1,
+      "pc_horse_name": "モンドプリューム",
+      "sp_horse_number": 1,
+      "sp_found": true,
+      "number_matches": true,
+      "sp_frame_cell_text": "1",
+      "sp_profile_link_present": true
+    },
+    {
+      "pc_horse_number": 2,
+      "pc_horse_name": "エティエンヌ",
+      "sp_horse_number": 2,
+      "sp_found": true,
+      "number_matches": true,
+      "sp_frame_cell_text": null,
+      "sp_profile_link_present": true
+    },
+    {
+      "pc_horse_number": 3,
+      "pc_horse_name": "エコロレーヴ",
+      "sp_horse_number": 3,
+      "sp_found": true,
+      "number_matches": true,
+      "sp_frame_cell_text": "2",
+      "sp_profile_link_present": true
+    },
+    {
+      "pc_horse_number": 4,
+      "pc_horse_name": "ナムラフランク",
+      "sp_horse_number": 4,
+      "sp_found": true,
+      "number_matches": true,
+      "sp_frame_cell_text": null,
+      "sp_profile_link_present": true
+    },
+    {
+      "pc_horse_number": 5,
+      "pc_horse_name": "ノボリショウリュウ",
+      "sp_horse_number": 5,
+      "sp_found": true,
+      "number_matches": true,
+      "sp_frame_cell_text": "3",
+      "sp_profile_link_present": true
+    },
+    {
+      "pc_horse_number": 6,
+      "pc_horse_name": "アメリカンチケット",
+      "sp_horse_number": 6,
+      "sp_found": true,
+      "number_matches": true,
+      "sp_frame_cell_text": null,
+      "sp_profile_link_present": true
+    },
+    {
+      "pc_horse_number": 7,
+      "pc_horse_name": "コウセキ",
+      "sp_horse_number": 7,
+      "sp_found": true,
+      "number_matches": true,
+      "sp_frame_cell_text": "4",
+      "sp_profile_link_present": true
+    },
+    {
+      "pc_horse_number": 8,
+      "pc_horse_name": "メイショウホウレン",
+      "sp_horse_number": 8,
+      "sp_found": true,
+      "number_matches": true,
+      "sp_frame_cell_text": null,
+      "sp_profile_link_present": true
+    },
+    {
+      "pc_horse_number": 9,
+      "pc_horse_name": "ゼットエール",
+      "sp_horse_number": 9,
+      "sp_found": true,
+      "number_matches": true,
+      "sp_frame_cell_text": "5",
+      "sp_profile_link_present": true
+    },
+    {
+      "pc_horse_number": 10,
+      "pc_horse_name": "ジョーメッドヴィン",
+      "sp_horse_number": 10,
+      "sp_found": true,
+      "number_matches": true,
+      "sp_frame_cell_text": null,
+      "sp_profile_link_present": true
+    },
+    {
+      "pc_horse_number": 11,
+      "pc_horse_name": "ジョーローリット",
+      "sp_horse_number": 11,
+      "sp_found": true,
+      "number_matches": true,
+      "sp_frame_cell_text": "6",
+      "sp_profile_link_present": true
+    },
+    {
+      "pc_horse_number": 12,
+      "pc_horse_name": "アブキールベイ",
+      "sp_horse_number": 12,
+      "sp_found": true,
+      "number_matches": true,
+      "sp_frame_cell_text": null,
+      "sp_profile_link_present": true
+    },
+    {
+      "pc_horse_number": 13,
+      "pc_horse_name": "ファムエレガンテ",
+      "sp_horse_number": 13,
+      "sp_found": true,
+      "number_matches": true,
+      "sp_frame_cell_text": "7",
+      "sp_profile_link_present": true
+    },
+    {
+      "pc_horse_number": 14,
+      "pc_horse_name": "ルージュラナキラ",
+      "sp_horse_number": 14,
+      "sp_found": true,
+      "number_matches": true,
+      "sp_frame_cell_text": null,
+      "sp_profile_link_present": true
+    },
+    {
+      "pc_horse_number": 15,
+      "pc_horse_name": "シークレットヴァウ",
+      "sp_horse_number": 15,
+      "sp_found": true,
+      "number_matches": true,
+      "sp_frame_cell_text": "8",
+      "sp_profile_link_present": true
+    },
+    {
+      "pc_horse_number": 16,
+      "pc_horse_name": "イツモニコニコ",
+      "sp_horse_number": 16,
+      "sp_found": true,
+      "number_matches": true,
+      "sp_frame_cell_text": null,
+      "sp_profile_link_present": true
+    }
+  ],
+  "all_profile_anchors_in_primary_table": 16,
+  "profile_navigation_id_equivalence_proven": false,
+  "frame_equivalence_proven": false,
+  "past_run_field_equivalence_proven": false,
+  "prediction_ready": false,
+  "training_ready": false
+}

@@ -1,0 +1,20 @@
+{
+  "status": "PARITY_OK",
+  "source_url": "https://sp.jra.jp/JRADB/accessD.html?CNAME=sw01dde0108202605011120261107%2FA0",
+  "pc_sha256": "0c443ce664e6c8c7ed54ea2ebda837edef07f1a2697405bf069677b0cc67f565",
+  "started_at_utc": "2026-11-06T03:47:02.322800+00:00",
+  "sp_source_sha256": "de806dc0a9977a41ffd2a795a5e6cda485fb243e26fbf8eb56d932326986ba54",
+  "sp_bytes": 128691,
+  "error": null,
+  "ready_for_prediction": false,
+  "pc_bytes": 232708,
+  "pc_horse_count": 16,
+  "sp_horse_count": 16,
+  "number_name_matches": 16,
+  "source_reduction_pct": 44.7,
+  "sp_page_host": "sp.jra.jp",
+  "sp_row_parity_checked": true,
+  "frame_equivalence_proven": false,
+  "history_equivalence_proven": false,
+  "finished_at_utc": "2026-11-06T03:47:03.627963+00:00"
+}
