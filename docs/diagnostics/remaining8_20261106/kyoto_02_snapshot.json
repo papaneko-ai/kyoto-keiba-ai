@@ -1,0 +1,201 @@
+{
+  "schema_version": "jra_kyoto_remaining8.v1",
+  "race_date": "2026-11-07",
+  "race_number": 2,
+  "venue": "KYOTO",
+  "source_url": "https://jra.jp/JRADB/accessD.html?CNAME=pw01dde0108202605010220261107%2F76",
+  "fetched_at_utc": "2026-11-06T03:39:00.202468+00:00",
+  "source_sha256": "05aec48fc30b4729fa77985bd59d913888bd6ba0056d0770cce96e66dc8522c1",
+  "source_bytes": 172634,
+  "runners": [
+    {
+      "horse_number": 1,
+      "frame_number": 1,
+      "horse_name": "ステラヴェント",
+      "horse_profile_href": "/JRADB/accessU.html?CNAME=pw01dud002024103414/5B",
+      "past_race_dates": [
+        "2026-10-18",
+        "2026-08-15"
+      ],
+      "permanent_horse_id": null,
+      "permanent_id_verified": false
+    },
+    {
+      "horse_number": 2,
+      "frame_number": 2,
+      "horse_name": "モンドドゥアムール",
+      "horse_profile_href": "/JRADB/accessU.html?CNAME=pw01dud002024107115/F7",
+      "past_race_dates": [
+        "2026-09-26",
+        "2026-06-28"
+      ],
+      "permanent_horse_id": null,
+      "permanent_id_verified": false
+    },
+    {
+      "horse_number": 3,
+      "frame_number": 2,
+      "horse_name": "ヘヴンインザレイン",
+      "horse_profile_href": "/JRADB/accessU.html?CNAME=pw01dud002024106062/CE",
+      "past_race_dates": [
+        "2026-10-04"
+      ],
+      "permanent_horse_id": null,
+      "permanent_id_verified": false
+    },
+    {
+      "horse_number": 4,
+      "frame_number": 3,
+      "horse_name": "レインボースター",
+      "horse_profile_href": "/JRADB/accessU.html?CNAME=pw01dud002024106942/67",
+      "past_race_dates": [
+        "2026-10-04",
+        "2026-07-18",
+        "2026-07-05",
+        "2026-06-21"
+      ],
+      "permanent_horse_id": null,
+      "permanent_id_verified": false
+    },
+    {
+      "horse_number": 5,
+      "frame_number": 3,
+      "horse_name": "スイートブルース",
+      "horse_profile_href": "/JRADB/accessU.html?CNAME=pw01dud002024108207/ED",
+      "past_race_dates": [
+        "2026-10-18"
+      ],
+      "permanent_horse_id": null,
+      "permanent_id_verified": false
+    },
+    {
+      "horse_number": 6,
+      "frame_number": 4,
+      "horse_name": "クラストムーン",
+      "horse_profile_href": "/JRADB/accessU.html?CNAME=pw01dud002024105300/2C",
+      "past_race_dates": [
+        "2026-10-25",
+        "2026-10-12"
+      ],
+      "permanent_horse_id": null,
+      "permanent_id_verified": false
+    },
+    {
+      "horse_number": 7,
+      "frame_number": 4,
+      "horse_name": "ケンシロウワールド",
+      "horse_profile_href": "/JRADB/accessU.html?CNAME=pw01dud002024108272/1E",
+      "past_race_dates": [
+        "2026-09-21",
+        "2026-07-19",
+        "2026-06-14"
+      ],
+      "permanent_horse_id": null,
+      "permanent_id_verified": false
+    },
+    {
+      "horse_number": 8,
+      "frame_number": 5,
+      "horse_name": "モズモーク",
+      "horse_profile_href": "/JRADB/accessU.html?CNAME=pw01dud002024104917/98",
+      "past_race_dates": [
+        "2026-10-10"
+      ],
+      "permanent_horse_id": null,
+      "permanent_id_verified": false
+    },
+    {
+      "horse_number": 9,
+      "frame_number": 5,
+      "horse_name": "リアルジャパン",
+      "horse_profile_href": "/JRADB/accessU.html?CNAME=pw01dud002024102714/FF",
+      "past_race_dates": [
+        "2026-10-25",
+        "2026-08-16",
+        "2026-08-08",
+        "2026-07-19"
+      ],
+      "permanent_horse_id": null,
+      "permanent_id_verified": false
+    },
+    {
+      "horse_number": 10,
+      "frame_number": 6,
+      "horse_name": "リボンロゼッタ",
+      "horse_profile_href": "/JRADB/accessU.html?CNAME=pw01dud002024101153/B7",
+      "past_race_dates": [
+        "2026-09-26",
+        "2026-08-02"
+      ],
+      "permanent_horse_id": null,
+      "permanent_id_verified": false
+    },
+    {
+      "horse_number": 11,
+      "frame_number": 6,
+      "horse_name": "プリンキピッサ",
+      "horse_profile_href": "/JRADB/accessU.html?CNAME=pw01dud002024106888/28",
+      "past_race_dates": [
+        "2026-09-26",
+        "2026-08-23",
+        "2026-07-04"
+      ],
+      "permanent_horse_id": null,
+      "permanent_id_verified": false
+    },
+    {
+      "horse_number": 12,
+      "frame_number": 7,
+      "horse_name": "ルミナスジェム",
+      "horse_profile_href": "/JRADB/accessU.html?CNAME=pw01dud002024106897/C5",
+      "past_race_dates": [
+        "2026-10-18",
+        "2026-06-28"
+      ],
+      "permanent_horse_id": null,
+      "permanent_id_verified": false
+    },
+    {
+      "horse_number": 13,
+      "frame_number": 7,
+      "horse_name": "アルジャンレオ",
+      "horse_profile_href": "/JRADB/accessU.html?CNAME=pw01dud002024105049/E4",
+      "past_race_dates": [
+        "2026-10-25"
+      ],
+      "permanent_horse_id": null,
+      "permanent_id_verified": false
+    },
+    {
+      "horse_number": 14,
+      "frame_number": 8,
+      "horse_name": "ウォーターガルーダ",
+      "horse_profile_href": "/JRADB/accessU.html?CNAME=pw01dud002024102792/99",
+      "past_race_dates": [
+        "2026-10-18"
+      ],
+      "permanent_horse_id": null,
+      "permanent_id_verified": false
+    },
+    {
+      "horse_number": 15,
+      "frame_number": 8,
+      "horse_name": "エクシプノス",
+      "horse_profile_href": "/JRADB/accessU.html?CNAME=pw01dud002024106155/48",
+      "past_race_dates": [
+        "2026-09-27"
+      ],
+      "permanent_horse_id": null,
+      "permanent_id_verified": false
+    }
+  ],
+  "runner_count": 15,
+  "prior_date_count": 30,
+  "errors": [],
+  "roster_verified": true,
+  "permanent_ids_verified": false,
+  "scratch_verified": false,
+  "odds_verified": false,
+  "prediction_ready": false,
+  "training_ready": false
+}

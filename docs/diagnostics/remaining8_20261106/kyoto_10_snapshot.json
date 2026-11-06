@@ -1,0 +1,217 @@
+{
+  "schema_version": "jra_kyoto_remaining8.v1",
+  "race_date": "2026-11-07",
+  "race_number": 10,
+  "venue": "KYOTO",
+  "source_url": "https://jra.jp/JRADB/accessD.html?CNAME=pw01dde0108202605011020261107%2F5E",
+  "fetched_at_utc": "2026-11-06T03:39:12.223298+00:00",
+  "source_sha256": "771261811e3bd4443009c0898e8173d5750043a9bedca8552e4a24afbeaa1751",
+  "source_bytes": 207371,
+  "runners": [
+    {
+      "horse_number": 1,
+      "frame_number": 1,
+      "horse_name": "メイショウバルク",
+      "horse_profile_href": "/JRADB/accessU.html?CNAME=pw01dud002023101951/CD",
+      "past_race_dates": [
+        "2026-10-11",
+        "2026-05-09",
+        "2026-03-07",
+        "2026-02-14"
+      ],
+      "permanent_horse_id": null,
+      "permanent_id_verified": false
+    },
+    {
+      "horse_number": 2,
+      "frame_number": 2,
+      "horse_name": "ユハンヌス",
+      "horse_profile_href": "/JRADB/accessU.html?CNAME=pw01dud002020110039/C7",
+      "past_race_dates": [
+        "2026-10-24",
+        "2026-08-29",
+        "2026-06-21",
+        "2026-05-24"
+      ],
+      "permanent_horse_id": null,
+      "permanent_id_verified": false
+    },
+    {
+      "horse_number": 3,
+      "frame_number": 3,
+      "horse_name": "ジャーヴィス",
+      "horse_profile_href": "/JRADB/accessU.html?CNAME=pw01dud002020103902/2A",
+      "past_race_dates": [
+        "2026-10-03",
+        "2026-08-22",
+        "2026-07-11",
+        "2026-05-24"
+      ],
+      "permanent_horse_id": null,
+      "permanent_id_verified": false
+    },
+    {
+      "horse_number": 4,
+      "frame_number": 3,
+      "horse_name": "クリノオリーブ",
+      "horse_profile_href": "/JRADB/accessU.html?CNAME=pw01dud002021102259/E5",
+      "past_race_dates": [
+        "2026-09-27",
+        "2026-09-06",
+        "2026-08-15",
+        "2026-07-12"
+      ],
+      "permanent_horse_id": null,
+      "permanent_id_verified": false
+    },
+    {
+      "horse_number": 5,
+      "frame_number": 4,
+      "horse_name": "ルクスデイジー",
+      "horse_profile_href": "/JRADB/accessU.html?CNAME=pw01dud002022101127/3B",
+      "past_race_dates": [
+        "2026-10-03",
+        "2026-06-14",
+        "2026-05-24",
+        "2026-02-15"
+      ],
+      "permanent_horse_id": null,
+      "permanent_id_verified": false
+    },
+    {
+      "horse_number": 6,
+      "frame_number": 4,
+      "horse_name": "ウルスクローム",
+      "horse_profile_href": "/JRADB/accessU.html?CNAME=pw01dud002022103630/F9",
+      "past_race_dates": [
+        "2026-10-03",
+        "2026-09-06",
+        "2026-06-14",
+        "2026-05-30"
+      ],
+      "permanent_horse_id": null,
+      "permanent_id_verified": false
+    },
+    {
+      "horse_number": 7,
+      "frame_number": 5,
+      "horse_name": "メイショウタイゲイ",
+      "horse_profile_href": "/JRADB/accessU.html?CNAME=pw01dud002019104169/97",
+      "past_race_dates": [
+        "2026-02-07",
+        "2026-01-05",
+        "2025-12-21",
+        "2025-09-20"
+      ],
+      "permanent_horse_id": null,
+      "permanent_id_verified": false
+    },
+    {
+      "horse_number": 8,
+      "frame_number": 5,
+      "horse_name": "キタノソワレ",
+      "horse_profile_href": "/JRADB/accessU.html?CNAME=pw01dud002021106421/3B",
+      "past_race_dates": [
+        "2026-10-18",
+        "2026-09-27",
+        "2026-04-25",
+        "2026-04-11"
+      ],
+      "permanent_horse_id": null,
+      "permanent_id_verified": false
+    },
+    {
+      "horse_number": 9,
+      "frame_number": 6,
+      "horse_name": "カミーロ",
+      "horse_profile_href": "/JRADB/accessU.html?CNAME=pw01dud002020102027/E1",
+      "past_race_dates": [
+        "2026-10-03",
+        "2025-06-15",
+        "2025-05-04",
+        "2025-03-08"
+      ],
+      "permanent_horse_id": null,
+      "permanent_id_verified": false
+    },
+    {
+      "horse_number": 10,
+      "frame_number": 6,
+      "horse_name": "テーオーグレーザー",
+      "horse_profile_href": "/JRADB/accessU.html?CNAME=pw01dud002023104562/59",
+      "past_race_dates": [
+        "2026-10-03",
+        "2026-09-06",
+        "2026-06-13",
+        "2026-04-05"
+      ],
+      "permanent_horse_id": null,
+      "permanent_id_verified": false
+    },
+    {
+      "horse_number": 11,
+      "frame_number": 7,
+      "horse_name": "シュヴァルボヌール",
+      "horse_profile_href": "/JRADB/accessU.html?CNAME=pw01dud002022102315/96",
+      "past_race_dates": [
+        "2026-06-06",
+        "2026-03-28",
+        "2025-12-13",
+        "2025-11-22"
+      ],
+      "permanent_horse_id": null,
+      "permanent_id_verified": false
+    },
+    {
+      "horse_number": 12,
+      "frame_number": 7,
+      "horse_name": "スペシャルナンバー",
+      "horse_profile_href": "/JRADB/accessU.html?CNAME=pw01dud002019103825/F3",
+      "past_race_dates": [
+        "2026-10-03",
+        "2026-09-06",
+        "2026-01-24",
+        "2026-01-05"
+      ],
+      "permanent_horse_id": null,
+      "permanent_id_verified": false
+    },
+    {
+      "horse_number": 13,
+      "frame_number": 8,
+      "horse_name": "ユウトザレン",
+      "horse_profile_href": "/JRADB/accessU.html?CNAME=pw01dud002022101016/87",
+      "past_race_dates": [
+        "2026-09-13",
+        "2026-05-23",
+        "2026-05-10",
+        "2026-04-18"
+      ],
+      "permanent_horse_id": null,
+      "permanent_id_verified": false
+    },
+    {
+      "horse_number": 14,
+      "frame_number": 8,
+      "horse_name": "ゼンノツキヨミ",
+      "horse_profile_href": "/JRADB/accessU.html?CNAME=pw01dud002021106983/76",
+      "past_race_dates": [
+        "2026-04-11",
+        "2026-03-01",
+        "2026-02-14",
+        "2025-12-14"
+      ],
+      "permanent_horse_id": null,
+      "permanent_id_verified": false
+    }
+  ],
+  "runner_count": 14,
+  "prior_date_count": 56,
+  "errors": [],
+  "roster_verified": true,
+  "permanent_ids_verified": false,
+  "scratch_verified": false,
+  "odds_verified": false,
+  "prediction_ready": false,
+  "training_ready": false
+}

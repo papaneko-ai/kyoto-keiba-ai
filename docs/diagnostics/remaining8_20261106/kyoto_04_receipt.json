@@ -1,0 +1,15 @@
+{
+  "race_number": 4,
+  "source_url": "https://jra.jp/JRADB/accessD.html?CNAME=pw01dde0108202605010420261107%2FE0",
+  "started_at_utc": "2026-11-06T03:39:03.844915+00:00",
+  "status": "ROSTER_VERIFIED",
+  "ready_for_prediction": false,
+  "ready_for_training": false,
+  "runner_count": 15,
+  "prior_date_count": 22,
+  "source_sha256": "b1622368d969f76a33621d8fca26516ee5879c6344e30c48a8f809a87fabdfde",
+  "source_bytes": 162956,
+  "http_status": 200,
+  "errors": [],
+  "fetched_at_utc": "2026-11-06T03:39:04.943306+00:00"
+}

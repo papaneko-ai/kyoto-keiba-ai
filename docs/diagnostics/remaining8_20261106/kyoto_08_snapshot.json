@@ -1,0 +1,147 @@
+{
+  "schema_version": "jra_kyoto_remaining8.v1",
+  "race_date": "2026-11-07",
+  "race_number": 8,
+  "venue": "KYOTO",
+  "source_url": "https://jra.jp/JRADB/accessD.html?CNAME=pw01dde0108202605010820261107%2FB4",
+  "fetched_at_utc": "2026-11-06T03:39:08.463029+00:00",
+  "source_sha256": "b1cff8274fe56f82ffeb6bdf362cc5fc66ddf4829ca4daac772ce8938617a9d2",
+  "source_bytes": 165042,
+  "runners": [
+    {
+      "horse_number": 1,
+      "frame_number": 1,
+      "horse_name": "ロードリベラシオン",
+      "horse_profile_href": "/JRADB/accessU.html?CNAME=pw01dud002022102821/CF",
+      "past_race_dates": [
+        "2026-09-19",
+        "2026-06-20",
+        "2026-05-09",
+        "2026-03-07"
+      ],
+      "permanent_horse_id": null,
+      "permanent_id_verified": false
+    },
+    {
+      "horse_number": 2,
+      "frame_number": 2,
+      "horse_name": "グラニットピーク",
+      "horse_profile_href": "/JRADB/accessU.html?CNAME=pw01dud002020103507/A5",
+      "past_race_dates": [
+        "2026-10-03",
+        "2026-07-11",
+        "2026-06-20",
+        "2026-04-11"
+      ],
+      "permanent_horse_id": null,
+      "permanent_id_verified": false
+    },
+    {
+      "horse_number": 3,
+      "frame_number": 3,
+      "horse_name": "トーアモルペウス",
+      "horse_profile_href": "/JRADB/accessU.html?CNAME=pw01dud002020103173/85",
+      "past_race_dates": [
+        "2026-09-19",
+        "2026-07-18",
+        "2026-03-28",
+        "2026-02-14"
+      ],
+      "permanent_horse_id": null,
+      "permanent_id_verified": false
+    },
+    {
+      "horse_number": 4,
+      "frame_number": 4,
+      "horse_name": "メイショウアツイタ",
+      "horse_profile_href": "/JRADB/accessU.html?CNAME=pw01dud002018105731/58",
+      "past_race_dates": [
+        "2026-09-05",
+        "2026-05-16",
+        "2026-03-14",
+        "2025-12-27"
+      ],
+      "permanent_horse_id": null,
+      "permanent_id_verified": false
+    },
+    {
+      "horse_number": 5,
+      "frame_number": 5,
+      "horse_name": "ヴラディア",
+      "horse_profile_href": "/JRADB/accessU.html?CNAME=pw01dud002019105578/E7",
+      "past_race_dates": [
+        "2026-10-24",
+        "2026-08-22",
+        "2026-05-16",
+        "2026-04-11"
+      ],
+      "permanent_horse_id": null,
+      "permanent_id_verified": false
+    },
+    {
+      "horse_number": 6,
+      "frame_number": 6,
+      "horse_name": "シホノスペランツァ",
+      "horse_profile_href": "/JRADB/accessU.html?CNAME=pw01dud002019105654/2C",
+      "past_race_dates": [
+        "2026-09-19",
+        "2026-05-16",
+        "2026-03-21",
+        "2026-01-10"
+      ],
+      "permanent_horse_id": null,
+      "permanent_id_verified": false
+    },
+    {
+      "horse_number": 7,
+      "frame_number": 7,
+      "horse_name": "コンテナワールド",
+      "horse_profile_href": "/JRADB/accessU.html?CNAME=pw01dud002021104924/AB",
+      "past_race_dates": [
+        "2026-09-05",
+        "2026-07-18",
+        "2026-05-31",
+        "2026-04-11"
+      ],
+      "permanent_horse_id": null,
+      "permanent_id_verified": false
+    },
+    {
+      "horse_number": 8,
+      "frame_number": 8,
+      "horse_name": "スマイルスルー",
+      "horse_profile_href": "/JRADB/accessU.html?CNAME=pw01dud002020103446/41",
+      "past_race_dates": [
+        "2026-07-18",
+        "2026-03-28",
+        "2025-04-19",
+        "2025-02-15"
+      ],
+      "permanent_horse_id": null,
+      "permanent_id_verified": false
+    },
+    {
+      "horse_number": 9,
+      "frame_number": 8,
+      "horse_name": "ディナースタ",
+      "horse_profile_href": "/JRADB/accessU.html?CNAME=pw01dud002019101507/48",
+      "past_race_dates": [
+        "2026-04-18",
+        "2026-03-14",
+        "2026-01-05",
+        "2025-11-08"
+      ],
+      "permanent_horse_id": null,
+      "permanent_id_verified": false
+    }
+  ],
+  "runner_count": 9,
+  "prior_date_count": 36,
+  "errors": [],
+  "roster_verified": true,
+  "permanent_ids_verified": false,
+  "scratch_verified": false,
+  "odds_verified": false,
+  "prediction_ready": false,
+  "training_ready": false
+}

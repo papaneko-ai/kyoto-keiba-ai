@@ -1,0 +1,93 @@
+{
+  "schema_version": "jra_kyoto_remaining8.v1",
+  "race_date": "2026-11-07",
+  "race_number": 5,
+  "venue": "KYOTO",
+  "source_url": "https://jra.jp/JRADB/accessD.html?CNAME=pw01dde0108202605010520261107%2F95",
+  "fetched_at_utc": "2026-11-06T03:39:06.827806+00:00",
+  "source_sha256": "c1c62343aafac119a8a2c8dfce76c5555700a69b5df2db9a3a6177243089d2ab",
+  "source_bytes": 102262,
+  "runners": [
+    {
+      "horse_number": 1,
+      "frame_number": 1,
+      "horse_name": "ロードラムセス",
+      "horse_profile_href": "/JRADB/accessU.html?CNAME=pw01dud002024105320/4C",
+      "past_race_dates": [],
+      "permanent_horse_id": null,
+      "permanent_id_verified": false
+    },
+    {
+      "horse_number": 2,
+      "frame_number": 2,
+      "horse_name": "テンタシオン",
+      "horse_profile_href": "/JRADB/accessU.html?CNAME=pw01dud002024102247/93",
+      "past_race_dates": [],
+      "permanent_horse_id": null,
+      "permanent_id_verified": false
+    },
+    {
+      "horse_number": 3,
+      "frame_number": 3,
+      "horse_name": "アルフレッド",
+      "horse_profile_href": "/JRADB/accessU.html?CNAME=pw01dud002024101154/2A",
+      "past_race_dates": [],
+      "permanent_horse_id": null,
+      "permanent_id_verified": false
+    },
+    {
+      "horse_number": 4,
+      "frame_number": 4,
+      "horse_name": "ヴァリアントソード",
+      "horse_profile_href": "/JRADB/accessU.html?CNAME=pw01dud002024104185/9A",
+      "past_race_dates": [],
+      "permanent_horse_id": null,
+      "permanent_id_verified": false
+    },
+    {
+      "horse_number": 5,
+      "frame_number": 5,
+      "horse_name": "ハナフダ",
+      "horse_profile_href": "/JRADB/accessU.html?CNAME=pw01dud002024101094/39",
+      "past_race_dates": [],
+      "permanent_horse_id": null,
+      "permanent_id_verified": false
+    },
+    {
+      "horse_number": 6,
+      "frame_number": 6,
+      "horse_name": "シグロデオロ",
+      "horse_profile_href": "/JRADB/accessU.html?CNAME=pw01dud002024106198/E1",
+      "past_race_dates": [],
+      "permanent_horse_id": null,
+      "permanent_id_verified": false
+    },
+    {
+      "horse_number": 7,
+      "frame_number": 7,
+      "horse_name": "サヴィーニ",
+      "horse_profile_href": "/JRADB/accessU.html?CNAME=pw01dud002024102572/17",
+      "past_race_dates": [],
+      "permanent_horse_id": null,
+      "permanent_id_verified": false
+    },
+    {
+      "horse_number": 8,
+      "frame_number": 8,
+      "horse_name": "エイシンジュゲム",
+      "horse_profile_href": "/JRADB/accessU.html?CNAME=pw01dud002024101594/2E",
+      "past_race_dates": [],
+      "permanent_horse_id": null,
+      "permanent_id_verified": false
+    }
+  ],
+  "runner_count": 8,
+  "prior_date_count": 0,
+  "errors": [],
+  "roster_verified": true,
+  "permanent_ids_verified": false,
+  "scratch_verified": false,
+  "odds_verified": false,
+  "prediction_ready": false,
+  "training_ready": false
+}

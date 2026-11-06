@@ -1,0 +1,161 @@
+{
+  "schema_version": "jra_kyoto_remaining8.v1",
+  "race_date": "2026-11-07",
+  "race_number": 9,
+  "venue": "KYOTO",
+  "source_url": "https://jra.jp/JRADB/accessD.html?CNAME=pw01dde0108202605010920261107%2F69",
+  "fetched_at_utc": "2026-11-06T03:39:10.490268+00:00",
+  "source_sha256": "6646a1c7f5763250d8f05a7dcc880fb40a39f50b53cd7d6702cafd560b3b068d",
+  "source_bytes": 166188,
+  "runners": [
+    {
+      "horse_number": 1,
+      "frame_number": 1,
+      "horse_name": "グラフィティアート",
+      "horse_profile_href": "/JRADB/accessU.html?CNAME=pw01dud002022101697/A0",
+      "past_race_dates": [
+        "2026-05-02",
+        "2025-12-28",
+        "2025-11-23",
+        "2025-06-21"
+      ],
+      "permanent_horse_id": null,
+      "permanent_id_verified": false
+    },
+    {
+      "horse_number": 2,
+      "frame_number": 2,
+      "horse_name": "ルトゥール",
+      "horse_profile_href": "/JRADB/accessU.html?CNAME=pw01dud002021104929/EA",
+      "past_race_dates": [
+        "2026-10-18",
+        "2026-07-26",
+        "2026-05-23",
+        "2026-03-28"
+      ],
+      "permanent_horse_id": null,
+      "permanent_id_verified": false
+    },
+    {
+      "horse_number": 3,
+      "frame_number": 3,
+      "horse_name": "バガン",
+      "horse_profile_href": "/JRADB/accessU.html?CNAME=pw01dud002018106354/FC",
+      "past_race_dates": [
+        "2026-08-29",
+        "2026-08-08",
+        "2026-05-24",
+        "2026-05-02"
+      ],
+      "permanent_horse_id": null,
+      "permanent_id_verified": false
+    },
+    {
+      "horse_number": 4,
+      "frame_number": 4,
+      "horse_name": "リカントロポ",
+      "horse_profile_href": "/JRADB/accessU.html?CNAME=pw01dud002022100080/56",
+      "past_race_dates": [
+        "2026-10-18",
+        "2026-08-23",
+        "2026-08-01",
+        "2026-04-25"
+      ],
+      "permanent_horse_id": null,
+      "permanent_id_verified": false
+    },
+    {
+      "horse_number": 5,
+      "frame_number": 5,
+      "horse_name": "ダガーリング",
+      "horse_profile_href": "/JRADB/accessU.html?CNAME=pw01dud002022102153/8E",
+      "past_race_dates": [
+        "2026-10-24",
+        "2026-09-12",
+        "2026-08-29",
+        "2026-06-20"
+      ],
+      "permanent_horse_id": null,
+      "permanent_id_verified": false
+    },
+    {
+      "horse_number": 6,
+      "frame_number": 6,
+      "horse_name": "エリカアンディーヴ",
+      "horse_profile_href": "/JRADB/accessU.html?CNAME=pw01dud002022110060/04",
+      "past_race_dates": [
+        "2026-10-12",
+        "2026-08-01",
+        "2026-04-26",
+        "2026-03-22"
+      ],
+      "permanent_horse_id": null,
+      "permanent_id_verified": false
+    },
+    {
+      "horse_number": 7,
+      "frame_number": 7,
+      "horse_name": "クイックバイオ",
+      "horse_profile_href": "/JRADB/accessU.html?CNAME=pw01dud002021105374/C4",
+      "past_race_dates": [
+        "2026-09-06",
+        "2026-08-08",
+        "2026-03-22",
+        "2026-01-04"
+      ],
+      "permanent_horse_id": null,
+      "permanent_id_verified": false
+    },
+    {
+      "horse_number": 8,
+      "frame_number": 7,
+      "horse_name": "サーディンラン",
+      "horse_profile_href": "/JRADB/accessU.html?CNAME=pw01dud002023103440/33",
+      "past_race_dates": [
+        "2026-10-18",
+        "2026-08-23",
+        "2026-08-01",
+        "2026-06-20"
+      ],
+      "permanent_horse_id": null,
+      "permanent_id_verified": false
+    },
+    {
+      "horse_number": 9,
+      "frame_number": 8,
+      "horse_name": "ランスオブヒーロー",
+      "horse_profile_href": "/JRADB/accessU.html?CNAME=pw01dud002023103166/72",
+      "past_race_dates": [
+        "2026-09-26",
+        "2026-06-20",
+        "2026-04-25",
+        "2026-04-18"
+      ],
+      "permanent_horse_id": null,
+      "permanent_id_verified": false
+    },
+    {
+      "horse_number": 10,
+      "frame_number": 8,
+      "horse_name": "オーシャントライブ",
+      "horse_profile_href": "/JRADB/accessU.html?CNAME=pw01dud002020103538/48",
+      "past_race_dates": [
+        "2026-09-26",
+        "2026-08-08",
+        "2025-08-23",
+        "2025-06-15"
+      ],
+      "permanent_horse_id": null,
+      "permanent_id_verified": false
+    }
+  ],
+  "runner_count": 10,
+  "prior_date_count": 40,
+  "errors": [],
+  "roster_verified": true,
+  "permanent_ids_verified": false,
+  "scratch_verified": false,
+  "odds_verified": false,
+  "prediction_ready": false,
+  "training_ready": false
+}
