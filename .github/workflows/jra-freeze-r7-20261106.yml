@@ -1,0 +1,41 @@
+name: Freeze official 2026-11-07 Kyoto R7 pre-race roster
+on:
+  push:
+    branches: [jra-html-diagnostic-20261105]
+    paths: ['diagnostics/future_r7_freeze_activation_20261106.txt']
+permissions:
+  contents: write
+jobs:
+  freeze:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install offline HTML parser
+        run: python -m pip install 'beautifulsoup4>=4.12,<5'
+      - name: Capture exactly one currently published JRA Kyoto racecard
+        run: python diagnostics/jra_future_racecard_probe.py --out jra_future_probe
+      - name: Normalize and freeze all official runners from captured bytes
+        run: |
+          python diagnostics/jra_freeze_live_roster.py \
+            --html jra_future_probe/future_kyoto_r7.html \
+            --receipt jra_future_probe/receipt.json \
+            --out jra_future_probe/frozen_roster.json
+      - name: Commit immutable-named structured snapshot, not copyrighted raw HTML
+        run: |
+          mkdir -p docs/diagnostics
+          cp jra_future_probe/frozen_roster.json docs/diagnostics/JRA_KYOTO_R7_PRERACE_FROZEN_20261106.json
+          cp jra_future_probe/receipt.json docs/diagnostics/JRA_KYOTO_R7_FREEZE_RECEIPT_20261106.json
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/diagnostics/JRA_KYOTO_R7_*.json
+          git commit -m "Freeze official future Kyoto R7 racecard roster and provenance" || true
+          git push origin HEAD:jra-html-diagnostic-20261105
+      - name: Short-lived source originals
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: jra-kyoto-r7-frozen-original-20261106
+          path: jra_future_probe/
+          retention-days: 3
+          if-no-files-found: warn
