@@ -1,0 +1,1 @@
+P1 bounded batch04 only after batch02 and batch03 official-source receipts each show 6/6 and independent replay verified. Complete remaining Kyoto R2 runners 12-15, plus R3 horses 2-3, no retries or production writes.
