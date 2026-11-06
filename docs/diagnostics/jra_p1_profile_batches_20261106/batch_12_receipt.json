@@ -1,0 +1,93 @@
+{
+  "batch_id": "batch_12",
+  "batch_content_sha256": "2a34cbc0f24ff27e4d416ae913ce770a4f13cdcaa09a1219ab9b4833b71acfe6",
+  "state": "PARSED_ORIGINALS_TEMPORARY",
+  "attempted": 6,
+  "official_network_requests": 6,
+  "verified_count": 6,
+  "failed_count": 0,
+  "items": [
+    {
+      "race": 7,
+      "horse_number": 3,
+      "horse_name": "ヴリトラハン",
+      "source_url": "https://jra.jp/JRADB/accessU.html?CNAME=pw01dud002022105302/FA",
+      "state": "SOURCE_PARSED",
+      "original_sha256": "a57ce27ee415f5862fd06160bbc6f2a24178b900a5445efec6c3d9e0d8dcc96b",
+      "source_bytes": 114859,
+      "captured_at_utc": "2026-11-06T05:47:20.607005+00:00",
+      "prior_valid_finishes": 16,
+      "nonfinish_events": 0,
+      "history_status": "HISTORY_TABLE_PARSED"
+    },
+    {
+      "race": 7,
+      "horse_number": 4,
+      "horse_name": "バトゥカーダ",
+      "source_url": "https://jra.jp/JRADB/accessU.html?CNAME=pw01dud002023105708/FC",
+      "state": "SOURCE_PARSED",
+      "original_sha256": "deee13bb8b4e0710c39a32343b54665ed84692c82622e48e573da0b494e12afc",
+      "source_bytes": 110132,
+      "captured_at_utc": "2026-11-06T05:47:23.699387+00:00",
+      "prior_valid_finishes": 11,
+      "nonfinish_events": 0,
+      "history_status": "HISTORY_TABLE_PARSED"
+    },
+    {
+      "race": 7,
+      "horse_number": 5,
+      "horse_name": "キントラダンサー",
+      "source_url": "https://jra.jp/JRADB/accessU.html?CNAME=pw01dud002022104387/CA",
+      "state": "SOURCE_PARSED",
+      "original_sha256": "9476e201226f07b81a8626a14647cd5717b46bef0ebad6f31660be0daf4a1cd6",
+      "source_bytes": 114494,
+      "captured_at_utc": "2026-11-06T05:47:26.642529+00:00",
+      "prior_valid_finishes": 16,
+      "nonfinish_events": 0,
+      "history_status": "HISTORY_TABLE_PARSED"
+    },
+    {
+      "race": 7,
+      "horse_number": 6,
+      "horse_name": "マイティマイティー",
+      "source_url": "https://jra.jp/JRADB/accessU.html?CNAME=pw01dud002021103708/06",
+      "state": "SOURCE_PARSED",
+      "original_sha256": "5e71c40b3a51077a938e84e480ba61426f0d69fccc54af56cb52cc679f0093be",
+      "source_bytes": 111892,
+      "captured_at_utc": "2026-11-06T05:47:29.505964+00:00",
+      "prior_valid_finishes": 13,
+      "nonfinish_events": 0,
+      "history_status": "HISTORY_TABLE_PARSED"
+    },
+    {
+      "race": 7,
+      "horse_number": 7,
+      "horse_name": "ゴールデンカイト",
+      "source_url": "https://jra.jp/JRADB/accessU.html?CNAME=pw01dud002022110129/00",
+      "state": "SOURCE_PARSED",
+      "original_sha256": "aca5ac13a93fd356fb195e9b5f31a19667b7d0a9193e71bcabe72c61a721c854",
+      "source_bytes": 109054,
+      "captured_at_utc": "2026-11-06T05:47:32.378712+00:00",
+      "prior_valid_finishes": 10,
+      "nonfinish_events": 0,
+      "history_status": "HISTORY_TABLE_PARSED"
+    },
+    {
+      "race": 7,
+      "horse_number": 8,
+      "horse_name": "テーオーパーセル",
+      "source_url": "https://jra.jp/JRADB/accessU.html?CNAME=pw01dud002023105435/40",
+      "state": "SOURCE_PARSED",
+      "original_sha256": "73c32cb028b006df7b3bf64fcdd371d397a2df771ff17a45e9d250aa0ef40195",
+      "source_bytes": 104741,
+      "captured_at_utc": "2026-11-06T05:47:35.240507+00:00",
+      "prior_valid_finishes": 5,
+      "nonfinish_events": 0,
+      "history_status": "HISTORY_TABLE_PARSED"
+    }
+  ],
+  "sources_retained": false,
+  "historical_asof_reconstruction_authorized": false,
+  "prediction_ready": false,
+  "training_ready": false
+}
