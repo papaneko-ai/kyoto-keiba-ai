@@ -1,0 +1,36 @@
+name: Reparse nine JRA genuine horse originals with obstacle course support
+on:
+  push:
+    branches: [jra-html-diagnostic-20261105]
+    paths: ['diagnostics/nine_profile_reparse_activation_20261106.txt']
+permissions:
+  actions: read
+  contents: write
+jobs:
+  replay:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      PYTHONPATH: .
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: jra-nine-horse-official-profiles-20261106
+          run-id: 42163450529
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: saved_official_profiles
+      - run: python -m pip install 'beautifulsoup4>=4.12,<5'
+      - name: Reparse all 9 original profiles without network
+        run: |
+          python diagnostics/jra_nine_profile_artifact_replay.py \
+            --artifact saved_official_profiles \
+            --out docs/diagnostics/jra_nine_profiles_reparsed_20261106
+      - name: Keep revised structured evidence separately
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/diagnostics/jra_nine_profiles_reparsed_20261106/
+          git commit -m "Retain original-backed full nine horse form interpretation" || true
+          git pull --rebase origin jra-html-diagnostic-20261105
+          git push origin HEAD:jra-html-diagnostic-20261105
