@@ -1,0 +1,47 @@
+{
+  "race": 4,
+  "number": 1,
+  "name": "グリーンアイランド",
+  "source_sha256": "1015b0f820e6665de38bfefa2a3f0d3fddfb533ca1042fda1b9e333c0496368a",
+  "captured_at_utc": "2026-11-06T04:36:05.574542+00:00",
+  "prior_rows": [
+    {
+      "date": "2026-10-17",
+      "venue": "新潟",
+      "race_title": "2歳未勝利",
+      "surface": "芝",
+      "distance_m": 1600,
+      "going": "良",
+      "field_size": 12,
+      "popularity": "4",
+      "finish_position": 10,
+      "jockey": "斎藤 新",
+      "carried_weight": "55.0",
+      "body_weight": "466",
+      "time": "1:35.4",
+      "finish_percentile": 0.18181818181818182
+    },
+    {
+      "date": "2026-08-22",
+      "venue": "札幌",
+      "race_title": "2歳新馬",
+      "surface": "芝",
+      "distance_m": 1500,
+      "going": "良",
+      "field_size": 14,
+      "popularity": "5",
+      "finish_position": 2,
+      "jockey": "武 豊",
+      "carried_weight": "55.0",
+      "body_weight": "464",
+      "time": "1:30.1",
+      "finish_percentile": 0.9230769230769231
+    }
+  ],
+  "excluded_rows": [],
+  "invalid_rows": [],
+  "nonfinish_rows": [],
+  "history_status": "HISTORY_TABLE_PARSED",
+  "prediction_ready": false,
+  "training_ready": false
+}

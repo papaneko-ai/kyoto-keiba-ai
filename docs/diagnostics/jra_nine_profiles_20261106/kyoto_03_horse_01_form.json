@@ -1,0 +1,47 @@
+{
+  "race": 3,
+  "number": 1,
+  "name": "ダノンチャンピオン",
+  "source_sha256": "5f0074e10e995490b3ed606b94d4a5100714c2f31ed8cc701a878113502876f9",
+  "captured_at_utc": "2026-11-06T04:36:02.569474+00:00",
+  "prior_rows": [
+    {
+      "date": "2026-10-18",
+      "venue": "京都",
+      "race_title": "2歳未勝利",
+      "surface": "ダ",
+      "distance_m": 1800,
+      "going": "良",
+      "field_size": 7,
+      "popularity": "2",
+      "finish_position": 4,
+      "jockey": "横山 和生",
+      "carried_weight": "56.0",
+      "body_weight": "484",
+      "time": "1:54.2",
+      "finish_percentile": 0.5
+    },
+    {
+      "date": "2026-07-26",
+      "venue": "中京",
+      "race_title": "2歳新馬",
+      "surface": "芝",
+      "distance_m": 2000,
+      "going": "良",
+      "field_size": 6,
+      "popularity": "1",
+      "finish_position": 4,
+      "jockey": "横山 武史",
+      "carried_weight": "55.0",
+      "body_weight": "476",
+      "time": "2:02.9",
+      "finish_percentile": 0.4
+    }
+  ],
+  "excluded_rows": [],
+  "invalid_rows": [],
+  "nonfinish_rows": [],
+  "history_status": "HISTORY_TABLE_PARSED",
+  "prediction_ready": false,
+  "training_ready": false
+}

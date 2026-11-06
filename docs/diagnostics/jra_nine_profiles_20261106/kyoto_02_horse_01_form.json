@@ -1,0 +1,47 @@
+{
+  "race": 2,
+  "number": 1,
+  "name": "ステラヴェント",
+  "source_sha256": "e3dcb2b03e49ba50432b5d81c420e743379ada039a1bc7f1b9eeb8ea9a754543",
+  "captured_at_utc": "2026-11-06T04:35:59.479021+00:00",
+  "prior_rows": [
+    {
+      "date": "2026-10-18",
+      "venue": "新潟",
+      "race_title": "2歳未勝利",
+      "surface": "芝",
+      "distance_m": 1200,
+      "going": "良",
+      "field_size": 13,
+      "popularity": "3",
+      "finish_position": 7,
+      "jockey": "高倉 稜",
+      "carried_weight": "55.0",
+      "body_weight": "408",
+      "time": "1:10.2",
+      "finish_percentile": 0.5
+    },
+    {
+      "date": "2026-08-15",
+      "venue": "中京",
+      "race_title": "2歳新馬",
+      "surface": "芝",
+      "distance_m": 1200,
+      "going": "良",
+      "field_size": 7,
+      "popularity": "6",
+      "finish_position": 3,
+      "jockey": "高倉 稜",
+      "carried_weight": "55.0",
+      "body_weight": "412",
+      "time": "1:08.8",
+      "finish_percentile": 0.6666666666666666
+    }
+  ],
+  "excluded_rows": [],
+  "invalid_rows": [],
+  "nonfinish_rows": [],
+  "history_status": "HISTORY_TABLE_PARSED",
+  "prediction_ready": false,
+  "training_ready": false
+}
