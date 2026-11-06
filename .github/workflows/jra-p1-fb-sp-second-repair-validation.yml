@@ -1,0 +1,48 @@
+name: Kyoto P1-FB second SP profile offline repair and two-source regression
+on:
+  push:
+    branches: [jra-html-diagnostic-20261105]
+    paths: ['diagnostics/activate_p1_fb_sp_second_replay.txt']
+permissions:
+  contents: write
+  actions: read
+jobs:
+  offline:
+    runs-on: ubuntu-latest
+    timeout-minutes: 7
+    env:
+      PYTHONPATH: .
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: jra-html-diagnostic-20261105
+      - uses: actions/download-artifact@v4
+        with:
+          run-id: 42174986970
+          name: kyoto-p1-fb-sp-second-profile-original
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: sp_second_original
+      - uses: actions/download-artifact@v4
+        with:
+          run-id: 42173462385
+          name: kyoto-p1-fb-sp-profile-original
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: sp_first_original
+      - run: python -m pip install 'beautifulsoup4>=4.12,<5'
+      - name: Run 10 synthetic SP special-row cases and existing 15 failover cases
+        run: |
+          python -m compileall -q diagnostics/jra_p1_sp_profile_offline.py diagnostics/jra_p1_fb_second_sp_replay_fixed.py
+          python -m unittest discover -s tests -p 'test_jra_p1_fb_sp_special_regressions.py' -v
+          python -m unittest discover -s tests -p 'test_jra_p1_failover_offline.py' -v
+      - name: Reparse second SP original only, preserve source SHA
+        run: python diagnostics/jra_p1_fb_second_sp_replay_fixed.py --artifact sp_second_original --out docs/diagnostics/jra_p1_fb_offline_20261106/sp_second_fixed_replay.json
+      - name: Check first SP official horse historical parity unchanged
+        run: python diagnostics/jra_p1_fb_pc_sp_row_parity.py --artifact sp_first_original --out docs/diagnostics/jra_p1_fb_offline_20261106/sp_first_after_special_fix_parity.json
+      - name: Persist offline proof and unchanged initial parity
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/diagnostics/jra_p1_fb_offline_20261106/sp_second_fixed_replay.json docs/diagnostics/jra_p1_fb_offline_20261106/sp_first_after_special_fix_parity.json
+          git commit -m "Accept second independent SP original with local races and unchanged first horse parity"
+          git pull --rebase origin jra-html-diagnostic-20261105
+          git push origin HEAD:jra-html-diagnostic-20261105
