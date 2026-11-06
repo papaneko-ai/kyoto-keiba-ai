@@ -1,0 +1,43 @@
+name: Kyoto P1 bounded six horse profile batch 01
+on:
+  push:
+    branches: [jra-html-diagnostic-20261105]
+    paths: ['diagnostics/p1_batch01_activation_20261106.txt']
+permissions:
+  contents: write
+jobs:
+  first_batch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      PYTHONPATH: .
+    steps:
+      - uses: actions/checkout@v4
+      - run: python -m pip install 'beautifulsoup4>=4.12,<5'
+      - name: Offline no-network refusal unit tests
+        run: python -m unittest discover -s tests -p 'test_jra_first_batch_probe.py' -v
+      - name: Single 6-profile batch, hard cutoff, no retries, 2s between requests
+        run: |
+          python diagnostics/jra_first_batch_probe.py \
+            --batch batch_01 \
+            --out jra_p1_batch01
+      - name: Save small structured provenance, never original HTML to Git
+        if: always()
+        run: |
+          mkdir -p docs/diagnostics/jra_p1_profile_batches_20261106
+          if test -f jra_p1_batch01/batch_receipt.json; then
+            cp jra_p1_batch01/batch_receipt.json docs/diagnostics/jra_p1_profile_batches_20261106/batch_01_receipt.json
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add docs/diagnostics/jra_p1_profile_batches_20261106/batch_01_receipt.json
+            git commit -m "Record actual 6-horse JRA official profile batch 01 outcome" || true
+            git pull --rebase origin jra-html-diagnostic-20261105
+            git push origin HEAD:jra-html-diagnostic-20261105
+          fi
+      - name: Store temporary originals separately for proof
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: jra-p1-profile-batch-01-originals-20261106
+          path: jra_p1_batch01/
+          retention-days: 3
