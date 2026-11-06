@@ -1,0 +1,49 @@
+name: JRA one-time historical racecard evidence capture 20261106
+on:
+  push:
+    branches:
+      - jra-html-diagnostic-20261105
+    paths:
+      - 'diagnostics/one_shot_activation_20261106.txt'
+permissions:
+  contents: read
+concurrency:
+  group: jra-once-20261106
+  cancel-in-progress: false
+jobs:
+  capture_single_page:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify robots permission using one request
+        run: |
+          python - <<'PY'
+          from urllib.robotparser import RobotFileParser
+          rp=RobotFileParser()
+          rp.set_url("https://www.jra.go.jp/robots.txt")
+          rp.read()
+          if not rp.can_fetch("KyotoRaceAI-Research/0.1", "https://www.jra.go.jp/JRADB/accessD.html?CNAME=pw01dde0108202604100120261031%2F52"):
+              raise SystemExit("ROBOTS_POLICY_BLOCKED")
+          print("ROBOTS_RULES_ALLOW_PATH; not a grant of reuse rights")
+          PY
+      - name: Capture exactly one known JRA historical racecard page
+        run: |
+          python diagnostics/jra_one_racecard_capture.py --url 'https://www.jra.go.jp/JRADB/accessD.html?CNAME=pw01dde0108202604100120261031%2F52'
+      - name: Record capture state
+        if: always()
+        run: |
+          python - <<'PY'
+          import json,datetime,pathlib
+          p=pathlib.Path('jra_single_racecard_diagnostic')
+          p.mkdir(exist_ok=True)
+          (p/'workflow_execution.json').write_text(json.dumps({'date_utc':datetime.datetime.now(datetime.timezone.utc).isoformat(),'job':'one_shot_20261106','usage':'retrospective_structure_only','predictions_certified':False},indent=2))
+          PY
+      - name: Upload source and receipts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: jra-one-shot-racecard-evidence-20261106
+          path: jra_single_racecard_diagnostic/
+          retention-days: 3
+          if-no-files-found: error
