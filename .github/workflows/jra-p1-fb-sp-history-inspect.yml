@@ -23,6 +23,7 @@ jobs:
           path: saved_original
       - run: python -m pip install beautifulsoup4
       - run: python diagnostics/jra_p1_sp_history_structure_offline.py --artifact saved_original --out docs/diagnostics/jra_p1_fb_offline_20261106/sp_history_shape.json
+      - run: python diagnostics/jra_p1_fb_sp_profile_replay.py --artifact saved_original --out docs/diagnostics/jra_p1_fb_offline_20261106/sp_profile_real_parity.json
       - run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
