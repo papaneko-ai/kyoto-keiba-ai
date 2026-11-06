@@ -2,7 +2,7 @@ name: JRA one-page persistent diagnostic receipt
 on:
   push:
     branches: [jra-html-diagnostic-20261105]
-    paths: ['diagnostics/receipt_activation_20261106.txt']
+    paths: ['diagnostics/receipt_activation_reinspect_20261106.txt']
 permissions:
   contents: write
 concurrency:
@@ -21,7 +21,7 @@ jobs:
       - name: Save non-HTML receipt in diagnostic branch
         run: |
           mkdir -p docs/diagnostics
-          cp jra_receipt_evidence/receipt.json docs/diagnostics/JRA_RECEIPT_RESULT_20261106.json
+          cp jra_receipt_evidence/receipt.json docs/diagnostics/JRA_RECEIPT_REINSPECT_20261106.json
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add docs/diagnostics/JRA_RECEIPT_RESULT_20261106.json
@@ -31,7 +31,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: jra-one-page-receipt-20261106
+          name: jra-one-page-reinspect-20261106
           path: jra_receipt_evidence/
           retention-days: 3
           if-no-files-found: warn
