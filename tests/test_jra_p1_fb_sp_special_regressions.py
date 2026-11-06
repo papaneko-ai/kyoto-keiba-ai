@@ -2,7 +2,7 @@ import unittest
 from diagnostics.jra_p1_sp_profile_offline import parse
 def document(entries,horse="試験馬"):
     rows="".join("<tr><td>"+l+"</td><td>"+r+"</td></tr>" for l,r in entries)
-    return ('<html><body><h1>'+horse+'</h1><table><tr><th>出走レース</th><th>着順 / 人気</th></tr>'+rows+'</table></body></html>').encode("cp932")
+    return ('<html><body><div class="bameiSection">'+horse+'</div><table><tr><th>出走レース</th><th>着順 / 人気</th></tr>'+rows+'</table></body></html>').encode("cp932")
 RACE="2026年7月26日 京都 障害レース 障芝3000 良 10頭 先着馬"
 TRANSFER="2024年3月13日 JRAへ転入"
 class SPHistorySafety(unittest.TestCase):
@@ -32,7 +32,7 @@ class SPHistorySafety(unittest.TestCase):
         self.assertEqual(len(d["nonfinish_rows"]),1)
         self.assertEqual(d["prior_rows"],[])
     def test_wrong_identity_is_rejected(self):
-        with self.assertRaisesRegex(ValueError,"horse_name_missing"):
+        with self.assertRaisesRegex(ValueError,"sp_profile_identity_anchor_missing_or_mismatch"):
             parse(document([(RACE,"2着 3人気")]),"別馬")
 
     def test_local_four_venues_and_missing_popularity(self):
@@ -51,4 +51,8 @@ class SPHistorySafety(unittest.TestCase):
     def test_unknown_local_venue_remains_invalid(self):
         d=parse(document([("2023年1月1日 未確認競馬場 レース ダ1400 良 11頭 先着馬","2着 1人気")]),"試験馬")
         self.assertTrue(d["invalid_rows"])
+    def test_opponent_name_cannot_substitute_for_profile_identity(self):
+        raw=document([("2023年1月1日 京都 レース ダ1400 良 11頭 別馬","2着 1人気")])
+        with self.assertRaisesRegex(ValueError,"sp_profile_identity_anchor_missing_or_mismatch"):
+            parse(raw,"別馬")
 if __name__=="__main__":unittest.main()
