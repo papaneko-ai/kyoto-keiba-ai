@@ -1,0 +1,1 @@
+Use existing official SP 11R racecard artifact from successful paired benchmark. Verify official horse-profile links without new network requests.
