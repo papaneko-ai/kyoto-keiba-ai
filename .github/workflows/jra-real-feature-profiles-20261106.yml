@@ -1,0 +1,37 @@
+name: JRA real 3-horse prior-form feature audit
+on:
+  push:
+    branches: [jra-html-diagnostic-20261105]
+    paths: ['diagnostics/profile_feature_activation_20261106.txt']
+permissions:
+  contents: write
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      PYTHONPATH: .
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install isolated official HTML parser
+        run: python -m pip install 'beautifulsoup4>=4.12,<5'
+      - name: Only 3 real official horse profile requests, pre-race
+        run: python diagnostics/jra_live_feature_profile_probe.py --out jra_profile_probe
+      - name: Persist structured feature receipts
+        if: always()
+        run: |
+          mkdir -p docs/diagnostics/jra_feature_profiles_20261106
+          cp jra_profile_probe/*.json docs/diagnostics/jra_feature_profiles_20261106/
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/diagnostics/jra_feature_profiles_20261106/
+          git commit -m "Freeze source-backed profile feature diagnostics for 3 horses" || true
+          git pull --rebase origin jra-html-diagnostic-20261105
+          git push origin HEAD:jra-html-diagnostic-20261105
+      - name: Short-lived official source bytes
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: jra-real-horse-profile-evidence-20261106
+          path: jra_profile_probe/
+          retention-days: 3
