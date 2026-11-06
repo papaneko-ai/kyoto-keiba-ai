@@ -89,4 +89,29 @@ class Stage4Injected(unittest.TestCase):
                 folder=tempfile.mkdtemp()+"/case",primary=PC,secondary=SP,
                 horse_name="モンドプリューム",race=11,number=1,
                 roster_sha="not_hex",now=T,transport=transport,parsers={"PC":good})
+    def test_unpersistable_html_blocks_backup(self):
+        from unittest.mock import patch
+        with patch("pathlib.Path.write_bytes",side_effect=OSError("synthetic_source_write_failed")):
+            r,p=self.execute()
+        self.assertEqual(r["status"],"FALLBACK_BLOCKED")
+        self.assertEqual(len(r["attempts"]),1)
+        self.assertEqual(r["attempts"][0]["status"],"QUARANTINED")
+        self.assertFalse(r["attempts"][0]["original_saved"])
+        self.assertEqual(r["fallback_policy"]["reason"],"primary_failure_not_preserved")
+    def test_prior_accepted_horse_with_different_url_blocks_before_transport(self):
+        from diagnostics.jra_p1_fb_request_budget_policy import Attempt
+        old=Attempt("SP","https://sp.jra.jp/JRADB/accessU.html?CNAME=sj01ude002020103876/AB",
+                    T-timedelta(minutes=2),11,1,"VALIDATED",True)
+        with self.assertRaisesRegex(ValueError,"horse_profile_already_verified"):
+            self.execute(prior=(old,))
+    def test_no_unproved_primary_roster_source(self):
+        with self.assertRaisesRegex(ValueError,"primary_roster_url_not_observed"):
+            self.execute(primary=Source("PC",PC.url,False))
+    def test_rejected_html_content_type_cannot_enter_parser(self):
+        def typed(ch,url):
+            if ch=="PC":return Response(RAW,200,"text/plain",url)
+            return transport(ch,url)
+        r,p=self.execute(trans=typed)
+        self.assertEqual(r["selected"],"SP")
+        self.assertFalse((p/"original_pc.html").exists())
 if __name__=="__main__":unittest.main()
