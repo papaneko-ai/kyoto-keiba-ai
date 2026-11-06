@@ -1,0 +1,1 @@
+One final structure-only investigation of an official JRA HTML page via verified POST navigation. Raw response short-lived; output metadata persisted.
