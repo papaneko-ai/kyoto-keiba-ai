@@ -1,0 +1,38 @@
+name: Kyoto P1-FB two SP original identity DOM audit
+on:
+  push:
+    branches: [jra-html-diagnostic-20261105]
+    paths: ['diagnostics/activate_p1_fb_sp_identity_audit.txt']
+permissions:
+  contents: write
+  actions: read
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    env:
+      PYTHONPATH: .
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: jra-html-diagnostic-20261105
+      - uses: actions/download-artifact@v4
+        with:
+          run-id: 42173462385
+          name: kyoto-p1-fb-sp-profile-original
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: first_source
+      - uses: actions/download-artifact@v4
+        with:
+          run-id: 42174986970
+          name: kyoto-p1-fb-sp-second-profile-original
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: second_source
+      - run: python -m pip install beautifulsoup4
+      - run: python diagnostics/jra_p1_fb_sp_identity_dom_audit.py --first first_source --second second_source --out docs/diagnostics/jra_p1_fb_offline_20261106/sp_identity_dom_audit.json
+      - run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/diagnostics/jra_p1_fb_offline_20261106/sp_identity_dom_audit.json
+          git commit -m "Record SP profile identity DOM structure from two original SHA sources"
+          git pull --rebase origin jra-html-diagnostic-20261105
+          git push origin HEAD:jra-html-diagnostic-20261105
