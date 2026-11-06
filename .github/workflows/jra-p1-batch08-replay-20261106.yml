@@ -1,0 +1,36 @@
+name: Kyoto P1 independent batch08 original replay
+on:
+  push:
+    branches: [jra-html-diagnostic-20261105]
+    paths: ['diagnostics/p1_batch08_replay_activation_20261106.txt']
+permissions:
+  contents: write
+  actions: read
+jobs:
+  replay:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      PYTHONPATH: .
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          run-id: 42167963955
+          name: kyoto-p1-batch08-20261106
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: jra_originals
+      - run: python -m pip install 'beautifulsoup4>=4.12,<5'
+      - name: Verify exact original source SHA and parse 6 races without HTTP
+        run: |
+          python diagnostics/jra_p1_batches07_08_original_replay.py \
+            --batch batch_08 --artifact jra_originals \
+            --out docs/diagnostics/jra_p1_profile_batches_20261106/replayed_batch_08
+      - name: Commit normalized historical race forms and provenance
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/diagnostics/jra_p1_profile_batches_20261106/replayed_batch_08
+          git commit -m "Independently validate JRA official batch08 six-source originals" || true
+          git pull --rebase origin jra-html-diagnostic-20261105
+          git push origin HEAD:jra-html-diagnostic-20261105
