@@ -47,14 +47,21 @@ def parse(raw,expected_horse):
             nonfinish.append({"row":i,"date":date_value,"status":right.split()[0]})
             continue
         finish=FINISH.match(right)
-        if not finish:
-            invalid.append({"row":i,"reason":"sp_finish_unparsed"});continue
-        rank,pop=map(int,finish.groups());size=int(f.group(1))
+        if finish:
+            rank,pop=map(int,finish.groups())
+        else:
+            missing=FINISH_WITHOUT_POPULARITY.match(right)
+            if not missing or venue not in LOCAL_VENUES or "人気" in right:
+                invalid.append({"row":i,"reason":"sp_finish_unparsed"});continue
+            rank=int(missing.group(1));pop=None
+        size=int(f.group(1))
         if size<2 or rank<1 or rank>size:
             invalid.append({"row":i,"reason":"sp_rank_out_of_range"});continue
         valid.append({"row":i,"date":date_value,"venue":venue,
             "surface":c.group(1),"distance_m":int(c.group(2)),
+            "jurisdiction":"JRA" if venue in VENUES else "LOCAL",
             "field_size":size,"finish_position":rank,"popularity":pop,
+            "popularity_missing":pop is None,
             "finish_percentile":(size-rank)/(size-1)})
     return {"horse_name":expected_horse,"source_sha256":sha256(raw).hexdigest(),
         "history_rows_total":len(rows),"prior_rows":valid,
