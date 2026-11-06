@@ -1,0 +1,1 @@
+Pre-publication smoke test of the guarded Kyoto 11R odds one-shot. At 2026-11-06 13:xx JST, release gate must stop BEFORE any JRA request. No auto schedule and no betting or production data writes.
