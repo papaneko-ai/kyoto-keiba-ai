@@ -1,0 +1,1 @@
+One-time, one GET only to already-attempted JRA PC profile, but its original bytes were irretrievably unpreserved; explicit user requested bug repair. Source stored before parser, new timestamp, no speculative backdating, no training or model writes. Diagnoses invalid row reasons and archives original for 3 days.
