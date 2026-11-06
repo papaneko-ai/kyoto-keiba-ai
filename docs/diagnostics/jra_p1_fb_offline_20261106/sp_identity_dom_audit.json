@@ -1,0 +1,70 @@
+{
+  "schema": "p1_fb_sp_profile_identity_dom_audit.v1",
+  "sources": [
+    {
+      "name": "モンドプリューム",
+      "source_sha256": "b26d60b459e8d5936df50f78bcdfa482fd291c3b630f55fbb3ac5041f86dac22",
+      "matching_text_nodes": 1,
+      "first_matches": [
+        {
+          "raw": "モンドプリューム",
+          "ancestors": [
+            {
+              "tag": "div",
+              "class": [
+                "bameiSection"
+              ],
+              "id": null,
+              "text": "モンドプリューム Monde Plume(JPN)"
+            },
+            {
+              "tag": "body",
+              "class": [],
+              "id": null,
+              "text": "本文へ移動する ニュース 企業情報 社会貢献活動 レース情報 ネット馬券 ログイン ビギナーズ 検索 メニュー 閉じる お問い合わせ/FAQ スマッピー UMACAスマート 競馬メ"
+            },
+            {
+              "tag": "html",
+              "class": [],
+              "id": null,
+              "text": "競走馬情報 本文へ移動する ニュース 企業情報 社会貢献活動 レース情報 ネット馬券 ログイン ビギナーズ 検索 メニュー 閉じる お問い合わせ/FAQ スマッピー UMACAスマ"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "エティエンヌ",
+      "source_sha256": "88fff685dec67e145b8e4cf68b8d4c738550798dae6a6806779d31351b0cfa45",
+      "matching_text_nodes": 1,
+      "first_matches": [
+        {
+          "raw": "エティエンヌ",
+          "ancestors": [
+            {
+              "tag": "div",
+              "class": [
+                "bameiSection"
+              ],
+              "id": null,
+              "text": "エティエンヌ Etienne(JPN)"
+            },
+            {
+              "tag": "body",
+              "class": [],
+              "id": null,
+              "text": "本文へ移動する ニュース 企業情報 社会貢献活動 レース情報 ネット馬券 ログイン ビギナーズ 検索 メニュー 閉じる お問い合わせ/FAQ スマッピー UMACAスマート 競馬メ"
+            },
+            {
+              "tag": "html",
+              "class": [],
+              "id": null,
+              "text": "競走馬情報 本文へ移動する ニュース 企業情報 社会貢献活動 レース情報 ネット馬券 ログイン ビギナーズ 検索 メニュー 閉じる お問い合わせ/FAQ スマッピー UMACAスマ"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "new_http": 0
+}
