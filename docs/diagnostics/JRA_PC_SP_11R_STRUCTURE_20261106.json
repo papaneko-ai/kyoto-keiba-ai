@@ -1,0 +1,162 @@
+{
+  "title": "出馬表",
+  "html_tables": 2,
+  "table_shapes": [
+    {
+      "table_index": 0,
+      "rows": 33,
+      "header": "出馬表 枠 馬番 馬名 / 単勝オッズ(人気) 性齢 / 毛色 / 馬体重 戦績(1着, 2着, 3着, 4着以下) 騎手名(負担重量) / 調教師名 1 1 モンドプリューム 牡6 / 鹿 前4走 (5,5,3,17) 北村友一 (56.0) 水野貴広 (美浦) 前４走成績 前走 除外 2026年9月12日 中山 ラジオ日本賞 OP ダート1200 重 1"
+    },
+    {
+      "table_index": 1,
+      "rows": 4,
+      "header": "非当選馬 0頭 非抽選馬 7頭 アガシ 、 エコロエイト 、 エンヤラヴフェイス 、 カルプスペルシュ 、 ブレーザー 、 マニバドラ 、 ムーヴ"
+    }
+  ],
+  "tr_count": 37,
+  "div_count": 212,
+  "official_horse_names_expected": 16,
+  "horse_names_found_in_visible_text": 16,
+  "horse_names_missing": [],
+  "horse_profile_links_count": 24,
+  "profile_links_sample": [
+    {
+      "name": "モンドプリューム",
+      "path": "/JRADB/accessU.html?CNAME=sj01ude002020103876/AA"
+    },
+    {
+      "name": "エティエンヌ",
+      "path": "/JRADB/accessU.html?CNAME=sj01ude002019105761/89"
+    },
+    {
+      "name": "エコロレーヴ",
+      "path": "/JRADB/accessU.html?CNAME=sj01ude002023110090/35"
+    }
+  ],
+  "likely_classes": [
+    [
+      "kako_row",
+      320
+    ],
+    [
+      "icon",
+      200
+    ],
+    [
+      "fa-solid",
+      190
+    ],
+    [
+      "txt",
+      189
+    ],
+    [
+      "fa-chevron-right",
+      152
+    ],
+    [
+      "clear",
+      98
+    ],
+    [
+      "kako_title",
+      64
+    ],
+    [
+      "kakoJyuni",
+      64
+    ],
+    [
+      "kakoOzz",
+      64
+    ],
+    [
+      "rating",
+      49
+    ],
+    [
+      "group_unit",
+      28
+    ],
+    [
+      "category",
+      26
+    ],
+    [
+      "fa-arrow-up-right-from-square",
+      22
+    ],
+    [
+      "kaisaiGradeIcon",
+      18
+    ],
+    [
+      "uban",
+      17
+    ],
+    [
+      "uma",
+      17
+    ],
+    [
+      "bamei",
+      16
+    ],
+    [
+      "tanOz",
+      16
+    ],
+    [
+      "kakoBtn",
+      16
+    ],
+    [
+      "img_kakoBtn",
+      16
+    ],
+    [
+      "tr_kako",
+      16
+    ],
+    [
+      "kako_uban",
+      16
+    ],
+    [
+      "narrow",
+      16
+    ],
+    [
+      "td_kako",
+      16
+    ],
+    [
+      "tbl_kako",
+      16
+    ],
+    [
+      "img_kakodisp",
+      16
+    ],
+    [
+      "btn-round",
+      13
+    ],
+    [
+      "inner",
+      11
+    ],
+    [
+      "col2",
+      10
+    ],
+    [
+      "wban",
+      9
+    ]
+  ],
+  "first_450_chars": "出馬表 本文へ移動する ニュース 企業情報 社会貢献活動 レース情報 ネット馬券 ログイン ビギナーズ 検索 メニュー 閉じる お問い合わせ/FAQ スマッピー UMACAスマート 競馬メニュー 今週の開催情報 開催お知らせ 出馬表 オッズ レース結果 開催日程 払戻金 特別レース登録馬 競走馬検索 馬場情報 今週の注目レース 達成間近な記録 データファイル GⅠレース出走馬決定順 レース成績データ 特別レース名解説 騎手プロフィール 調教師プロフィール リーディング情報 レーティング レコードタイム表 競走馬登録馬名簿・馬名意味 競走馬登録・抹消一覧 5大登録 開催場別出馬表 競馬のルール 競馬番組 降着・失格のルール 競馬のルール 海外競馬・地方競馬 海外競馬発売 JRAの国際競走 地方競馬の情報・関連リンク 競馬にかかわる人々 馬主情報 騎手になるには 厩舎スタッフになるには 競馬中継・ライブ配信 競馬中継・ライブ配信 馬券・JRA-UMACA 発売・払戻 発売レース一覧 WIN5",
+  "roster_equivalence_certified": false,
+  "ready_for_prediction": false,
+  "ready_for_training": false
+}

@@ -1,0 +1,20 @@
+{
+  "schema_version": "jra_pc_sp_11r_probe.v1",
+  "race": "KYOTO_2026-11-07_11R",
+  "source_url": "https://sp.jra.jp/JRADB/accessD.html?CNAME=sw01dde0108202605011120261107%2FA0",
+  "captured_at_utc": "2026-11-06T03:45:22.026068+00:00",
+  "status": "HTML_SAVED_NEEDS_PARSER_VALIDATION",
+  "pc_horse_count": 16,
+  "pc_sha256": "0c443ce664e6c8c7ed54ea2ebda837edef07f1a2697405bf069677b0cc67f565",
+  "sp_sha256": "de806dc0a9977a41ffd2a795a5e6cda485fb243e26fbf8eb56d932326986ba54",
+  "sp_html_bytes": 128691,
+  "error": null,
+  "html_raw_persisted_to_public_repo": false,
+  "comparison_verified": false,
+  "ready_for_training": false,
+  "http_status": 200,
+  "final_hostname": "sp.jra.jp",
+  "title": "出馬表",
+  "all_16_names_located": true,
+  "completed_at_utc": "2026-11-06T03:45:23.544797+00:00"
+}
