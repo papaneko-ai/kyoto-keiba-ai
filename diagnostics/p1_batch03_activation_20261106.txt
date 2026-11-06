@@ -1,0 +1,1 @@
+P1 batch03 official six-horse probe after batch02 six-source 0-error independent replay. No retries, source cutoff, no production writes.
