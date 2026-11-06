@@ -1,0 +1,18 @@
+{
+  "schema": "p1_fb_sp_profile_real_parity.v1",
+  "horse_name": "モンドプリューム",
+  "race": 11,
+  "number": 1,
+  "sp_sha256": "b26d60b459e8d5936df50f78bcdfa482fd291c3b630f55fbb3ac5041f86dac22",
+  "pc_sha256": "87bcbe38112dc1855f22099edb9bff5cc30a14b78b595470373b6355b2907b9c",
+  "sp_history_rows": 31,
+  "sp_prior_valid_finishes": 30,
+  "sp_nonfinish_count": 1,
+  "sp_invalid_rows": [],
+  "pc_prior_valid_finishes": 30,
+  "count_parity": true,
+  "new_network_requests": 0,
+  "live_auto_fallback_authorized": false,
+  "prediction_ready": false,
+  "training_ready": false
+}
