@@ -1,0 +1,1 @@
+Replay 3 previously downloaded official JRA profile original HTML artifacts from Actions run 42162996333; verify SHA and historical parser with newly allowed official jra.jp host. No JRA requests and no production writes.
