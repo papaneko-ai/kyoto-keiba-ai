@@ -28,7 +28,7 @@ def preflight():
         raise ValueError("checkpoint_changed_refuse_duplicate_or_stale_run")
     if RECEIPT.exists(): raise ValueError("batch10_receipt_already_exists_refuse_repeat")
     base=RECEIPT.parent
-    for i in range(1,9):
+    for i in range(1,10):
         r=json.loads((base/f"batch_{i:02d}_receipt.json").read_text(encoding="utf-8"))
         replay=json.loads((base/f"replayed_batch_{i:02d}"/"replay_receipt.json").read_text(encoding="utf-8"))
         if r.get("verified_count")!=6 or replay.get("verified_profiles")!=6 or replay.get("new_network_requests")!=0:
