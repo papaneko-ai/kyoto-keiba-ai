@@ -1,0 +1,35 @@
+name: Kyoto P1-FB request budget and source failure isolation offline
+on:
+  push:
+    branches: [jra-html-diagnostic-20261105]
+    paths: ['diagnostics/activate_p1_fb_request_budget_gate.txt']
+permissions:
+  contents: write
+jobs:
+  safety:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      PYTHONPATH: .
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: jra-html-diagnostic-20261105
+      - run: python -m pip install 'beautifulsoup4>=4.12,<5'
+      - name: Validate policy and SP real source regression
+        run: |
+          python -m compileall -q diagnostics/jra_p1_fb_request_budget_policy.py diagnostics/jra_p1_sp_profile_offline.py
+          python -m unittest discover -s tests -p 'test_jra_p1_fb_request_budget_policy.py' -v
+          python -m unittest discover -s tests -p 'test_jra_p1_fb_sp_special_regressions.py' -v
+          python -m unittest discover -s tests -p 'test_jra_p1_failover_offline.py' -v
+      - name: Record zero-network policy gate in versioned receipt
+        run: |
+          python -c "import json;from pathlib import Path;p=Path('docs/diagnostics/jra_p1_fb_offline_20261106/request_budget_gate.json');p.write_text(json.dumps({'schema':'p1_fb_request_budget_offline.v1','state':'DRY_RUN_GATE_TESTED','official_network_requests':0,'live_auto_fallback_authorized':False,'production_writes':False,'test_suites':['request_budget_policy','sp_special_regressions','offline_failover'],'prediction_ready':False,'training_ready':False},sort_keys=True)+'\n')"
+      - name: Commit bounded policy status without enabling live switching
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/diagnostics/jra_p1_fb_offline_20261106/request_budget_gate.json
+          git commit -m "Certify PC SP dry-run switch budget with no official network access"
+          git pull --rebase origin jra-html-diagnostic-20261105
+          git push origin HEAD:jra-html-diagnostic-20261105
