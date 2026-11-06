@@ -7,10 +7,12 @@
 ## 継続する正本
 - 全13項目のアルゴリズム要件：`docs/KYOTO_AI_ALGORITHM_REQUIREMENTS_REGISTER_v1_20261106.md`
 - P1〜P8の固定工程・完了ゲート：`docs/KYOTO_AI_ALGORITHM_AND_EXECUTION_ROADMAP_20261106.md`
-- **最新の確定進捗・証拠（優先参照）**：`docs/KYOTO_AI_P1_THREE_RACES_COMPLETE_HANDOFF_20261106.md`
+- **最新の確定進捗・証拠（優先参照）**：`docs/KYOTO_AI_P1_FOUR_RACES_COMPLETE_HANDOFF_20261106.md`
+- 以前の進捗記録（履歴）：`docs/KYOTO_AI_P1_THREE_RACES_COMPLETE_HANDOFF_20261106.md`
 - 以前の進捗記録（履歴）：`docs/KYOTO_AI_P1_TWO_RACES_COMPLETE_HANDOFF_20261106.md`
 - 以前の進捗記録（履歴として保持）：`docs/KYOTO_AI_P1_IMPLEMENTATION_HANDOFF_20261106.md`
-- **最新の機械読取可能な進捗・再開位置**：`docs/diagnostics/jra_p1_three_complete_races_20261106/status.json`
+- **最新の機械読取可能な進捗・再開位置**：`docs/diagnostics/jra_p1_four_complete_races_20261106/status.json`
+- 以前の機械読取記録（履歴）：`docs/diagnostics/jra_p1_three_complete_races_20261106/status.json`
 - 以前の機械読取記録（履歴）：`docs/diagnostics/jra_p1_two_complete_races_20261106/status.json`
 - 以前の再開位置（履歴）：`docs/diagnostics/JRA_P1_18_VERIFIED_130_PENDING_CHECKPOINT_20261106.json`
 - 次工程の取得対象計画：`docs/diagnostics/JRA_PENDING_136_PROFILES_PLAN_20261106.json`
@@ -28,7 +30,7 @@ P1 予測用データの取得・欠落と時点の証明
 準備作業が並行できる場合も、未完了の前提を通過したと偽って次段階の性能実証を宣言しない。
 
 ## 現在の再開位置
-2026-11-06時点：P1進行中。2026-11-07京都12Rの出馬表148頭のうち、**詳細プロフィール48頭、過去着順172件**を公式原本のSHA付きで再解析済み。**京都1R（9頭）・2R（15頭）・3R（13頭）は全出走馬について詳細プロフィールを取得・照合済み**。未取得100頭。初回の固定23バッチのうち**batch_01〜batch_06実行済み、次はbatch_07**。1〜6バッチは再取得しない。最新の進捗根拠は `docs/KYOTO_AI_P1_THREE_RACES_COMPLETE_HANDOFF_20261106.md` と `docs/diagnostics/jra_p1_three_complete_races_20261106/status.json`。公式原本HTMLの長期保管・利用条件、取消や馬場・発走前オッズは未完成であり、予測・学習可能と認定しない。
+2026-11-06時点：P1進行中。京都2026-11-07の出馬表12R148頭について、**詳細プロフィール60頭・過去走着順189件を公式HTML原本SHAの独立照合で確認**。京都1R9頭・2R15頭・3R13頭・4R15頭は全頭詳細取得・解析済み、ほかの8Rで代表各1頭を検証済み。未取得88頭。**batch_01〜batch_08完了、次はbatch_09**。既取得分の再アクセス禁止。最新の正本は `docs/KYOTO_AI_P1_FOUR_RACES_COMPLETE_HANDOFF_20261106.md`、機械判定は `docs/diagnostics/jra_p1_four_complete_races_20261106/status.json`。公式HTML原本の恒久保存・利用条件、馬場・調教・騎手・当日オッズ等の重要項目は未整備。予測モデルや学習を完成扱いしない。
 
 ## 新しいチャットの必須開始手順
 1. 最初に上記の正本要件・工程・直近チェックポイントを確認する。
