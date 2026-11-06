@@ -1,0 +1,53 @@
+name: Full 12-race Kyoto actual pre-race acceptance
+on:
+  push:
+    branches: [jra-html-diagnostic-20261105]
+    paths: ['diagnostics/full_day_acceptance_activation_20261106.txt']
+permissions:
+  contents: write
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Independently verify 12 frozen actual race snapshots
+        id: validation
+        continue-on-error: true
+        run: python -m unittest discover -s tests -p 'test_jra_full_day_20261107.py' -v
+      - name: Persist test status and counted runners without any JRA calls
+        if: always()
+        env:
+          TEST_RESULT: ${{ steps.validation.outcome }}
+        run: |
+          mkdir -p docs/diagnostics
+          python - <<'PY'
+          import json,os,datetime,pathlib
+          root=pathlib.Path('docs/diagnostics')
+          def read(n):
+            if n==7:p=root/'JRA_KYOTO_R7_PRERACE_FROZEN_20261106.json'
+            elif n in (1,6,12):p=root/'multirace_20261106'/f'kyoto_{n:02d}_snapshot.json'
+            else:p=root/'remaining8_20261106'/f'kyoto_{n:02d}_snapshot.json'
+            return json.loads(p.read_text(encoding='utf-8'))
+          records=[read(n) for n in range(1,13)]
+          def dates(d):
+            return sum(len(r.get('prior_race_dates',r.get('past_race_dates',[]))) for r in d['runners'])
+          payload={'schema_version':'kyoto_full_day_acceptance.v1',
+            'date':'2026-11-07','venue':'KYOTO',
+            'test_outcome':os.environ['TEST_RESULT'],
+            'race_count':len(records),
+            'runner_count':sum(r['runner_count'] for r in records),
+            'prior_date_count':sum(dates(r) for r in records),
+            'counts_by_race':{str(r['race_number']):r['runner_count'] for r in records},
+            'finished_at_utc':datetime.datetime.now(datetime.timezone.utc).isoformat(),
+            'pre_race_source_snapshot_verified_by_ci':os.environ['TEST_RESULT']=='success',
+            'html_bytes_independently_verified_by_ci':False,
+            'training_ready':False,'prediction_ready':False}
+          (root/'JRA_KYOTO_FULL_DAY_ACCEPTANCE_20261106.json').write_text(json.dumps(payload,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+          PY
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/diagnostics/JRA_KYOTO_FULL_DAY_ACCEPTANCE_20261106.json
+          git commit -m "Record official Kyoto full-day source-backed regression verdict" || true
+          git pull --rebase origin jra-html-diagnostic-20261105
+          git push origin HEAD:jra-html-diagnostic-20261105
