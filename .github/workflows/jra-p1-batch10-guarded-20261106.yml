@@ -1,0 +1,93 @@
+name: Kyoto P1 guarded batch10 Kyoto 5R completion
+on:
+  push:
+    branches: [jra-html-diagnostic-20261105]
+    paths: ['diagnostics/p1_batch10_activation_20261106.txt']
+permissions:
+  contents: write
+  actions: read
+concurrency:
+  group: kyoto-p1-batch10-guarded
+  cancel-in-progress: false
+jobs:
+  capture:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    env:
+      PYTHONPATH: .
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: jra-html-diagnostic-20261105
+      - run: python -m pip install 'beautifulsoup4>=4.12,<5'
+      - name: Check frozen plan before any HTTP
+        run: python -c 'from diagnostics.jra_p1_batch10_guarded import preflight; assert len(preflight()["items"]) == 6'
+      - name: Fetch six official profiles, 2 seconds apart, no retries
+        run: python diagnostics/jra_p1_batch10_guarded.py --out batch10_originals
+      - name: Persist small source receipt on development branch
+        if: always()
+        run: |
+          if test -f batch10_originals/batch_receipt.json; then
+            mkdir -p docs/diagnostics/jra_p1_profile_batches_20261106
+            cp batch10_originals/batch_receipt.json docs/diagnostics/jra_p1_profile_batches_20261106/batch_10_receipt.json
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add docs/diagnostics/jra_p1_profile_batches_20261106/batch_10_receipt.json
+            git commit -m "Record bounded P1 batch10 JRA official HTTP outcome"
+            git pull --rebase origin jra-html-diagnostic-20261105
+            git push origin HEAD:jra-html-diagnostic-20261105
+          fi
+      - name: Original HTML in expiring 3-day artifact, not repository
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: kyoto-p1-batch10-originals
+          path: batch10_originals/
+          retention-days: 3
+  replay:
+    needs: capture
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    env:
+      PYTHONPATH: .
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: jra-html-diagnostic-20261105
+      - uses: actions/download-artifact@v4
+        with:
+          name: kyoto-p1-batch10-originals
+          path: offline_originals
+      - run: python -m pip install 'beautifulsoup4>=4.12,<5'
+      - name: Offline independent SHA replay, zero HTTP requests
+        run: |
+          python diagnostics/jra_p1_batch10_original_replay.py --batch batch_10 --artifact offline_originals --out docs/diagnostics/jra_p1_profile_batches_20261106/replayed_batch_10
+      - name: Commit replay proof, never source HTML
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/diagnostics/jra_p1_profile_batches_20261106/replayed_batch_10/
+          git commit -m "Independently replay batch10 original source SHA and parsed history"
+          git pull --rebase origin jra-html-diagnostic-20261105
+          git push origin HEAD:jra-html-diagnostic-20261105
+  acceptance:
+    needs: replay
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      PYTHONPATH: .
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: jra-html-diagnostic-20261105
+      - run: python -m pip install 'beautifulsoup4>=4.12,<5'
+      - name: Build 148-runner provenance ledger with batch10
+        run: python diagnostics/jra_p1_batch10_acceptance.py --out docs/diagnostics/jra_p1_nine_batches_20261106
+      - name: Commit verified checkpoint
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/diagnostics/jra_p1_nine_batches_20261106/
+          git commit -m "Accept Kyoto P1 batch10 72-profile checkpoint"
+          git pull --rebase origin jra-html-diagnostic-20261105
+          git push origin HEAD:jra-html-diagnostic-20261105
