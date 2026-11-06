@@ -1,0 +1,13 @@
+{
+  "race": 6,
+  "number": 1,
+  "name": "シニスターカイザー",
+  "source_sha256": "7a84b322c91449bb4c261f6fa9f65a238c9ecd21c2ebf3f64a1d25e5276fd4f6",
+  "captured_at_utc": "2026-11-06T04:36:08.495976+00:00",
+  "prior_rows": [],
+  "nonfinish_rows": [],
+  "invalid_rows": [],
+  "history_status": "NO_HISTORY_TABLE_WITH_IDENTITY_PROOF",
+  "prediction_ready": false,
+  "training_ready": false
+}

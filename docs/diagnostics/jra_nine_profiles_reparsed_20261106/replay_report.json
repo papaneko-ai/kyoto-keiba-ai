@@ -1,0 +1,157 @@
+{
+  "schema": "nine_jra_profiles_reparsed_from_originals.v1",
+  "original_run_id": 42163450529,
+  "reparsed": 9,
+  "items": [
+    {
+      "race": 2,
+      "horse_number": 1,
+      "horse_name": "ステラヴェント",
+      "original_sha256": "e3dcb2b03e49ba50432b5d81c420e743379ada039a1bc7f1b9eeb8ea9a754543",
+      "status": "PARSED",
+      "prediction_ready": false,
+      "training_ready": false,
+      "prior_count": 2,
+      "event_count": 2,
+      "nonfinish_count": 0,
+      "surface_types": [
+        "芝"
+      ],
+      "empty_history": false
+    },
+    {
+      "race": 3,
+      "horse_number": 1,
+      "horse_name": "ダノンチャンピオン",
+      "original_sha256": "5f0074e10e995490b3ed606b94d4a5100714c2f31ed8cc701a878113502876f9",
+      "status": "PARSED",
+      "prediction_ready": false,
+      "training_ready": false,
+      "prior_count": 2,
+      "event_count": 2,
+      "nonfinish_count": 0,
+      "surface_types": [
+        "ダ",
+        "芝"
+      ],
+      "empty_history": false
+    },
+    {
+      "race": 4,
+      "horse_number": 1,
+      "horse_name": "グリーンアイランド",
+      "original_sha256": "1015b0f820e6665de38bfefa2a3f0d3fddfb533ca1042fda1b9e333c0496368a",
+      "status": "PARSED",
+      "prediction_ready": false,
+      "training_ready": false,
+      "prior_count": 2,
+      "event_count": 2,
+      "nonfinish_count": 0,
+      "surface_types": [
+        "芝"
+      ],
+      "empty_history": false
+    },
+    {
+      "race": 6,
+      "horse_number": 1,
+      "horse_name": "シニスターカイザー",
+      "original_sha256": "7a84b322c91449bb4c261f6fa9f65a238c9ecd21c2ebf3f64a1d25e5276fd4f6",
+      "status": "PARSED",
+      "prediction_ready": false,
+      "training_ready": false,
+      "prior_count": 0,
+      "event_count": 0,
+      "nonfinish_count": 0,
+      "surface_types": [],
+      "empty_history": true
+    },
+    {
+      "race": 7,
+      "horse_number": 1,
+      "horse_name": "タケルハーロック",
+      "original_sha256": "dc3780feb389ce3ebbfd62a630a04344291242bb8091a4367ad331eed434e2c2",
+      "status": "PARSED",
+      "prediction_ready": false,
+      "training_ready": false,
+      "prior_count": 16,
+      "event_count": 16,
+      "nonfinish_count": 0,
+      "surface_types": [
+        "ダ"
+      ],
+      "empty_history": false
+    },
+    {
+      "race": 8,
+      "horse_number": 1,
+      "horse_name": "ロードリベラシオン",
+      "original_sha256": "a5c4bf38ad827ff0ba70b93b5d038322ea77b881be9e7a11581a98ab9596b92b",
+      "status": "PARSED",
+      "prediction_ready": false,
+      "training_ready": false,
+      "prior_count": 14,
+      "event_count": 14,
+      "nonfinish_count": 0,
+      "surface_types": [
+        "ダ",
+        "芝",
+        "芝ダ"
+      ],
+      "empty_history": false
+    },
+    {
+      "race": 9,
+      "horse_number": 1,
+      "horse_name": "グラフィティアート",
+      "original_sha256": "adeff6b9e73dd4ff32deb2dacab2eb4cf9bddf37ec7ad06cfd494a292cb7ee3c",
+      "status": "PARSED",
+      "prediction_ready": false,
+      "training_ready": false,
+      "prior_count": 9,
+      "event_count": 9,
+      "nonfinish_count": 0,
+      "surface_types": [
+        "ダ",
+        "芝"
+      ],
+      "empty_history": false
+    },
+    {
+      "race": 10,
+      "horse_number": 1,
+      "horse_name": "メイショウバルク",
+      "original_sha256": "6bdee1d323f0886c7f87644ce0bed5be5e269d1b07f499d7fdcff971d24d4ef3",
+      "status": "PARSED",
+      "prediction_ready": false,
+      "training_ready": false,
+      "prior_count": 8,
+      "event_count": 8,
+      "nonfinish_count": 0,
+      "surface_types": [
+        "ダ"
+      ],
+      "empty_history": false
+    },
+    {
+      "race": 12,
+      "horse_number": 1,
+      "horse_name": "ナムラブーニン",
+      "original_sha256": "00d1d147319dca8d6d487011548e97253aabdddcf9713065fec10c5a9e1705f4",
+      "status": "PARSED",
+      "prediction_ready": false,
+      "training_ready": false,
+      "prior_count": 22,
+      "event_count": 22,
+      "nonfinish_count": 0,
+      "surface_types": [
+        "ダ",
+        "芝"
+      ],
+      "empty_history": false
+    }
+  ],
+  "source_originals_newly_fetched": 0,
+  "prediction_ready": false,
+  "training_ready": false
+}
