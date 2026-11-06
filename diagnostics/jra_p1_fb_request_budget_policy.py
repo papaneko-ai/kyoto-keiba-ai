@@ -6,7 +6,7 @@ permission to call the JRA. Previously queried URLs are never retried.
 from dataclasses import dataclass
 from datetime import datetime,timezone,timedelta
 from urllib.parse import urlsplit
-from hashlib import sha256
+import re
 @dataclass(frozen=True)
 class Attempt:
     channel:str
@@ -16,6 +16,7 @@ class Attempt:
     horse_number:int
     outcome:str
     original_saved:bool
+    receipt_saved:bool=True
 
 HOSTS={"PC":("jra.jp","www.jra.go.jp"),"SP":("sp.jra.jp",)}
 def official(channel,url):
@@ -35,7 +36,7 @@ def decision(*,failed_channel,failed_url,backup_channel,backup_url,
     if not official(failed_channel,failed_url) or not official(backup_channel,backup_url):
         return stop("not_verified_official_endpoint")
     if not observed_backup_link:return stop("backup_link_not_proven_in_official_roster")
-    if not horse_name or not 1<=race<=12 or not 1<=horse_number<=18 or len(roster_sha256)!=64:
+    if not horse_name or not 1<=race<=12 or not 1<=horse_number<=18 or not re.fullmatch("[0-9a-f]{64}",roster_sha256):
         return stop("identity_provenance_missing")
     if any(t.tzinfo is None or t.utcoffset() is None for t in (asof_utc,cutoff_utc)):
         return stop("naive_clock")
@@ -46,7 +47,9 @@ def decision(*,failed_channel,failed_url,backup_channel,backup_url,
     first=relevant[0]
     if (first.channel!=failed_channel or first.url!=failed_url
         or first.outcome not in ("HTTP_FAILED","PARSER_FAILED","INVALID_SOURCE")
-        or not first.original_saved):return stop("primary_failure_not_preserved")
+        or not first.receipt_saved
+        or (first.outcome!="HTTP_FAILED" and not first.original_saved)):
+        return stop("primary_failure_not_preserved")
     if any(x.url==backup_url for x in attempts):return stop("backup_url_already_attempted")
     if any(x.channel==backup_channel and x.race==race and x.horse_number==horse_number for x in attempts):
         return stop("backup_channel_already_attempted")
