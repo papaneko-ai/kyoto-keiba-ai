@@ -1,0 +1,38 @@
+name: JRA official PC vs SP 11R bounded comparison
+on:
+  push:
+    branches: [jra-html-diagnostic-20261105]
+    paths: ['diagnostics/sp_comparison_activation_20261106.txt']
+permissions:
+  contents: write
+jobs:
+  one_sp_page:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+      - run: python -m pip install 'beautifulsoup4>=4.12,<5'
+      - name: Capture one JRA official SP page and compare to pre-frozen PC 11R
+        run: python diagnostics/jra_pc_sp_comparison.py --out jra_pc_sp_probe
+      - name: Persist structured comparison metadata
+        if: always()
+        run: |
+          mkdir -p docs/diagnostics
+          cp jra_pc_sp_probe/receipt.json docs/diagnostics/JRA_PC_SP_11R_RECEIPT_20261106.json
+          if test -f jra_pc_sp_probe/structure.json; then
+            cp jra_pc_sp_probe/structure.json docs/diagnostics/JRA_PC_SP_11R_STRUCTURE_20261106.json
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/diagnostics/JRA_PC_SP_11R_*.json
+          git commit -m "Record official PC/SP 11R verification evidence" || true
+          git pull --rebase origin jra-html-diagnostic-20261105
+          git push origin HEAD:jra-html-diagnostic-20261105
+      - name: Save raw SP original short-term only
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: jra-pc-sp-11r-raw-20261106
+          path: jra_pc_sp_probe/
+          retention-days: 3
+          if-no-files-found: warn
