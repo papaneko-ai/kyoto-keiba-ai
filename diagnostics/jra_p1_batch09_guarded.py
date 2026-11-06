@@ -63,7 +63,7 @@ def capture(out,*,opener=urlopen,clock=utcnow,sleep=time.sleep):
              "verified_count":0,"failed_count":0,"items":[],
              "sources_retained":False,"historical_asof_reconstruction_authorized":False,
              "prediction_ready":False,"training_ready":False}
-    def save(): (folder/"batch_receipt.json").write_text(json.dumps(receipt,ensure_ascii=False,indent=2)+"\\n",encoding="utf-8")
+    def save(): (folder/"batch_receipt.json").write_text(json.dumps(receipt,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
     if clock()>=CUTOFF:
         receipt["reason"]="pre_race_asof_cutoff_expired";save();return receipt
     for i,item in enumerate(batch["items"]):
