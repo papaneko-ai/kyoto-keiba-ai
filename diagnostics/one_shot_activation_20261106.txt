@@ -1,0 +1,4 @@
+ONE_SHOT_JRA_RACECARD_PROBE_20261106
+Target: official Kyoto race 1, 2026-10-31
+Purpose: structure verification only; pre-race certification prohibited.
+No further trigger changes planned.
