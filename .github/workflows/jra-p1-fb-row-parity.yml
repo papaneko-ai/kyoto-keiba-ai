@@ -1,0 +1,37 @@
+name: Kyoto P1-FB PC SP 31 historical event row parity
+on:
+  push:
+    branches: [jra-html-diagnostic-20261105]
+    paths: ['diagnostics/activate_p1_fb_row_parity.txt']
+permissions:
+  contents: write
+  actions: read
+jobs:
+  parity:
+    runs-on: ubuntu-latest
+    env:
+      PYTHONPATH: .
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: jra-html-diagnostic-20261105
+      - uses: actions/download-artifact@v4
+        with:
+          run-id: 42173462385
+          name: kyoto-p1-fb-sp-profile-original
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: originals
+      - run: python -m pip install 'beautifulsoup4>=4.12,<5'
+      - name: Compare all 31 existing race records and SHA locked original
+        run: python diagnostics/jra_p1_fb_pc_sp_row_parity.py --artifact originals --out docs/diagnostics/jra_p1_fb_offline_20261106/pc_sp_31_event_row_parity.json
+      - name: Persist row comparison evidence even on mismatch
+        if: always()
+        run: |
+          if test -f docs/diagnostics/jra_p1_fb_offline_20261106/pc_sp_31_event_row_parity.json; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add docs/diagnostics/jra_p1_fb_offline_20261106/pc_sp_31_event_row_parity.json
+            git commit -m "Record PC SP row-level historical comparison without HTTP"
+            git pull --rebase origin jra-html-diagnostic-20261105
+            git push origin HEAD:jra-html-diagnostic-20261105
+          fi
