@@ -28,7 +28,8 @@ sources=root/"source_originals.tar.gz"
 with tarfile.open(sources,"w:gz") as tar:
     tar.add(source,arcname="official_originals")
 sha=lambda p:hashlib.sha256(p.read_bytes()).hexdigest()
-record={"schema":"kyoto_eod_final_bundle.v1","snapshot_sha":manifest["snapshot_commit"],
+record={"schema":"kyoto_eod_final_bundle.v1","snapshot_sha":subprocess.check_output(["git","rev-parse","HEAD"],text=True).strip(),
+        "prior_stable_checkpoint":manifest["snapshot_commit"],
         "archive_git_sha256":sha(snapshot),"archive_sources_sha256":sha(sources),
         "artifact_groups":receipts,"artifact_groups_downloaded":len(receipts),
         "actual_jra_http_requests":0,
