@@ -1,0 +1,1 @@
+One-time offline retry with 17 mock adapter failure cases including lost received original and already verified horse protection. No JRA GET. Preserve stage4 gate not live.
