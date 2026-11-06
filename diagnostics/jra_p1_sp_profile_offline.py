@@ -1,0 +1,46 @@
+"""Offline source-locked SP horse-history parser, no network or auto adoption."""
+from bs4 import BeautifulSoup
+from hashlib import sha256
+import re
+DATE=re.compile(r"^(\d{4})年(\d{1,2})月(\d{1,2})日\s+")
+COURSE=re.compile(r"(芝ダ|ダート|芝|ダ|障)(\d{3,4})")
+FIELD=re.compile(r"(\d{1,2})頭")
+FINISH=re.compile(r"^(\d+)着\s+(\d+)人気")
+VENUES=("札幌","函館","福島","新潟","東京","中山","中京","京都","阪神","小倉")
+def parse(raw,expected_horse):
+    if not raw or len(raw)>1800000:raise ValueError("invalid_bytes")
+    soup=BeautifulSoup(raw.decode("cp932",errors="replace"),"html.parser")
+    if expected_horse not in soup.get_text(" ",strip=True):raise ValueError("horse_name_missing")
+    table=next((t for t in soup.select("table") if "出走レース" in t.get_text(" ",strip=True)[:80]),None)
+    if table is None:raise ValueError("sp_history_not_found")
+    valid=[];nonfinish=[];invalid=[]
+    rows=table.select("tr")[1:]
+    for i,tr in enumerate(rows,1):
+        cells=tr.find_all("td",recursive=False)
+        if len(cells)!=2:
+            invalid.append({"row":i,"reason":"sp_cell_count"});continue
+        left,right=[x.get_text(" ",strip=True) for x in cells]
+        d=DATE.match(left)
+        c=COURSE.search(left)
+        f=FIELD.search(left)
+        venue=next((v for v in VENUES if left[d.end():].startswith(v+" ")) ,None) if d else None
+        if not d or not c or not f or not venue:
+            invalid.append({"row":i,"reason":"sp_history_left_unparsed"});continue
+        date_value="%04d-%02d-%02d"%tuple(map(int,d.groups()))
+        if right.startswith(("除","取消","中止","失格")):
+            nonfinish.append({"row":i,"date":date_value,"status":right.split()[0]})
+            continue
+        finish=FINISH.match(right)
+        if not finish:
+            invalid.append({"row":i,"reason":"sp_finish_unparsed"});continue
+        rank,pop=map(int,finish.groups());size=int(f.group(1))
+        if size<2 or rank<1 or rank>size:
+            invalid.append({"row":i,"reason":"sp_rank_out_of_range"});continue
+        valid.append({"row":i,"date":date_value,"venue":venue,
+            "surface":c.group(1),"distance_m":int(c.group(2)),
+            "field_size":size,"finish_position":rank,"popularity":pop,
+            "finish_percentile":(size-rank)/(size-1)})
+    return {"horse_name":expected_horse,"source_sha256":sha256(raw).hexdigest(),
+        "history_rows_total":len(rows),"prior_rows":valid,
+        "nonfinish_rows":nonfinish,"invalid_rows":invalid,
+        "prediction_ready":False,"training_ready":False}
