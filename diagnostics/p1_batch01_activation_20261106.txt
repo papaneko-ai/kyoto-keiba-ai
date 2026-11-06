@@ -1,0 +1,1 @@
+P1 bounded one-time six-runner actual official JRA profile pilot. First batch only, no retry, 2 seconds separation, stop if 2026-11-07T00:00:00Z passed; no Turso/main/model writes, raw original retained 3 days only.
