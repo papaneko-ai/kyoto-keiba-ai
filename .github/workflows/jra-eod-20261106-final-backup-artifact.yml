@@ -1,0 +1,26 @@
+name: Kyoto AI November 6 end-of-day frozen full backup
+on:
+  push:
+    branches: [jra-html-diagnostic-20261105]
+    paths: ['diagnostics/activate_eod_full_bundle_20261106.txt']
+permissions:
+  contents: read
+  actions: read
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: backup/p1-fb-20261106-final
+      - name: Bundle frozen source and all 18 still-available evidence artifact groups
+        run: python diagnostics/build_eod_20261106_bundle.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: kyoto-ai-nov6-2026-final-recovery-code-and-source-originals
+          path: eod_backup/kyoto_ai_20261106_eod_complete_bundle.zip
+          if-no-files-found: error
+          retention-days: 90
