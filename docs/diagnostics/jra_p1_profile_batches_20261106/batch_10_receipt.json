@@ -1,0 +1,93 @@
+{
+  "batch_id": "batch_10",
+  "batch_content_sha256": "c9b6b842b444bcb05ef291dd98f6e7e32d5f3913637ba8a21dc5934141a1b80d",
+  "state": "PARSED_ORIGINALS_TEMPORARY",
+  "attempted": 6,
+  "official_network_requests": 6,
+  "verified_count": 6,
+  "failed_count": 0,
+  "items": [
+    {
+      "race": 5,
+      "horse_number": 8,
+      "horse_name": "エイシンジュゲム",
+      "source_url": "https://jra.jp/JRADB/accessU.html?CNAME=pw01dud002024101594/2E",
+      "state": "SOURCE_PARSED",
+      "original_sha256": "169a6d5daf0d2bd748999cda286ccd97cd4be57018c2dab4e92c6dfa84fd8c39",
+      "source_bytes": 96707,
+      "captured_at_utc": "2026-11-06T05:39:28.859642+00:00",
+      "prior_valid_finishes": 0,
+      "nonfinish_events": 0,
+      "history_status": "NO_HISTORY_TABLE_WITH_IDENTITY_PROOF"
+    },
+    {
+      "race": 6,
+      "horse_number": 2,
+      "horse_name": "ディヴァインジャン",
+      "source_url": "https://jra.jp/JRADB/accessU.html?CNAME=pw01dud002024102284/7A",
+      "state": "SOURCE_PARSED",
+      "original_sha256": "82b8a335ed376e5d364d1c90e29d88a10967727d234cef5515e31e898a506b8a",
+      "source_bytes": 96585,
+      "captured_at_utc": "2026-11-06T05:39:32.134897+00:00",
+      "prior_valid_finishes": 0,
+      "nonfinish_events": 0,
+      "history_status": "NO_HISTORY_TABLE_WITH_IDENTITY_PROOF"
+    },
+    {
+      "race": 6,
+      "horse_number": 3,
+      "horse_name": "ローレルリネージ",
+      "source_url": "https://jra.jp/JRADB/accessU.html?CNAME=pw01dud002024103536/92",
+      "state": "SOURCE_PARSED",
+      "original_sha256": "48508b06087c4194a4461571e8acc783a2db06e2f10a554a7c88693e95077c4f",
+      "source_bytes": 96611,
+      "captured_at_utc": "2026-11-06T05:39:34.845036+00:00",
+      "prior_valid_finishes": 0,
+      "nonfinish_events": 0,
+      "history_status": "NO_HISTORY_TABLE_WITH_IDENTITY_PROOF"
+    },
+    {
+      "race": 6,
+      "horse_number": 4,
+      "horse_name": "ショウナンバラモン",
+      "source_url": "https://jra.jp/JRADB/accessU.html?CNAME=pw01dud002024100019/09",
+      "state": "SOURCE_PARSED",
+      "original_sha256": "b45c02ccaf813eb99315c415739d52dd05b45628a0e679c00a738358d028f44d",
+      "source_bytes": 96721,
+      "captured_at_utc": "2026-11-06T05:39:37.665823+00:00",
+      "prior_valid_finishes": 0,
+      "nonfinish_events": 0,
+      "history_status": "NO_HISTORY_TABLE_WITH_IDENTITY_PROOF"
+    },
+    {
+      "race": 6,
+      "horse_number": 5,
+      "horse_name": "キタノジョー",
+      "source_url": "https://jra.jp/JRADB/accessU.html?CNAME=pw01dud002024101118/B6",
+      "state": "SOURCE_PARSED",
+      "original_sha256": "2e4f7b66bfe0ef01b239c14bb0291f67707992c51e479b63a3d55efc8a6fe111",
+      "source_bytes": 96685,
+      "captured_at_utc": "2026-11-06T05:39:40.550493+00:00",
+      "prior_valid_finishes": 0,
+      "nonfinish_events": 0,
+      "history_status": "NO_HISTORY_TABLE_WITH_IDENTITY_PROOF"
+    },
+    {
+      "race": 6,
+      "horse_number": 6,
+      "horse_name": "ベイビープレミア",
+      "source_url": "https://jra.jp/JRADB/accessU.html?CNAME=pw01dud002024101703/8D",
+      "state": "SOURCE_PARSED",
+      "original_sha256": "b2aefd951742973b91c39623a008aaa76f14982c1852c2700aef8f25201ee39c",
+      "source_bytes": 96674,
+      "captured_at_utc": "2026-11-06T05:39:43.666403+00:00",
+      "prior_valid_finishes": 0,
+      "nonfinish_events": 0,
+      "history_status": "NO_HISTORY_TABLE_WITH_IDENTITY_PROOF"
+    }
+  ],
+  "sources_retained": false,
+  "historical_asof_reconstruction_authorized": false,
+  "prediction_ready": false,
+  "training_ready": false
+}
