@@ -1,0 +1,41 @@
+{
+  "schema_version": "jra_true_historical_odds_matrix_verified.v1",
+  "race": "2026-10-31-KYOTO-1R",
+  "source_classification": "HISTORICAL_FINAL_NOT_PRERACE",
+  "verified_with_original_official_html": true,
+  "markets": {
+    "quinella": {
+      "official_page_title": "馬連オッズ（馬番順）　JRA",
+      "source_sha256": "59ba0bc98b99c0351f03c6577e7eb430b8ba45d3789b9d9b3f69b7f1b7797b6f",
+      "source_bytes": 87450,
+      "pair_count": 120,
+      "expected_pair_count": 120,
+      "known_winning_pair": [
+        5,
+        13
+      ],
+      "winning_pair_odds": "15.1",
+      "independent_result_check": true,
+      "historical_final": true,
+      "pre_race_quote_accepted": false
+    },
+    "bracket_quinella": {
+      "official_page_title": "枠連オッズ（枠番順）　JRA",
+      "source_sha256": "fe3ba30f813611563da03e57e3ad12d09ffcb47f9fab22eb634533a6644ae6f5",
+      "source_bytes": 78625,
+      "pair_count": 36,
+      "expected_pair_count": 36,
+      "known_winning_pair": [
+        3,
+        7
+      ],
+      "winning_pair_odds": "6.2",
+      "independent_result_check": true,
+      "historical_final": true,
+      "pre_race_quote_accepted": false
+    }
+  },
+  "no_original_html_redistribution": true,
+  "prediction_ready": false,
+  "training_ready": false
+}
