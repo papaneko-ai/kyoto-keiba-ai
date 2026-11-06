@@ -1,0 +1,7 @@
+# JRA runner candidate parser — 2026-11-06
+
+New isolated `diagnostics/jra_runner_offline.py` and `tests/test_jra_runner_offline.py`. No network access, no Turso access, no scheduler or workflow modification. Parse saved CP932 HTML table rows to discover horse-profile navigation candidates. Output original-file SHA-256, fetched-at timestamp supplied by provenance, action tokens and unresolved/explicit identity status. A JRA navigation `cname` is **not** a verified horse ID. Link candidates on a results page are **not** proof of the full racecard. Every report is explicitly `ready_for_model=false`.
+
+Test command: `python -m unittest discover -s tests -p 'test_jra_runner_offline.py' -v`. Eight offline synthetic-fixture cases were run in an isolated local checkout on 2026-11-06 and passed before this GitHub port; connector-side CI execution remains unverified. No actual JRA HTML raw bytes were present in the uploaded final backup, so integration testing against real captured HTML and confirmed complete runner roster is still pending. The acquisition permissions gate remains unresolved: **do not enable scheduled downloads**.
+
+Next milestones: run GitHub test job; inspect authorized captured HTML with exact provenance; verify race ID/horse ID, non-runners, draw and complete roster count; parse per-horse prior-form rows with cutoff filtering and provenance; join immutable pre-race snapshots; only then begin reproducible discovery.
