@@ -1,3 +1,5 @@
 P1-FB first offline stage: 12 synthetic symmetric PC/SP switching, conflict, no-future, identity guards and zero network. No live fallback until official SP profile parser verified.
 
 Second offline gate run for 15 cases, incident isolation and JSON receipt validation. No HTTP.
+
+Third run: validate 15/15 after updated strict missing-source preservation expectation. No network.
