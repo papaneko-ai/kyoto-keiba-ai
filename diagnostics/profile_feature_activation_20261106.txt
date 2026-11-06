@@ -1,0 +1,1 @@
+One-off bounded official JRA pre-race horse profile experiment for Kyoto 2026-11-07 1R,5R,11R, one horse per race. Three GETs total, preserve official HTML only 3 days, report missing fields without fabrication.
