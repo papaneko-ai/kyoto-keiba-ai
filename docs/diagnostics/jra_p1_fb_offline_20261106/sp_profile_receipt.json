@@ -1,0 +1,37 @@
+{
+  "schema": "p1_fb_sp_profile_diagnostic.v1",
+  "source_url": "https://sp.jra.jp/JRADB/accessU.html?CNAME=sj01ude002020103876/AA",
+  "horse_name": "モンドプリューム",
+  "race": 11,
+  "horse_number": 1,
+  "requests": 1,
+  "prediction_ready": false,
+  "training_ready": false,
+  "captured_at_utc": "2026-11-06T06:17:18.681693+00:00",
+  "source_sha256": "b26d60b459e8d5936df50f78bcdfa482fd291c3b630f55fbb3ac5041f86dac22",
+  "source_bytes": 99136,
+  "original_saved_before_parser": true,
+  "state": "HTML_INSPECTED_NOT_PROFILE_PARSED",
+  "identity_in_visible_text": true,
+  "title": "競走馬情報",
+  "table_count": 11,
+  "table_shapes": [
+    {
+      "rows": 14,
+      "head": "プロフィール 父 サトノダイヤモンド 母 エリモフェザー 母の父 シニスターミニスター 母の母 リトルマーメード 性別 牡 馬齢 6 歳 生年月日 2020年4月16日 毛色 鹿毛 馬主 落合 幸弘 調教師 水野 貴広 (美浦) 生産牧場 "
+    },
+    {
+      "rows": 1,
+      "head": "レーティング レーティング 2026年 105 S (D)"
+    },
+    {
+      "rows": 6,
+      "head": "賞金 総賞金 113,826,000円 内付加賞 1,426,000円 内地方賞金 0円 内海外賞金 0円 収得賞金(平地) 36,000,000円 収得賞金(障害) 0円"
+    },
+    {
+      "rows": 32,
+      "head": "出走レース 年月日 / 場名 レース名 距離 / 馬場状態 / 頭数 1着馬(2着馬) 着順 / 人気 タイム / Rt 馬体重 騎手 / 負担重量 2026年9月12日 中山 ラジオ日本賞 ダ1200 \r\n重 \r\n15頭 ユキマル 除 5"
+    }
+  ],
+  "first_250_chars": "競走馬情報 本文へ移動する ニュース 企業情報 社会貢献活動 レース情報 ネット馬券 ログイン ビギナーズ 検索 メニュー 閉じる お問い合わせ/FAQ スマッピー UMACAスマート 競馬メニュー 今週の開催情報 開催お知らせ 出馬表 オッズ レース結果 開催日程 払戻金 特別レース登録馬 競走馬検索 馬場情報 今週の注目レース 達成間近な記録 データファイル GⅠレース出走馬決定順 レース成績データ 特別レース名解説 騎手プロフィール 調教師プロフィール リーディング情報 レーティング レコ"
+}
