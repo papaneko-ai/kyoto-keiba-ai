@@ -1,0 +1,64 @@
+{
+  "schema_version": "jra_real_profile_feature_probe.v1",
+  "sample_races": [
+    1,
+    5,
+    11
+  ],
+  "captured_at_utc": "2026-11-06T04:31:35.447409+00:00",
+  "profile_receipts": [
+    {
+      "race_number": 1,
+      "horse_number": 1,
+      "state": "FAILED",
+      "checked_at_utc": "2026-11-06T04:31:29.396646+00:00",
+      "prediction_ready": false,
+      "training_ready": false,
+      "permanent_horse_id_verified": false,
+      "horse_name": "ジョイザモーメント",
+      "source_sha256": "66b1a3483de1a629f7a04c3341c3dcfd799e1bb48814f1803045c7676b60f403",
+      "source_bytes": 101540,
+      "captured_at_utc": "2026-11-06T04:31:30.165140+00:00",
+      "source_url": "https://jra.jp/JRADB/accessU.html?CNAME=pw01dud002024101882/CB",
+      "http_status": 200,
+      "error": "ValueError:jra_profile_url_required"
+    },
+    {
+      "race_number": 5,
+      "horse_number": 1,
+      "state": "FAILED",
+      "checked_at_utc": "2026-11-06T04:31:32.165556+00:00",
+      "prediction_ready": false,
+      "training_ready": false,
+      "permanent_horse_id_verified": false,
+      "horse_name": "ロードラムセス",
+      "source_sha256": "642b5494743c0892fe01534be2bf419e1f1ebb0c7ecaa11c89157feffdcd920b",
+      "source_bytes": 96433,
+      "captured_at_utc": "2026-11-06T04:31:32.624068+00:00",
+      "source_url": "https://jra.jp/JRADB/accessU.html?CNAME=pw01dud002024105320/4C",
+      "http_status": 200,
+      "error": "ValueError:jra_profile_url_required"
+    },
+    {
+      "race_number": 11,
+      "horse_number": 1,
+      "state": "FAILED",
+      "checked_at_utc": "2026-11-06T04:31:34.624489+00:00",
+      "prediction_ready": false,
+      "training_ready": false,
+      "permanent_horse_id_verified": false,
+      "horse_name": "モンドプリューム",
+      "source_sha256": "87bcbe38112dc1855f22099edb9bff5cc30a14b78b595470373b6355b2907b9c",
+      "source_bytes": 129427,
+      "captured_at_utc": "2026-11-06T04:31:35.447080+00:00",
+      "source_url": "https://jra.jp/JRADB/accessU.html?CNAME=pw01dud002020103876/35",
+      "http_status": 200,
+      "error": "ValueError:jra_profile_url_required"
+    }
+  ],
+  "verified_profile_count": 0,
+  "source_cutoff_utc": "2026-11-07T00:00:00+00:00",
+  "full_148_profile_coverage": false,
+  "prediction_ready": false,
+  "training_ready": false
+}
