@@ -1,0 +1,1 @@
+One-time P1 batch_13 official JRA GET, six planned horse profiles (Kyoto 7R horse9-11, Kyoto 8R horse2-4), 2-second min separation, no retries, hard UTC cutoff, original SHA replay and seven-race acceptance. No production changes.
