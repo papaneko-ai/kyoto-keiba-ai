@@ -1,0 +1,33 @@
+name: Kyoto P1 full race 1 and 2 feature coverage milestone
+on:
+  push:
+    branches: [jra-html-diagnostic-20261105]
+    paths:
+      - 'diagnostics/p1_full_races_acceptance_activation_20261106.txt'
+      - 'diagnostics/jra_p1_full_race_coverage.py'
+      - 'tests/test_jra_p1_full_race_coverage.py'
+      - '.github/workflows/jra-p1-full-races-acceptance-20261106.yml'
+permissions:
+  contents: write
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      PYTHONPATH: .
+    steps:
+      - uses: actions/checkout@v4
+      - name: Independently test complete R1 and R2, no network
+        run: python -m unittest discover -s tests -p 'test_jra_p1_full_race_coverage.py' -v
+      - name: Produce deterministic 148-horse latest feature registry
+        run: |
+          python diagnostics/jra_p1_full_race_coverage.py \
+            --out docs/diagnostics/jra_p1_two_complete_races_20261106
+      - name: Commit source-verified consolidated status and feature registry
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/diagnostics/jra_p1_two_complete_races_20261106
+          git commit -m "Accept complete JRA Kyoto R1 and R2 form with 36 horse profiles" || true
+          git pull --rebase origin jra-html-diagnostic-20261105
+          git push origin HEAD:jra-html-diagnostic-20261105
