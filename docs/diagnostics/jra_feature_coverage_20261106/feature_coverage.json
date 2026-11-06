@@ -1,0 +1,172 @@
+{
+  "schema_version": "jra_kyoto_full_day_feature_gap_audit.v1",
+  "race_date": "2026-11-07",
+  "venue": "KYOTO",
+  "runner_count": 148,
+  "race_count": 12,
+  "prior_race_date_records": 396,
+  "horses_with_prior_dates": 129,
+  "profile_sources_queried": 12,
+  "profile_sources_with_parsed_form": 12,
+  "profile_sources_with_actual_finishes": 10,
+  "profile_sources_verified_no_history": 2,
+  "profile_actual_finished_race_rows": 107,
+  "profile_actual_nonfinish_events": 1,
+  "profile_actual_prior_events": 108,
+  "profile_sources_unqueried": 136,
+  "source_status_by_group": {
+    "racecard": {
+      "status": "BASIC_ROSTER_148_VERIFIED",
+      "runners": 148
+    },
+    "horse_profile": {
+      "status": "PARTIALLY_VERIFIED",
+      "parsed": 12,
+      "queried": 12,
+      "valid_finished_races": 107,
+      "nonfinish_events": 1,
+      "verified_empty_profiles": 2
+    },
+    "race_conditions": {
+      "status": "NOT_STRUCTURED_OR_VERIFIED"
+    },
+    "jockey_trainer": {
+      "status": "NOT_COLLECTED_AS_OF"
+    },
+    "track_weather": {
+      "status": "NOT_COLLECTED_AS_OF"
+    },
+    "market_odds": {
+      "status": "UNPUBLISHED_AT_LAST_CHECK"
+    },
+    "training_workouts": {
+      "status": "NOT_COLLECTED_AS_OF"
+    },
+    "payout_result": {
+      "status": "FUTURE_RESULT_MUST_NOT_BE_INPUT"
+    }
+  },
+  "predictor_input_completeness_certified": false,
+  "model_ready": false,
+  "training_ready": false,
+  "per_race": [
+    {
+      "race_number": 1,
+      "runners": 9,
+      "racecard_sha256": "40f58dfd823bfd834ab28cec0ae07202637d2cef3047aa308672716c2a79518f"
+    },
+    {
+      "race_number": 2,
+      "runners": 15,
+      "racecard_sha256": "05aec48fc30b4729fa77985bd59d913888bd6ba0056d0770cce96e66dc8522c1"
+    },
+    {
+      "race_number": 3,
+      "runners": 13,
+      "racecard_sha256": "d1dbdbd6fe7927c7867b3ee69ec570681a5e7e7bc306df75216b1521ce727621"
+    },
+    {
+      "race_number": 4,
+      "runners": 15,
+      "racecard_sha256": "b1622368d969f76a33621d8fca26516ee5879c6344e30c48a8f809a87fabdfde"
+    },
+    {
+      "race_number": 5,
+      "runners": 8,
+      "racecard_sha256": "c1c62343aafac119a8a2c8dfce76c5555700a69b5df2db9a3a6177243089d2ab"
+    },
+    {
+      "race_number": 6,
+      "runners": 11,
+      "racecard_sha256": "b01f1933efaba8470a409f5e1c603d80957c3d5408ac03638c7b3edeb3bffa66"
+    },
+    {
+      "race_number": 7,
+      "runners": 11,
+      "racecard_sha256": "fcba7d4c5c16b7dea2b4092a1fa511afefa891d5c6c3f9d7f7dba485d54d7657"
+    },
+    {
+      "race_number": 8,
+      "runners": 9,
+      "racecard_sha256": "b1cff8274fe56f82ffeb6bdf362cc5fc66ddf4829ca4daac772ce8938617a9d2"
+    },
+    {
+      "race_number": 9,
+      "runners": 10,
+      "racecard_sha256": "6646a1c7f5763250d8f05a7dcc880fb40a39f50b53cd7d6702cafd560b3b068d"
+    },
+    {
+      "race_number": 10,
+      "runners": 14,
+      "racecard_sha256": "771261811e3bd4443009c0898e8173d5750043a9bedca8552e4a24afbeaa1751"
+    },
+    {
+      "race_number": 11,
+      "runners": 16,
+      "racecard_sha256": "0c443ce664e6c8c7ed54ea2ebda837edef07f1a2697405bf069677b0cc67f565"
+    },
+    {
+      "race_number": 12,
+      "runners": 17,
+      "racecard_sha256": "6c374a4438ed53d268a3f8a044bf015a7fa19bec4c53df22b29e322ca08944fe"
+    }
+  ],
+  "feature_catalog": {
+    "racecard": [
+      "horse_number",
+      "frame_number",
+      "horse_name",
+      "horse_profile_href",
+      "past_race_dates"
+    ],
+    "horse_profile": [
+      "historical_finish",
+      "historical_distance",
+      "historical_surface",
+      "historical_going",
+      "historical_jockey",
+      "historical_carried_weight",
+      "historical_body_weight",
+      "historical_race_time",
+      "historical_field_size",
+      "historical_venue"
+    ],
+    "race_conditions": [
+      "race_surface",
+      "race_distance_m",
+      "current_jockey",
+      "current_carried_weight",
+      "age_sex",
+      "race_class",
+      "current_start_time"
+    ],
+    "jockey_trainer": [
+      "jockey_prior_win_rate",
+      "trainer_prior_win_rate",
+      "jockey_horse_pair_results"
+    ],
+    "track_weather": [
+      "track_condition_at_cutoff",
+      "weather_at_cutoff",
+      "moisture_at_cutoff"
+    ],
+    "market_odds": [
+      "quinella_live_pre_race",
+      "bracket_live_pre_race"
+    ],
+    "training_workouts": [
+      "workout_time",
+      "workout_condition",
+      "workout_grade"
+    ],
+    "payout_result": [
+      "official_results",
+      "payout_finalized"
+    ]
+  },
+  "warnings": [
+    "Past-four-race dates are not full historical performance metrics.",
+    "Unqueried or blocked profiles must not be imputed from future results.",
+    "No odds, workouts, changing race conditions, confirmed scratches or stable horse ids."
+  ]
+}

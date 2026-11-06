@@ -1,0 +1,4428 @@
+[
+  {
+    "race": "2026-11-07_KYOTO_01R",
+    "race_number": 1,
+    "horse_number": 1,
+    "horse_name": "ジョイザモーメント",
+    "frame_number": 1,
+    "racecard_source_sha256": "40f58dfd823bfd834ab28cec0ae07202637d2cef3047aa308672716c2a79518f",
+    "racecard_captured_at_utc": "2026-11-06T03:30:24.809942+00:00",
+    "profile_href": "/JRADB/accessU.html?CNAME=pw01dud002024101882/CB",
+    "date_only_features": {
+      "last_observed_prior_race_days_ago": 28,
+      "date_records_visible": 2,
+      "recent_90day_date_count": 2
+    },
+    "performance_features": {
+      "prior_valid_finishes_available": 2,
+      "recent_three_mean_finish_percentile": 0.807692,
+      "recent_three_mean_distance_m": 1600,
+      "recent_three_wins": 0,
+      "recent_three_surface_counts": {
+        "芝": 0,
+        "ダ": 2,
+        "ダート": 0,
+        "障": 0
+      }
+    },
+    "profile_status": "HISTORY_TABLE_PARSED",
+    "source_coverage": {
+      "racecard": "CONFIRMED",
+      "horse_profile": "VERIFIED_SOURCE_ROWS",
+      "race_conditions": "MISSING",
+      "jockey_trainer": "MISSING",
+      "track_weather": "MISSING",
+      "market_odds": "MISSING",
+      "training_workouts": "MISSING",
+      "payout_result": "NOT_APPLICABLE_BEFORE_RACE"
+    },
+    "prediction_ready": false,
+    "training_ready": false,
+    "profile_source_sha256": "66b1a3483de1a629f7a04c3341c3dcfd799e1bb48814f1803045c7676b60f403",
+    "nonfinish_event_count": 0
+  },
+  {
+    "race": "2026-11-07_KYOTO_01R",
+    "race_number": 1,
+    "horse_number": 2,
+    "horse_name": "オージーブラック",
+    "frame_number": 2,
+    "racecard_source_sha256": "40f58dfd823bfd834ab28cec0ae07202637d2cef3047aa308672716c2a79518f",
+    "racecard_captured_at_utc": "2026-11-06T03:30:24.809942+00:00",
+    "profile_href": "/JRADB/accessU.html?CNAME=pw01dud002024101134/0A",
+    "date_only_features": {
+      "last_observed_prior_race_days_ago": 13,
+      "date_records_visible": 2,
+      "recent_90day_date_count": 2
+    },
+    "performance_features": null,
+    "profile_status": "NOT_QUERIED",
+    "source_coverage": {
+      "racecard": "CONFIRMED",
+      "horse_profile": "NOT_QUERIED",
+      "race_conditions": "MISSING",
+      "jockey_trainer": "MISSING",
+      "track_weather": "MISSING",
+      "market_odds": "MISSING",
+      "training_workouts": "MISSING",
+      "payout_result": "NOT_APPLICABLE_BEFORE_RACE"
+    },
+    "prediction_ready": false,
+    "training_ready": false
+  },
+  {
+    "race": "2026-11-07_KYOTO_01R",
+    "race_number": 1,
+    "horse_number": 3,
+    "horse_name": "キミチャン",
+    "frame_number": 3,
+    "racecard_source_sha256": "40f58dfd823bfd834ab28cec0ae07202637d2cef3047aa308672716c2a79518f",
+    "racecard_captured_at_utc": "2026-11-06T03:30:24.809942+00:00",
+    "profile_href": "/JRADB/accessU.html?CNAME=pw01dud002024104786/33",
+    "date_only_features": {
+      "last_observed_prior_race_days_ago": 13,
+      "date_records_visible": 2,
+      "recent_90day_date_count": 2
+    },
+    "performance_features": null,
+    "profile_status": "NOT_QUERIED",
+    "source_coverage": {
+      "racecard": "CONFIRMED",
+      "horse_profile": "NOT_QUERIED",
+      "race_conditions": "MISSING",
+      "jockey_trainer": "MISSING",
+      "track_weather": "MISSING",
+      "market_odds": "MISSING",
+      "training_workouts": "MISSING",
+      "payout_result": "NOT_APPLICABLE_BEFORE_RACE"
+    },
+    "prediction_ready": false,
+    "training_ready": false
+  },
+  {
+    "race": "2026-11-07_KYOTO_01R",
+    "race_number": 1,
+    "horse_number": 4,
+    "horse_name": "マリアーナ",
+    "frame_number": 4,
+    "racecard_source_sha256": "40f58dfd823bfd834ab28cec0ae07202637d2cef3047aa308672716c2a79518f",
+    "racecard_captured_at_utc": "2026-11-06T03:30:24.809942+00:00",
+    "profile_href": "/JRADB/accessU.html?CNAME=pw01dud002024104231/AF",
+    "date_only_features": {
+      "last_observed_prior_race_days_ago": 13,
+      "date_records_visible": 2,
+      "recent_90day_date_count": 2
+    },
+    "performance_features": null,
+    "profile_status": "NOT_QUERIED",
+    "source_coverage": {
+      "racecard": "CONFIRMED",
+      "horse_profile": "NOT_QUERIED",
+      "race_conditions": "MISSING",
+      "jockey_trainer": "MISSING",
+      "track_weather": "MISSING",
+      "market_odds": "MISSING",
+      "training_workouts": "MISSING",
+      "payout_result": "NOT_APPLICABLE_BEFORE_RACE"
+    },
+    "prediction_ready": false,
+    "training_ready": false
+  },
+  {
+    "race": "2026-11-07_KYOTO_01R",
+    "race_number": 1,
+    "horse_number": 5,
+    "horse_name": "フェリシタル",
+    "frame_number": 5,
+    "racecard_source_sha256": "40f58dfd823bfd834ab28cec0ae07202637d2cef3047aa308672716c2a79518f",
+    "racecard_captured_at_utc": "2026-11-06T03:30:24.809942+00:00",
+    "profile_href": "/JRADB/accessU.html?CNAME=pw01dud002024102322/65",
+    "date_only_features": {
+      "last_observed_prior_race_days_ago": 112,
+      "date_records_visible": 1,
+      "recent_90day_date_count": 0
+    },
+    "performance_features": null,
+    "profile_status": "NOT_QUERIED",
+    "source_coverage": {
+      "racecard": "CONFIRMED",
+      "horse_profile": "NOT_QUERIED",
+      "race_conditions": "MISSING",
+      "jockey_trainer": "MISSING",
+      "track_weather": "MISSING",
+      "market_odds": "MISSING",
+      "training_workouts": "MISSING",
+      "payout_result": "NOT_APPLICABLE_BEFORE_RACE"
+    },
+    "prediction_ready": false,
+    "training_ready": false
+  },
+  {
+    "race": "2026-11-07_KYOTO_01R",
+    "race_number": 1,
+    "horse_number": 6,
+    "horse_name": "モハラ",
+    "frame_number": 6,
+    "racecard_source_sha256": "40f58dfd823bfd834ab28cec0ae07202637d2cef3047aa308672716c2a79518f",
+    "racecard_captured_at_utc": "2026-11-06T03:30:24.809942+00:00",
+    "profile_href": "/JRADB/accessU.html?CNAME=pw01dud002024107305/49",
+    "date_only_features": {
+      "last_observed_prior_race_days_ago": 14,
+      "date_records_visible": 1,
+      "recent_90day_date_count": 1
+    },
+    "performance_features": null,
+    "profile_status": "NOT_QUERIED",
+    "source_coverage": {
+      "racecard": "CONFIRMED",
+      "horse_profile": "NOT_QUERIED",
+      "race_conditions": "MISSING",
+      "jockey_trainer": "MISSING",
+      "track_weather": "MISSING",
+      "market_odds": "MISSING",
+      "training_workouts": "MISSING",
+      "payout_result": "NOT_APPLICABLE_BEFORE_RACE"
+    },
+    "prediction_ready": false,
+    "training_ready": false
+  },
+  {
+    "race": "2026-11-07_KYOTO_01R",
+    "race_number": 1,
+    "horse_number": 7,
+    "horse_name": "サイトゥン",
+    "frame_number": 7,
+    "racecard_source_sha256": "40f58dfd823bfd834ab28cec0ae07202637d2cef3047aa308672716c2a79518f",
+    "racecard_captured_at_utc": "2026-11-06T03:30:24.809942+00:00",
+    "profile_href": "/JRADB/accessU.html?CNAME=pw01dud002024106774/1B",
+    "date_only_features": {
+      "last_observed_prior_race_days_ago": 63,
+      "date_records_visible": 1,
+      "recent_90day_date_count": 1
+    },
+    "performance_features": null,
+    "profile_status": "NOT_QUERIED",
+    "source_coverage": {
+      "racecard": "CONFIRMED",
+      "horse_profile": "NOT_QUERIED",
+      "race_conditions": "MISSING",
+      "jockey_trainer": "MISSING",
+      "track_weather": "MISSING",
+      "market_odds": "MISSING",
+      "training_workouts": "MISSING",
+      "payout_result": "NOT_APPLICABLE_BEFORE_RACE"
+    },
+    "prediction_ready": false,
+    "training_ready": false
+  },
+  {
+    "race": "2026-11-07_KYOTO_01R",
+    "race_number": 1,
+    "horse_number": 8,
+    "horse_name": "コムアンエクレール",
+    "frame_number": 8,
+    "racecard_source_sha256": "40f58dfd823bfd834ab28cec0ae07202637d2cef3047aa308672716c2a79518f",
+    "racecard_captured_at_utc": "2026-11-06T03:30:24.809942+00:00",
+    "profile_href": "/JRADB/accessU.html?CNAME=pw01dud002024104272/62",
+    "date_only_features": {
+      "last_observed_prior_race_days_ago": 20,
+      "date_records_visible": 1,
+      "recent_90day_date_count": 1
+    },
+    "performance_features": null,
+    "profile_status": "NOT_QUERIED",
+    "source_coverage": {
+      "racecard": "CONFIRMED",
+      "horse_profile": "NOT_QUERIED",
+      "race_conditions": "MISSING",
+      "jockey_trainer": "MISSING",
+      "track_weather": "MISSING",
+      "market_odds": "MISSING",
+      "training_workouts": "MISSING",
+      "payout_result": "NOT_APPLICABLE_BEFORE_RACE"
+    },
+    "prediction_ready": false,
+    "training_ready": false
+  },
+  {
+    "race": "2026-11-07_KYOTO_01R",
+    "race_number": 1,
+    "horse_number": 9,
+    "horse_name": "マシュマロデイズ",
+    "frame_number": 8,
+    "racecard_source_sha256": "40f58dfd823bfd834ab28cec0ae07202637d2cef3047aa308672716c2a79518f",
+    "racecard_captured_at_utc": "2026-11-06T03:30:24.809942+00:00",
+    "profile_href": "/JRADB/accessU.html?CNAME=pw01dud002024106580/FD",
+    "date_only_features": {
+      "last_observed_prior_race_days_ago": 70,
+      "date_records_visible": 2,
+      "recent_90day_date_count": 2
+    },
+    "performance_features": null,
+    "profile_status": "NOT_QUERIED",
+    "source_coverage": {
+      "racecard": "CONFIRMED",
+      "horse_profile": "NOT_QUERIED",
+      "race_conditions": "MISSING",
+      "jockey_trainer": "MISSING",
+      "track_weather": "MISSING",
+      "market_odds": "MISSING",
+      "training_workouts": "MISSING",
+      "payout_result": "NOT_APPLICABLE_BEFORE_RACE"
+    },
+    "prediction_ready": false,
+    "training_ready": false
+  },
+  {
+    "race": "2026-11-07_KYOTO_02R",
+    "race_number": 2,
+    "horse_number": 1,
+    "horse_name": "ステラヴェント",
+    "frame_number": 1,
+    "racecard_source_sha256": "05aec48fc30b4729fa77985bd59d913888bd6ba0056d0770cce96e66dc8522c1",
+    "racecard_captured_at_utc": "2026-11-06T03:39:00.202468+00:00",
+    "profile_href": "/JRADB/accessU.html?CNAME=pw01dud002024103414/5B",
+    "date_only_features": {
+      "last_observed_prior_race_days_ago": 20,
+      "date_records_visible": 2,
+      "recent_90day_date_count": 2
+    },
+    "performance_features": {
+      "prior_valid_finishes_available": 2,
+      "recent_three_mean_finish_percentile": 0.583333,
+      "recent_three_mean_distance_m": 1200,
+      "recent_three_wins": 0,
+      "recent_three_surface_counts": {
+        "芝": 2,
+        "ダ": 0,
+        "ダート": 0,
+        "障": 0
+      }
+    },
+    "profile_status": "HISTORY_TABLE_PARSED",
+    "source_coverage": {
+      "racecard": "CONFIRMED",
+      "horse_profile": "VERIFIED_SOURCE_ROWS",
+      "race_conditions": "MISSING",
+      "jockey_trainer": "MISSING",
+      "track_weather": "MISSING",
+      "market_odds": "MISSING",
+      "training_workouts": "MISSING",
+      "payout_result": "NOT_APPLICABLE_BEFORE_RACE"
+    },
+    "prediction_ready": false,
+    "training_ready": false,
+    "profile_source_sha256": "e3dcb2b03e49ba50432b5d81c420e743379ada039a1bc7f1b9eeb8ea9a754543",
+    "nonfinish_event_count": 0
+  },
+  {
+    "race": "2026-11-07_KYOTO_02R",
+    "race_number": 2,
+    "horse_number": 2,
+    "horse_name": "モンドドゥアムール",
+    "frame_number": 2,
+    "racecard_source_sha256": "05aec48fc30b4729fa77985bd59d913888bd6ba0056d0770cce96e66dc8522c1",
+    "racecard_captured_at_utc": "2026-11-06T03:39:00.202468+00:00",
+    "profile_href": "/JRADB/accessU.html?CNAME=pw01dud002024107115/F7",
+    "date_only_features": {
+      "last_observed_prior_race_days_ago": 42,
+      "date_records_visible": 2,
+      "recent_90day_date_count": 1
+    },
+    "performance_features": null,
+    "profile_status": "NOT_QUERIED",
+    "source_coverage": {
+      "racecard": "CONFIRMED",
+      "horse_profile": "NOT_QUERIED",
+      "race_conditions": "MISSING",
+      "jockey_trainer": "MISSING",
+      "track_weather": "MISSING",
+      "market_odds": "MISSING",
+      "training_workouts": "MISSING",
+      "payout_result": "NOT_APPLICABLE_BEFORE_RACE"
+    },
+    "prediction_ready": false,
+    "training_ready": false
+  },
+  {
+    "race": "2026-11-07_KYOTO_02R",
+    "race_number": 2,
+    "horse_number": 3,
+    "horse_name": "ヘヴンインザレイン",
+    "frame_number": 2,
+    "racecard_source_sha256": "05aec48fc30b4729fa77985bd59d913888bd6ba0056d0770cce96e66dc8522c1",
+    "racecard_captured_at_utc": "2026-11-06T03:39:00.202468+00:00",
+    "profile_href": "/JRADB/accessU.html?CNAME=pw01dud002024106062/CE",
+    "date_only_features": {
+      "last_observed_prior_race_days_ago": 34,
+      "date_records_visible": 1,
+      "recent_90day_date_count": 1
+    },
+    "performance_features": null,
+    "profile_status": "NOT_QUERIED",
+    "source_coverage": {
+      "racecard": "CONFIRMED",
+      "horse_profile": "NOT_QUERIED",
+      "race_conditions": "MISSING",
+      "jockey_trainer": "MISSING",
+      "track_weather": "MISSING",
+      "market_odds": "MISSING",
+      "training_workouts": "MISSING",
+      "payout_result": "NOT_APPLICABLE_BEFORE_RACE"
+    },
+    "prediction_ready": false,
+    "training_ready": false
+  },
+  {
+    "race": "2026-11-07_KYOTO_02R",
+    "race_number": 2,
+    "horse_number": 4,
+    "horse_name": "レインボースター",
+    "frame_number": 3,
+    "racecard_source_sha256": "05aec48fc30b4729fa77985bd59d913888bd6ba0056d0770cce96e66dc8522c1",
+    "racecard_captured_at_utc": "2026-11-06T03:39:00.202468+00:00",
+    "profile_href": "/JRADB/accessU.html?CNAME=pw01dud002024106942/67",
+    "date_only_features": {
+      "last_observed_prior_race_days_ago": 34,
+      "date_records_visible": 4,
+      "recent_90day_date_count": 1
+    },
+    "performance_features": null,
+    "profile_status": "NOT_QUERIED",
+    "source_coverage": {
+      "racecard": "CONFIRMED",
+      "horse_profile": "NOT_QUERIED",
+      "race_conditions": "MISSING",
+      "jockey_trainer": "MISSING",
+      "track_weather": "MISSING",
+      "market_odds": "MISSING",
+      "training_workouts": "MISSING",
+      "payout_result": "NOT_APPLICABLE_BEFORE_RACE"
+    },
+    "prediction_ready": false,
+    "training_ready": false
+  },
+  {
+    "race": "2026-11-07_KYOTO_02R",
+    "race_number": 2,
+    "horse_number": 5,
+    "horse_name": "スイートブルース",
+    "frame_number": 3,
+    "racecard_source_sha256": "05aec48fc30b4729fa77985bd59d913888bd6ba0056d0770cce96e66dc8522c1",
+    "racecard_captured_at_utc": "2026-11-06T03:39:00.202468+00:00",
+    "profile_href": "/JRADB/accessU.html?CNAME=pw01dud002024108207/ED",
+    "date_only_features": {
+      "last_observed_prior_race_days_ago": 20,
+      "date_records_visible": 1,
+      "recent_90day_date_count": 1
+    },
+    "performance_features": null,
+    "profile_status": "NOT_QUERIED",
+    "source_coverage": {
+      "racecard": "CONFIRMED",
+      "horse_profile": "NOT_QUERIED",
+      "race_conditions": "MISSING",
+      "jockey_trainer": "MISSING",
+      "track_weather": "MISSING",
+      "market_odds": "MISSING",
+      "training_workouts": "MISSING",
+      "payout_result": "NOT_APPLICABLE_BEFORE_RACE"
+    },
+    "prediction_ready": false,
+    "training_ready": false
+  },
+  {
+    "race": "2026-11-07_KYOTO_02R",
+    "race_number": 2,
+    "horse_number": 6,
+    "horse_name": "クラストムーン",
+    "frame_number": 4,
+    "racecard_source_sha256": "05aec48fc30b4729fa77985bd59d913888bd6ba0056d0770cce96e66dc8522c1",
+    "racecard_captured_at_utc": "2026-11-06T03:39:00.202468+00:00",
+    "profile_href": "/JRADB/accessU.html?CNAME=pw01dud002024105300/2C",
+    "date_only_features": {
+      "last_observed_prior_race_days_ago": 13,
+      "date_records_visible": 2,
+      "recent_90day_date_count": 2
+    },
+    "performance_features": null,
+    "profile_status": "NOT_QUERIED",
+    "source_coverage": {
+      "racecard": "CONFIRMED",
+      "horse_profile": "NOT_QUERIED",
+      "race_conditions": "MISSING",
+      "jockey_trainer": "MISSING",
+      "track_weather": "MISSING",
+      "market_odds": "MISSING",
+      "training_workouts": "MISSING",
+      "payout_result": "NOT_APPLICABLE_BEFORE_RACE"
+    },
+    "prediction_ready": false,
+    "training_ready": false
+  },
+  {
+    "race": "2026-11-07_KYOTO_02R",
+    "race_number": 2,
+    "horse_number": 7,
+    "horse_name": "ケンシロウワールド",
+    "frame_number": 4,
+    "racecard_source_sha256": "05aec48fc30b4729fa77985bd59d913888bd6ba0056d0770cce96e66dc8522c1",
+    "racecard_captured_at_utc": "2026-11-06T03:39:00.202468+00:00",
+    "profile_href": "/JRADB/accessU.html?CNAME=pw01dud002024108272/1E",
+    "date_only_features": {
+      "last_observed_prior_race_days_ago": 47,
+      "date_records_visible": 3,
+      "recent_90day_date_count": 1
+    },
+    "performance_features": null,
+    "profile_status": "NOT_QUERIED",
+    "source_coverage": {
+      "racecard": "CONFIRMED",
+      "horse_profile": "NOT_QUERIED",
+      "race_conditions": "MISSING",
+      "jockey_trainer": "MISSING",
+      "track_weather": "MISSING",
+      "market_odds": "MISSING",
+      "training_workouts": "MISSING",
+      "payout_result": "NOT_APPLICABLE_BEFORE_RACE"
+    },
+    "prediction_ready": false,
+    "training_ready": false
+  },
+  {
+    "race": "2026-11-07_KYOTO_02R",
+    "race_number": 2,
+    "horse_number": 8,
+    "horse_name": "モズモーク",
+    "frame_number": 5,
+    "racecard_source_sha256": "05aec48fc30b4729fa77985bd59d913888bd6ba0056d0770cce96e66dc8522c1",
+    "racecard_captured_at_utc": "2026-11-06T03:39:00.202468+00:00",
+    "profile_href": "/JRADB/accessU.html?CNAME=pw01dud002024104917/98",
+    "date_only_features": {
+      "last_observed_prior_race_days_ago": 28,
+      "date_records_visible": 1,
+      "recent_90day_date_count": 1
+    },
+    "performance_features": null,
+    "profile_status": "NOT_QUERIED",
+    "source_coverage": {
+      "racecard": "CONFIRMED",
+      "horse_profile": "NOT_QUERIED",
+      "race_conditions": "MISSING",
+      "jockey_trainer": "MISSING",
+      "track_weather": "MISSING",
+      "market_odds": "MISSING",
+      "training_workouts": "MISSING",
+      "payout_result": "NOT_APPLICABLE_BEFORE_RACE"
+    },
+    "prediction_ready": false,
+    "training_ready": false
+  },
+  {
+    "race": "2026-11-07_KYOTO_02R",
+    "race_number": 2,
+    "horse_number": 9,
+    "horse_name": "リアルジャパン",
+    "frame_number": 5,
+    "racecard_source_sha256": "05aec48fc30b4729fa77985bd59d913888bd6ba0056d0770cce96e66dc8522c1",
+    "racecard_captured_at_utc": "2026-11-06T03:39:00.202468+00:00",
+    "profile_href": "/JRADB/accessU.html?CNAME=pw01dud002024102714/FF",
+    "date_only_features": {
+      "last_observed_prior_race_days_ago": 13,
+      "date_records_visible": 4,
+      "recent_90day_date_count": 2
+    },
+    "performance_features": null,
+    "profile_status": "NOT_QUERIED",
+    "source_coverage": {
+      "racecard": "CONFIRMED",
+      "horse_profile": "NOT_QUERIED",
+      "race_conditions": "MISSING",
+      "jockey_trainer": "MISSING",
+      "track_weather": "MISSING",
+      "market_odds": "MISSING",
+      "training_workouts": "MISSING",
+      "payout_result": "NOT_APPLICABLE_BEFORE_RACE"
+    },
+    "prediction_ready": false,
+    "training_ready": false
+  },
+  {
+    "race": "2026-11-07_KYOTO_02R",
+    "race_number": 2,
+    "horse_number": 10,
+    "horse_name": "リボンロゼッタ",
+    "frame_number": 6,
+    "racecard_source_sha256": "05aec48fc30b4729fa77985bd59d913888bd6ba0056d0770cce96e66dc8522c1",
+    "racecard_captured_at_utc": "2026-11-06T03:39:00.202468+00:00",
+    "profile_href": "/JRADB/accessU.html?CNAME=pw01dud002024101153/B7",
+    "date_only_features": {
+      "last_observed_prior_race_days_ago": 42,
+      "date_records_visible": 2,
+      "recent_90day_date_count": 1
+    },
+    "performance_features": null,
+    "profile_status": "NOT_QUERIED",
+    "source_coverage": {
+      "racecard": "CONFIRMED",
+      "horse_profile": "NOT_QUERIED",
+      "race_conditions": "MISSING",
+      "jockey_trainer": "MISSING",
+      "track_weather": "MISSING",
+      "market_odds": "MISSING",
+      "training_workouts": "MISSING",
+      "payout_result": "NOT_APPLICABLE_BEFORE_RACE"
+    },
+    "prediction_ready": false,
+    "training_ready": false
+  },
+  {
+    "race": "2026-11-07_KYOTO_02R",
+    "race_number": 2,
+    "horse_number": 11,
+    "horse_name": "プリンキピッサ",
+    "frame_number": 6,
+    "racecard_source_sha256": "05aec48fc30b4729fa77985bd59d913888bd6ba0056d0770cce96e66dc8522c1",
+    "racecard_captured_at_utc": "2026-11-06T03:39:00.202468+00:00",
+    "profile_href": "/JRADB/accessU.html?CNAME=pw01dud002024106888/28",
+    "date_only_features": {
+      "last_observed_prior_race_days_ago": 42,
+      "date_records_visible": 3,
+      "recent_90day_date_count": 2
+    },
+    "performance_features": null,
+    "profile_status": "NOT_QUERIED",
+    "source_coverage": {
+      "racecard": "CONFIRMED",
+      "horse_profile": "NOT_QUERIED",
+      "race_conditions": "MISSING",
+      "jockey_trainer": "MISSING",
+      "track_weather": "MISSING",
+      "market_odds": "MISSING",
+      "training_workouts": "MISSING",
+      "payout_result": "NOT_APPLICABLE_BEFORE_RACE"
+    },
+    "prediction_ready": false,
+    "training_ready": false
+  },
+  {
+    "race": "2026-11-07_KYOTO_02R",
+    "race_number": 2,
+    "horse_number": 12,
+    "horse_name": "ルミナスジェム",
+    "frame_number": 7,
+    "racecard_source_sha256": "05aec48fc30b4729fa77985bd59d913888bd6ba0056d0770cce96e66dc8522c1",
+    "racecard_captured_at_utc": "2026-11-06T03:39:00.202468+00:00",
+    "profile_href": "/JRADB/accessU.html?CNAME=pw01dud002024106897/C5",
+    "date_only_features": {
+      "last_observed_prior_race_days_ago": 20,
+      "date_records_visible": 2,
+      "recent_90day_date_count": 1
+    },
+    "performance_features": null,
+    "profile_status": "NOT_QUERIED",
+    "source_coverage": {
+      "racecard": "CONFIRMED",
+      "horse_profile": "NOT_QUERIED",
+      "race_conditions": "MISSING",
+      "jockey_trainer": "MISSING",
+      "track_weather": "MISSING",
+      "market_odds": "MISSING",
+      "training_workouts": "MISSING",
+      "payout_result": "NOT_APPLICABLE_BEFORE_RACE"
+    },
+    "prediction_ready": false,
+    "training_ready": false
+  },
+  {
+    "race": "2026-11-07_KYOTO_02R",
+    "race_number": 2,
+    "horse_number": 13,
+    "horse_name": "アルジャンレオ",
+    "frame_number": 7,
+    "racecard_source_sha256": "05aec48fc30b4729fa77985bd59d913888bd6ba0056d0770cce96e66dc8522c1",
+    "racecard_captured_at_utc": "2026-11-06T03:39:00.202468+00:00",
+    "profile_href": "/JRADB/accessU.html?CNAME=pw01dud002024105049/E4",
+    "date_only_features": {
+      "last_observed_prior_race_days_ago": 13,
+      "date_records_visible": 1,
+      "recent_90day_date_count": 1
+    },
+    "performance_features": null,
+    "profile_status": "NOT_QUERIED",
+    "source_coverage": {
+      "racecard": "CONFIRMED",
+      "horse_profile": "NOT_QUERIED",
+      "race_conditions": "MISSING",
+      "jockey_trainer": "MISSING",
+      "track_weather": "MISSING",
+      "market_odds": "MISSING",
+      "training_workouts": "MISSING",
+      "payout_result": "NOT_APPLICABLE_BEFORE_RACE"
+    },
+    "prediction_ready": false,
+    "training_ready": false
+  },
+  {
+    "race": "2026-11-07_KYOTO_02R",
+    "race_number": 2,
+    "horse_number": 14,
+    "horse_name": "ウォーターガルーダ",
+    "frame_number": 8,
+    "racecard_source_sha256": "05aec48fc30b4729fa77985bd59d913888bd6ba0056d0770cce96e66dc8522c1",
+    "racecard_captured_at_utc": "2026-11-06T03:39:00.202468+00:00",
+    "profile_href": "/JRADB/accessU.html?CNAME=pw01dud002024102792/99",
+    "date_only_features": {
+      "last_observed_prior_race_days_ago": 20,
+      "date_records_visible": 1,
+      "recent_90day_date_count": 1
+    },
+    "performance_features": null,
+    "profile_status": "NOT_QUERIED",
+    "source_coverage": {
+      "racecard": "CONFIRMED",
+      "horse_profile": "NOT_QUERIED",
+      "race_conditions": "MISSING",
+      "jockey_trainer": "MISSING",
+      "track_weather": "MISSING",
+      "market_odds": "MISSING",
+      "training_workouts": "MISSING",
+      "payout_result": "NOT_APPLICABLE_BEFORE_RACE"
+    },
+    "prediction_ready": false,
+    "training_ready": false
+  },
+  {
+    "race": "2026-11-07_KYOTO_02R",
+    "race_number": 2,
+    "horse_number": 15,
+    "horse_name": "エクシプノス",
+    "frame_number": 8,
+    "racecard_source_sha256": "05aec48fc30b4729fa77985bd59d913888bd6ba0056d0770cce96e66dc8522c1",
+    "racecard_captured_at_utc": "2026-11-06T03:39:00.202468+00:00",
+    "profile_href": "/JRADB/accessU.html?CNAME=pw01dud002024106155/48",
+    "date_only_features": {
+      "last_observed_prior_race_days_ago": 41,
+      "date_records_visible": 1,
+      "recent_90day_date_count": 1
+    },
+    "performance_features": null,
+    "profile_status": "NOT_QUERIED",
+    "source_coverage": {
+      "racecard": "CONFIRMED",
+      "horse_profile": "NOT_QUERIED",
+      "race_conditions": "MISSING",
+      "jockey_trainer": "MISSING",
+      "track_weather": "MISSING",
+      "market_odds": "MISSING",
+      "training_workouts": "MISSING",
+      "payout_result": "NOT_APPLICABLE_BEFORE_RACE"
+    },
+    "prediction_ready": false,
+    "training_ready": false
+  },
+  {
+    "race": "2026-11-07_KYOTO_03R",
+    "race_number": 3,
+    "horse_number": 1,
+    "horse_name": "ダノンチャンピオン",
+    "frame_number": 1,
+    "racecard_source_sha256": "d1dbdbd6fe7927c7867b3ee69ec570681a5e7e7bc306df75216b1521ce727621",
+    "racecard_captured_at_utc": "2026-11-06T03:39:02.797086+00:00",
+    "profile_href": "/JRADB/accessU.html?CNAME=pw01dud002024105963/0B",
+    "date_only_features": {
+      "last_observed_prior_race_days_ago": 20,
+      "date_records_visible": 2,
+      "recent_90day_date_count": 1
+    },
+    "performance_features": {
+      "prior_valid_finishes_available": 2,
+      "recent_three_mean_finish_percentile": 0.45,
+      "recent_three_mean_distance_m": 1900,
+      "recent_three_wins": 0,
+      "recent_three_surface_counts": {
+        "芝": 1,
+        "ダ": 1,
+        "ダート": 0,
+        "障": 0
+      }
+    },
+    "profile_status": "HISTORY_TABLE_PARSED",
+    "source_coverage": {
+      "racecard": "CONFIRMED",
+      "horse_profile": "VERIFIED_SOURCE_ROWS",
+      "race_conditions": "MISSING",
+      "jockey_trainer": "MISSING",
+      "track_weather": "MISSING",
+      "market_odds": "MISSING",
+      "training_workouts": "MISSING",
+      "payout_result": "NOT_APPLICABLE_BEFORE_RACE"
+    },
+    "prediction_ready": false,
+    "training_ready": false,
+    "profile_source_sha256": "5f0074e10e995490b3ed606b94d4a5100714c2f31ed8cc701a878113502876f9",
+    "nonfinish_event_count": 0
+  },
+  {
+    "race": "2026-11-07_KYOTO_03R",
+    "race_number": 3,
+    "horse_number": 2,
+    "horse_name": "アントラヴァースト",
+    "frame_number": 2,
+    "racecard_source_sha256": "d1dbdbd6fe7927c7867b3ee69ec570681a5e7e7bc306df75216b1521ce727621",
+    "racecard_captured_at_utc": "2026-11-06T03:39:02.797086+00:00",
+    "profile_href": "/JRADB/accessU.html?CNAME=pw01dud002024101947/FB",
+    "date_only_features": {
+      "last_observed_prior_race_days_ago": 14,
+      "date_records_visible": 3,
+      "recent_90day_date_count": 2
+    },
+    "performance_features": null,
+    "profile_status": "NOT_QUERIED",
+    "source_coverage": {
+      "racecard": "CONFIRMED",
+      "horse_profile": "NOT_QUERIED",
+      "race_conditions": "MISSING",
+      "jockey_trainer": "MISSING",
+      "track_weather": "MISSING",
+      "market_odds": "MISSING",
+      "training_workouts": "MISSING",
+      "payout_result": "NOT_APPLICABLE_BEFORE_RACE"
+    },
+    "prediction_ready": false,
+    "training_ready": false
+  },
+  {
+    "race": "2026-11-07_KYOTO_03R",
+    "race_number": 3,
+    "horse_number": 3,
+    "horse_name": "メイショウラウルス",
+    "frame_number": 3,
+    "racecard_source_sha256": "d1dbdbd6fe7927c7867b3ee69ec570681a5e7e7bc306df75216b1521ce727621",
+    "racecard_captured_at_utc": "2026-11-06T03:39:02.797086+00:00",
+    "profile_href": "/JRADB/accessU.html?CNAME=pw01dud002024107133/31",
+    "date_only_features": {
+      "last_observed_prior_race_days_ago": 77,
+      "date_records_visible": 1,
+      "recent_90day_date_count": 1
+    },
+    "performance_features": null,
+    "profile_status": "NOT_QUERIED",
+    "source_coverage": {
+      "racecard": "CONFIRMED",
+      "horse_profile": "NOT_QUERIED",
+      "race_conditions": "MISSING",
+      "jockey_trainer": "MISSING",
+      "track_weather": "MISSING",
+      "market_odds": "MISSING",
+      "training_workouts": "MISSING",
+      "payout_result": "NOT_APPLICABLE_BEFORE_RACE"
+    },
+    "prediction_ready": false,
+    "training_ready": false
+  },
+  {
+    "race": "2026-11-07_KYOTO_03R",
+    "race_number": 3,
+    "horse_number": 4,
+    "horse_name": "ノーブルセプター",
+    "frame_number": 4,
+    "racecard_source_sha256": "d1dbdbd6fe7927c7867b3ee69ec570681a5e7e7bc306df75216b1521ce727621",
+    "racecard_captured_at_utc": "2026-11-06T03:39:02.797086+00:00",
+    "profile_href": "/JRADB/accessU.html?CNAME=pw01dud002024110015/0B",
+    "date_only_features": {
+      "last_observed_prior_race_days_ago": 14,
+      "date_records_visible": 1,
+      "recent_90day_date_count": 1
+    },
+    "performance_features": null,
+    "profile_status": "NOT_QUERIED",
+    "source_coverage": {
+      "racecard": "CONFIRMED",
+      "horse_profile": "NOT_QUERIED",
+      "race_conditions": "MISSING",
+      "jockey_trainer": "MISSING",
+      "track_weather": "MISSING",
+      "market_odds": "MISSING",
+      "training_workouts": "MISSING",
+      "payout_result": "NOT_APPLICABLE_BEFORE_RACE"
+    },
+    "prediction_ready": false,
+    "training_ready": false
+  },
+  {
+    "race": "2026-11-07_KYOTO_03R",
+    "race_number": 3,
+    "horse_number": 5,
+    "horse_name": "シシソンソン",
+    "frame_number": 4,
+    "racecard_source_sha256": "d1dbdbd6fe7927c7867b3ee69ec570681a5e7e7bc306df75216b1521ce727621",
+    "racecard_captured_at_utc": "2026-11-06T03:39:02.797086+00:00",
+    "profile_href": "/JRADB/accessU.html?CNAME=pw01dud002024102126/CF",
+    "date_only_features": {
+      "last_observed_prior_race_days_ago": 21,
+      "date_records_visible": 1,
+      "recent_90day_date_count": 1
+    },
+    "performance_features": null,
+    "profile_status": "NOT_QUERIED",
+    "source_coverage": {
+      "racecard": "CONFIRMED",
+      "horse_profile": "NOT_QUERIED",
+      "race_conditions": "MISSING",
+      "jockey_trainer": "MISSING",
+      "track_weather": "MISSING",
+      "market_odds": "MISSING",
+      "training_workouts": "MISSING",
+      "payout_result": "NOT_APPLICABLE_BEFORE_RACE"
+    },
+    "prediction_ready": false,
+    "training_ready": false
+  },
+  {
+    "race": "2026-11-07_KYOTO_03R",
+    "race_number": 3,
+    "horse_number": 6,
+    "horse_name": "ジューンファミリエ",
+    "frame_number": 5,
+    "racecard_source_sha256": "d1dbdbd6fe7927c7867b3ee69ec570681a5e7e7bc306df75216b1521ce727621",
+    "racecard_captured_at_utc": "2026-11-06T03:39:02.797086+00:00",
+    "profile_href": "/JRADB/accessU.html?CNAME=pw01dud002024108227/0D",
+    "date_only_features": {
+      "last_observed_prior_race_days_ago": 21,
+      "date_records_visible": 1,
+      "recent_90day_date_count": 1
+    },
+    "performance_features": null,
+    "profile_status": "NOT_QUERIED",
+    "source_coverage": {
+      "racecard": "CONFIRMED",
+      "horse_profile": "NOT_QUERIED",
+      "race_conditions": "MISSING",
+      "jockey_trainer": "MISSING",
+      "track_weather": "MISSING",
+      "market_odds": "MISSING",
+      "training_workouts": "MISSING",
+      "payout_result": "NOT_APPLICABLE_BEFORE_RACE"
+    },
+    "prediction_ready": false,
+    "training_ready": false
+  },
+  {
+    "race": "2026-11-07_KYOTO_03R",
+    "race_number": 3,
+    "horse_number": 7,
+    "horse_name": "オリオンベリル",
+    "frame_number": 5,
+    "racecard_source_sha256": "d1dbdbd6fe7927c7867b3ee69ec570681a5e7e7bc306df75216b1521ce727621",
+    "racecard_captured_at_utc": "2026-11-06T03:39:02.797086+00:00",
+    "profile_href": "/JRADB/accessU.html?CNAME=pw01dud002024102249/79",
+    "date_only_features": {
+      "last_observed_prior_race_days_ago": 21,
+      "date_records_visible": 1,
+      "recent_90day_date_count": 1
+    },
+    "performance_features": null,
+    "profile_status": "NOT_QUERIED",
+    "source_coverage": {
+      "racecard": "CONFIRMED",
+      "horse_profile": "NOT_QUERIED",
+      "race_conditions": "MISSING",
+      "jockey_trainer": "MISSING",
+      "track_weather": "MISSING",
+      "market_odds": "MISSING",
+      "training_workouts": "MISSING",
+      "payout_result": "NOT_APPLICABLE_BEFORE_RACE"
+    },
+    "prediction_ready": false,
+    "training_ready": false
+  },
+  {
+    "race": "2026-11-07_KYOTO_03R",
+    "race_number": 3,
+    "horse_number": 8,
+    "horse_name": "キタノゲラン",
+    "frame_number": 6,
+    "racecard_source_sha256": "d1dbdbd6fe7927c7867b3ee69ec570681a5e7e7bc306df75216b1521ce727621",
+    "racecard_captured_at_utc": "2026-11-06T03:39:02.797086+00:00",
+    "profile_href": "/JRADB/accessU.html?CNAME=pw01dud002024101574/0E",
+    "date_only_features": {
+      "last_observed_prior_race_days_ago": 21,
+      "date_records_visible": 1,
+      "recent_90day_date_count": 1
+    },
+    "performance_features": null,
+    "profile_status": "NOT_QUERIED",
+    "source_coverage": {
+      "racecard": "CONFIRMED",
+      "horse_profile": "NOT_QUERIED",
+      "race_conditions": "MISSING",
+      "jockey_trainer": "MISSING",
+      "track_weather": "MISSING",
+      "market_odds": "MISSING",
+      "training_workouts": "MISSING",
+      "payout_result": "NOT_APPLICABLE_BEFORE_RACE"
+    },
+    "prediction_ready": false,
+    "training_ready": false
+  },
+  {
+    "race": "2026-11-07_KYOTO_03R",
+    "race_number": 3,
+    "horse_number": 9,
+    "horse_name": "メイショウソレイユ",
+    "frame_number": 6,
+    "racecard_source_sha256": "d1dbdbd6fe7927c7867b3ee69ec570681a5e7e7bc306df75216b1521ce727621",
+    "racecard_captured_at_utc": "2026-11-06T03:39:02.797086+00:00",
+    "profile_href": "/JRADB/accessU.html?CNAME=pw01dud002024102207/53",
+    "date_only_features": {
+      "last_observed_prior_race_days_ago": 13,
+      "date_records_visible": 2,
+      "recent_90day_date_count": 2
+    },
+    "performance_features": null,
+    "profile_status": "NOT_QUERIED",
+    "source_coverage": {
+      "racecard": "CONFIRMED",
+      "horse_profile": "NOT_QUERIED",
+      "race_conditions": "MISSING",
+      "jockey_trainer": "MISSING",
+      "track_weather": "MISSING",
+      "market_odds": "MISSING",
+      "training_workouts": "MISSING",
+      "payout_result": "NOT_APPLICABLE_BEFORE_RACE"
+    },
+    "prediction_ready": false,
+    "training_ready": false
+  },
+  {
+    "race": "2026-11-07_KYOTO_03R",
+    "race_number": 3,
+    "horse_number": 10,
+    "horse_name": "アポカリプト",
+    "frame_number": 7,
+    "racecard_source_sha256": "d1dbdbd6fe7927c7867b3ee69ec570681a5e7e7bc306df75216b1521ce727621",
+    "racecard_captured_at_utc": "2026-11-06T03:39:02.797086+00:00",
+    "profile_href": "/JRADB/accessU.html?CNAME=pw01dud002024102503/1A",
+    "date_only_features": {
+      "last_observed_prior_race_days_ago": 21,
+      "date_records_visible": 1,
+      "recent_90day_date_count": 1
+    },
+    "performance_features": null,
+    "profile_status": "NOT_QUERIED",
+    "source_coverage": {
+      "racecard": "CONFIRMED",
+      "horse_profile": "NOT_QUERIED",
+      "race_conditions": "MISSING",
+      "jockey_trainer": "MISSING",
+      "track_weather": "MISSING",
+      "market_odds": "MISSING",
+      "training_workouts": "MISSING",
+      "payout_result": "NOT_APPLICABLE_BEFORE_RACE"
+    },
+    "prediction_ready": false,
+    "training_ready": false
+  },
+  {
+    "race": "2026-11-07_KYOTO_03R",
+    "race_number": 3,
+    "horse_number": 11,
+    "horse_name": "ザキノシュガー",
+    "frame_number": 7,
+    "racecard_source_sha256": "d1dbdbd6fe7927c7867b3ee69ec570681a5e7e7bc306df75216b1521ce727621",
+    "racecard_captured_at_utc": "2026-11-06T03:39:02.797086+00:00",
+    "profile_href": "/JRADB/accessU.html?CNAME=pw01dud002024103519/CB",
+    "date_only_features": {
+      "last_observed_prior_race_days_ago": 21,
+      "date_records_visible": 2,
+      "recent_90day_date_count": 2
+    },
+    "performance_features": null,
+    "profile_status": "NOT_QUERIED",
+    "source_coverage": {
+      "racecard": "CONFIRMED",
+      "horse_profile": "NOT_QUERIED",
+      "race_conditions": "MISSING",
+      "jockey_trainer": "MISSING",
+      "track_weather": "MISSING",
+      "market_odds": "MISSING",
+      "training_workouts": "MISSING",
+      "payout_result": "NOT_APPLICABLE_BEFORE_RACE"
+    },
+    "prediction_ready": false,
+    "training_ready": false
+  },
+  {
+    "race": "2026-11-07_KYOTO_03R",
+    "race_number": 3,
+    "horse_number": 12,
+    "horse_name": "ヤマトクオーレ",
+    "frame_number": 8,
+    "racecard_source_sha256": "d1dbdbd6fe7927c7867b3ee69ec570681a5e7e7bc306df75216b1521ce727621",
+    "racecard_captured_at_utc": "2026-11-06T03:39:02.797086+00:00",
+    "profile_href": "/JRADB/accessU.html?CNAME=pw01dud002024104824/1E",
+    "date_only_features": {
+      "last_observed_prior_race_days_ago": 21,
+      "date_records_visible": 4,
+      "recent_90day_date_count": 3
+    },
+    "performance_features": null,
+    "profile_status": "NOT_QUERIED",
+    "source_coverage": {
+      "racecard": "CONFIRMED",
+      "horse_profile": "NOT_QUERIED",
+      "race_conditions": "MISSING",
+      "jockey_trainer": "MISSING",
+      "track_weather": "MISSING",
+      "market_odds": "MISSING",
+      "training_workouts": "MISSING",
+      "payout_result": "NOT_APPLICABLE_BEFORE_RACE"
+    },
+    "prediction_ready": false,
+    "training_ready": false
+  },
+  {
+    "race": "2026-11-07_KYOTO_03R",
+    "race_number": 3,
+    "horse_number": 13,
+    "horse_name": "ルクスアルカード",
+    "frame_number": 8,
+    "racecard_source_sha256": "d1dbdbd6fe7927c7867b3ee69ec570681a5e7e7bc306df75216b1521ce727621",
+    "racecard_captured_at_utc": "2026-11-06T03:39:02.797086+00:00",
+    "profile_href": "/JRADB/accessU.html?CNAME=pw01dud002024104510/AF",
+    "date_only_features": {
+      "last_observed_prior_race_days_ago": 13,
+      "date_records_visible": 2,
+      "recent_90day_date_count": 2
+    },
+    "performance_features": null,
+    "profile_status": "NOT_QUERIED",
+    "source_coverage": {
+      "racecard": "CONFIRMED",
+      "horse_profile": "NOT_QUERIED",
+      "race_conditions": "MISSING",
+      "jockey_trainer": "MISSING",
+      "track_weather": "MISSING",
+      "market_odds": "MISSING",
+      "training_workouts": "MISSING",
+      "payout_result": "NOT_APPLICABLE_BEFORE_RACE"
+    },
+    "prediction_ready": false,
+    "training_ready": false
+  },
+  {
+    "race": "2026-11-07_KYOTO_04R",
+    "race_number": 4,
+    "horse_number": 1,
+    "horse_name": "グリーンアイランド",
+    "frame_number": 1,
+    "racecard_source_sha256": "b1622368d969f76a33621d8fca26516ee5879c6344e30c48a8f809a87fabdfde",
+    "racecard_captured_at_utc": "2026-11-06T03:39:04.943306+00:00",
+    "profile_href": "/JRADB/accessU.html?CNAME=pw01dud002024105384/78",
+    "date_only_features": {
+      "last_observed_prior_race_days_ago": 21,
+      "date_records_visible": 2,
+      "recent_90day_date_count": 2
+    },
+    "performance_features": {
+      "prior_valid_finishes_available": 2,
+      "recent_three_mean_finish_percentile": 0.552448,
+      "recent_three_mean_distance_m": 1550,
+      "recent_three_wins": 0,
+      "recent_three_surface_counts": {
+        "芝": 2,
+        "ダ": 0,
+        "ダート": 0,
+        "障": 0
+      }
+    },
+    "profile_status": "HISTORY_TABLE_PARSED",
+    "source_coverage": {
+      "racecard": "CONFIRMED",
+      "horse_profile": "VERIFIED_SOURCE_ROWS",
+      "race_conditions": "MISSING",
+      "jockey_trainer": "MISSING",
+      "track_weather": "MISSING",
+      "market_odds": "MISSING",
+      "training_workouts": "MISSING",
+      "payout_result": "NOT_APPLICABLE_BEFORE_RACE"
+    },
+    "prediction_ready": false,
+    "training_ready": false,
+    "profile_source_sha256": "1015b0f820e6665de38bfefa2a3f0d3fddfb533ca1042fda1b9e333c0496368a",
+    "nonfinish_event_count": 0
+  },
+  {
+    "race": "2026-11-07_KYOTO_04R",
+    "race_number": 4,
+    "horse_number": 2,
+    "horse_name": "ハニーベル",
+    "frame_number": 2,
+    "racecard_source_sha256": "b1622368d969f76a33621d8fca26516ee5879c6344e30c48a8f809a87fabdfde",
+    "racecard_captured_at_utc": "2026-11-06T03:39:04.943306+00:00",
+    "profile_href": "/JRADB/accessU.html?CNAME=pw01dud002024103489/0A",
+    "date_only_features": {
+      "last_observed_prior_race_days_ago": 28,
+      "date_records_visible": 1,
+      "recent_90day_date_count": 1
+    },
+    "performance_features": null,
+    "profile_status": "NOT_QUERIED",
+    "source_coverage": {
+      "racecard": "CONFIRMED",
+      "horse_profile": "NOT_QUERIED",
+      "race_conditions": "MISSING",
+      "jockey_trainer": "MISSING",
+      "track_weather": "MISSING",
+      "market_odds": "MISSING",
+      "training_workouts": "MISSING",
+      "payout_result": "NOT_APPLICABLE_BEFORE_RACE"
+    },
+    "prediction_ready": false,
+    "training_ready": false
+  },
+  {
+    "race": "2026-11-07_KYOTO_04R",
+    "race_number": 4,
+    "horse_number": 3,
+    "horse_name": "ダイヴ",
+    "frame_number": 2,
+    "racecard_source_sha256": "b1622368d969f76a33621d8fca26516ee5879c6344e30c48a8f809a87fabdfde",
+    "racecard_captured_at_utc": "2026-11-06T03:39:04.943306+00:00",
+    "profile_href": "/JRADB/accessU.html?CNAME=pw01dud002024100874/B2",
+    "date_only_features": {
+      "last_observed_prior_race_days_ago": 28,
+      "date_records_visible": 2,
+      "recent_90day_date_count": 2
+    },
+    "performance_features": null,
+    "profile_status": "NOT_QUERIED",
+    "source_coverage": {
+      "racecard": "CONFIRMED",
+      "horse_profile": "NOT_QUERIED",
+      "race_conditions": "MISSING",
+      "jockey_trainer": "MISSING",
+      "track_weather": "MISSING",
+      "market_odds": "MISSING",
+      "training_workouts": "MISSING",
+      "payout_result": "NOT_APPLICABLE_BEFORE_RACE"
+    },
+    "prediction_ready": false,
+    "training_ready": false
+  },
+  {
+    "race": "2026-11-07_KYOTO_04R",
+    "race_number": 4,
+    "horse_number": 4,
+    "horse_name": "ココフルール",
+    "frame_number": 3,
+    "racecard_source_sha256": "b1622368d969f76a33621d8fca26516ee5879c6344e30c48a8f809a87fabdfde",
+    "racecard_captured_at_utc": "2026-11-06T03:39:04.943306+00:00",
+    "profile_href": "/JRADB/accessU.html?CNAME=pw01dud002024102169/68",
+    "date_only_features": {
+      "last_observed_prior_race_days_ago": 119,
+      "date_records_visible": 1,
+      "recent_90day_date_count": 0
+    },
+    "performance_features": null,
+    "profile_status": "NOT_QUERIED",
+    "source_coverage": {
+      "racecard": "CONFIRMED",
+      "horse_profile": "NOT_QUERIED",
+      "race_conditions": "MISSING",
+      "jockey_trainer": "MISSING",
+      "track_weather": "MISSING",
+      "market_odds": "MISSING",
+      "training_workouts": "MISSING",
+      "payout_result": "NOT_APPLICABLE_BEFORE_RACE"
+    },
+    "prediction_ready": false,
+    "training_ready": false
+  },
+  {
+    "race": "2026-11-07_KYOTO_04R",
+    "race_number": 4,
+    "horse_number": 5,
+    "horse_name": "マスリュウオー",
+    "frame_number": 3,
+    "racecard_source_sha256": "b1622368d969f76a33621d8fca26516ee5879c6344e30c48a8f809a87fabdfde",
+    "racecard_captured_at_utc": "2026-11-06T03:39:04.943306+00:00",
+    "profile_href": "/JRADB/accessU.html?CNAME=pw01dud002024105248/D3",
+    "date_only_features": {
+      "last_observed_prior_race_days_ago": 56,
+      "date_records_visible": 2,
+      "recent_90day_date_count": 2
+    },
+    "performance_features": null,
+    "profile_status": "NOT_QUERIED",
+    "source_coverage": {
+      "racecard": "CONFIRMED",
+      "horse_profile": "NOT_QUERIED",
+      "race_conditions": "MISSING",
+      "jockey_trainer": "MISSING",
+      "track_weather": "MISSING",
+      "market_odds": "MISSING",
+      "training_workouts": "MISSING",
+      "payout_result": "NOT_APPLICABLE_BEFORE_RACE"
+    },
+    "prediction_ready": false,
+    "training_ready": false
+  },
+  {
+    "race": "2026-11-07_KYOTO_04R",
+    "race_number": 4,
+    "horse_number": 6,
+    "horse_name": "グラシアレスインク",
+    "frame_number": 4,
+    "racecard_source_sha256": "b1622368d969f76a33621d8fca26516ee5879c6344e30c48a8f809a87fabdfde",
+    "racecard_captured_at_utc": "2026-11-06T03:39:04.943306+00:00",
+    "profile_href": "/JRADB/accessU.html?CNAME=pw01dud002024106430/7C",
+    "date_only_features": {
+      "last_observed_prior_race_days_ago": 83,
+      "date_records_visible": 1,
+      "recent_90day_date_count": 1
+    },
+    "performance_features": null,
+    "profile_status": "NOT_QUERIED",
+    "source_coverage": {
+      "racecard": "CONFIRMED",
+      "horse_profile": "NOT_QUERIED",
+      "race_conditions": "MISSING",
+      "jockey_trainer": "MISSING",
+      "track_weather": "MISSING",
+      "market_odds": "MISSING",
+      "training_workouts": "MISSING",
+      "payout_result": "NOT_APPLICABLE_BEFORE_RACE"
+    },
+    "prediction_ready": false,
+    "training_ready": false
+  },
+  {
+    "race": "2026-11-07_KYOTO_04R",
+    "race_number": 4,
+    "horse_number": 7,
+    "horse_name": "マイネルブラントン",
+    "frame_number": 4,
+    "racecard_source_sha256": "b1622368d969f76a33621d8fca26516ee5879c6344e30c48a8f809a87fabdfde",
+    "racecard_captured_at_utc": "2026-11-06T03:39:04.943306+00:00",
+    "profile_href": "/JRADB/accessU.html?CNAME=pw01dud002024103633/6A",
+    "date_only_features": {
+      "last_observed_prior_race_days_ago": 20,
+      "date_records_visible": 1,
+      "recent_90day_date_count": 1
+    },
+    "performance_features": null,
+    "profile_status": "NOT_QUERIED",
+    "source_coverage": {
+      "racecard": "CONFIRMED",
+      "horse_profile": "NOT_QUERIED",
+      "race_conditions": "MISSING",
+      "jockey_trainer": "MISSING",
+      "track_weather": "MISSING",
+      "market_odds": "MISSING",
+      "training_workouts": "MISSING",
+      "payout_result": "NOT_APPLICABLE_BEFORE_RACE"
+    },
+    "prediction_ready": false,
+    "training_ready": false
+  },
+  {
+    "race": "2026-11-07_KYOTO_04R",
+    "race_number": 4,
+    "horse_number": 8,
+    "horse_name": "レーヴドヒロイン",
+    "frame_number": 5,
+    "racecard_source_sha256": "b1622368d969f76a33621d8fca26516ee5879c6344e30c48a8f809a87fabdfde",
+    "racecard_captured_at_utc": "2026-11-06T03:39:04.943306+00:00",
+    "profile_href": "/JRADB/accessU.html?CNAME=pw01dud002024106747/44",
+    "date_only_features": {
+      "last_observed_prior_race_days_ago": 63,
+      "date_records_visible": 1,
+      "recent_90day_date_count": 1
+    },
+    "performance_features": null,
+    "profile_status": "NOT_QUERIED",
+    "source_coverage": {
+      "racecard": "CONFIRMED",
+      "horse_profile": "NOT_QUERIED",
+      "race_conditions": "MISSING",
+      "jockey_trainer": "MISSING",
+      "track_weather": "MISSING",
+      "market_odds": "MISSING",
+      "training_workouts": "MISSING",
+      "payout_result": "NOT_APPLICABLE_BEFORE_RACE"
+    },
+    "prediction_ready": false,
+    "training_ready": false
+  },
+  {
+    "race": "2026-11-07_KYOTO_04R",
+    "race_number": 4,
+    "horse_number": 9,
+    "horse_name": "ノンヴェドローラ",
+    "frame_number": 5,
+    "racecard_source_sha256": "b1622368d969f76a33621d8fca26516ee5879c6344e30c48a8f809a87fabdfde",
+    "racecard_captured_at_utc": "2026-11-06T03:39:04.943306+00:00",
+    "profile_href": "/JRADB/accessU.html?CNAME=pw01dud002024103582/16",
+    "date_only_features": {
+      "last_observed_prior_race_days_ago": 90,
+      "date_records_visible": 1,
+      "recent_90day_date_count": 1
+    },
+    "performance_features": null,
+    "profile_status": "NOT_QUERIED",
+    "source_coverage": {
+      "racecard": "CONFIRMED",
+      "horse_profile": "NOT_QUERIED",
+      "race_conditions": "MISSING",
+      "jockey_trainer": "MISSING",
+      "track_weather": "MISSING",
+      "market_odds": "MISSING",
+      "training_workouts": "MISSING",
+      "payout_result": "NOT_APPLICABLE_BEFORE_RACE"
+    },
+    "prediction_ready": false,
+    "training_ready": false
+  },
+  {
+    "race": "2026-11-07_KYOTO_04R",
+    "race_number": 4,
+    "horse_number": 10,
+    "horse_name": "アイデア",
+    "frame_number": 6,
+    "racecard_source_sha256": "b1622368d969f76a33621d8fca26516ee5879c6344e30c48a8f809a87fabdfde",
+    "racecard_captured_at_utc": "2026-11-06T03:39:04.943306+00:00",
+    "profile_href": "/JRADB/accessU.html?CNAME=pw01dud002024106722/E5",
+    "date_only_features": {
+      "last_observed_prior_race_days_ago": 28,
+      "date_records_visible": 1,
+      "recent_90day_date_count": 1
+    },
+    "performance_features": null,
+    "profile_status": "NOT_QUERIED",
+    "source_coverage": {
+      "racecard": "CONFIRMED",
+      "horse_profile": "NOT_QUERIED",
+      "race_conditions": "MISSING",
+      "jockey_trainer": "MISSING",
+      "track_weather": "MISSING",
+      "market_odds": "MISSING",
+      "training_workouts": "MISSING",
+      "payout_result": "NOT_APPLICABLE_BEFORE_RACE"
+    },
+    "prediction_ready": false,
+    "training_ready": false
+  },
+  {
+    "race": "2026-11-07_KYOTO_04R",
+    "race_number": 4,
+    "horse_number": 11,
+    "horse_name": "ドラゴンドール",
+    "frame_number": 6,
+    "racecard_source_sha256": "b1622368d969f76a33621d8fca26516ee5879c6344e30c48a8f809a87fabdfde",
+    "racecard_captured_at_utc": "2026-11-06T03:39:04.943306+00:00",
+    "profile_href": "/JRADB/accessU.html?CNAME=pw01dud002024106229/15",
+    "date_only_features": {
+      "last_observed_prior_race_days_ago": 21,
+      "date_records_visible": 2,
+      "recent_90day_date_count": 1
+    },
+    "performance_features": null,
+    "profile_status": "NOT_QUERIED",
+    "source_coverage": {
+      "racecard": "CONFIRMED",
+      "horse_profile": "NOT_QUERIED",
+      "race_conditions": "MISSING",
+      "jockey_trainer": "MISSING",
+      "track_weather": "MISSING",
+      "market_odds": "MISSING",
+      "training_workouts": "MISSING",
+      "payout_result": "NOT_APPLICABLE_BEFORE_RACE"
+    },
+    "prediction_ready": false,
+    "training_ready": false
+  },
+  {
+    "race": "2026-11-07_KYOTO_04R",
+    "race_number": 4,
+    "horse_number": 12,
+    "horse_name": "ドゥラドゥーラ",
+    "frame_number": 7,
+    "racecard_source_sha256": "b1622368d969f76a33621d8fca26516ee5879c6344e30c48a8f809a87fabdfde",
+    "racecard_captured_at_utc": "2026-11-06T03:39:04.943306+00:00",
+    "profile_href": "/JRADB/accessU.html?CNAME=pw01dud002024100879/F1",
+    "date_only_features": {
+      "last_observed_prior_race_days_ago": 26,
+      "date_records_visible": 1,
+      "recent_90day_date_count": 1
+    },
+    "performance_features": null,
+    "profile_status": "NOT_QUERIED",
+    "source_coverage": {
+      "racecard": "CONFIRMED",
+      "horse_profile": "NOT_QUERIED",
+      "race_conditions": "MISSING",
+      "jockey_trainer": "MISSING",
+      "track_weather": "MISSING",
+      "market_odds": "MISSING",
+      "training_workouts": "MISSING",
+      "payout_result": "NOT_APPLICABLE_BEFORE_RACE"
+    },
+    "prediction_ready": false,
+    "training_ready": false
+  },
+  {
+    "race": "2026-11-07_KYOTO_04R",
+    "race_number": 4,
+    "horse_number": 13,
+    "horse_name": "オスカーレイア",
+    "frame_number": 7,
+    "racecard_source_sha256": "b1622368d969f76a33621d8fca26516ee5879c6344e30c48a8f809a87fabdfde",
+    "racecard_captured_at_utc": "2026-11-06T03:39:04.943306+00:00",
+    "profile_href": "/JRADB/accessU.html?CNAME=pw01dud002024100727/8A",
+    "date_only_features": {
+      "last_observed_prior_race_days_ago": 98,
+      "date_records_visible": 2,
+      "recent_90day_date_count": 0
+    },
+    "performance_features": null,
+    "profile_status": "NOT_QUERIED",
+    "source_coverage": {
+      "racecard": "CONFIRMED",
+      "horse_profile": "NOT_QUERIED",
+      "race_conditions": "MISSING",
+      "jockey_trainer": "MISSING",
+      "track_weather": "MISSING",
+      "market_odds": "MISSING",
+      "training_workouts": "MISSING",
+      "payout_result": "NOT_APPLICABLE_BEFORE_RACE"
+    },
+    "prediction_ready": false,
+    "training_ready": false
+  },
+  {
+    "race": "2026-11-07_KYOTO_04R",
+    "race_number": 4,
+    "horse_number": 14,
+    "horse_name": "コジアン",
+    "frame_number": 8,
+    "racecard_source_sha256": "b1622368d969f76a33621d8fca26516ee5879c6344e30c48a8f809a87fabdfde",
+    "racecard_captured_at_utc": "2026-11-06T03:39:04.943306+00:00",
+    "profile_href": "/JRADB/accessU.html?CNAME=pw01dud002024101437/F6",
+    "date_only_features": {
+      "last_observed_prior_race_days_ago": 47,
+      "date_records_visible": 3,
+      "recent_90day_date_count": 2
+    },
+    "performance_features": null,
+    "profile_status": "NOT_QUERIED",
+    "source_coverage": {
+      "racecard": "CONFIRMED",
+      "horse_profile": "NOT_QUERIED",
+      "race_conditions": "MISSING",
+      "jockey_trainer": "MISSING",
+      "track_weather": "MISSING",
+      "market_odds": "MISSING",
+      "training_workouts": "MISSING",
+      "payout_result": "NOT_APPLICABLE_BEFORE_RACE"
+    },
+    "prediction_ready": false,
+    "training_ready": false
+  },
+  {
+    "race": "2026-11-07_KYOTO_04R",
+    "race_number": 4,
+    "horse_number": 15,
+    "horse_name": "クラルテロワ",
+    "frame_number": 8,
+    "racecard_source_sha256": "b1622368d969f76a33621d8fca26516ee5879c6344e30c48a8f809a87fabdfde",
+    "racecard_captured_at_utc": "2026-11-06T03:39:04.943306+00:00",
+    "profile_href": "/JRADB/accessU.html?CNAME=pw01dud002024106721/72",
+    "date_only_features": {
+      "last_observed_prior_race_days_ago": 56,
+      "date_records_visible": 1,
+      "recent_90day_date_count": 1
+    },
+    "performance_features": null,
+    "profile_status": "NOT_QUERIED",
+    "source_coverage": {
+      "racecard": "CONFIRMED",
+      "horse_profile": "NOT_QUERIED",
+      "race_conditions": "MISSING",
+      "jockey_trainer": "MISSING",
+      "track_weather": "MISSING",
+      "market_odds": "MISSING",
+      "training_workouts": "MISSING",
+      "payout_result": "NOT_APPLICABLE_BEFORE_RACE"
+    },
+    "prediction_ready": false,
+    "training_ready": false
+  },
+  {
+    "race": "2026-11-07_KYOTO_05R",
+    "race_number": 5,
+    "horse_number": 1,
+    "horse_name": "ロードラムセス",
+    "frame_number": 1,
+    "racecard_source_sha256": "c1c62343aafac119a8a2c8dfce76c5555700a69b5df2db9a3a6177243089d2ab",
+    "racecard_captured_at_utc": "2026-11-06T03:39:06.827806+00:00",
+    "profile_href": "/JRADB/accessU.html?CNAME=pw01dud002024105320/4C",
+    "date_only_features": {
+      "last_observed_prior_race_days_ago": null,
+      "date_records_visible": 0,
+      "recent_90day_date_count": 0
+    },
+    "performance_features": null,
+    "profile_status": "NO_HISTORY_TABLE_WITH_IDENTITY_PROOF",
+    "source_coverage": {
+      "racecard": "CONFIRMED",
+      "horse_profile": "VERIFIED_EMPTY_HISTORY",
+      "race_conditions": "MISSING",
+      "jockey_trainer": "MISSING",
+      "track_weather": "MISSING",
+      "market_odds": "MISSING",
+      "training_workouts": "MISSING",
+      "payout_result": "NOT_APPLICABLE_BEFORE_RACE"
+    },
+    "prediction_ready": false,
+    "training_ready": false,
+    "profile_source_sha256": "642b5494743c0892fe01534be2bf419e1f1ebb0c7ecaa11c89157feffdcd920b",
+    "nonfinish_event_count": 0
+  },
+  {
+    "race": "2026-11-07_KYOTO_05R",
+    "race_number": 5,
+    "horse_number": 2,
+    "horse_name": "テンタシオン",
+    "frame_number": 2,
+    "racecard_source_sha256": "c1c62343aafac119a8a2c8dfce76c5555700a69b5df2db9a3a6177243089d2ab",
+    "racecard_captured_at_utc": "2026-11-06T03:39:06.827806+00:00",
+    "profile_href": "/JRADB/accessU.html?CNAME=pw01dud002024102247/93",
+    "date_only_features": {
+      "last_observed_prior_race_days_ago": null,
+      "date_records_visible": 0,
+      "recent_90day_date_count": 0
+    },
+    "performance_features": null,
+    "profile_status": "NOT_QUERIED",
+    "source_coverage": {
+      "racecard": "CONFIRMED",
+      "horse_profile": "NOT_QUERIED",
+      "race_conditions": "MISSING",
+      "jockey_trainer": "MISSING",
+      "track_weather": "MISSING",
+      "market_odds": "MISSING",
+      "training_workouts": "MISSING",
+      "payout_result": "NOT_APPLICABLE_BEFORE_RACE"
+    },
+    "prediction_ready": false,
+    "training_ready": false
+  },
+  {
+    "race": "2026-11-07_KYOTO_05R",
+    "race_number": 5,
+    "horse_number": 3,
+    "horse_name": "アルフレッド",
+    "frame_number": 3,
+    "racecard_source_sha256": "c1c62343aafac119a8a2c8dfce76c5555700a69b5df2db9a3a6177243089d2ab",
+    "racecard_captured_at_utc": "2026-11-06T03:39:06.827806+00:00",
+    "profile_href": "/JRADB/accessU.html?CNAME=pw01dud002024101154/2A",
+    "date_only_features": {
+      "last_observed_prior_race_days_ago": null,
+      "date_records_visible": 0,
+      "recent_90day_date_count": 0
+    },
+    "performance_features": null,
+    "profile_status": "NOT_QUERIED",
+    "source_coverage": {
+      "racecard": "CONFIRMED",
+      "horse_profile": "NOT_QUERIED",
+      "race_conditions": "MISSING",
+      "jockey_trainer": "MISSING",
+      "track_weather": "MISSING",
+      "market_odds": "MISSING",
+      "training_workouts": "MISSING",
+      "payout_result": "NOT_APPLICABLE_BEFORE_RACE"
+    },
+    "prediction_ready": false,
+    "training_ready": false
+  },
+  {
+    "race": "2026-11-07_KYOTO_05R",
+    "race_number": 5,
+    "horse_number": 4,
+    "horse_name": "ヴァリアントソード",
+    "frame_number": 4,
+    "racecard_source_sha256": "c1c62343aafac119a8a2c8dfce76c5555700a69b5df2db9a3a6177243089d2ab",
+    "racecard_captured_at_utc": "2026-11-06T03:39:06.827806+00:00",
+    "profile_href": "/JRADB/accessU.html?CNAME=pw01dud002024104185/9A",
+    "date_only_features": {
+      "last_observed_prior_race_days_ago": null,
+      "date_records_visible": 0,
+      "recent_90day_date_count": 0
+    },
+    "performance_features": null,
+    "profile_status": "NOT_QUERIED",
+    "source_coverage": {
+      "racecard": "CONFIRMED",
+      "horse_profile": "NOT_QUERIED",
+      "race_conditions": "MISSING",
+      "jockey_trainer": "MISSING",
+      "track_weather": "MISSING",
+      "market_odds": "MISSING",
+      "training_workouts": "MISSING",
+      "payout_result": "NOT_APPLICABLE_BEFORE_RACE"
+    },
+    "prediction_ready": false,
+    "training_ready": false
+  },
+  {
+    "race": "2026-11-07_KYOTO_05R",
+    "race_number": 5,
+    "horse_number": 5,
+    "horse_name": "ハナフダ",
+    "frame_number": 5,
+    "racecard_source_sha256": "c1c62343aafac119a8a2c8dfce76c5555700a69b5df2db9a3a6177243089d2ab",
+    "racecard_captured_at_utc": "2026-11-06T03:39:06.827806+00:00",
+    "profile_href": "/JRADB/accessU.html?CNAME=pw01dud002024101094/39",
+    "date_only_features": {
+      "last_observed_prior_race_days_ago": null,
+      "date_records_visible": 0,
+      "recent_90day_date_count": 0
+    },
+    "performance_features": null,
+    "profile_status": "NOT_QUERIED",
+    "source_coverage": {
+      "racecard": "CONFIRMED",
+      "horse_profile": "NOT_QUERIED",
+      "race_conditions": "MISSING",
+      "jockey_trainer": "MISSING",
+      "track_weather": "MISSING",
+      "market_odds": "MISSING",
+      "training_workouts": "MISSING",
+      "payout_result": "NOT_APPLICABLE_BEFORE_RACE"
+    },
+    "prediction_ready": false,
+    "training_ready": false
+  },
+  {
+    "race": "2026-11-07_KYOTO_05R",
+    "race_number": 5,
+    "horse_number": 6,
+    "horse_name": "シグロデオロ",
+    "frame_number": 6,
+    "racecard_source_sha256": "c1c62343aafac119a8a2c8dfce76c5555700a69b5df2db9a3a6177243089d2ab",
+    "racecard_captured_at_utc": "2026-11-06T03:39:06.827806+00:00",
+    "profile_href": "/JRADB/accessU.html?CNAME=pw01dud002024106198/E1",
+    "date_only_features": {
+      "last_observed_prior_race_days_ago": null,
+      "date_records_visible": 0,
+      "recent_90day_date_count": 0
+    },
+    "performance_features": null,
+    "profile_status": "NOT_QUERIED",
+    "source_coverage": {
+      "racecard": "CONFIRMED",
+      "horse_profile": "NOT_QUERIED",
+      "race_conditions": "MISSING",
+      "jockey_trainer": "MISSING",
+      "track_weather": "MISSING",
+      "market_odds": "MISSING",
+      "training_workouts": "MISSING",
+      "payout_result": "NOT_APPLICABLE_BEFORE_RACE"
+    },
+    "prediction_ready": false,
+    "training_ready": false
+  },
+  {
+    "race": "2026-11-07_KYOTO_05R",
+    "race_number": 5,
+    "horse_number": 7,
+    "horse_name": "サヴィーニ",
+    "frame_number": 7,
+    "racecard_source_sha256": "c1c62343aafac119a8a2c8dfce76c5555700a69b5df2db9a3a6177243089d2ab",
+    "racecard_captured_at_utc": "2026-11-06T03:39:06.827806+00:00",
+    "profile_href": "/JRADB/accessU.html?CNAME=pw01dud002024102572/17",
+    "date_only_features": {
+      "last_observed_prior_race_days_ago": null,
+      "date_records_visible": 0,
+      "recent_90day_date_count": 0
+    },
+    "performance_features": null,
+    "profile_status": "NOT_QUERIED",
+    "source_coverage": {
+      "racecard": "CONFIRMED",
+      "horse_profile": "NOT_QUERIED",
+      "race_conditions": "MISSING",
+      "jockey_trainer": "MISSING",
+      "track_weather": "MISSING",
+      "market_odds": "MISSING",
+      "training_workouts": "MISSING",
+      "payout_result": "NOT_APPLICABLE_BEFORE_RACE"
+    },
+    "prediction_ready": false,
+    "training_ready": false
+  },
+  {
+    "race": "2026-11-07_KYOTO_05R",
+    "race_number": 5,
+    "horse_number": 8,
+    "horse_name": "エイシンジュゲム",
+    "frame_number": 8,
+    "racecard_source_sha256": "c1c62343aafac119a8a2c8dfce76c5555700a69b5df2db9a3a6177243089d2ab",
+    "racecard_captured_at_utc": "2026-11-06T03:39:06.827806+00:00",
+    "profile_href": "/JRADB/accessU.html?CNAME=pw01dud002024101594/2E",
+    "date_only_features": {
+      "last_observed_prior_race_days_ago": null,
+      "date_records_visible": 0,
+      "recent_90day_date_count": 0
+    },
+    "performance_features": null,
+    "profile_status": "NOT_QUERIED",
+    "source_coverage": {
+      "racecard": "CONFIRMED",
+      "horse_profile": "NOT_QUERIED",
+      "race_conditions": "MISSING",
+      "jockey_trainer": "MISSING",
+      "track_weather": "MISSING",
+      "market_odds": "MISSING",
+      "training_workouts": "MISSING",
+      "payout_result": "NOT_APPLICABLE_BEFORE_RACE"
+    },
+    "prediction_ready": false,
+    "training_ready": false
+  },
+  {
+    "race": "2026-11-07_KYOTO_06R",
+    "race_number": 6,
+    "horse_number": 1,
+    "horse_name": "シニスターカイザー",
+    "frame_number": 1,
+    "racecard_source_sha256": "b01f1933efaba8470a409f5e1c603d80957c3d5408ac03638c7b3edeb3bffa66",
+    "racecard_captured_at_utc": "2026-11-06T03:30:25.698969+00:00",
+    "profile_href": "/JRADB/accessU.html?CNAME=pw01dud002024102081/BF",
+    "date_only_features": {
+      "last_observed_prior_race_days_ago": null,
+      "date_records_visible": 0,
+      "recent_90day_date_count": 0
+    },
+    "performance_features": null,
+    "profile_status": "NO_HISTORY_TABLE_WITH_IDENTITY_PROOF",
+    "source_coverage": {
+      "racecard": "CONFIRMED",
+      "horse_profile": "VERIFIED_EMPTY_HISTORY",
+      "race_conditions": "MISSING",
+      "jockey_trainer": "MISSING",
+      "track_weather": "MISSING",
+      "market_odds": "MISSING",
+      "training_workouts": "MISSING",
+      "payout_result": "NOT_APPLICABLE_BEFORE_RACE"
+    },
+    "prediction_ready": false,
+    "training_ready": false,
+    "profile_source_sha256": "7a84b322c91449bb4c261f6fa9f65a238c9ecd21c2ebf3f64a1d25e5276fd4f6",
+    "nonfinish_event_count": 0
+  },
+  {
+    "race": "2026-11-07_KYOTO_06R",
+    "race_number": 6,
+    "horse_number": 2,
+    "horse_name": "ディヴァインジャン",
+    "frame_number": 2,
+    "racecard_source_sha256": "b01f1933efaba8470a409f5e1c603d80957c3d5408ac03638c7b3edeb3bffa66",
+    "racecard_captured_at_utc": "2026-11-06T03:30:25.698969+00:00",
+    "profile_href": "/JRADB/accessU.html?CNAME=pw01dud002024102284/7A",
+    "date_only_features": {
+      "last_observed_prior_race_days_ago": null,
+      "date_records_visible": 0,
+      "recent_90day_date_count": 0
+    },
+    "performance_features": null,
+    "profile_status": "NOT_QUERIED",
+    "source_coverage": {
+      "racecard": "CONFIRMED",
+      "horse_profile": "NOT_QUERIED",
+      "race_conditions": "MISSING",
+      "jockey_trainer": "MISSING",
+      "track_weather": "MISSING",
+      "market_odds": "MISSING",
+      "training_workouts": "MISSING",
+      "payout_result": "NOT_APPLICABLE_BEFORE_RACE"
+    },
+    "prediction_ready": false,
+    "training_ready": false
+  },
+  {
+    "race": "2026-11-07_KYOTO_06R",
+    "race_number": 6,
+    "horse_number": 3,
+    "horse_name": "ローレルリネージ",
+    "frame_number": 3,
+    "racecard_source_sha256": "b01f1933efaba8470a409f5e1c603d80957c3d5408ac03638c7b3edeb3bffa66",
+    "racecard_captured_at_utc": "2026-11-06T03:30:25.698969+00:00",
+    "profile_href": "/JRADB/accessU.html?CNAME=pw01dud002024103536/92",
+    "date_only_features": {
+      "last_observed_prior_race_days_ago": null,
+      "date_records_visible": 0,
+      "recent_90day_date_count": 0
+    },
+    "performance_features": null,
+    "profile_status": "NOT_QUERIED",
+    "source_coverage": {
+      "racecard": "CONFIRMED",
+      "horse_profile": "NOT_QUERIED",
+      "race_conditions": "MISSING",
+      "jockey_trainer": "MISSING",
+      "track_weather": "MISSING",
+      "market_odds": "MISSING",
+      "training_workouts": "MISSING",
+      "payout_result": "NOT_APPLICABLE_BEFORE_RACE"
+    },
+    "prediction_ready": false,
+    "training_ready": false
+  },
+  {
+    "race": "2026-11-07_KYOTO_06R",
+    "race_number": 6,
+    "horse_number": 4,
+    "horse_name": "ショウナンバラモン",
+    "frame_number": 4,
+    "racecard_source_sha256": "b01f1933efaba8470a409f5e1c603d80957c3d5408ac03638c7b3edeb3bffa66",
+    "racecard_captured_at_utc": "2026-11-06T03:30:25.698969+00:00",
+    "profile_href": "/JRADB/accessU.html?CNAME=pw01dud002024100019/09",
+    "date_only_features": {
+      "last_observed_prior_race_days_ago": null,
+      "date_records_visible": 0,
+      "recent_90day_date_count": 0
+    },
+    "performance_features": null,
+    "profile_status": "NOT_QUERIED",
+    "source_coverage": {
+      "racecard": "CONFIRMED",
+      "horse_profile": "NOT_QUERIED",
+      "race_conditions": "MISSING",
+      "jockey_trainer": "MISSING",
+      "track_weather": "MISSING",
+      "market_odds": "MISSING",
+      "training_workouts": "MISSING",
+      "payout_result": "NOT_APPLICABLE_BEFORE_RACE"
+    },
+    "prediction_ready": false,
+    "training_ready": false
+  },
+  {
+    "race": "2026-11-07_KYOTO_06R",
+    "race_number": 6,
+    "horse_number": 5,
+    "horse_name": "キタノジョー",
+    "frame_number": 5,
+    "racecard_source_sha256": "b01f1933efaba8470a409f5e1c603d80957c3d5408ac03638c7b3edeb3bffa66",
+    "racecard_captured_at_utc": "2026-11-06T03:30:25.698969+00:00",
+    "profile_href": "/JRADB/accessU.html?CNAME=pw01dud002024101118/B6",
+    "date_only_features": {
+      "last_observed_prior_race_days_ago": null,
+      "date_records_visible": 0,
+      "recent_90day_date_count": 0
+    },
+    "performance_features": null,
+    "profile_status": "NOT_QUERIED",
+    "source_coverage": {
+      "racecard": "CONFIRMED",
+      "horse_profile": "NOT_QUERIED",
+      "race_conditions": "MISSING",
+      "jockey_trainer": "MISSING",
+      "track_weather": "MISSING",
+      "market_odds": "MISSING",
+      "training_workouts": "MISSING",
+      "payout_result": "NOT_APPLICABLE_BEFORE_RACE"
+    },
+    "prediction_ready": false,
+    "training_ready": false
+  },
+  {
+    "race": "2026-11-07_KYOTO_06R",
+    "race_number": 6,
+    "horse_number": 6,
+    "horse_name": "ベイビープレミア",
+    "frame_number": 6,
+    "racecard_source_sha256": "b01f1933efaba8470a409f5e1c603d80957c3d5408ac03638c7b3edeb3bffa66",
+    "racecard_captured_at_utc": "2026-11-06T03:30:25.698969+00:00",
+    "profile_href": "/JRADB/accessU.html?CNAME=pw01dud002024101703/8D",
+    "date_only_features": {
+      "last_observed_prior_race_days_ago": null,
+      "date_records_visible": 0,
+      "recent_90day_date_count": 0
+    },
+    "performance_features": null,
+    "profile_status": "NOT_QUERIED",
+    "source_coverage": {
+      "racecard": "CONFIRMED",
+      "horse_profile": "NOT_QUERIED",
+      "race_conditions": "MISSING",
+      "jockey_trainer": "MISSING",
+      "track_weather": "MISSING",
+      "market_odds": "MISSING",
+      "training_workouts": "MISSING",
+      "payout_result": "NOT_APPLICABLE_BEFORE_RACE"
+    },
+    "prediction_ready": false,
+    "training_ready": false
+  },
+  {
+    "race": "2026-11-07_KYOTO_06R",
+    "race_number": 6,
+    "horse_number": 7,
+    "horse_name": "タガノスパーク",
+    "frame_number": 6,
+    "racecard_source_sha256": "b01f1933efaba8470a409f5e1c603d80957c3d5408ac03638c7b3edeb3bffa66",
+    "racecard_captured_at_utc": "2026-11-06T03:30:25.698969+00:00",
+    "profile_href": "/JRADB/accessU.html?CNAME=pw01dud002024103383/27",
+    "date_only_features": {
+      "last_observed_prior_race_days_ago": null,
+      "date_records_visible": 0,
+      "recent_90day_date_count": 0
+    },
+    "performance_features": null,
+    "profile_status": "NOT_QUERIED",
+    "source_coverage": {
+      "racecard": "CONFIRMED",
+      "horse_profile": "NOT_QUERIED",
+      "race_conditions": "MISSING",
+      "jockey_trainer": "MISSING",
+      "track_weather": "MISSING",
+      "market_odds": "MISSING",
+      "training_workouts": "MISSING",
+      "payout_result": "NOT_APPLICABLE_BEFORE_RACE"
+    },
+    "prediction_ready": false,
+    "training_ready": false
+  },
+  {
+    "race": "2026-11-07_KYOTO_06R",
+    "race_number": 6,
+    "horse_number": 8,
+    "horse_name": "スタニスラス",
+    "frame_number": 7,
+    "racecard_source_sha256": "b01f1933efaba8470a409f5e1c603d80957c3d5408ac03638c7b3edeb3bffa66",
+    "racecard_captured_at_utc": "2026-11-06T03:30:25.698969+00:00",
+    "profile_href": "/JRADB/accessU.html?CNAME=pw01dud002024106622/B4",
+    "date_only_features": {
+      "last_observed_prior_race_days_ago": null,
+      "date_records_visible": 0,
+      "recent_90day_date_count": 0
+    },
+    "performance_features": null,
+    "profile_status": "NOT_QUERIED",
+    "source_coverage": {
+      "racecard": "CONFIRMED",
+      "horse_profile": "NOT_QUERIED",
+      "race_conditions": "MISSING",
+      "jockey_trainer": "MISSING",
+      "track_weather": "MISSING",
+      "market_odds": "MISSING",
+      "training_workouts": "MISSING",
+      "payout_result": "NOT_APPLICABLE_BEFORE_RACE"
+    },
+    "prediction_ready": false,
+    "training_ready": false
+  },
+  {
+    "race": "2026-11-07_KYOTO_06R",
+    "race_number": 6,
+    "horse_number": 9,
+    "horse_name": "ショウサンキング",
+    "frame_number": 7,
+    "racecard_source_sha256": "b01f1933efaba8470a409f5e1c603d80957c3d5408ac03638c7b3edeb3bffa66",
+    "racecard_captured_at_utc": "2026-11-06T03:30:25.698969+00:00",
+    "profile_href": "/JRADB/accessU.html?CNAME=pw01dud002024105919/6D",
+    "date_only_features": {
+      "last_observed_prior_race_days_ago": null,
+      "date_records_visible": 0,
+      "recent_90day_date_count": 0
+    },
+    "performance_features": null,
+    "profile_status": "NOT_QUERIED",
+    "source_coverage": {
+      "racecard": "CONFIRMED",
+      "horse_profile": "NOT_QUERIED",
+      "race_conditions": "MISSING",
+      "jockey_trainer": "MISSING",
+      "track_weather": "MISSING",
+      "market_odds": "MISSING",
+      "training_workouts": "MISSING",
+      "payout_result": "NOT_APPLICABLE_BEFORE_RACE"
+    },
+    "prediction_ready": false,
+    "training_ready": false
+  },
+  {
+    "race": "2026-11-07_KYOTO_06R",
+    "race_number": 6,
+    "horse_number": 10,
+    "horse_name": "チャンピオンリング",
+    "frame_number": 8,
+    "racecard_source_sha256": "b01f1933efaba8470a409f5e1c603d80957c3d5408ac03638c7b3edeb3bffa66",
+    "racecard_captured_at_utc": "2026-11-06T03:30:25.698969+00:00",
+    "profile_href": "/JRADB/accessU.html?CNAME=pw01dud002024104565/3E",
+    "date_only_features": {
+      "last_observed_prior_race_days_ago": null,
+      "date_records_visible": 0,
+      "recent_90day_date_count": 0
+    },
+    "performance_features": null,
+    "profile_status": "NOT_QUERIED",
+    "source_coverage": {
+      "racecard": "CONFIRMED",
+      "horse_profile": "NOT_QUERIED",
+      "race_conditions": "MISSING",
+      "jockey_trainer": "MISSING",
+      "track_weather": "MISSING",
+      "market_odds": "MISSING",
+      "training_workouts": "MISSING",
+      "payout_result": "NOT_APPLICABLE_BEFORE_RACE"
+    },
+    "prediction_ready": false,
+    "training_ready": false
+  },
+  {
+    "race": "2026-11-07_KYOTO_06R",
+    "race_number": 6,
+    "horse_number": 11,
+    "horse_name": "ヨコハマブルース",
+    "frame_number": 8,
+    "racecard_source_sha256": "b01f1933efaba8470a409f5e1c603d80957c3d5408ac03638c7b3edeb3bffa66",
+    "racecard_captured_at_utc": "2026-11-06T03:30:25.698969+00:00",
+    "profile_href": "/JRADB/accessU.html?CNAME=pw01dud002024108285/87",
+    "date_only_features": {
+      "last_observed_prior_race_days_ago": null,
+      "date_records_visible": 0,
+      "recent_90day_date_count": 0
+    },
+    "performance_features": null,
+    "profile_status": "NOT_QUERIED",
+    "source_coverage": {
+      "racecard": "CONFIRMED",
+      "horse_profile": "NOT_QUERIED",
+      "race_conditions": "MISSING",
+      "jockey_trainer": "MISSING",
+      "track_weather": "MISSING",
+      "market_odds": "MISSING",
+      "training_workouts": "MISSING",
+      "payout_result": "NOT_APPLICABLE_BEFORE_RACE"
+    },
+    "prediction_ready": false,
+    "training_ready": false
+  },
+  {
+    "race": "2026-11-07_KYOTO_07R",
+    "race_number": 7,
+    "horse_number": 1,
+    "horse_name": "タケルハーロック",
+    "frame_number": 1,
+    "racecard_source_sha256": "fcba7d4c5c16b7dea2b4092a1fa511afefa891d5c6c3f9d7f7dba485d54d7657",
+    "racecard_captured_at_utc": "2026-11-06T03:25:24.951076+00:00",
+    "profile_href": "/JRADB/accessU.html?CNAME=pw01dud002022100333/F2",
+    "date_only_features": {
+      "last_observed_prior_race_days_ago": 112,
+      "date_records_visible": 4,
+      "recent_90day_date_count": 0
+    },
+    "performance_features": {
+      "prior_valid_finishes_available": 16,
+      "recent_three_mean_finish_percentile": 0.795238,
+      "recent_three_mean_distance_m": 1350,
+      "recent_three_wins": 1,
+      "recent_three_surface_counts": {
+        "芝": 0,
+        "ダ": 3,
+        "ダート": 0,
+        "障": 0
+      }
+    },
+    "profile_status": "HISTORY_TABLE_PARSED",
+    "source_coverage": {
+      "racecard": "CONFIRMED",
+      "horse_profile": "VERIFIED_SOURCE_ROWS",
+      "race_conditions": "MISSING",
+      "jockey_trainer": "MISSING",
+      "track_weather": "MISSING",
+      "market_odds": "MISSING",
+      "training_workouts": "MISSING",
+      "payout_result": "NOT_APPLICABLE_BEFORE_RACE"
+    },
+    "prediction_ready": false,
+    "training_ready": false,
+    "profile_source_sha256": "dc3780feb389ce3ebbfd62a630a04344291242bb8091a4367ad331eed434e2c2",
+    "nonfinish_event_count": 0
+  },
+  {
+    "race": "2026-11-07_KYOTO_07R",
+    "race_number": 7,
+    "horse_number": 2,
+    "horse_name": "プレアデスグループ",
+    "frame_number": 2,
+    "racecard_source_sha256": "fcba7d4c5c16b7dea2b4092a1fa511afefa891d5c6c3f9d7f7dba485d54d7657",
+    "racecard_captured_at_utc": "2026-11-06T03:25:24.951076+00:00",
+    "profile_href": "/JRADB/accessU.html?CNAME=pw01dud002021104839/C9",
+    "date_only_features": {
+      "last_observed_prior_race_days_ago": 21,
+      "date_records_visible": 4,
+      "recent_90day_date_count": 2
+    },
+    "performance_features": null,
+    "profile_status": "NOT_QUERIED",
+    "source_coverage": {
+      "racecard": "CONFIRMED",
+      "horse_profile": "NOT_QUERIED",
+      "race_conditions": "MISSING",
+      "jockey_trainer": "MISSING",
+      "track_weather": "MISSING",
+      "market_odds": "MISSING",
+      "training_workouts": "MISSING",
+      "payout_result": "NOT_APPLICABLE_BEFORE_RACE"
+    },
+    "prediction_ready": false,
+    "training_ready": false
+  },
+  {
+    "race": "2026-11-07_KYOTO_07R",
+    "race_number": 7,
+    "horse_number": 3,
+    "horse_name": "ヴリトラハン",
+    "frame_number": 3,
+    "racecard_source_sha256": "fcba7d4c5c16b7dea2b4092a1fa511afefa891d5c6c3f9d7f7dba485d54d7657",
+    "racecard_captured_at_utc": "2026-11-06T03:25:24.951076+00:00",
+    "profile_href": "/JRADB/accessU.html?CNAME=pw01dud002022105302/FA",
+    "date_only_features": {
+      "last_observed_prior_race_days_ago": 62,
+      "date_records_visible": 4,
+      "recent_90day_date_count": 1
+    },
+    "performance_features": null,
+    "profile_status": "NOT_QUERIED",
+    "source_coverage": {
+      "racecard": "CONFIRMED",
+      "horse_profile": "NOT_QUERIED",
+      "race_conditions": "MISSING",
+      "jockey_trainer": "MISSING",
+      "track_weather": "MISSING",
+      "market_odds": "MISSING",
+      "training_workouts": "MISSING",
+      "payout_result": "NOT_APPLICABLE_BEFORE_RACE"
+    },
+    "prediction_ready": false,
+    "training_ready": false
+  },
+  {
+    "race": "2026-11-07_KYOTO_07R",
+    "race_number": 7,
+    "horse_number": 4,
+    "horse_name": "バトゥカーダ",
+    "frame_number": 4,
+    "racecard_source_sha256": "fcba7d4c5c16b7dea2b4092a1fa511afefa891d5c6c3f9d7f7dba485d54d7657",
+    "racecard_captured_at_utc": "2026-11-06T03:25:24.951076+00:00",
+    "profile_href": "/JRADB/accessU.html?CNAME=pw01dud002023105708/FC",
+    "date_only_features": {
+      "last_observed_prior_race_days_ago": 31,
+      "date_records_visible": 4,
+      "recent_90day_date_count": 1
+    },
+    "performance_features": null,
+    "profile_status": "NOT_QUERIED",
+    "source_coverage": {
+      "racecard": "CONFIRMED",
+      "horse_profile": "NOT_QUERIED",
+      "race_conditions": "MISSING",
+      "jockey_trainer": "MISSING",
+      "track_weather": "MISSING",
+      "market_odds": "MISSING",
+      "training_workouts": "MISSING",
+      "payout_result": "NOT_APPLICABLE_BEFORE_RACE"
+    },
+    "prediction_ready": false,
+    "training_ready": false
+  },
+  {
+    "race": "2026-11-07_KYOTO_07R",
+    "race_number": 7,
+    "horse_number": 5,
+    "horse_name": "キントラダンサー",
+    "frame_number": 5,
+    "racecard_source_sha256": "fcba7d4c5c16b7dea2b4092a1fa511afefa891d5c6c3f9d7f7dba485d54d7657",
+    "racecard_captured_at_utc": "2026-11-06T03:25:24.951076+00:00",
+    "profile_href": "/JRADB/accessU.html?CNAME=pw01dud002022104387/CA",
+    "date_only_features": {
+      "last_observed_prior_race_days_ago": 69,
+      "date_records_visible": 4,
+      "recent_90day_date_count": 2
+    },
+    "performance_features": null,
+    "profile_status": "NOT_QUERIED",
+    "source_coverage": {
+      "racecard": "CONFIRMED",
+      "horse_profile": "NOT_QUERIED",
+      "race_conditions": "MISSING",
+      "jockey_trainer": "MISSING",
+      "track_weather": "MISSING",
+      "market_odds": "MISSING",
+      "training_workouts": "MISSING",
+      "payout_result": "NOT_APPLICABLE_BEFORE_RACE"
+    },
+    "prediction_ready": false,
+    "training_ready": false
+  },
+  {
+    "race": "2026-11-07_KYOTO_07R",
+    "race_number": 7,
+    "horse_number": 6,
+    "horse_name": "マイティマイティー",
+    "frame_number": 6,
+    "racecard_source_sha256": "fcba7d4c5c16b7dea2b4092a1fa511afefa891d5c6c3f9d7f7dba485d54d7657",
+    "racecard_captured_at_utc": "2026-11-06T03:25:24.951076+00:00",
+    "profile_href": "/JRADB/accessU.html?CNAME=pw01dud002021103708/06",
+    "date_only_features": {
+      "last_observed_prior_race_days_ago": 153,
+      "date_records_visible": 4,
+      "recent_90day_date_count": 0
+    },
+    "performance_features": null,
+    "profile_status": "NOT_QUERIED",
+    "source_coverage": {
+      "racecard": "CONFIRMED",
+      "horse_profile": "NOT_QUERIED",
+      "race_conditions": "MISSING",
+      "jockey_trainer": "MISSING",
+      "track_weather": "MISSING",
+      "market_odds": "MISSING",
+      "training_workouts": "MISSING",
+      "payout_result": "NOT_APPLICABLE_BEFORE_RACE"
+    },
+    "prediction_ready": false,
+    "training_ready": false
+  },
+  {
+    "race": "2026-11-07_KYOTO_07R",
+    "race_number": 7,
+    "horse_number": 7,
+    "horse_name": "ゴールデンカイト",
+    "frame_number": 6,
+    "racecard_source_sha256": "fcba7d4c5c16b7dea2b4092a1fa511afefa891d5c6c3f9d7f7dba485d54d7657",
+    "racecard_captured_at_utc": "2026-11-06T03:25:24.951076+00:00",
+    "profile_href": "/JRADB/accessU.html?CNAME=pw01dud002022110129/00",
+    "date_only_features": {
+      "last_observed_prior_race_days_ago": 139,
+      "date_records_visible": 4,
+      "recent_90day_date_count": 0
+    },
+    "performance_features": null,
+    "profile_status": "NOT_QUERIED",
+    "source_coverage": {
+      "racecard": "CONFIRMED",
+      "horse_profile": "NOT_QUERIED",
+      "race_conditions": "MISSING",
+      "jockey_trainer": "MISSING",
+      "track_weather": "MISSING",
+      "market_odds": "MISSING",
+      "training_workouts": "MISSING",
+      "payout_result": "NOT_APPLICABLE_BEFORE_RACE"
+    },
+    "prediction_ready": false,
+    "training_ready": false
+  },
+  {
+    "race": "2026-11-07_KYOTO_07R",
+    "race_number": 7,
+    "horse_number": 8,
+    "horse_name": "テーオーパーセル",
+    "frame_number": 7,
+    "racecard_source_sha256": "fcba7d4c5c16b7dea2b4092a1fa511afefa891d5c6c3f9d7f7dba485d54d7657",
+    "racecard_captured_at_utc": "2026-11-06T03:25:24.951076+00:00",
+    "profile_href": "/JRADB/accessU.html?CNAME=pw01dud002023105435/40",
+    "date_only_features": {
+      "last_observed_prior_race_days_ago": 28,
+      "date_records_visible": 4,
+      "recent_90day_date_count": 1
+    },
+    "performance_features": null,
+    "profile_status": "NOT_QUERIED",
+    "source_coverage": {
+      "racecard": "CONFIRMED",
+      "horse_profile": "NOT_QUERIED",
+      "race_conditions": "MISSING",
+      "jockey_trainer": "MISSING",
+      "track_weather": "MISSING",
+      "market_odds": "MISSING",
+      "training_workouts": "MISSING",
+      "payout_result": "NOT_APPLICABLE_BEFORE_RACE"
+    },
+    "prediction_ready": false,
+    "training_ready": false
+  },
+  {
+    "race": "2026-11-07_KYOTO_07R",
+    "race_number": 7,
+    "horse_number": 9,
+    "horse_name": "パンサーズ",
+    "frame_number": 7,
+    "racecard_source_sha256": "fcba7d4c5c16b7dea2b4092a1fa511afefa891d5c6c3f9d7f7dba485d54d7657",
+    "racecard_captured_at_utc": "2026-11-06T03:25:24.951076+00:00",
+    "profile_href": "/JRADB/accessU.html?CNAME=pw01dud002023104325/10",
+    "date_only_features": {
+      "last_observed_prior_race_days_ago": 35,
+      "date_records_visible": 4,
+      "recent_90day_date_count": 2
+    },
+    "performance_features": null,
+    "profile_status": "NOT_QUERIED",
+    "source_coverage": {
+      "racecard": "CONFIRMED",
+      "horse_profile": "NOT_QUERIED",
+      "race_conditions": "MISSING",
+      "jockey_trainer": "MISSING",
+      "track_weather": "MISSING",
+      "market_odds": "MISSING",
+      "training_workouts": "MISSING",
+      "payout_result": "NOT_APPLICABLE_BEFORE_RACE"
+    },
+    "prediction_ready": false,
+    "training_ready": false
+  },
+  {
+    "race": "2026-11-07_KYOTO_07R",
+    "race_number": 7,
+    "horse_number": 10,
+    "horse_name": "ニホンピロカラット",
+    "frame_number": 8,
+    "racecard_source_sha256": "fcba7d4c5c16b7dea2b4092a1fa511afefa891d5c6c3f9d7f7dba485d54d7657",
+    "racecard_captured_at_utc": "2026-11-06T03:25:24.951076+00:00",
+    "profile_href": "/JRADB/accessU.html?CNAME=pw01dud002021103842/C5",
+    "date_only_features": {
+      "last_observed_prior_race_days_ago": 13,
+      "date_records_visible": 4,
+      "recent_90day_date_count": 2
+    },
+    "performance_features": null,
+    "profile_status": "NOT_QUERIED",
+    "source_coverage": {
+      "racecard": "CONFIRMED",
+      "horse_profile": "NOT_QUERIED",
+      "race_conditions": "MISSING",
+      "jockey_trainer": "MISSING",
+      "track_weather": "MISSING",
+      "market_odds": "MISSING",
+      "training_workouts": "MISSING",
+      "payout_result": "NOT_APPLICABLE_BEFORE_RACE"
+    },
+    "prediction_ready": false,
+    "training_ready": false
+  },
+  {
+    "race": "2026-11-07_KYOTO_07R",
+    "race_number": 7,
+    "horse_number": 11,
+    "horse_name": "セールヴォラン",
+    "frame_number": 8,
+    "racecard_source_sha256": "fcba7d4c5c16b7dea2b4092a1fa511afefa891d5c6c3f9d7f7dba485d54d7657",
+    "racecard_captured_at_utc": "2026-11-06T03:25:24.951076+00:00",
+    "profile_href": "/JRADB/accessU.html?CNAME=pw01dud002021101057/AE",
+    "date_only_features": {
+      "last_observed_prior_race_days_ago": 13,
+      "date_records_visible": 4,
+      "recent_90day_date_count": 2
+    },
+    "performance_features": null,
+    "profile_status": "NOT_QUERIED",
+    "source_coverage": {
+      "racecard": "CONFIRMED",
+      "horse_profile": "NOT_QUERIED",
+      "race_conditions": "MISSING",
+      "jockey_trainer": "MISSING",
+      "track_weather": "MISSING",
+      "market_odds": "MISSING",
+      "training_workouts": "MISSING",
+      "payout_result": "NOT_APPLICABLE_BEFORE_RACE"
+    },
+    "prediction_ready": false,
+    "training_ready": false
+  },
+  {
+    "race": "2026-11-07_KYOTO_08R",
+    "race_number": 8,
+    "horse_number": 1,
+    "horse_name": "ロードリベラシオン",
+    "frame_number": 1,
+    "racecard_source_sha256": "b1cff8274fe56f82ffeb6bdf362cc5fc66ddf4829ca4daac772ce8938617a9d2",
+    "racecard_captured_at_utc": "2026-11-06T03:39:08.463029+00:00",
+    "profile_href": "/JRADB/accessU.html?CNAME=pw01dud002022102821/CF",
+    "date_only_features": {
+      "last_observed_prior_race_days_ago": 49,
+      "date_records_visible": 4,
+      "recent_90day_date_count": 1
+    },
+    "performance_features": {
+      "prior_valid_finishes_available": 14,
+      "recent_three_mean_finish_percentile": 0.748485,
+      "recent_three_mean_distance_m": 3046.67,
+      "recent_three_wins": 1,
+      "recent_three_surface_counts": {
+        "芝": 2,
+        "ダ": 0,
+        "ダート": 0,
+        "障": 0
+      }
+    },
+    "profile_status": "HISTORY_TABLE_PARSED",
+    "source_coverage": {
+      "racecard": "CONFIRMED",
+      "horse_profile": "VERIFIED_SOURCE_ROWS",
+      "race_conditions": "MISSING",
+      "jockey_trainer": "MISSING",
+      "track_weather": "MISSING",
+      "market_odds": "MISSING",
+      "training_workouts": "MISSING",
+      "payout_result": "NOT_APPLICABLE_BEFORE_RACE"
+    },
+    "prediction_ready": false,
+    "training_ready": false,
+    "profile_source_sha256": "a5c4bf38ad827ff0ba70b93b5d038322ea77b881be9e7a11581a98ab9596b92b",
+    "nonfinish_event_count": 0
+  },
+  {
+    "race": "2026-11-07_KYOTO_08R",
+    "race_number": 8,
+    "horse_number": 2,
+    "horse_name": "グラニットピーク",
+    "frame_number": 2,
+    "racecard_source_sha256": "b1cff8274fe56f82ffeb6bdf362cc5fc66ddf4829ca4daac772ce8938617a9d2",
+    "racecard_captured_at_utc": "2026-11-06T03:39:08.463029+00:00",
+    "profile_href": "/JRADB/accessU.html?CNAME=pw01dud002020103507/A5",
+    "date_only_features": {
+      "last_observed_prior_race_days_ago": 35,
+      "date_records_visible": 4,
+      "recent_90day_date_count": 1
+    },
+    "performance_features": null,
+    "profile_status": "NOT_QUERIED",
+    "source_coverage": {
+      "racecard": "CONFIRMED",
+      "horse_profile": "NOT_QUERIED",
+      "race_conditions": "MISSING",
+      "jockey_trainer": "MISSING",
+      "track_weather": "MISSING",
+      "market_odds": "MISSING",
+      "training_workouts": "MISSING",
+      "payout_result": "NOT_APPLICABLE_BEFORE_RACE"
+    },
+    "prediction_ready": false,
+    "training_ready": false
+  },
+  {
+    "race": "2026-11-07_KYOTO_08R",
+    "race_number": 8,
+    "horse_number": 3,
+    "horse_name": "トーアモルペウス",
+    "frame_number": 3,
+    "racecard_source_sha256": "b1cff8274fe56f82ffeb6bdf362cc5fc66ddf4829ca4daac772ce8938617a9d2",
+    "racecard_captured_at_utc": "2026-11-06T03:39:08.463029+00:00",
+    "profile_href": "/JRADB/accessU.html?CNAME=pw01dud002020103173/85",
+    "date_only_features": {
+      "last_observed_prior_race_days_ago": 49,
+      "date_records_visible": 4,
+      "recent_90day_date_count": 1
+    },
+    "performance_features": null,
+    "profile_status": "NOT_QUERIED",
+    "source_coverage": {
+      "racecard": "CONFIRMED",
+      "horse_profile": "NOT_QUERIED",
+      "race_conditions": "MISSING",
+      "jockey_trainer": "MISSING",
+      "track_weather": "MISSING",
+      "market_odds": "MISSING",
+      "training_workouts": "MISSING",
+      "payout_result": "NOT_APPLICABLE_BEFORE_RACE"
+    },
+    "prediction_ready": false,
+    "training_ready": false
+  },
+  {
+    "race": "2026-11-07_KYOTO_08R",
+    "race_number": 8,
+    "horse_number": 4,
+    "horse_name": "メイショウアツイタ",
+    "frame_number": 4,
+    "racecard_source_sha256": "b1cff8274fe56f82ffeb6bdf362cc5fc66ddf4829ca4daac772ce8938617a9d2",
+    "racecard_captured_at_utc": "2026-11-06T03:39:08.463029+00:00",
+    "profile_href": "/JRADB/accessU.html?CNAME=pw01dud002018105731/58",
+    "date_only_features": {
+      "last_observed_prior_race_days_ago": 63,
+      "date_records_visible": 4,
+      "recent_90day_date_count": 1
+    },
+    "performance_features": null,
+    "profile_status": "NOT_QUERIED",
+    "source_coverage": {
+      "racecard": "CONFIRMED",
+      "horse_profile": "NOT_QUERIED",
+      "race_conditions": "MISSING",
+      "jockey_trainer": "MISSING",
+      "track_weather": "MISSING",
+      "market_odds": "MISSING",
+      "training_workouts": "MISSING",
+      "payout_result": "NOT_APPLICABLE_BEFORE_RACE"
+    },
+    "prediction_ready": false,
+    "training_ready": false
+  },
+  {
+    "race": "2026-11-07_KYOTO_08R",
+    "race_number": 8,
+    "horse_number": 5,
+    "horse_name": "ヴラディア",
+    "frame_number": 5,
+    "racecard_source_sha256": "b1cff8274fe56f82ffeb6bdf362cc5fc66ddf4829ca4daac772ce8938617a9d2",
+    "racecard_captured_at_utc": "2026-11-06T03:39:08.463029+00:00",
+    "profile_href": "/JRADB/accessU.html?CNAME=pw01dud002019105578/E7",
+    "date_only_features": {
+      "last_observed_prior_race_days_ago": 14,
+      "date_records_visible": 4,
+      "recent_90day_date_count": 2
+    },
+    "performance_features": null,
+    "profile_status": "NOT_QUERIED",
+    "source_coverage": {
+      "racecard": "CONFIRMED",
+      "horse_profile": "NOT_QUERIED",
+      "race_conditions": "MISSING",
+      "jockey_trainer": "MISSING",
+      "track_weather": "MISSING",
+      "market_odds": "MISSING",
+      "training_workouts": "MISSING",
+      "payout_result": "NOT_APPLICABLE_BEFORE_RACE"
+    },
+    "prediction_ready": false,
+    "training_ready": false
+  },
+  {
+    "race": "2026-11-07_KYOTO_08R",
+    "race_number": 8,
+    "horse_number": 6,
+    "horse_name": "シホノスペランツァ",
+    "frame_number": 6,
+    "racecard_source_sha256": "b1cff8274fe56f82ffeb6bdf362cc5fc66ddf4829ca4daac772ce8938617a9d2",
+    "racecard_captured_at_utc": "2026-11-06T03:39:08.463029+00:00",
+    "profile_href": "/JRADB/accessU.html?CNAME=pw01dud002019105654/2C",
+    "date_only_features": {
+      "last_observed_prior_race_days_ago": 49,
+      "date_records_visible": 4,
+      "recent_90day_date_count": 1
+    },
+    "performance_features": null,
+    "profile_status": "NOT_QUERIED",
+    "source_coverage": {
+      "racecard": "CONFIRMED",
+      "horse_profile": "NOT_QUERIED",
+      "race_conditions": "MISSING",
+      "jockey_trainer": "MISSING",
+      "track_weather": "MISSING",
+      "market_odds": "MISSING",
+      "training_workouts": "MISSING",
+      "payout_result": "NOT_APPLICABLE_BEFORE_RACE"
+    },
+    "prediction_ready": false,
+    "training_ready": false
+  },
+  {
+    "race": "2026-11-07_KYOTO_08R",
+    "race_number": 8,
+    "horse_number": 7,
+    "horse_name": "コンテナワールド",
+    "frame_number": 7,
+    "racecard_source_sha256": "b1cff8274fe56f82ffeb6bdf362cc5fc66ddf4829ca4daac772ce8938617a9d2",
+    "racecard_captured_at_utc": "2026-11-06T03:39:08.463029+00:00",
+    "profile_href": "/JRADB/accessU.html?CNAME=pw01dud002021104924/AB",
+    "date_only_features": {
+      "last_observed_prior_race_days_ago": 63,
+      "date_records_visible": 4,
+      "recent_90day_date_count": 1
+    },
+    "performance_features": null,
+    "profile_status": "NOT_QUERIED",
+    "source_coverage": {
+      "racecard": "CONFIRMED",
+      "horse_profile": "NOT_QUERIED",
+      "race_conditions": "MISSING",
+      "jockey_trainer": "MISSING",
+      "track_weather": "MISSING",
+      "market_odds": "MISSING",
+      "training_workouts": "MISSING",
+      "payout_result": "NOT_APPLICABLE_BEFORE_RACE"
+    },
+    "prediction_ready": false,
+    "training_ready": false
+  },
+  {
+    "race": "2026-11-07_KYOTO_08R",
+    "race_number": 8,
+    "horse_number": 8,
+    "horse_name": "スマイルスルー",
+    "frame_number": 8,
+    "racecard_source_sha256": "b1cff8274fe56f82ffeb6bdf362cc5fc66ddf4829ca4daac772ce8938617a9d2",
+    "racecard_captured_at_utc": "2026-11-06T03:39:08.463029+00:00",
+    "profile_href": "/JRADB/accessU.html?CNAME=pw01dud002020103446/41",
+    "date_only_features": {
+      "last_observed_prior_race_days_ago": 112,
+      "date_records_visible": 4,
+      "recent_90day_date_count": 0
+    },
+    "performance_features": null,
+    "profile_status": "NOT_QUERIED",
+    "source_coverage": {
+      "racecard": "CONFIRMED",
+      "horse_profile": "NOT_QUERIED",
+      "race_conditions": "MISSING",
+      "jockey_trainer": "MISSING",
+      "track_weather": "MISSING",
+      "market_odds": "MISSING",
+      "training_workouts": "MISSING",
+      "payout_result": "NOT_APPLICABLE_BEFORE_RACE"
+    },
+    "prediction_ready": false,
+    "training_ready": false
+  },
+  {
+    "race": "2026-11-07_KYOTO_08R",
+    "race_number": 8,
+    "horse_number": 9,
+    "horse_name": "ディナースタ",
+    "frame_number": 8,
+    "racecard_source_sha256": "b1cff8274fe56f82ffeb6bdf362cc5fc66ddf4829ca4daac772ce8938617a9d2",
+    "racecard_captured_at_utc": "2026-11-06T03:39:08.463029+00:00",
+    "profile_href": "/JRADB/accessU.html?CNAME=pw01dud002019101507/48",
+    "date_only_features": {
+      "last_observed_prior_race_days_ago": 203,
+      "date_records_visible": 4,
+      "recent_90day_date_count": 0
+    },
+    "performance_features": null,
+    "profile_status": "NOT_QUERIED",
+    "source_coverage": {
+      "racecard": "CONFIRMED",
+      "horse_profile": "NOT_QUERIED",
+      "race_conditions": "MISSING",
+      "jockey_trainer": "MISSING",
+      "track_weather": "MISSING",
+      "market_odds": "MISSING",
+      "training_workouts": "MISSING",
+      "payout_result": "NOT_APPLICABLE_BEFORE_RACE"
+    },
+    "prediction_ready": false,
+    "training_ready": false
+  },
+  {
+    "race": "2026-11-07_KYOTO_09R",
+    "race_number": 9,
+    "horse_number": 1,
+    "horse_name": "グラフィティアート",
+    "frame_number": 1,
+    "racecard_source_sha256": "6646a1c7f5763250d8f05a7dcc880fb40a39f50b53cd7d6702cafd560b3b068d",
+    "racecard_captured_at_utc": "2026-11-06T03:39:10.490268+00:00",
+    "profile_href": "/JRADB/accessU.html?CNAME=pw01dud002022101697/A0",
+    "date_only_features": {
+      "last_observed_prior_race_days_ago": 189,
+      "date_records_visible": 4,
+      "recent_90day_date_count": 0
+    },
+    "performance_features": {
+      "prior_valid_finishes_available": 9,
+      "recent_three_mean_finish_percentile": 0.588578,
+      "recent_three_mean_distance_m": 1600,
+      "recent_three_wins": 0,
+      "recent_three_surface_counts": {
+        "芝": 2,
+        "ダ": 1,
+        "ダート": 0,
+        "障": 0
+      }
+    },
+    "profile_status": "HISTORY_TABLE_PARSED",
+    "source_coverage": {
+      "racecard": "CONFIRMED",
+      "horse_profile": "VERIFIED_SOURCE_ROWS",
+      "race_conditions": "MISSING",
+      "jockey_trainer": "MISSING",
+      "track_weather": "MISSING",
+      "market_odds": "MISSING",
+      "training_workouts": "MISSING",
+      "payout_result": "NOT_APPLICABLE_BEFORE_RACE"
+    },
+    "prediction_ready": false,
+    "training_ready": false,
+    "profile_source_sha256": "adeff6b9e73dd4ff32deb2dacab2eb4cf9bddf37ec7ad06cfd494a292cb7ee3c",
+    "nonfinish_event_count": 0
+  },
+  {
+    "race": "2026-11-07_KYOTO_09R",
+    "race_number": 9,
+    "horse_number": 2,
+    "horse_name": "ルトゥール",
+    "frame_number": 2,
+    "racecard_source_sha256": "6646a1c7f5763250d8f05a7dcc880fb40a39f50b53cd7d6702cafd560b3b068d",
+    "racecard_captured_at_utc": "2026-11-06T03:39:10.490268+00:00",
+    "profile_href": "/JRADB/accessU.html?CNAME=pw01dud002021104929/EA",
+    "date_only_features": {
+      "last_observed_prior_race_days_ago": 20,
+      "date_records_visible": 4,
+      "recent_90day_date_count": 1
+    },
+    "performance_features": null,
+    "profile_status": "NOT_QUERIED",
+    "source_coverage": {
+      "racecard": "CONFIRMED",
+      "horse_profile": "NOT_QUERIED",
+      "race_conditions": "MISSING",
+      "jockey_trainer": "MISSING",
+      "track_weather": "MISSING",
+      "market_odds": "MISSING",
+      "training_workouts": "MISSING",
+      "payout_result": "NOT_APPLICABLE_BEFORE_RACE"
+    },
+    "prediction_ready": false,
+    "training_ready": false
+  },
+  {
+    "race": "2026-11-07_KYOTO_09R",
+    "race_number": 9,
+    "horse_number": 3,
+    "horse_name": "バガン",
+    "frame_number": 3,
+    "racecard_source_sha256": "6646a1c7f5763250d8f05a7dcc880fb40a39f50b53cd7d6702cafd560b3b068d",
+    "racecard_captured_at_utc": "2026-11-06T03:39:10.490268+00:00",
+    "profile_href": "/JRADB/accessU.html?CNAME=pw01dud002018106354/FC",
+    "date_only_features": {
+      "last_observed_prior_race_days_ago": 70,
+      "date_records_visible": 4,
+      "recent_90day_date_count": 1
+    },
+    "performance_features": null,
+    "profile_status": "NOT_QUERIED",
+    "source_coverage": {
+      "racecard": "CONFIRMED",
+      "horse_profile": "NOT_QUERIED",
+      "race_conditions": "MISSING",
+      "jockey_trainer": "MISSING",
+      "track_weather": "MISSING",
+      "market_odds": "MISSING",
+      "training_workouts": "MISSING",
+      "payout_result": "NOT_APPLICABLE_BEFORE_RACE"
+    },
+    "prediction_ready": false,
+    "training_ready": false
+  },
+  {
+    "race": "2026-11-07_KYOTO_09R",
+    "race_number": 9,
+    "horse_number": 4,
+    "horse_name": "リカントロポ",
+    "frame_number": 4,
+    "racecard_source_sha256": "6646a1c7f5763250d8f05a7dcc880fb40a39f50b53cd7d6702cafd560b3b068d",
+    "racecard_captured_at_utc": "2026-11-06T03:39:10.490268+00:00",
+    "profile_href": "/JRADB/accessU.html?CNAME=pw01dud002022100080/56",
+    "date_only_features": {
+      "last_observed_prior_race_days_ago": 20,
+      "date_records_visible": 4,
+      "recent_90day_date_count": 2
+    },
+    "performance_features": null,
+    "profile_status": "NOT_QUERIED",
+    "source_coverage": {
+      "racecard": "CONFIRMED",
+      "horse_profile": "NOT_QUERIED",
+      "race_conditions": "MISSING",
+      "jockey_trainer": "MISSING",
+      "track_weather": "MISSING",
+      "market_odds": "MISSING",
+      "training_workouts": "MISSING",
+      "payout_result": "NOT_APPLICABLE_BEFORE_RACE"
+    },
+    "prediction_ready": false,
+    "training_ready": false
+  },
+  {
+    "race": "2026-11-07_KYOTO_09R",
+    "race_number": 9,
+    "horse_number": 5,
+    "horse_name": "ダガーリング",
+    "frame_number": 5,
+    "racecard_source_sha256": "6646a1c7f5763250d8f05a7dcc880fb40a39f50b53cd7d6702cafd560b3b068d",
+    "racecard_captured_at_utc": "2026-11-06T03:39:10.490268+00:00",
+    "profile_href": "/JRADB/accessU.html?CNAME=pw01dud002022102153/8E",
+    "date_only_features": {
+      "last_observed_prior_race_days_ago": 14,
+      "date_records_visible": 4,
+      "recent_90day_date_count": 3
+    },
+    "performance_features": null,
+    "profile_status": "NOT_QUERIED",
+    "source_coverage": {
+      "racecard": "CONFIRMED",
+      "horse_profile": "NOT_QUERIED",
+      "race_conditions": "MISSING",
+      "jockey_trainer": "MISSING",
+      "track_weather": "MISSING",
+      "market_odds": "MISSING",
+      "training_workouts": "MISSING",
+      "payout_result": "NOT_APPLICABLE_BEFORE_RACE"
+    },
+    "prediction_ready": false,
+    "training_ready": false
+  },
+  {
+    "race": "2026-11-07_KYOTO_09R",
+    "race_number": 9,
+    "horse_number": 6,
+    "horse_name": "エリカアンディーヴ",
+    "frame_number": 6,
+    "racecard_source_sha256": "6646a1c7f5763250d8f05a7dcc880fb40a39f50b53cd7d6702cafd560b3b068d",
+    "racecard_captured_at_utc": "2026-11-06T03:39:10.490268+00:00",
+    "profile_href": "/JRADB/accessU.html?CNAME=pw01dud002022110060/04",
+    "date_only_features": {
+      "last_observed_prior_race_days_ago": 26,
+      "date_records_visible": 4,
+      "recent_90day_date_count": 1
+    },
+    "performance_features": null,
+    "profile_status": "NOT_QUERIED",
+    "source_coverage": {
+      "racecard": "CONFIRMED",
+      "horse_profile": "NOT_QUERIED",
+      "race_conditions": "MISSING",
+      "jockey_trainer": "MISSING",
+      "track_weather": "MISSING",
+      "market_odds": "MISSING",
+      "training_workouts": "MISSING",
+      "payout_result": "NOT_APPLICABLE_BEFORE_RACE"
+    },
+    "prediction_ready": false,
+    "training_ready": false
+  },
+  {
+    "race": "2026-11-07_KYOTO_09R",
+    "race_number": 9,
+    "horse_number": 7,
+    "horse_name": "クイックバイオ",
+    "frame_number": 7,
+    "racecard_source_sha256": "6646a1c7f5763250d8f05a7dcc880fb40a39f50b53cd7d6702cafd560b3b068d",
+    "racecard_captured_at_utc": "2026-11-06T03:39:10.490268+00:00",
+    "profile_href": "/JRADB/accessU.html?CNAME=pw01dud002021105374/C4",
+    "date_only_features": {
+      "last_observed_prior_race_days_ago": 62,
+      "date_records_visible": 4,
+      "recent_90day_date_count": 1
+    },
+    "performance_features": null,
+    "profile_status": "NOT_QUERIED",
+    "source_coverage": {
+      "racecard": "CONFIRMED",
+      "horse_profile": "NOT_QUERIED",
+      "race_conditions": "MISSING",
+      "jockey_trainer": "MISSING",
+      "track_weather": "MISSING",
+      "market_odds": "MISSING",
+      "training_workouts": "MISSING",
+      "payout_result": "NOT_APPLICABLE_BEFORE_RACE"
+    },
+    "prediction_ready": false,
+    "training_ready": false
+  },
+  {
+    "race": "2026-11-07_KYOTO_09R",
+    "race_number": 9,
+    "horse_number": 8,
+    "horse_name": "サーディンラン",
+    "frame_number": 7,
+    "racecard_source_sha256": "6646a1c7f5763250d8f05a7dcc880fb40a39f50b53cd7d6702cafd560b3b068d",
+    "racecard_captured_at_utc": "2026-11-06T03:39:10.490268+00:00",
+    "profile_href": "/JRADB/accessU.html?CNAME=pw01dud002023103440/33",
+    "date_only_features": {
+      "last_observed_prior_race_days_ago": 20,
+      "date_records_visible": 4,
+      "recent_90day_date_count": 2
+    },
+    "performance_features": null,
+    "profile_status": "NOT_QUERIED",
+    "source_coverage": {
+      "racecard": "CONFIRMED",
+      "horse_profile": "NOT_QUERIED",
+      "race_conditions": "MISSING",
+      "jockey_trainer": "MISSING",
+      "track_weather": "MISSING",
+      "market_odds": "MISSING",
+      "training_workouts": "MISSING",
+      "payout_result": "NOT_APPLICABLE_BEFORE_RACE"
+    },
+    "prediction_ready": false,
+    "training_ready": false
+  },
+  {
+    "race": "2026-11-07_KYOTO_09R",
+    "race_number": 9,
+    "horse_number": 9,
+    "horse_name": "ランスオブヒーロー",
+    "frame_number": 8,
+    "racecard_source_sha256": "6646a1c7f5763250d8f05a7dcc880fb40a39f50b53cd7d6702cafd560b3b068d",
+    "racecard_captured_at_utc": "2026-11-06T03:39:10.490268+00:00",
+    "profile_href": "/JRADB/accessU.html?CNAME=pw01dud002023103166/72",
+    "date_only_features": {
+      "last_observed_prior_race_days_ago": 42,
+      "date_records_visible": 4,
+      "recent_90day_date_count": 1
+    },
+    "performance_features": null,
+    "profile_status": "NOT_QUERIED",
+    "source_coverage": {
+      "racecard": "CONFIRMED",
+      "horse_profile": "NOT_QUERIED",
+      "race_conditions": "MISSING",
+      "jockey_trainer": "MISSING",
+      "track_weather": "MISSING",
+      "market_odds": "MISSING",
+      "training_workouts": "MISSING",
+      "payout_result": "NOT_APPLICABLE_BEFORE_RACE"
+    },
+    "prediction_ready": false,
+    "training_ready": false
+  },
+  {
+    "race": "2026-11-07_KYOTO_09R",
+    "race_number": 9,
+    "horse_number": 10,
+    "horse_name": "オーシャントライブ",
+    "frame_number": 8,
+    "racecard_source_sha256": "6646a1c7f5763250d8f05a7dcc880fb40a39f50b53cd7d6702cafd560b3b068d",
+    "racecard_captured_at_utc": "2026-11-06T03:39:10.490268+00:00",
+    "profile_href": "/JRADB/accessU.html?CNAME=pw01dud002020103538/48",
+    "date_only_features": {
+      "last_observed_prior_race_days_ago": 42,
+      "date_records_visible": 4,
+      "recent_90day_date_count": 1
+    },
+    "performance_features": null,
+    "profile_status": "NOT_QUERIED",
+    "source_coverage": {
+      "racecard": "CONFIRMED",
+      "horse_profile": "NOT_QUERIED",
+      "race_conditions": "MISSING",
+      "jockey_trainer": "MISSING",
+      "track_weather": "MISSING",
+      "market_odds": "MISSING",
+      "training_workouts": "MISSING",
+      "payout_result": "NOT_APPLICABLE_BEFORE_RACE"
+    },
+    "prediction_ready": false,
+    "training_ready": false
+  },
+  {
+    "race": "2026-11-07_KYOTO_10R",
+    "race_number": 10,
+    "horse_number": 1,
+    "horse_name": "メイショウバルク",
+    "frame_number": 1,
+    "racecard_source_sha256": "771261811e3bd4443009c0898e8173d5750043a9bedca8552e4a24afbeaa1751",
+    "racecard_captured_at_utc": "2026-11-06T03:39:12.223298+00:00",
+    "profile_href": "/JRADB/accessU.html?CNAME=pw01dud002023101951/CD",
+    "date_only_features": {
+      "last_observed_prior_race_days_ago": 27,
+      "date_records_visible": 4,
+      "recent_90day_date_count": 1
+    },
+    "performance_features": {
+      "prior_valid_finishes_available": 8,
+      "recent_three_mean_finish_percentile": 0.785714,
+      "recent_three_mean_distance_m": 1333.33,
+      "recent_three_wins": 2,
+      "recent_three_surface_counts": {
+        "芝": 0,
+        "ダ": 3,
+        "ダート": 0,
+        "障": 0
+      }
+    },
+    "profile_status": "HISTORY_TABLE_PARSED",
+    "source_coverage": {
+      "racecard": "CONFIRMED",
+      "horse_profile": "VERIFIED_SOURCE_ROWS",
+      "race_conditions": "MISSING",
+      "jockey_trainer": "MISSING",
+      "track_weather": "MISSING",
+      "market_odds": "MISSING",
+      "training_workouts": "MISSING",
+      "payout_result": "NOT_APPLICABLE_BEFORE_RACE"
+    },
+    "prediction_ready": false,
+    "training_ready": false,
+    "profile_source_sha256": "6bdee1d323f0886c7f87644ce0bed5be5e269d1b07f499d7fdcff971d24d4ef3",
+    "nonfinish_event_count": 0
+  },
+  {
+    "race": "2026-11-07_KYOTO_10R",
+    "race_number": 10,
+    "horse_number": 2,
+    "horse_name": "ユハンヌス",
+    "frame_number": 2,
+    "racecard_source_sha256": "771261811e3bd4443009c0898e8173d5750043a9bedca8552e4a24afbeaa1751",
+    "racecard_captured_at_utc": "2026-11-06T03:39:12.223298+00:00",
+    "profile_href": "/JRADB/accessU.html?CNAME=pw01dud002020110039/C7",
+    "date_only_features": {
+      "last_observed_prior_race_days_ago": 14,
+      "date_records_visible": 4,
+      "recent_90day_date_count": 2
+    },
+    "performance_features": null,
+    "profile_status": "NOT_QUERIED",
+    "source_coverage": {
+      "racecard": "CONFIRMED",
+      "horse_profile": "NOT_QUERIED",
+      "race_conditions": "MISSING",
+      "jockey_trainer": "MISSING",
+      "track_weather": "MISSING",
+      "market_odds": "MISSING",
+      "training_workouts": "MISSING",
+      "payout_result": "NOT_APPLICABLE_BEFORE_RACE"
+    },
+    "prediction_ready": false,
+    "training_ready": false
+  },
+  {
+    "race": "2026-11-07_KYOTO_10R",
+    "race_number": 10,
+    "horse_number": 3,
+    "horse_name": "ジャーヴィス",
+    "frame_number": 3,
+    "racecard_source_sha256": "771261811e3bd4443009c0898e8173d5750043a9bedca8552e4a24afbeaa1751",
+    "racecard_captured_at_utc": "2026-11-06T03:39:12.223298+00:00",
+    "profile_href": "/JRADB/accessU.html?CNAME=pw01dud002020103902/2A",
+    "date_only_features": {
+      "last_observed_prior_race_days_ago": 35,
+      "date_records_visible": 4,
+      "recent_90day_date_count": 2
+    },
+    "performance_features": null,
+    "profile_status": "NOT_QUERIED",
+    "source_coverage": {
+      "racecard": "CONFIRMED",
+      "horse_profile": "NOT_QUERIED",
+      "race_conditions": "MISSING",
+      "jockey_trainer": "MISSING",
+      "track_weather": "MISSING",
+      "market_odds": "MISSING",
+      "training_workouts": "MISSING",
+      "payout_result": "NOT_APPLICABLE_BEFORE_RACE"
+    },
+    "prediction_ready": false,
+    "training_ready": false
+  },
+  {
+    "race": "2026-11-07_KYOTO_10R",
+    "race_number": 10,
+    "horse_number": 4,
+    "horse_name": "クリノオリーブ",
+    "frame_number": 3,
+    "racecard_source_sha256": "771261811e3bd4443009c0898e8173d5750043a9bedca8552e4a24afbeaa1751",
+    "racecard_captured_at_utc": "2026-11-06T03:39:12.223298+00:00",
+    "profile_href": "/JRADB/accessU.html?CNAME=pw01dud002021102259/E5",
+    "date_only_features": {
+      "last_observed_prior_race_days_ago": 41,
+      "date_records_visible": 4,
+      "recent_90day_date_count": 3
+    },
+    "performance_features": null,
+    "profile_status": "NOT_QUERIED",
+    "source_coverage": {
+      "racecard": "CONFIRMED",
+      "horse_profile": "NOT_QUERIED",
+      "race_conditions": "MISSING",
+      "jockey_trainer": "MISSING",
+      "track_weather": "MISSING",
+      "market_odds": "MISSING",
+      "training_workouts": "MISSING",
+      "payout_result": "NOT_APPLICABLE_BEFORE_RACE"
+    },
+    "prediction_ready": false,
+    "training_ready": false
+  },
+  {
+    "race": "2026-11-07_KYOTO_10R",
+    "race_number": 10,
+    "horse_number": 5,
+    "horse_name": "ルクスデイジー",
+    "frame_number": 4,
+    "racecard_source_sha256": "771261811e3bd4443009c0898e8173d5750043a9bedca8552e4a24afbeaa1751",
+    "racecard_captured_at_utc": "2026-11-06T03:39:12.223298+00:00",
+    "profile_href": "/JRADB/accessU.html?CNAME=pw01dud002022101127/3B",
+    "date_only_features": {
+      "last_observed_prior_race_days_ago": 35,
+      "date_records_visible": 4,
+      "recent_90day_date_count": 1
+    },
+    "performance_features": null,
+    "profile_status": "NOT_QUERIED",
+    "source_coverage": {
+      "racecard": "CONFIRMED",
+      "horse_profile": "NOT_QUERIED",
+      "race_conditions": "MISSING",
+      "jockey_trainer": "MISSING",
+      "track_weather": "MISSING",
+      "market_odds": "MISSING",
+      "training_workouts": "MISSING",
+      "payout_result": "NOT_APPLICABLE_BEFORE_RACE"
+    },
+    "prediction_ready": false,
+    "training_ready": false
+  },
+  {
+    "race": "2026-11-07_KYOTO_10R",
+    "race_number": 10,
+    "horse_number": 6,
+    "horse_name": "ウルスクローム",
+    "frame_number": 4,
+    "racecard_source_sha256": "771261811e3bd4443009c0898e8173d5750043a9bedca8552e4a24afbeaa1751",
+    "racecard_captured_at_utc": "2026-11-06T03:39:12.223298+00:00",
+    "profile_href": "/JRADB/accessU.html?CNAME=pw01dud002022103630/F9",
+    "date_only_features": {
+      "last_observed_prior_race_days_ago": 35,
+      "date_records_visible": 4,
+      "recent_90day_date_count": 2
+    },
+    "performance_features": null,
+    "profile_status": "NOT_QUERIED",
+    "source_coverage": {
+      "racecard": "CONFIRMED",
+      "horse_profile": "NOT_QUERIED",
+      "race_conditions": "MISSING",
+      "jockey_trainer": "MISSING",
+      "track_weather": "MISSING",
+      "market_odds": "MISSING",
+      "training_workouts": "MISSING",
+      "payout_result": "NOT_APPLICABLE_BEFORE_RACE"
+    },
+    "prediction_ready": false,
+    "training_ready": false
+  },
+  {
+    "race": "2026-11-07_KYOTO_10R",
+    "race_number": 10,
+    "horse_number": 7,
+    "horse_name": "メイショウタイゲイ",
+    "frame_number": 5,
+    "racecard_source_sha256": "771261811e3bd4443009c0898e8173d5750043a9bedca8552e4a24afbeaa1751",
+    "racecard_captured_at_utc": "2026-11-06T03:39:12.223298+00:00",
+    "profile_href": "/JRADB/accessU.html?CNAME=pw01dud002019104169/97",
+    "date_only_features": {
+      "last_observed_prior_race_days_ago": 273,
+      "date_records_visible": 4,
+      "recent_90day_date_count": 0
+    },
+    "performance_features": null,
+    "profile_status": "NOT_QUERIED",
+    "source_coverage": {
+      "racecard": "CONFIRMED",
+      "horse_profile": "NOT_QUERIED",
+      "race_conditions": "MISSING",
+      "jockey_trainer": "MISSING",
+      "track_weather": "MISSING",
+      "market_odds": "MISSING",
+      "training_workouts": "MISSING",
+      "payout_result": "NOT_APPLICABLE_BEFORE_RACE"
+    },
+    "prediction_ready": false,
+    "training_ready": false
+  },
+  {
+    "race": "2026-11-07_KYOTO_10R",
+    "race_number": 10,
+    "horse_number": 8,
+    "horse_name": "キタノソワレ",
+    "frame_number": 5,
+    "racecard_source_sha256": "771261811e3bd4443009c0898e8173d5750043a9bedca8552e4a24afbeaa1751",
+    "racecard_captured_at_utc": "2026-11-06T03:39:12.223298+00:00",
+    "profile_href": "/JRADB/accessU.html?CNAME=pw01dud002021106421/3B",
+    "date_only_features": {
+      "last_observed_prior_race_days_ago": 20,
+      "date_records_visible": 4,
+      "recent_90day_date_count": 2
+    },
+    "performance_features": null,
+    "profile_status": "NOT_QUERIED",
+    "source_coverage": {
+      "racecard": "CONFIRMED",
+      "horse_profile": "NOT_QUERIED",
+      "race_conditions": "MISSING",
+      "jockey_trainer": "MISSING",
+      "track_weather": "MISSING",
+      "market_odds": "MISSING",
+      "training_workouts": "MISSING",
+      "payout_result": "NOT_APPLICABLE_BEFORE_RACE"
+    },
+    "prediction_ready": false,
+    "training_ready": false
+  },
+  {
+    "race": "2026-11-07_KYOTO_10R",
+    "race_number": 10,
+    "horse_number": 9,
+    "horse_name": "カミーロ",
+    "frame_number": 6,
+    "racecard_source_sha256": "771261811e3bd4443009c0898e8173d5750043a9bedca8552e4a24afbeaa1751",
+    "racecard_captured_at_utc": "2026-11-06T03:39:12.223298+00:00",
+    "profile_href": "/JRADB/accessU.html?CNAME=pw01dud002020102027/E1",
+    "date_only_features": {
+      "last_observed_prior_race_days_ago": 35,
+      "date_records_visible": 4,
+      "recent_90day_date_count": 1
+    },
+    "performance_features": null,
+    "profile_status": "NOT_QUERIED",
+    "source_coverage": {
+      "racecard": "CONFIRMED",
+      "horse_profile": "NOT_QUERIED",
+      "race_conditions": "MISSING",
+      "jockey_trainer": "MISSING",
+      "track_weather": "MISSING",
+      "market_odds": "MISSING",
+      "training_workouts": "MISSING",
+      "payout_result": "NOT_APPLICABLE_BEFORE_RACE"
+    },
+    "prediction_ready": false,
+    "training_ready": false
+  },
+  {
+    "race": "2026-11-07_KYOTO_10R",
+    "race_number": 10,
+    "horse_number": 10,
+    "horse_name": "テーオーグレーザー",
+    "frame_number": 6,
+    "racecard_source_sha256": "771261811e3bd4443009c0898e8173d5750043a9bedca8552e4a24afbeaa1751",
+    "racecard_captured_at_utc": "2026-11-06T03:39:12.223298+00:00",
+    "profile_href": "/JRADB/accessU.html?CNAME=pw01dud002023104562/59",
+    "date_only_features": {
+      "last_observed_prior_race_days_ago": 35,
+      "date_records_visible": 4,
+      "recent_90day_date_count": 2
+    },
+    "performance_features": null,
+    "profile_status": "NOT_QUERIED",
+    "source_coverage": {
+      "racecard": "CONFIRMED",
+      "horse_profile": "NOT_QUERIED",
+      "race_conditions": "MISSING",
+      "jockey_trainer": "MISSING",
+      "track_weather": "MISSING",
+      "market_odds": "MISSING",
+      "training_workouts": "MISSING",
+      "payout_result": "NOT_APPLICABLE_BEFORE_RACE"
+    },
+    "prediction_ready": false,
+    "training_ready": false
+  },
+  {
+    "race": "2026-11-07_KYOTO_10R",
+    "race_number": 10,
+    "horse_number": 11,
+    "horse_name": "シュヴァルボヌール",
+    "frame_number": 7,
+    "racecard_source_sha256": "771261811e3bd4443009c0898e8173d5750043a9bedca8552e4a24afbeaa1751",
+    "racecard_captured_at_utc": "2026-11-06T03:39:12.223298+00:00",
+    "profile_href": "/JRADB/accessU.html?CNAME=pw01dud002022102315/96",
+    "date_only_features": {
+      "last_observed_prior_race_days_ago": 154,
+      "date_records_visible": 4,
+      "recent_90day_date_count": 0
+    },
+    "performance_features": null,
+    "profile_status": "NOT_QUERIED",
+    "source_coverage": {
+      "racecard": "CONFIRMED",
+      "horse_profile": "NOT_QUERIED",
+      "race_conditions": "MISSING",
+      "jockey_trainer": "MISSING",
+      "track_weather": "MISSING",
+      "market_odds": "MISSING",
+      "training_workouts": "MISSING",
+      "payout_result": "NOT_APPLICABLE_BEFORE_RACE"
+    },
+    "prediction_ready": false,
+    "training_ready": false
+  },
+  {
+    "race": "2026-11-07_KYOTO_10R",
+    "race_number": 10,
+    "horse_number": 12,
+    "horse_name": "スペシャルナンバー",
+    "frame_number": 7,
+    "racecard_source_sha256": "771261811e3bd4443009c0898e8173d5750043a9bedca8552e4a24afbeaa1751",
+    "racecard_captured_at_utc": "2026-11-06T03:39:12.223298+00:00",
+    "profile_href": "/JRADB/accessU.html?CNAME=pw01dud002019103825/F3",
+    "date_only_features": {
+      "last_observed_prior_race_days_ago": 35,
+      "date_records_visible": 4,
+      "recent_90day_date_count": 2
+    },
+    "performance_features": null,
+    "profile_status": "NOT_QUERIED",
+    "source_coverage": {
+      "racecard": "CONFIRMED",
+      "horse_profile": "NOT_QUERIED",
+      "race_conditions": "MISSING",
+      "jockey_trainer": "MISSING",
+      "track_weather": "MISSING",
+      "market_odds": "MISSING",
+      "training_workouts": "MISSING",
+      "payout_result": "NOT_APPLICABLE_BEFORE_RACE"
+    },
+    "prediction_ready": false,
+    "training_ready": false
+  },
+  {
+    "race": "2026-11-07_KYOTO_10R",
+    "race_number": 10,
+    "horse_number": 13,
+    "horse_name": "ユウトザレン",
+    "frame_number": 8,
+    "racecard_source_sha256": "771261811e3bd4443009c0898e8173d5750043a9bedca8552e4a24afbeaa1751",
+    "racecard_captured_at_utc": "2026-11-06T03:39:12.223298+00:00",
+    "profile_href": "/JRADB/accessU.html?CNAME=pw01dud002022101016/87",
+    "date_only_features": {
+      "last_observed_prior_race_days_ago": 55,
+      "date_records_visible": 4,
+      "recent_90day_date_count": 1
+    },
+    "performance_features": null,
+    "profile_status": "NOT_QUERIED",
+    "source_coverage": {
+      "racecard": "CONFIRMED",
+      "horse_profile": "NOT_QUERIED",
+      "race_conditions": "MISSING",
+      "jockey_trainer": "MISSING",
+      "track_weather": "MISSING",
+      "market_odds": "MISSING",
+      "training_workouts": "MISSING",
+      "payout_result": "NOT_APPLICABLE_BEFORE_RACE"
+    },
+    "prediction_ready": false,
+    "training_ready": false
+  },
+  {
+    "race": "2026-11-07_KYOTO_10R",
+    "race_number": 10,
+    "horse_number": 14,
+    "horse_name": "ゼンノツキヨミ",
+    "frame_number": 8,
+    "racecard_source_sha256": "771261811e3bd4443009c0898e8173d5750043a9bedca8552e4a24afbeaa1751",
+    "racecard_captured_at_utc": "2026-11-06T03:39:12.223298+00:00",
+    "profile_href": "/JRADB/accessU.html?CNAME=pw01dud002021106983/76",
+    "date_only_features": {
+      "last_observed_prior_race_days_ago": 210,
+      "date_records_visible": 4,
+      "recent_90day_date_count": 0
+    },
+    "performance_features": null,
+    "profile_status": "NOT_QUERIED",
+    "source_coverage": {
+      "racecard": "CONFIRMED",
+      "horse_profile": "NOT_QUERIED",
+      "race_conditions": "MISSING",
+      "jockey_trainer": "MISSING",
+      "track_weather": "MISSING",
+      "market_odds": "MISSING",
+      "training_workouts": "MISSING",
+      "payout_result": "NOT_APPLICABLE_BEFORE_RACE"
+    },
+    "prediction_ready": false,
+    "training_ready": false
+  },
+  {
+    "race": "2026-11-07_KYOTO_11R",
+    "race_number": 11,
+    "horse_number": 1,
+    "horse_name": "モンドプリューム",
+    "frame_number": 1,
+    "racecard_source_sha256": "0c443ce664e6c8c7ed54ea2ebda837edef07f1a2697405bf069677b0cc67f565",
+    "racecard_captured_at_utc": "2026-11-06T03:39:14.341531+00:00",
+    "profile_href": "/JRADB/accessU.html?CNAME=pw01dud002020103876/35",
+    "date_only_features": {
+      "last_observed_prior_race_days_ago": 56,
+      "date_records_visible": 4,
+      "recent_90day_date_count": 1
+    },
+    "performance_features": {
+      "prior_valid_finishes_available": 30,
+      "recent_three_mean_finish_percentile": 0.291209,
+      "recent_three_mean_distance_m": 1333.33,
+      "recent_three_wins": 0,
+      "recent_three_surface_counts": {
+        "芝": 0,
+        "ダ": 3,
+        "ダート": 0,
+        "障": 0
+      }
+    },
+    "profile_status": "HISTORY_TABLE_PARSED",
+    "source_coverage": {
+      "racecard": "CONFIRMED",
+      "horse_profile": "VERIFIED_SOURCE_ROWS",
+      "race_conditions": "MISSING",
+      "jockey_trainer": "MISSING",
+      "track_weather": "MISSING",
+      "market_odds": "MISSING",
+      "training_workouts": "MISSING",
+      "payout_result": "NOT_APPLICABLE_BEFORE_RACE"
+    },
+    "prediction_ready": false,
+    "training_ready": false,
+    "profile_source_sha256": "87bcbe38112dc1855f22099edb9bff5cc30a14b78b595470373b6355b2907b9c",
+    "nonfinish_event_count": 1
+  },
+  {
+    "race": "2026-11-07_KYOTO_11R",
+    "race_number": 11,
+    "horse_number": 2,
+    "horse_name": "エティエンヌ",
+    "frame_number": 1,
+    "racecard_source_sha256": "0c443ce664e6c8c7ed54ea2ebda837edef07f1a2697405bf069677b0cc67f565",
+    "racecard_captured_at_utc": "2026-11-06T03:39:14.341531+00:00",
+    "profile_href": "/JRADB/accessU.html?CNAME=pw01dud002019105761/14",
+    "date_only_features": {
+      "last_observed_prior_race_days_ago": 140,
+      "date_records_visible": 4,
+      "recent_90day_date_count": 0
+    },
+    "performance_features": null,
+    "profile_status": "NOT_QUERIED",
+    "source_coverage": {
+      "racecard": "CONFIRMED",
+      "horse_profile": "NOT_QUERIED",
+      "race_conditions": "MISSING",
+      "jockey_trainer": "MISSING",
+      "track_weather": "MISSING",
+      "market_odds": "MISSING",
+      "training_workouts": "MISSING",
+      "payout_result": "NOT_APPLICABLE_BEFORE_RACE"
+    },
+    "prediction_ready": false,
+    "training_ready": false
+  },
+  {
+    "race": "2026-11-07_KYOTO_11R",
+    "race_number": 11,
+    "horse_number": 3,
+    "horse_name": "エコロレーヴ",
+    "frame_number": 2,
+    "racecard_source_sha256": "0c443ce664e6c8c7ed54ea2ebda837edef07f1a2697405bf069677b0cc67f565",
+    "racecard_captured_at_utc": "2026-11-06T03:39:14.341531+00:00",
+    "profile_href": "/JRADB/accessU.html?CNAME=pw01dud002023110090/C0",
+    "date_only_features": {
+      "last_observed_prior_race_days_ago": 30,
+      "date_records_visible": 4,
+      "recent_90day_date_count": 2
+    },
+    "performance_features": null,
+    "profile_status": "NOT_QUERIED",
+    "source_coverage": {
+      "racecard": "CONFIRMED",
+      "horse_profile": "NOT_QUERIED",
+      "race_conditions": "MISSING",
+      "jockey_trainer": "MISSING",
+      "track_weather": "MISSING",
+      "market_odds": "MISSING",
+      "training_workouts": "MISSING",
+      "payout_result": "NOT_APPLICABLE_BEFORE_RACE"
+    },
+    "prediction_ready": false,
+    "training_ready": false
+  },
+  {
+    "race": "2026-11-07_KYOTO_11R",
+    "race_number": 11,
+    "horse_number": 4,
+    "horse_name": "ナムラフランク",
+    "frame_number": 2,
+    "racecard_source_sha256": "0c443ce664e6c8c7ed54ea2ebda837edef07f1a2697405bf069677b0cc67f565",
+    "racecard_captured_at_utc": "2026-11-06T03:39:14.341531+00:00",
+    "profile_href": "/JRADB/accessU.html?CNAME=pw01dud002019101975/96",
+    "date_only_features": {
+      "last_observed_prior_race_days_ago": 202,
+      "date_records_visible": 4,
+      "recent_90day_date_count": 0
+    },
+    "performance_features": null,
+    "profile_status": "NOT_QUERIED",
+    "source_coverage": {
+      "racecard": "CONFIRMED",
+      "horse_profile": "NOT_QUERIED",
+      "race_conditions": "MISSING",
+      "jockey_trainer": "MISSING",
+      "track_weather": "MISSING",
+      "market_odds": "MISSING",
+      "training_workouts": "MISSING",
+      "payout_result": "NOT_APPLICABLE_BEFORE_RACE"
+    },
+    "prediction_ready": false,
+    "training_ready": false
+  },
+  {
+    "race": "2026-11-07_KYOTO_11R",
+    "race_number": 11,
+    "horse_number": 5,
+    "horse_name": "ノボリショウリュウ",
+    "frame_number": 3,
+    "racecard_source_sha256": "0c443ce664e6c8c7ed54ea2ebda837edef07f1a2697405bf069677b0cc67f565",
+    "racecard_captured_at_utc": "2026-11-06T03:39:14.341531+00:00",
+    "profile_href": "/JRADB/accessU.html?CNAME=pw01dud002021102718/27",
+    "date_only_features": {
+      "last_observed_prior_race_days_ago": 146,
+      "date_records_visible": 4,
+      "recent_90day_date_count": 0
+    },
+    "performance_features": null,
+    "profile_status": "NOT_QUERIED",
+    "source_coverage": {
+      "racecard": "CONFIRMED",
+      "horse_profile": "NOT_QUERIED",
+      "race_conditions": "MISSING",
+      "jockey_trainer": "MISSING",
+      "track_weather": "MISSING",
+      "market_odds": "MISSING",
+      "training_workouts": "MISSING",
+      "payout_result": "NOT_APPLICABLE_BEFORE_RACE"
+    },
+    "prediction_ready": false,
+    "training_ready": false
+  },
+  {
+    "race": "2026-11-07_KYOTO_11R",
+    "race_number": 11,
+    "horse_number": 6,
+    "horse_name": "アメリカンチケット",
+    "frame_number": 3,
+    "racecard_source_sha256": "0c443ce664e6c8c7ed54ea2ebda837edef07f1a2697405bf069677b0cc67f565",
+    "racecard_captured_at_utc": "2026-11-06T03:39:14.341531+00:00",
+    "profile_href": "/JRADB/accessU.html?CNAME=pw01dud002021110122/4F",
+    "date_only_features": {
+      "last_observed_prior_race_days_ago": 35,
+      "date_records_visible": 4,
+      "recent_90day_date_count": 2
+    },
+    "performance_features": null,
+    "profile_status": "NOT_QUERIED",
+    "source_coverage": {
+      "racecard": "CONFIRMED",
+      "horse_profile": "NOT_QUERIED",
+      "race_conditions": "MISSING",
+      "jockey_trainer": "MISSING",
+      "track_weather": "MISSING",
+      "market_odds": "MISSING",
+      "training_workouts": "MISSING",
+      "payout_result": "NOT_APPLICABLE_BEFORE_RACE"
+    },
+    "prediction_ready": false,
+    "training_ready": false
+  },
+  {
+    "race": "2026-11-07_KYOTO_11R",
+    "race_number": 11,
+    "horse_number": 7,
+    "horse_name": "コウセキ",
+    "frame_number": 4,
+    "racecard_source_sha256": "0c443ce664e6c8c7ed54ea2ebda837edef07f1a2697405bf069677b0cc67f565",
+    "racecard_captured_at_utc": "2026-11-06T03:39:14.341531+00:00",
+    "profile_href": "/JRADB/accessU.html?CNAME=pw01dud002022110026/76",
+    "date_only_features": {
+      "last_observed_prior_race_days_ago": 90,
+      "date_records_visible": 4,
+      "recent_90day_date_count": 1
+    },
+    "performance_features": null,
+    "profile_status": "NOT_QUERIED",
+    "source_coverage": {
+      "racecard": "CONFIRMED",
+      "horse_profile": "NOT_QUERIED",
+      "race_conditions": "MISSING",
+      "jockey_trainer": "MISSING",
+      "track_weather": "MISSING",
+      "market_odds": "MISSING",
+      "training_workouts": "MISSING",
+      "payout_result": "NOT_APPLICABLE_BEFORE_RACE"
+    },
+    "prediction_ready": false,
+    "training_ready": false
+  },
+  {
+    "race": "2026-11-07_KYOTO_11R",
+    "race_number": 11,
+    "horse_number": 8,
+    "horse_name": "メイショウホウレン",
+    "frame_number": 4,
+    "racecard_source_sha256": "0c443ce664e6c8c7ed54ea2ebda837edef07f1a2697405bf069677b0cc67f565",
+    "racecard_captured_at_utc": "2026-11-06T03:39:14.341531+00:00",
+    "profile_href": "/JRADB/accessU.html?CNAME=pw01dud002021103716/30",
+    "date_only_features": {
+      "last_observed_prior_race_days_ago": 34,
+      "date_records_visible": 4,
+      "recent_90day_date_count": 1
+    },
+    "performance_features": null,
+    "profile_status": "NOT_QUERIED",
+    "source_coverage": {
+      "racecard": "CONFIRMED",
+      "horse_profile": "NOT_QUERIED",
+      "race_conditions": "MISSING",
+      "jockey_trainer": "MISSING",
+      "track_weather": "MISSING",
+      "market_odds": "MISSING",
+      "training_workouts": "MISSING",
+      "payout_result": "NOT_APPLICABLE_BEFORE_RACE"
+    },
+    "prediction_ready": false,
+    "training_ready": false
+  },
+  {
+    "race": "2026-11-07_KYOTO_11R",
+    "race_number": 11,
+    "horse_number": 9,
+    "horse_name": "ゼットエール",
+    "frame_number": 5,
+    "racecard_source_sha256": "0c443ce664e6c8c7ed54ea2ebda837edef07f1a2697405bf069677b0cc67f565",
+    "racecard_captured_at_utc": "2026-11-06T03:39:14.341531+00:00",
+    "profile_href": "/JRADB/accessU.html?CNAME=pw01dud002022107278/C9",
+    "date_only_features": {
+      "last_observed_prior_race_days_ago": 34,
+      "date_records_visible": 4,
+      "recent_90day_date_count": 1
+    },
+    "performance_features": null,
+    "profile_status": "NOT_QUERIED",
+    "source_coverage": {
+      "racecard": "CONFIRMED",
+      "horse_profile": "NOT_QUERIED",
+      "race_conditions": "MISSING",
+      "jockey_trainer": "MISSING",
+      "track_weather": "MISSING",
+      "market_odds": "MISSING",
+      "training_workouts": "MISSING",
+      "payout_result": "NOT_APPLICABLE_BEFORE_RACE"
+    },
+    "prediction_ready": false,
+    "training_ready": false
+  },
+  {
+    "race": "2026-11-07_KYOTO_11R",
+    "race_number": 11,
+    "horse_number": 10,
+    "horse_name": "ジョーメッドヴィン",
+    "frame_number": 5,
+    "racecard_source_sha256": "0c443ce664e6c8c7ed54ea2ebda837edef07f1a2697405bf069677b0cc67f565",
+    "racecard_captured_at_utc": "2026-11-06T03:39:14.341531+00:00",
+    "profile_href": "/JRADB/accessU.html?CNAME=pw01dud002021100522/45",
+    "date_only_features": {
+      "last_observed_prior_race_days_ago": 76,
+      "date_records_visible": 4,
+      "recent_90day_date_count": 2
+    },
+    "performance_features": null,
+    "profile_status": "NOT_QUERIED",
+    "source_coverage": {
+      "racecard": "CONFIRMED",
+      "horse_profile": "NOT_QUERIED",
+      "race_conditions": "MISSING",
+      "jockey_trainer": "MISSING",
+      "track_weather": "MISSING",
+      "market_odds": "MISSING",
+      "training_workouts": "MISSING",
+      "payout_result": "NOT_APPLICABLE_BEFORE_RACE"
+    },
+    "prediction_ready": false,
+    "training_ready": false
+  },
+  {
+    "race": "2026-11-07_KYOTO_11R",
+    "race_number": 11,
+    "horse_number": 11,
+    "horse_name": "ジョーローリット",
+    "frame_number": 6,
+    "racecard_source_sha256": "0c443ce664e6c8c7ed54ea2ebda837edef07f1a2697405bf069677b0cc67f565",
+    "racecard_captured_at_utc": "2026-11-06T03:39:14.341531+00:00",
+    "profile_href": "/JRADB/accessU.html?CNAME=pw01dud002021100768/99",
+    "date_only_features": {
+      "last_observed_prior_race_days_ago": 56,
+      "date_records_visible": 4,
+      "recent_90day_date_count": 2
+    },
+    "performance_features": null,
+    "profile_status": "NOT_QUERIED",
+    "source_coverage": {
+      "racecard": "CONFIRMED",
+      "horse_profile": "NOT_QUERIED",
+      "race_conditions": "MISSING",
+      "jockey_trainer": "MISSING",
+      "track_weather": "MISSING",
+      "market_odds": "MISSING",
+      "training_workouts": "MISSING",
+      "payout_result": "NOT_APPLICABLE_BEFORE_RACE"
+    },
+    "prediction_ready": false,
+    "training_ready": false
+  },
+  {
+    "race": "2026-11-07_KYOTO_11R",
+    "race_number": 11,
+    "horse_number": 12,
+    "horse_name": "アブキールベイ",
+    "frame_number": 6,
+    "racecard_source_sha256": "0c443ce664e6c8c7ed54ea2ebda837edef07f1a2697405bf069677b0cc67f565",
+    "racecard_captured_at_utc": "2026-11-06T03:39:14.341531+00:00",
+    "profile_href": "/JRADB/accessU.html?CNAME=pw01dud002022101623/64",
+    "date_only_features": {
+      "last_observed_prior_race_days_ago": 90,
+      "date_records_visible": 4,
+      "recent_90day_date_count": 1
+    },
+    "performance_features": null,
+    "profile_status": "NOT_QUERIED",
+    "source_coverage": {
+      "racecard": "CONFIRMED",
+      "horse_profile": "NOT_QUERIED",
+      "race_conditions": "MISSING",
+      "jockey_trainer": "MISSING",
+      "track_weather": "MISSING",
+      "market_odds": "MISSING",
+      "training_workouts": "MISSING",
+      "payout_result": "NOT_APPLICABLE_BEFORE_RACE"
+    },
+    "prediction_ready": false,
+    "training_ready": false
+  },
+  {
+    "race": "2026-11-07_KYOTO_11R",
+    "race_number": 11,
+    "horse_number": 13,
+    "horse_name": "ファムエレガンテ",
+    "frame_number": 7,
+    "racecard_source_sha256": "0c443ce664e6c8c7ed54ea2ebda837edef07f1a2697405bf069677b0cc67f565",
+    "racecard_captured_at_utc": "2026-11-06T03:39:14.341531+00:00",
+    "profile_href": "/JRADB/accessU.html?CNAME=pw01dud002022110142/FB",
+    "date_only_features": {
+      "last_observed_prior_race_days_ago": 83,
+      "date_records_visible": 4,
+      "recent_90day_date_count": 1
+    },
+    "performance_features": null,
+    "profile_status": "NOT_QUERIED",
+    "source_coverage": {
+      "racecard": "CONFIRMED",
+      "horse_profile": "NOT_QUERIED",
+      "race_conditions": "MISSING",
+      "jockey_trainer": "MISSING",
+      "track_weather": "MISSING",
+      "market_odds": "MISSING",
+      "training_workouts": "MISSING",
+      "payout_result": "NOT_APPLICABLE_BEFORE_RACE"
+    },
+    "prediction_ready": false,
+    "training_ready": false
+  },
+  {
+    "race": "2026-11-07_KYOTO_11R",
+    "race_number": 11,
+    "horse_number": 14,
+    "horse_name": "ルージュラナキラ",
+    "frame_number": 7,
+    "racecard_source_sha256": "0c443ce664e6c8c7ed54ea2ebda837edef07f1a2697405bf069677b0cc67f565",
+    "racecard_captured_at_utc": "2026-11-06T03:39:14.341531+00:00",
+    "profile_href": "/JRADB/accessU.html?CNAME=pw01dud002022102434/74",
+    "date_only_features": {
+      "last_observed_prior_race_days_ago": 34,
+      "date_records_visible": 4,
+      "recent_90day_date_count": 1
+    },
+    "performance_features": null,
+    "profile_status": "NOT_QUERIED",
+    "source_coverage": {
+      "racecard": "CONFIRMED",
+      "horse_profile": "NOT_QUERIED",
+      "race_conditions": "MISSING",
+      "jockey_trainer": "MISSING",
+      "track_weather": "MISSING",
+      "market_odds": "MISSING",
+      "training_workouts": "MISSING",
+      "payout_result": "NOT_APPLICABLE_BEFORE_RACE"
+    },
+    "prediction_ready": false,
+    "training_ready": false
+  },
+  {
+    "race": "2026-11-07_KYOTO_11R",
+    "race_number": 11,
+    "horse_number": 15,
+    "horse_name": "シークレットヴァウ",
+    "frame_number": 8,
+    "racecard_source_sha256": "0c443ce664e6c8c7ed54ea2ebda837edef07f1a2697405bf069677b0cc67f565",
+    "racecard_captured_at_utc": "2026-11-06T03:39:14.341531+00:00",
+    "profile_href": "/JRADB/accessU.html?CNAME=pw01dud002021102413/55",
+    "date_only_features": {
+      "last_observed_prior_race_days_ago": 119,
+      "date_records_visible": 4,
+      "recent_90day_date_count": 0
+    },
+    "performance_features": null,
+    "profile_status": "NOT_QUERIED",
+    "source_coverage": {
+      "racecard": "CONFIRMED",
+      "horse_profile": "NOT_QUERIED",
+      "race_conditions": "MISSING",
+      "jockey_trainer": "MISSING",
+      "track_weather": "MISSING",
+      "market_odds": "MISSING",
+      "training_workouts": "MISSING",
+      "payout_result": "NOT_APPLICABLE_BEFORE_RACE"
+    },
+    "prediction_ready": false,
+    "training_ready": false
+  },
+  {
+    "race": "2026-11-07_KYOTO_11R",
+    "race_number": 11,
+    "horse_number": 16,
+    "horse_name": "イツモニコニコ",
+    "frame_number": 8,
+    "racecard_source_sha256": "0c443ce664e6c8c7ed54ea2ebda837edef07f1a2697405bf069677b0cc67f565",
+    "racecard_captured_at_utc": "2026-11-06T03:39:14.341531+00:00",
+    "profile_href": "/JRADB/accessU.html?CNAME=pw01dud002021107063/8C",
+    "date_only_features": {
+      "last_observed_prior_race_days_ago": 76,
+      "date_records_visible": 4,
+      "recent_90day_date_count": 2
+    },
+    "performance_features": null,
+    "profile_status": "NOT_QUERIED",
+    "source_coverage": {
+      "racecard": "CONFIRMED",
+      "horse_profile": "NOT_QUERIED",
+      "race_conditions": "MISSING",
+      "jockey_trainer": "MISSING",
+      "track_weather": "MISSING",
+      "market_odds": "MISSING",
+      "training_workouts": "MISSING",
+      "payout_result": "NOT_APPLICABLE_BEFORE_RACE"
+    },
+    "prediction_ready": false,
+    "training_ready": false
+  },
+  {
+    "race": "2026-11-07_KYOTO_12R",
+    "race_number": 12,
+    "horse_number": 1,
+    "horse_name": "ナムラブーニン",
+    "frame_number": 1,
+    "racecard_source_sha256": "6c374a4438ed53d268a3f8a044bf015a7fa19bec4c53df22b29e322ca08944fe",
+    "racecard_captured_at_utc": "2026-11-06T03:30:26.442938+00:00",
+    "profile_href": "/JRADB/accessU.html?CNAME=pw01dud002021102420/0C",
+    "date_only_features": {
+      "last_observed_prior_race_days_ago": 21,
+      "date_records_visible": 4,
+      "recent_90day_date_count": 1
+    },
+    "performance_features": {
+      "prior_valid_finishes_available": 22,
+      "recent_three_mean_finish_percentile": 0.477106,
+      "recent_three_mean_distance_m": 1800,
+      "recent_three_wins": 0,
+      "recent_three_surface_counts": {
+        "芝": 3,
+        "ダ": 0,
+        "ダート": 0,
+        "障": 0
+      }
+    },
+    "profile_status": "HISTORY_TABLE_PARSED",
+    "source_coverage": {
+      "racecard": "CONFIRMED",
+      "horse_profile": "VERIFIED_SOURCE_ROWS",
+      "race_conditions": "MISSING",
+      "jockey_trainer": "MISSING",
+      "track_weather": "MISSING",
+      "market_odds": "MISSING",
+      "training_workouts": "MISSING",
+      "payout_result": "NOT_APPLICABLE_BEFORE_RACE"
+    },
+    "prediction_ready": false,
+    "training_ready": false,
+    "profile_source_sha256": "00d1d147319dca8d6d487011548e97253aabdddcf9713065fec10c5a9e1705f4",
+    "nonfinish_event_count": 0
+  },
+  {
+    "race": "2026-11-07_KYOTO_12R",
+    "race_number": 12,
+    "horse_number": 2,
+    "horse_name": "ロードスタニング",
+    "frame_number": 1,
+    "racecard_source_sha256": "6c374a4438ed53d268a3f8a044bf015a7fa19bec4c53df22b29e322ca08944fe",
+    "racecard_captured_at_utc": "2026-11-06T03:30:26.442938+00:00",
+    "profile_href": "/JRADB/accessU.html?CNAME=pw01dud002023105793/4D",
+    "date_only_features": {
+      "last_observed_prior_race_days_ago": 69,
+      "date_records_visible": 4,
+      "recent_90day_date_count": 1
+    },
+    "performance_features": null,
+    "profile_status": "NOT_QUERIED",
+    "source_coverage": {
+      "racecard": "CONFIRMED",
+      "horse_profile": "NOT_QUERIED",
+      "race_conditions": "MISSING",
+      "jockey_trainer": "MISSING",
+      "track_weather": "MISSING",
+      "market_odds": "MISSING",
+      "training_workouts": "MISSING",
+      "payout_result": "NOT_APPLICABLE_BEFORE_RACE"
+    },
+    "prediction_ready": false,
+    "training_ready": false
+  },
+  {
+    "race": "2026-11-07_KYOTO_12R",
+    "race_number": 12,
+    "horse_number": 3,
+    "horse_name": "パラディオン",
+    "frame_number": 2,
+    "racecard_source_sha256": "6c374a4438ed53d268a3f8a044bf015a7fa19bec4c53df22b29e322ca08944fe",
+    "racecard_captured_at_utc": "2026-11-06T03:30:26.442938+00:00",
+    "profile_href": "/JRADB/accessU.html?CNAME=pw01dud002023106392/05",
+    "date_only_features": {
+      "last_observed_prior_race_days_ago": 35,
+      "date_records_visible": 4,
+      "recent_90day_date_count": 2
+    },
+    "performance_features": null,
+    "profile_status": "NOT_QUERIED",
+    "source_coverage": {
+      "racecard": "CONFIRMED",
+      "horse_profile": "NOT_QUERIED",
+      "race_conditions": "MISSING",
+      "jockey_trainer": "MISSING",
+      "track_weather": "MISSING",
+      "market_odds": "MISSING",
+      "training_workouts": "MISSING",
+      "payout_result": "NOT_APPLICABLE_BEFORE_RACE"
+    },
+    "prediction_ready": false,
+    "training_ready": false
+  },
+  {
+    "race": "2026-11-07_KYOTO_12R",
+    "race_number": 12,
+    "horse_number": 4,
+    "horse_name": "アトレッタ",
+    "frame_number": 2,
+    "racecard_source_sha256": "6c374a4438ed53d268a3f8a044bf015a7fa19bec4c53df22b29e322ca08944fe",
+    "racecard_captured_at_utc": "2026-11-06T03:30:26.442938+00:00",
+    "profile_href": "/JRADB/accessU.html?CNAME=pw01dud002023104008/B6",
+    "date_only_features": {
+      "last_observed_prior_race_days_ago": 84,
+      "date_records_visible": 4,
+      "recent_90day_date_count": 1
+    },
+    "performance_features": null,
+    "profile_status": "NOT_QUERIED",
+    "source_coverage": {
+      "racecard": "CONFIRMED",
+      "horse_profile": "NOT_QUERIED",
+      "race_conditions": "MISSING",
+      "jockey_trainer": "MISSING",
+      "track_weather": "MISSING",
+      "market_odds": "MISSING",
+      "training_workouts": "MISSING",
+      "payout_result": "NOT_APPLICABLE_BEFORE_RACE"
+    },
+    "prediction_ready": false,
+    "training_ready": false
+  },
+  {
+    "race": "2026-11-07_KYOTO_12R",
+    "race_number": 12,
+    "horse_number": 5,
+    "horse_name": "ルクスキャンディ",
+    "frame_number": 3,
+    "racecard_source_sha256": "6c374a4438ed53d268a3f8a044bf015a7fa19bec4c53df22b29e322ca08944fe",
+    "racecard_captured_at_utc": "2026-11-06T03:30:26.442938+00:00",
+    "profile_href": "/JRADB/accessU.html?CNAME=pw01dud002023102221/35",
+    "date_only_features": {
+      "last_observed_prior_race_days_ago": 182,
+      "date_records_visible": 4,
+      "recent_90day_date_count": 0
+    },
+    "performance_features": null,
+    "profile_status": "NOT_QUERIED",
+    "source_coverage": {
+      "racecard": "CONFIRMED",
+      "horse_profile": "NOT_QUERIED",
+      "race_conditions": "MISSING",
+      "jockey_trainer": "MISSING",
+      "track_weather": "MISSING",
+      "market_odds": "MISSING",
+      "training_workouts": "MISSING",
+      "payout_result": "NOT_APPLICABLE_BEFORE_RACE"
+    },
+    "prediction_ready": false,
+    "training_ready": false
+  },
+  {
+    "race": "2026-11-07_KYOTO_12R",
+    "race_number": 12,
+    "horse_number": 6,
+    "horse_name": "ビヨンドザドリーム",
+    "frame_number": 3,
+    "racecard_source_sha256": "6c374a4438ed53d268a3f8a044bf015a7fa19bec4c53df22b29e322ca08944fe",
+    "racecard_captured_at_utc": "2026-11-06T03:30:26.442938+00:00",
+    "profile_href": "/JRADB/accessU.html?CNAME=pw01dud002020102736/D5",
+    "date_only_features": {
+      "last_observed_prior_race_days_ago": 42,
+      "date_records_visible": 4,
+      "recent_90day_date_count": 1
+    },
+    "performance_features": null,
+    "profile_status": "NOT_QUERIED",
+    "source_coverage": {
+      "racecard": "CONFIRMED",
+      "horse_profile": "NOT_QUERIED",
+      "race_conditions": "MISSING",
+      "jockey_trainer": "MISSING",
+      "track_weather": "MISSING",
+      "market_odds": "MISSING",
+      "training_workouts": "MISSING",
+      "payout_result": "NOT_APPLICABLE_BEFORE_RACE"
+    },
+    "prediction_ready": false,
+    "training_ready": false
+  },
+  {
+    "race": "2026-11-07_KYOTO_12R",
+    "race_number": 12,
+    "horse_number": 7,
+    "horse_name": "タイセイアビオン",
+    "frame_number": 4,
+    "racecard_source_sha256": "6c374a4438ed53d268a3f8a044bf015a7fa19bec4c53df22b29e322ca08944fe",
+    "racecard_captured_at_utc": "2026-11-06T03:30:26.442938+00:00",
+    "profile_href": "/JRADB/accessU.html?CNAME=pw01dud002023105225/CE",
+    "date_only_features": {
+      "last_observed_prior_race_days_ago": 97,
+      "date_records_visible": 4,
+      "recent_90day_date_count": 0
+    },
+    "performance_features": null,
+    "profile_status": "NOT_QUERIED",
+    "source_coverage": {
+      "racecard": "CONFIRMED",
+      "horse_profile": "NOT_QUERIED",
+      "race_conditions": "MISSING",
+      "jockey_trainer": "MISSING",
+      "track_weather": "MISSING",
+      "market_odds": "MISSING",
+      "training_workouts": "MISSING",
+      "payout_result": "NOT_APPLICABLE_BEFORE_RACE"
+    },
+    "prediction_ready": false,
+    "training_ready": false
+  },
+  {
+    "race": "2026-11-07_KYOTO_12R",
+    "race_number": 12,
+    "horse_number": 8,
+    "horse_name": "マイネルビスマルク",
+    "frame_number": 4,
+    "racecard_source_sha256": "6c374a4438ed53d268a3f8a044bf015a7fa19bec4c53df22b29e322ca08944fe",
+    "racecard_captured_at_utc": "2026-11-06T03:30:26.442938+00:00",
+    "profile_href": "/JRADB/accessU.html?CNAME=pw01dud002022100081/C9",
+    "date_only_features": {
+      "last_observed_prior_race_days_ago": 20,
+      "date_records_visible": 4,
+      "recent_90day_date_count": 1
+    },
+    "performance_features": null,
+    "profile_status": "NOT_QUERIED",
+    "source_coverage": {
+      "racecard": "CONFIRMED",
+      "horse_profile": "NOT_QUERIED",
+      "race_conditions": "MISSING",
+      "jockey_trainer": "MISSING",
+      "track_weather": "MISSING",
+      "market_odds": "MISSING",
+      "training_workouts": "MISSING",
+      "payout_result": "NOT_APPLICABLE_BEFORE_RACE"
+    },
+    "prediction_ready": false,
+    "training_ready": false
+  },
+  {
+    "race": "2026-11-07_KYOTO_12R",
+    "race_number": 12,
+    "horse_number": 9,
+    "horse_name": "アグレイビューティ",
+    "frame_number": 5,
+    "racecard_source_sha256": "6c374a4438ed53d268a3f8a044bf015a7fa19bec4c53df22b29e322ca08944fe",
+    "racecard_captured_at_utc": "2026-11-06T03:30:26.442938+00:00",
+    "profile_href": "/JRADB/accessU.html?CNAME=pw01dud002023103676/77",
+    "date_only_features": {
+      "last_observed_prior_race_days_ago": 14,
+      "date_records_visible": 4,
+      "recent_90day_date_count": 3
+    },
+    "performance_features": null,
+    "profile_status": "NOT_QUERIED",
+    "source_coverage": {
+      "racecard": "CONFIRMED",
+      "horse_profile": "NOT_QUERIED",
+      "race_conditions": "MISSING",
+      "jockey_trainer": "MISSING",
+      "track_weather": "MISSING",
+      "market_odds": "MISSING",
+      "training_workouts": "MISSING",
+      "payout_result": "NOT_APPLICABLE_BEFORE_RACE"
+    },
+    "prediction_ready": false,
+    "training_ready": false
+  },
+  {
+    "race": "2026-11-07_KYOTO_12R",
+    "race_number": 12,
+    "horse_number": 10,
+    "horse_name": "レーヌマロン",
+    "frame_number": 5,
+    "racecard_source_sha256": "6c374a4438ed53d268a3f8a044bf015a7fa19bec4c53df22b29e322ca08944fe",
+    "racecard_captured_at_utc": "2026-11-06T03:30:26.442938+00:00",
+    "profile_href": "/JRADB/accessU.html?CNAME=pw01dud002022100655/8B",
+    "date_only_features": {
+      "last_observed_prior_race_days_ago": 14,
+      "date_records_visible": 4,
+      "recent_90day_date_count": 2
+    },
+    "performance_features": null,
+    "profile_status": "NOT_QUERIED",
+    "source_coverage": {
+      "racecard": "CONFIRMED",
+      "horse_profile": "NOT_QUERIED",
+      "race_conditions": "MISSING",
+      "jockey_trainer": "MISSING",
+      "track_weather": "MISSING",
+      "market_odds": "MISSING",
+      "training_workouts": "MISSING",
+      "payout_result": "NOT_APPLICABLE_BEFORE_RACE"
+    },
+    "prediction_ready": false,
+    "training_ready": false
+  },
+  {
+    "race": "2026-11-07_KYOTO_12R",
+    "race_number": 12,
+    "horse_number": 11,
+    "horse_name": "ドルチェリターン",
+    "frame_number": 6,
+    "racecard_source_sha256": "6c374a4438ed53d268a3f8a044bf015a7fa19bec4c53df22b29e322ca08944fe",
+    "racecard_captured_at_utc": "2026-11-06T03:30:26.442938+00:00",
+    "profile_href": "/JRADB/accessU.html?CNAME=pw01dud002022104598/AF",
+    "date_only_features": {
+      "last_observed_prior_race_days_ago": 104,
+      "date_records_visible": 4,
+      "recent_90day_date_count": 0
+    },
+    "performance_features": null,
+    "profile_status": "NOT_QUERIED",
+    "source_coverage": {
+      "racecard": "CONFIRMED",
+      "horse_profile": "NOT_QUERIED",
+      "race_conditions": "MISSING",
+      "jockey_trainer": "MISSING",
+      "track_weather": "MISSING",
+      "market_odds": "MISSING",
+      "training_workouts": "MISSING",
+      "payout_result": "NOT_APPLICABLE_BEFORE_RACE"
+    },
+    "prediction_ready": false,
+    "training_ready": false
+  },
+  {
+    "race": "2026-11-07_KYOTO_12R",
+    "race_number": 12,
+    "horse_number": 12,
+    "horse_name": "ウィスカーパッド",
+    "frame_number": 6,
+    "racecard_source_sha256": "6c374a4438ed53d268a3f8a044bf015a7fa19bec4c53df22b29e322ca08944fe",
+    "racecard_captured_at_utc": "2026-11-06T03:30:26.442938+00:00",
+    "profile_href": "/JRADB/accessU.html?CNAME=pw01dud002023103380/42",
+    "date_only_features": {
+      "last_observed_prior_race_days_ago": 77,
+      "date_records_visible": 4,
+      "recent_90day_date_count": 1
+    },
+    "performance_features": null,
+    "profile_status": "NOT_QUERIED",
+    "source_coverage": {
+      "racecard": "CONFIRMED",
+      "horse_profile": "NOT_QUERIED",
+      "race_conditions": "MISSING",
+      "jockey_trainer": "MISSING",
+      "track_weather": "MISSING",
+      "market_odds": "MISSING",
+      "training_workouts": "MISSING",
+      "payout_result": "NOT_APPLICABLE_BEFORE_RACE"
+    },
+    "prediction_ready": false,
+    "training_ready": false
+  },
+  {
+    "race": "2026-11-07_KYOTO_12R",
+    "race_number": 12,
+    "horse_number": 13,
+    "horse_name": "トラカイキャッスル",
+    "frame_number": 7,
+    "racecard_source_sha256": "6c374a4438ed53d268a3f8a044bf015a7fa19bec4c53df22b29e322ca08944fe",
+    "racecard_captured_at_utc": "2026-11-06T03:30:26.442938+00:00",
+    "profile_href": "/JRADB/accessU.html?CNAME=pw01dud002023103412/E9",
+    "date_only_features": {
+      "last_observed_prior_race_days_ago": 21,
+      "date_records_visible": 4,
+      "recent_90day_date_count": 1
+    },
+    "performance_features": null,
+    "profile_status": "NOT_QUERIED",
+    "source_coverage": {
+      "racecard": "CONFIRMED",
+      "horse_profile": "NOT_QUERIED",
+      "race_conditions": "MISSING",
+      "jockey_trainer": "MISSING",
+      "track_weather": "MISSING",
+      "market_odds": "MISSING",
+      "training_workouts": "MISSING",
+      "payout_result": "NOT_APPLICABLE_BEFORE_RACE"
+    },
+    "prediction_ready": false,
+    "training_ready": false
+  },
+  {
+    "race": "2026-11-07_KYOTO_12R",
+    "race_number": 12,
+    "horse_number": 14,
+    "horse_name": "レイワノキセキ",
+    "frame_number": 7,
+    "racecard_source_sha256": "6c374a4438ed53d268a3f8a044bf015a7fa19bec4c53df22b29e322ca08944fe",
+    "racecard_captured_at_utc": "2026-11-06T03:30:26.442938+00:00",
+    "profile_href": "/JRADB/accessU.html?CNAME=pw01dud002023102718/3F",
+    "date_only_features": {
+      "last_observed_prior_race_days_ago": 55,
+      "date_records_visible": 4,
+      "recent_90day_date_count": 3
+    },
+    "performance_features": null,
+    "profile_status": "NOT_QUERIED",
+    "source_coverage": {
+      "racecard": "CONFIRMED",
+      "horse_profile": "NOT_QUERIED",
+      "race_conditions": "MISSING",
+      "jockey_trainer": "MISSING",
+      "track_weather": "MISSING",
+      "market_odds": "MISSING",
+      "training_workouts": "MISSING",
+      "payout_result": "NOT_APPLICABLE_BEFORE_RACE"
+    },
+    "prediction_ready": false,
+    "training_ready": false
+  },
+  {
+    "race": "2026-11-07_KYOTO_12R",
+    "race_number": 12,
+    "horse_number": 15,
+    "horse_name": "ダノンブギ",
+    "frame_number": 8,
+    "racecard_source_sha256": "6c374a4438ed53d268a3f8a044bf015a7fa19bec4c53df22b29e322ca08944fe",
+    "racecard_captured_at_utc": "2026-11-06T03:30:26.442938+00:00",
+    "profile_href": "/JRADB/accessU.html?CNAME=pw01dud002022105281/D6",
+    "date_only_features": {
+      "last_observed_prior_race_days_ago": 56,
+      "date_records_visible": 4,
+      "recent_90day_date_count": 1
+    },
+    "performance_features": null,
+    "profile_status": "NOT_QUERIED",
+    "source_coverage": {
+      "racecard": "CONFIRMED",
+      "horse_profile": "NOT_QUERIED",
+      "race_conditions": "MISSING",
+      "jockey_trainer": "MISSING",
+      "track_weather": "MISSING",
+      "market_odds": "MISSING",
+      "training_workouts": "MISSING",
+      "payout_result": "NOT_APPLICABLE_BEFORE_RACE"
+    },
+    "prediction_ready": false,
+    "training_ready": false
+  },
+  {
+    "race": "2026-11-07_KYOTO_12R",
+    "race_number": 12,
+    "horse_number": 16,
+    "horse_name": "プレスバーン",
+    "frame_number": 8,
+    "racecard_source_sha256": "6c374a4438ed53d268a3f8a044bf015a7fa19bec4c53df22b29e322ca08944fe",
+    "racecard_captured_at_utc": "2026-11-06T03:30:26.442938+00:00",
+    "profile_href": "/JRADB/accessU.html?CNAME=pw01dud002023105647/98",
+    "date_only_features": {
+      "last_observed_prior_race_days_ago": 105,
+      "date_records_visible": 4,
+      "recent_90day_date_count": 0
+    },
+    "performance_features": null,
+    "profile_status": "NOT_QUERIED",
+    "source_coverage": {
+      "racecard": "CONFIRMED",
+      "horse_profile": "NOT_QUERIED",
+      "race_conditions": "MISSING",
+      "jockey_trainer": "MISSING",
+      "track_weather": "MISSING",
+      "market_odds": "MISSING",
+      "training_workouts": "MISSING",
+      "payout_result": "NOT_APPLICABLE_BEFORE_RACE"
+    },
+    "prediction_ready": false,
+    "training_ready": false
+  },
+  {
+    "race": "2026-11-07_KYOTO_12R",
+    "race_number": 12,
+    "horse_number": 17,
+    "horse_name": "ダイナソーコー",
+    "frame_number": 8,
+    "racecard_source_sha256": "6c374a4438ed53d268a3f8a044bf015a7fa19bec4c53df22b29e322ca08944fe",
+    "racecard_captured_at_utc": "2026-11-06T03:30:26.442938+00:00",
+    "profile_href": "/JRADB/accessU.html?CNAME=pw01dud002023103548/FC",
+    "date_only_features": {
+      "last_observed_prior_race_days_ago": 13,
+      "date_records_visible": 4,
+      "recent_90day_date_count": 3
+    },
+    "performance_features": null,
+    "profile_status": "NOT_QUERIED",
+    "source_coverage": {
+      "racecard": "CONFIRMED",
+      "horse_profile": "NOT_QUERIED",
+      "race_conditions": "MISSING",
+      "jockey_trainer": "MISSING",
+      "track_weather": "MISSING",
+      "market_odds": "MISSING",
+      "training_workouts": "MISSING",
+      "payout_result": "NOT_APPLICABLE_BEFORE_RACE"
+    },
+    "prediction_ready": false,
+    "training_ready": false
+  }
+]
