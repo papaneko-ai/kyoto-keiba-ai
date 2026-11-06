@@ -1,0 +1,29 @@
+name: Full Kyoto 148 runner predictive feature completeness acceptance
+on:
+  push:
+    branches: [jra-html-diagnostic-20261105]
+    paths: ['diagnostics/feature_coverage_activation_20261106.txt']
+permissions:
+  contents: write
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      PYTHONPATH: .
+    steps:
+      - uses: actions/checkout@v4
+      - name: Test real 148 runner feature inventory and missingness
+        run: python -m unittest discover -s tests -p 'test_jra_feature_coverage_148.py' -v
+      - name: Build deterministic 148 row source-backed gap report
+        run: |
+          python diagnostics/jra_feature_coverage_148.py \
+            --out docs/diagnostics/jra_feature_coverage_20261106
+      - name: Record approved source-limited feature dataset
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/diagnostics/jra_feature_coverage_20261106/
+          git commit -m "Audit Kyoto 148 runner predictive field completeness, 12 real horse profiles" || true
+          git pull --rebase origin jra-html-diagnostic-20261105
+          git push origin HEAD:jra-html-diagnostic-20261105
