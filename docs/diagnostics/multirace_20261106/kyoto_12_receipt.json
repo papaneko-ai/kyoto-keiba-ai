@@ -1,0 +1,18 @@
+{
+  "race_number": 12,
+  "race_date": "2026-11-07",
+  "source_url": "https://jra.jp/JRADB/accessD.html?CNAME=pw01dde0108202605011220261107%2FC8",
+  "started_at_utc": "2026-11-06T03:30:25.724029+00:00",
+  "status": "ROSTER_VERIFIED",
+  "error": null,
+  "roster_verified": true,
+  "ready_for_prediction": false,
+  "ready_for_training": false,
+  "finished_at_utc": "2026-11-06T03:30:26.442938+00:00",
+  "http_status": 200,
+  "source_sha256": "6c374a4438ed53d268a3f8a044bf015a7fa19bec4c53df22b29e322ca08944fe",
+  "source_bytes": 231189,
+  "raw_source_filename": "kyoto_12_source.html",
+  "runner_count": 17,
+  "error_list": []
+}

@@ -1,0 +1,124 @@
+{
+  "schema_version": "jra_pre_race_multi_20261106.v1",
+  "race_date": "2026-11-07",
+  "venue": "KYOTO",
+  "race_number": 1,
+  "captured_at_utc": "2026-11-06T03:30:24.809942+00:00",
+  "source_sha256": "40f58dfd823bfd834ab28cec0ae07202637d2cef3047aa308672716c2a79518f",
+  "source_bytes": 128325,
+  "runners": [
+    {
+      "horse_number": 1,
+      "frame_number": 1,
+      "horse_name": "ジョイザモーメント",
+      "horse_profile_href": "/JRADB/accessU.html?CNAME=pw01dud002024101882/CB",
+      "past_race_dates": [
+        "2026-10-10",
+        "2026-09-21"
+      ],
+      "permanent_horse_id": null,
+      "permanent_id_verified": false
+    },
+    {
+      "horse_number": 2,
+      "frame_number": 2,
+      "horse_name": "オージーブラック",
+      "horse_profile_href": "/JRADB/accessU.html?CNAME=pw01dud002024101134/0A",
+      "past_race_dates": [
+        "2026-10-25",
+        "2026-10-04"
+      ],
+      "permanent_horse_id": null,
+      "permanent_id_verified": false
+    },
+    {
+      "horse_number": 3,
+      "frame_number": 3,
+      "horse_name": "キミチャン",
+      "horse_profile_href": "/JRADB/accessU.html?CNAME=pw01dud002024104786/33",
+      "past_race_dates": [
+        "2026-10-25",
+        "2026-09-21"
+      ],
+      "permanent_horse_id": null,
+      "permanent_id_verified": false
+    },
+    {
+      "horse_number": 4,
+      "frame_number": 4,
+      "horse_name": "マリアーナ",
+      "horse_profile_href": "/JRADB/accessU.html?CNAME=pw01dud002024104231/AF",
+      "past_race_dates": [
+        "2026-10-25",
+        "2026-10-10"
+      ],
+      "permanent_horse_id": null,
+      "permanent_id_verified": false
+    },
+    {
+      "horse_number": 5,
+      "frame_number": 5,
+      "horse_name": "フェリシタル",
+      "horse_profile_href": "/JRADB/accessU.html?CNAME=pw01dud002024102322/65",
+      "past_race_dates": [
+        "2026-07-18"
+      ],
+      "permanent_horse_id": null,
+      "permanent_id_verified": false
+    },
+    {
+      "horse_number": 6,
+      "frame_number": 6,
+      "horse_name": "モハラ",
+      "horse_profile_href": "/JRADB/accessU.html?CNAME=pw01dud002024107305/49",
+      "past_race_dates": [
+        "2026-10-24"
+      ],
+      "permanent_horse_id": null,
+      "permanent_id_verified": false
+    },
+    {
+      "horse_number": 7,
+      "frame_number": 7,
+      "horse_name": "サイトゥン",
+      "horse_profile_href": "/JRADB/accessU.html?CNAME=pw01dud002024106774/1B",
+      "past_race_dates": [
+        "2026-09-05"
+      ],
+      "permanent_horse_id": null,
+      "permanent_id_verified": false
+    },
+    {
+      "horse_number": 8,
+      "frame_number": 8,
+      "horse_name": "コムアンエクレール",
+      "horse_profile_href": "/JRADB/accessU.html?CNAME=pw01dud002024104272/62",
+      "past_race_dates": [
+        "2026-10-18"
+      ],
+      "permanent_horse_id": null,
+      "permanent_id_verified": false
+    },
+    {
+      "horse_number": 9,
+      "frame_number": 8,
+      "horse_name": "マシュマロデイズ",
+      "horse_profile_href": "/JRADB/accessU.html?CNAME=pw01dud002024106580/FD",
+      "past_race_dates": [
+        "2026-08-29",
+        "2026-08-22"
+      ],
+      "permanent_horse_id": null,
+      "permanent_id_verified": false
+    }
+  ],
+  "runner_count": 9,
+  "prior_date_count": 14,
+  "parse_errors": [],
+  "roster_verified": true,
+  "scratch_final_verification": false,
+  "permanent_ids_verified": false,
+  "odds_verified": false,
+  "prediction_ready": false,
+  "training_ready": false
+}

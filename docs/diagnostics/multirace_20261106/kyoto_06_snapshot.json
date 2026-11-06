@@ -1,0 +1,119 @@
+{
+  "schema_version": "jra_pre_race_multi_20261106.v1",
+  "race_date": "2026-11-07",
+  "venue": "KYOTO",
+  "race_number": 6,
+  "captured_at_utc": "2026-11-06T03:30:25.698969+00:00",
+  "source_sha256": "b01f1933efaba8470a409f5e1c603d80957c3d5408ac03638c7b3edeb3bffa66",
+  "source_bytes": 116623,
+  "runners": [
+    {
+      "horse_number": 1,
+      "frame_number": 1,
+      "horse_name": "シニスターカイザー",
+      "horse_profile_href": "/JRADB/accessU.html?CNAME=pw01dud002024102081/BF",
+      "past_race_dates": [],
+      "permanent_horse_id": null,
+      "permanent_id_verified": false
+    },
+    {
+      "horse_number": 2,
+      "frame_number": 2,
+      "horse_name": "ディヴァインジャン",
+      "horse_profile_href": "/JRADB/accessU.html?CNAME=pw01dud002024102284/7A",
+      "past_race_dates": [],
+      "permanent_horse_id": null,
+      "permanent_id_verified": false
+    },
+    {
+      "horse_number": 3,
+      "frame_number": 3,
+      "horse_name": "ローレルリネージ",
+      "horse_profile_href": "/JRADB/accessU.html?CNAME=pw01dud002024103536/92",
+      "past_race_dates": [],
+      "permanent_horse_id": null,
+      "permanent_id_verified": false
+    },
+    {
+      "horse_number": 4,
+      "frame_number": 4,
+      "horse_name": "ショウナンバラモン",
+      "horse_profile_href": "/JRADB/accessU.html?CNAME=pw01dud002024100019/09",
+      "past_race_dates": [],
+      "permanent_horse_id": null,
+      "permanent_id_verified": false
+    },
+    {
+      "horse_number": 5,
+      "frame_number": 5,
+      "horse_name": "キタノジョー",
+      "horse_profile_href": "/JRADB/accessU.html?CNAME=pw01dud002024101118/B6",
+      "past_race_dates": [],
+      "permanent_horse_id": null,
+      "permanent_id_verified": false
+    },
+    {
+      "horse_number": 6,
+      "frame_number": 6,
+      "horse_name": "ベイビープレミア",
+      "horse_profile_href": "/JRADB/accessU.html?CNAME=pw01dud002024101703/8D",
+      "past_race_dates": [],
+      "permanent_horse_id": null,
+      "permanent_id_verified": false
+    },
+    {
+      "horse_number": 7,
+      "frame_number": 6,
+      "horse_name": "タガノスパーク",
+      "horse_profile_href": "/JRADB/accessU.html?CNAME=pw01dud002024103383/27",
+      "past_race_dates": [],
+      "permanent_horse_id": null,
+      "permanent_id_verified": false
+    },
+    {
+      "horse_number": 8,
+      "frame_number": 7,
+      "horse_name": "スタニスラス",
+      "horse_profile_href": "/JRADB/accessU.html?CNAME=pw01dud002024106622/B4",
+      "past_race_dates": [],
+      "permanent_horse_id": null,
+      "permanent_id_verified": false
+    },
+    {
+      "horse_number": 9,
+      "frame_number": 7,
+      "horse_name": "ショウサンキング",
+      "horse_profile_href": "/JRADB/accessU.html?CNAME=pw01dud002024105919/6D",
+      "past_race_dates": [],
+      "permanent_horse_id": null,
+      "permanent_id_verified": false
+    },
+    {
+      "horse_number": 10,
+      "frame_number": 8,
+      "horse_name": "チャンピオンリング",
+      "horse_profile_href": "/JRADB/accessU.html?CNAME=pw01dud002024104565/3E",
+      "past_race_dates": [],
+      "permanent_horse_id": null,
+      "permanent_id_verified": false
+    },
+    {
+      "horse_number": 11,
+      "frame_number": 8,
+      "horse_name": "ヨコハマブルース",
+      "horse_profile_href": "/JRADB/accessU.html?CNAME=pw01dud002024108285/87",
+      "past_race_dates": [],
+      "permanent_horse_id": null,
+      "permanent_id_verified": false
+    }
+  ],
+  "runner_count": 11,
+  "prior_date_count": 0,
+  "parse_errors": [],
+  "roster_verified": true,
+  "scratch_final_verification": false,
+  "permanent_ids_verified": false,
+  "odds_verified": false,
+  "prediction_ready": false,
+  "training_ready": false
+}
