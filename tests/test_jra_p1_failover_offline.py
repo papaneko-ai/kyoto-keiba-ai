@@ -43,7 +43,7 @@ class DualSourceOffline(unittest.TestCase):
         with self.assertRaisesRegex(ValueError,"source_after_cutoff"):
             choose(item("PC",stamp="2026-11-07T00:00:00+00:00"),cutoff=CUTOFF)
     def test_no_source_provenance_refused(self):
-        with self.assertRaisesRegex(ValueError,"unproven_validation"):
+        with self.assertRaisesRegex(ValueError,"original_not_preserved"):
             choose(item("PC",raw=False),cutoff=CUTOFF)
     def test_no_fallback(self):
         self.assertEqual(choose(item("SP",False),cutoff=CUTOFF),
