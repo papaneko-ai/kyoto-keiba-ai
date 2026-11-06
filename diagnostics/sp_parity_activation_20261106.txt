@@ -1,0 +1,1 @@
+One official smartphone Kyoto 11R source request; extract SP runner numbers from DOM and compare to already frozen desktop runner names/numbers. No repeated desktop request, no model or Turso writes.
