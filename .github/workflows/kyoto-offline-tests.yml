@@ -29,6 +29,8 @@ on:
       - 'tests/test_jra_source_router.py'
       - 'diagnostics/jra_benchmark_acceptance.py'
       - 'tests/test_jra_benchmark_acceptance.py'
+      - 'diagnostics/jra_market_integrity_gate.py'
+      - 'tests/test_jra_market_integrity_gate.py'
       - 'docs/diagnostics/pc_sp_benchmark_20261106/benchmark_report.json'
       - 'docs/diagnostics/JRA_KYOTO_R7_PRERACE_FROZEN_20261106.json'
       - '.github/workflows/kyoto-offline-tests.yml'
@@ -58,3 +60,4 @@ jobs:
           python -m unittest discover -s tests -p 'test_jra_pc_sp_11r_evidence.py' -v
           python -m unittest discover -s tests -p 'test_jra_source_router.py' -v
           python -m unittest discover -s tests -p 'test_jra_benchmark_acceptance.py' -v
+          python -m unittest discover -s tests -p 'test_jra_market_integrity_gate.py' -v
