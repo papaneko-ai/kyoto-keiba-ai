@@ -1,0 +1,149 @@
+"""One-shot bounded JRA official odds retrieval, no guessed CNAME, no retries.
+
+Experimental diagnostic only. Intentionally cannot auto-run before publication,
+after the independently confirmed freeze cutoff, or against unofficial hosts.
+Every HTTP response has a separate timestamp, byte count, and SHA-256.
+"""
+from __future__ import annotations
+from datetime import datetime,timezone,timedelta
+from pathlib import Path
+from hashlib import sha256
+from http.cookiejar import CookieJar
+from urllib.request import Request,build_opener,HTTPCookieProcessor
+from urllib.parse import urlsplit,urlencode
+from bs4 import BeautifulSoup
+import argparse,json,re
+
+from diagnostics.jra_official_market_navigation import find_market_links,MarketNavigationError
+from diagnostics.jra_market_source_chain import audit_source_originals,SourceChainError
+from diagnostics.jra_odds_source_archive import aware_utc
+
+RACE_DAY="20261107"
+RACE_NUMBER=11
+RACE_ID="2026-11-07_KYOTO_11R"
+VENUE="京都"
+NORMAL_SALES_OPEN_UTC="2026-11-06T09:30:00+00:00"
+PC_RACECARD_URL="https://jra.jp/JRADB/accessD.html?CNAME=pw01dde0108202605011120261107%2F13"
+SP_RACECARD_URL="https://sp.jra.jp/JRADB/accessD.html?CNAME=sw01dde0108202605011120261107%2FA0"
+MOBILE_UA="Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 Version/17.0 Mobile/15E148 Safari/604.1"
+ACTION=re.compile(r"doAction\s*\(\s*['\"](/JRADB/accessO\.html)['\"]\s*,\s*['\"]([^'\"]+)['\"]")
+LIMIT=1_500_000
+
+def exact_odds_action(raw,channel):
+    soup=BeautifulSoup(raw.decode("cp932",errors="replace"),"html.parser")
+    values=set()
+    for a in soup.select("a"):
+        if a.get_text(" ",strip=True)!="オッズ":continue
+        match=ACTION.search(a.get("onclick",""))
+        if match:values.add(match.group(2))
+    if len(values)!=1:raise SourceChainError("odds_navigation_ambiguous_or_missing")
+    token=next(iter(values))
+    if (channel=="PC")!=(token.startswith("pw")) or not re.fullmatch(r"[A-Za-z0-9]+/[A-Za-z0-9]+",token):
+        raise SourceChainError("unverified_navigation_token")
+    return token
+
+def http_fetch(opener,channel,path,*,cname=None,referer=None):
+    host="jra.jp" if channel=="PC" else "sp.jra.jp"
+    u=urlsplit(path)
+    if u.scheme!="https" or u.hostname!=host or u.path not in ("/JRADB/accessD.html","/JRADB/accessO.html"):
+        raise SourceChainError("invalid_target_origin")
+    method="GET" if cname is None else "POST"
+    headers={"User-Agent":"Mozilla/5.0" if channel=="PC" else MOBILE_UA,"Accept":"text/html"}
+    if referer:headers["Referer"]=referer
+    if cname is not None:headers["Content-Type"]="application/x-www-form-urlencoded"
+    request=Request(path,data=None if cname is None else urlencode({"cname":cname}).encode("ascii"),
+                    headers=headers,method=method)
+    now=datetime.now(timezone.utc).isoformat()
+    with opener.open(request,timeout=20) as response:
+        data=response.read(LIMIT+1);status=response.status
+        ct=response.headers.get("Content-Type","")
+        final=urlsplit(response.geturl())
+    if status!=200 or not 0<len(data)<=LIMIT or "html" not in ct.lower() or final.scheme!="https" or final.hostname not in ({"jra.jp","www.jra.go.jp"} if channel=="PC" else {"sp.jra.jp"}):
+        raise SourceChainError("official_http_response_invalid")
+    return {"raw":data,"sha256":sha256(data).hexdigest(),"bytes":len(data),
+            "captured_at_utc":now,"http_status":status,"method":method}
+
+def capture(out,*,channel,verified_start_utc,active_runners,now_utc=None,opener=None):
+    folder=Path(out);folder.mkdir(parents=True,exist_ok=True)
+    start=aware_utc(verified_start_utc)
+    now=aware_utc(now_utc) if now_utc else datetime.now(timezone.utc)
+    result={"schema_version":"jra_one_shot_market_capture.v1","race_id":RACE_ID,
+        "channel":channel,"started_at_utc":now.isoformat(),
+        "verified_start_utc":start.isoformat(),"state":"STARTED",
+        "request_receipts":[],"pre_race_prices_accepted":False,
+        "prediction_ready":False,"training_ready":False}
+    if channel not in ("PC","SP"):raise SourceChainError("invalid_channel")
+    if now<aware_utc(NORMAL_SALES_OPEN_UTC):
+        result["state"]="WAIT_FOR_OFFICIAL_SALES"
+        (folder/"receipt.json").write_text(json.dumps(result,ensure_ascii=False,indent=2)+"\n",encoding="utf8")
+        return result
+    if now>=start-timedelta(minutes=10):
+        result["state"]="CUTOFF_PASSED_NO_HTTP"
+        (folder/"receipt.json").write_text(json.dumps(result,ensure_ascii=False,indent=2)+"\n",encoding="utf8")
+        return result
+    if opener is None:opener=build_opener(HTTPCookieProcessor(CookieJar()))
+    source=PC_RACECARD_URL if channel=="PC" else SP_RACECARD_URL
+    host="jra.jp" if channel=="PC" else "sp.jra.jp"
+    try:
+        racecard=http_fetch(opener,channel,source)
+        (folder/"official_racecard.html").write_bytes(racecard["raw"])
+        result["request_receipts"].append({"step":"racecard",**{k:v for k,v in racecard.items() if k!="raw"}})
+        token=exact_odds_action(racecard["raw"],channel)
+        menu_url=f"https://{host}/JRADB/accessO.html"
+        menu=http_fetch(opener,channel,menu_url,cname=token,referer=source)
+        (folder/"official_odds_menu.html").write_bytes(menu["raw"])
+        result["request_receipts"].append({"step":"odds_menu",**{k:v for k,v in menu.items() if k!="raw"}})
+        text=BeautifulSoup(menu["raw"].decode("cp932",errors="replace"),"html.parser").get_text(" ",strip=True)
+        if "今週のオッズは未発表です" in text or "オッズは未発表" in text:
+            result["state"]="OFFICIAL_NOT_PUBLISHED"
+            return result
+        if "最終オッズ" in text:
+            result["state"]="REJECT_FINAL_ODDS"
+            return result
+        try:markets=find_market_links(menu["raw"],expected_race_day=RACE_DAY,
+                expected_race_number=RACE_NUMBER,expected_host=host)
+        except MarketNavigationError:
+            # The current page may be a meeting-selection index. Do not
+            # invent subsequent endpoints; require observed navigation.
+            result["state"]="OFFICIAL_MENU_NEEDS_RACE_NAVIGATION"
+            return result
+        market_originals={};urls={};times={}
+        for market in ("quinella","bracket_quinella"):
+            record=markets["markets"][market]
+            link=record["cname"]
+            url=record["official_post_url"]
+            if datetime.now(timezone.utc)>=start-timedelta(minutes=10):
+                raise SourceChainError("cutoff_reached_during_acquisition")
+            page=http_fetch(opener,channel,url,cname=link,referer=menu_url)
+            market_originals[market]=page["raw"]
+            urls[market]=url
+            times[market]=page["captured_at_utc"]
+            (folder/f"{market}_original.html").write_bytes(page["raw"])
+            result["request_receipts"].append({"step":market,**{k:v for k,v in page.items() if k!="raw"}})
+        chain=audit_source_originals(menu["raw"],market_originals,urls,
+          race_key=RACE_ID,race_day=RACE_DAY,venue=VENUE,race_number=RACE_NUMBER,
+          channel=channel,captured_at_utc=menu["captured_at_utc"],
+          verified_start_utc=start.isoformat(),active_runners=active_runners,
+          market_captured_at_utc=times,
+          archive_directory=folder/"frozen_source")
+        result["market_receipt"]=chain
+        result["pre_race_prices_accepted"]=chain["classification"]=="VALIDATED_LIVE_MARKETS_NOT_PREDICTION_RELEASED"
+        result["state"]="SOURCE_FROZEN" if result["pre_race_prices_accepted"] else "MARKETS_FAILED_VALIDATION"
+    except Exception as exc:
+        result["state"]="CAPTURE_BLOCKED"
+        result["reason"]=type(exc).__name__+":"+str(exc)[:230]
+    finally:
+        result["ended_at_utc"]=datetime.now(timezone.utc).isoformat()
+        (folder/"receipt.json").write_text(json.dumps(result,ensure_ascii=False,indent=2)+"\n",encoding="utf8")
+    return result
+if __name__=="__main__":
+    p=argparse.ArgumentParser()
+    p.add_argument("--out",required=True)
+    p.add_argument("--channel",choices=["PC","SP"],default="PC")
+    p.add_argument("--verified-start-utc",required=True)
+    p.add_argument("--active-roster-json",required=True)
+    args=p.parse_args()
+    roster=json.loads(Path(args.active_roster_json).read_text(encoding="utf8"))
+    rows=tuple((int(r["horse_number"]),int(r["frame_number"])) for r in roster["runners"])
+    print(json.dumps(capture(args.out,channel=args.channel,
+       verified_start_utc=args.verified_start_utc,active_runners=rows),ensure_ascii=False,indent=2))
