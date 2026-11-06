@@ -1,0 +1,32 @@
+name: JRA future Kyoto R7 live-prerace source probe
+on:
+  push:
+    branches: [jra-html-diagnostic-20261105]
+    paths: ['diagnostics/future_r7_activation_20261106.txt']
+permissions:
+  contents: write
+jobs:
+  capture:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+      - name: Capture one official published 2026-11-07 Kyoto R7 racecard
+        run: python diagnostics/jra_future_racecard_probe.py --out jra_future_probe
+      - name: Persist provenance receipt only
+        run: |
+          mkdir -p docs/diagnostics
+          cp jra_future_probe/receipt.json docs/diagnostics/JRA_FUTURE_KYOTO_R7_20261106.json
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/diagnostics/JRA_FUTURE_KYOTO_R7_20261106.json
+          git commit -m "Persist live future JRA racecard capture evidence" || true
+          git push origin HEAD:jra-html-diagnostic-20261105
+      - name: Store source HTML privately for 3 days
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: jra-live-prerace-kyoto-r7-20261106
+          path: jra_future_probe/
+          retention-days: 3
+          if-no-files-found: warn
