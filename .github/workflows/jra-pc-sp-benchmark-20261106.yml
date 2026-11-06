@@ -1,0 +1,36 @@
+name: JRA 5-race paired PC SP benchmark
+on:
+  push:
+    branches: [jra-html-diagnostic-20261105]
+    paths: ['diagnostics/pc_sp_benchmark_activation_20261106.txt']
+permissions:
+  contents: write
+jobs:
+  paired_comparison:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - run: python -m pip install 'beautifulsoup4>=4.12,<5'
+      - name: Five bounded paired requests per official channel
+        env:
+          PYTHONPATH: .
+        run: python diagnostics/jra_pc_sp_benchmark.py --out jra_pc_sp_benchmark
+      - name: Persist structured benchmark receipts only
+        if: always()
+        run: |
+          mkdir -p docs/diagnostics/pc_sp_benchmark_20261106
+          cp jra_pc_sp_benchmark/*.json docs/diagnostics/pc_sp_benchmark_20261106/
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/diagnostics/pc_sp_benchmark_20261106/
+          git commit -m "Record JRA paired PC/SP empirical benchmark" || true
+          git pull --rebase origin jra-html-diagnostic-20261105
+          git push origin HEAD:jra-html-diagnostic-20261105
+      - name: Three-day source originals
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: jra-paired-pc-sp-source-evidence-20261106
+          path: jra_pc_sp_benchmark/
+          retention-days: 3
