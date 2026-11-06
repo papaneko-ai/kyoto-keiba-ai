@@ -1,0 +1,1 @@
+Official mobile Kyoto 11R one-shot GET for PC/SP comparison. PC frozen snapshot reused, no PC re-fetch, raw SP HTML only short-lived artifact, no production DB changes.
