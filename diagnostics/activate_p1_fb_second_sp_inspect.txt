@@ -1,0 +1,1 @@
+Offline only: inspect 12 parser-rejected SP history lines from SHA original downloaded by run 42174986970. No official new GET. Record exact row tokens for root-cause-first repair.
