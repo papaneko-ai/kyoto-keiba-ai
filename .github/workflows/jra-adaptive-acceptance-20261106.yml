@@ -1,0 +1,32 @@
+name: JRA adaptive PC SP evidence acceptance milestone
+on:
+  push:
+    branches: [jra-html-diagnostic-20261105]
+    paths: ['diagnostics/adaptive_acceptance_activation_20261106.txt']
+permissions:
+  contents: write
+jobs:
+  accept:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    env:
+      PYTHONPATH: .
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify all five source-backed comparisons without JRA requests
+        run: |
+          python -m unittest discover -s tests -p 'test_jra_source_router.py' -v
+          python -m unittest discover -s tests -p 'test_jra_benchmark_acceptance.py' -v
+      - name: Record adaptive decision based on measured network and parsing times
+        run: |
+          python diagnostics/jra_benchmark_acceptance.py \
+            --report docs/diagnostics/pc_sp_benchmark_20261106/benchmark_report.json \
+            --out docs/diagnostics/JRA_ADAPTIVE_SOURCE_ACCEPTANCE_20261106.json
+      - name: Persist bounded structured acceptance evidence
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/diagnostics/JRA_ADAPTIVE_SOURCE_ACCEPTANCE_20261106.json
+          git commit -m "Record measured source routing candidate with production gate closed" || true
+          git pull --rebase origin jra-html-diagnostic-20261105
+          git push origin HEAD:jra-html-diagnostic-20261105
