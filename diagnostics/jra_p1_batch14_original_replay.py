@@ -40,7 +40,7 @@ def replay(originals,out):
         results.append({"race":race,"horse_number":n,"horse_name":expected["horse_name"],
                         "source_sha256":h,"prior_rows":len(parsed["prior_rows"]),"administrative_events":len(d["administrative_events"])})
     report={"schema":"batch14_independent_replay.v1",
-        "state":"SIX_ORIGINALS_REPLAYED","verified_count":2,"network_requests":0,
+        "state":"SIX_ORIGINALS_REPLAYED","verified_count":len(results),"network_requests":0,
         "items":results,"training_ready":False,"prediction_ready":False}
     (dst/"replay_receipt.json").write_bytes(canonical(report))
     return report
