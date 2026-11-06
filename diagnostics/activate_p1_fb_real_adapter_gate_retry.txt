@@ -1,0 +1,1 @@
+Offline rerun of existing 15 and new 9 adapter safety tests after synthetic fixture correction; verify SHA-locked 30 PC/SP past races + one excluded event and symmetric control, zero JRA GET.
