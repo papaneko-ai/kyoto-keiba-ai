@@ -1,0 +1,1 @@
+One additional single-page verification: future 2026-11-07 Kyoto R7 current official source, extract structural field evidence, persist only structured information.
