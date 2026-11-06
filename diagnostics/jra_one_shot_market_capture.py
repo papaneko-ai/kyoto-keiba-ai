@@ -53,15 +53,15 @@ def http_fetch(opener,channel,path,*,cname=None,referer=None):
     if cname is not None:headers["Content-Type"]="application/x-www-form-urlencoded"
     request=Request(path,data=None if cname is None else urlencode({"cname":cname}).encode("ascii"),
                     headers=headers,method=method)
-    now=datetime.now(timezone.utc).isoformat()
     with opener.open(request,timeout=20) as response:
         data=response.read(LIMIT+1);status=response.status
         ct=response.headers.get("Content-Type","")
         final=urlsplit(response.geturl())
+    received_at=datetime.now(timezone.utc).isoformat()
     if status!=200 or not 0<len(data)<=LIMIT or "html" not in ct.lower() or final.scheme!="https" or final.hostname not in ({"jra.jp","www.jra.go.jp"} if channel=="PC" else {"sp.jra.jp"}):
         raise SourceChainError("official_http_response_invalid")
     return {"raw":data,"sha256":sha256(data).hexdigest(),"bytes":len(data),
-            "captured_at_utc":now,"http_status":status,"method":method}
+            "captured_at_utc":received_at,"http_status":status,"method":method}
 
 def capture(out,*,channel,verified_start_utc,active_runners,now_utc=None,opener=None):
     folder=Path(out);folder.mkdir(parents=True,exist_ok=True)
