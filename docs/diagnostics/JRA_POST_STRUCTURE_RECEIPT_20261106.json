@@ -1,0 +1,21 @@
+{
+  "schema_version": "jra_racecard_post.v1",
+  "method": "POST",
+  "request_url": "https://www.jra.go.jp/JRADB/accessD.html",
+  "cname_sha256": "e972e0212a652d2246fd8908649d50f56f45804b7ff61525067606266a195c82",
+  "started_at_utc": "2026-11-06T03:22:17.959731+00:00",
+  "status": "HTML_CAPTURED_UNCLASSIFIED",
+  "http_status": 200,
+  "bytes": 58925,
+  "sha256": "78524d662006773c2fc53d805ab4b3a32eb1c57da38a8da824c60dffdadc0a2d",
+  "error_type": null,
+  "error_message": null,
+  "pre_race_snapshot": false,
+  "whole_racecard_verified": false,
+  "permanent_horse_ids_verified": false,
+  "ready_for_training": false,
+  "title": "出馬表　JRA",
+  "table_count": 0,
+  "form_count": 4,
+  "finished_at_utc": "2026-11-06T03:22:18.529233+00:00"
+}

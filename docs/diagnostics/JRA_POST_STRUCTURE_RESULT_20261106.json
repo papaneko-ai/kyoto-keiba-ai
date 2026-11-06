@@ -1,0 +1,144 @@
+{
+  "title": "出馬表　JRA",
+  "has_horse_name_marumo": false,
+  "has_kyoto": true,
+  "has_race_no_1": false,
+  "has_horse_number": true,
+  "has_racecard": true,
+  "counts": {
+    "table": 0,
+    "tr": 0,
+    "td": 0,
+    "div": 197,
+    "form": 4,
+    "script": 20,
+    "iframe": 1,
+    "a": 233,
+    "select": 0,
+    "input": 5
+  },
+  "visible_start": "出馬表　JRA 本文へ移動する ニュース 企業情報 社会貢献活動 レース情報 ネット馬券 ログイン ビギナーズ 検索 メニュー 閉じる お問い合わせ/FAQ スマッピー UMACAスマート 競馬メニュー 競馬メニュー 競馬メニュー トップ メニューを閉じる 今週の開催情報 開催お知らせ 出馬表 オッズ レース結果 開催日程 払戻金 特別レース登録馬 競走馬検索 馬場情報 今週の注目レース 達成間近な記録 データファイル GⅠレース出走馬決定順 レース成績データ 特別レース名解説 騎手・調教師データ リーディング情報 レーティング レコードタイム表 競走馬登録馬名簿・馬名意味 競走馬登録・抹消一覧 5大登録 開催場別出馬表 競馬のルール 競馬番組 降着・失格のルール 競馬のルール 海外競馬・地方競馬 海外競馬発売 JRAの国際競走 地方競馬の情報・関連リンク 競馬にかかわる人々 馬主情報 騎手になるには 厩舎スタッフになるには 競",
+  "likely_class_names": [
+    [
+      "fa-solid",
+      204
+    ],
+    [
+      "icon",
+      192
+    ],
+    [
+      "txt",
+      187
+    ],
+    [
+      "fa-chevron-right",
+      155
+    ],
+    [
+      "group_unit",
+      27
+    ],
+    [
+      "category",
+      26
+    ],
+    [
+      "fa-arrow-up-right-from-square",
+      23
+    ],
+    [
+      "col_wrap",
+      19
+    ],
+    [
+      "fa",
+      16
+    ],
+    [
+      "btn-round",
+      13
+    ],
+    [
+      "inner",
+      12
+    ],
+    [
+      "fa-chevron-down",
+      12
+    ],
+    [
+      "col2",
+      11
+    ],
+    [
+      "sp_link_check",
+      10
+    ],
+    [
+      "fa-chevron-circle-right",
+      9
+    ],
+    [
+      "sr-only",
+      8
+    ],
+    [
+      "link_unit",
+      8
+    ],
+    [
+      "submenu",
+      7
+    ],
+    [
+      "close",
+      7
+    ],
+    [
+      "fa-xmark",
+      7
+    ],
+    [
+      "category_top",
+      7
+    ],
+    [
+      "menu_unit",
+      6
+    ],
+    [
+      "category_home_link",
+      6
+    ],
+    [
+      "category_open_link",
+      6
+    ]
+  ],
+  "jra_navigation_links": [
+    {
+      "label": "出馬表",
+      "endpoint": "accessD.html",
+      "action_signature": true
+    },
+    {
+      "label": "競走馬検索",
+      "endpoint": "accessR.html",
+      "action_signature": true
+    },
+    {
+      "label": "競走馬検索",
+      "endpoint": "accessR.html",
+      "action_signature": true
+    },
+    {
+      "label": "出馬表",
+      "endpoint": "accessD.html",
+      "action_signature": true
+    }
+  ],
+  "all_runner_links_count": 2,
+  "racecard_structure_verified": false,
+  "training_ready": false
+}
