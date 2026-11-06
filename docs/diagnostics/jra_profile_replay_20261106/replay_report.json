@@ -1,0 +1,82 @@
+{
+  "schema": "real_three_horse_profile_replay.v1",
+  "replayed_originals": 3,
+  "parsed": 2,
+  "items": [
+    {
+      "race": 1,
+      "number": 1,
+      "name": "ジョイザモーメント",
+      "status": "PARSED",
+      "original_source_sha256": "66b1a3483de1a629f7a04c3341c3dcfd799e1bb48814f1803045c7676b60f403",
+      "prediction_ready": false,
+      "training_ready": false,
+      "prior_rows": 2,
+      "total_rows": 2,
+      "excluded_rows": 0,
+      "invalid_rows": 0,
+      "extracted_fields": [
+        "date",
+        "venue",
+        "race_title",
+        "surface",
+        "distance_m",
+        "going",
+        "field_size",
+        "popularity",
+        "finish_position",
+        "jockey",
+        "carried_weight",
+        "body_weight",
+        "time",
+        "finish_percentile"
+      ],
+      "profile_before_cutoff": true,
+      "empty_history_verified": false
+    },
+    {
+      "race": 5,
+      "number": 1,
+      "name": "ロードラムセス",
+      "status": "BLOCKED",
+      "original_source_sha256": "642b5494743c0892fe01534be2bf419e1f1ebb0c7ecaa11c89157feffdcd920b",
+      "prediction_ready": false,
+      "training_ready": false,
+      "reason": "ValueError:history_table_missing"
+    },
+    {
+      "race": 11,
+      "number": 1,
+      "name": "モンドプリューム",
+      "status": "PARSED",
+      "original_source_sha256": "87bcbe38112dc1855f22099edb9bff5cc30a14b78b595470373b6355b2907b9c",
+      "prediction_ready": false,
+      "training_ready": false,
+      "prior_rows": 30,
+      "total_rows": 31,
+      "excluded_rows": 0,
+      "invalid_rows": 1,
+      "extracted_fields": [
+        "date",
+        "venue",
+        "race_title",
+        "surface",
+        "distance_m",
+        "going",
+        "field_size",
+        "popularity",
+        "finish_position",
+        "jockey",
+        "carried_weight",
+        "body_weight",
+        "time",
+        "finish_percentile"
+      ],
+      "profile_before_cutoff": true,
+      "empty_history_verified": false
+    }
+  ],
+  "full_148_coverage": false,
+  "prediction_ready": false,
+  "training_ready": false
+}

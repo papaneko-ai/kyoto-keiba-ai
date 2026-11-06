@@ -1,0 +1,44 @@
+{
+  "race": 1,
+  "horse_name": "ジョイザモーメント",
+  "source_sha256": "66b1a3483de1a629f7a04c3341c3dcfd799e1bb48814f1803045c7676b60f403",
+  "fetched_at_utc": "2026-11-06T04:31:30.165140+00:00",
+  "prior_rows": [
+    {
+      "date": "2026-10-10",
+      "venue": "京都",
+      "race_title": "2歳未勝利",
+      "surface": "ダ",
+      "distance_m": 1800,
+      "going": "良",
+      "field_size": 14,
+      "popularity": "2",
+      "finish_position": 3,
+      "jockey": "松山 弘平",
+      "carried_weight": "55.0",
+      "body_weight": "488",
+      "time": "1:54.5",
+      "finish_percentile": 0.8461538461538461
+    },
+    {
+      "date": "2026-09-21",
+      "venue": "阪神",
+      "race_title": "2歳新馬",
+      "surface": "ダ",
+      "distance_m": 1400,
+      "going": "良",
+      "field_size": 14,
+      "popularity": "3",
+      "finish_position": 4,
+      "jockey": "岩田 望来",
+      "carried_weight": "55.0",
+      "body_weight": "490",
+      "time": "1:28.1",
+      "finish_percentile": 0.7692307692307693
+    }
+  ],
+  "excluded_rows": [],
+  "invalid_rows": [],
+  "prediction_ready": false,
+  "training_ready": false
+}
