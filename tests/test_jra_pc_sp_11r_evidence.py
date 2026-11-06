@@ -35,7 +35,7 @@ class TestOfficialSPvsPC(unittest.TestCase):
  def test_repeated_frame_is_inherited(self):
   self.assertEqual(carry_frames([{'frame_cell_text':'2'},{'frame_cell_text':None}]),[2,2])
  def test_no_model_release(self):
-  self.assertFalse(sp()['ready_for_training'])
+  self.assertFalse(sp()['training_ready'])
   receipt=json.loads((ROOT/'JRA_SP_RUNNER_PARITY_FIXED_RECEIPT_20261106.json').read_text(encoding='utf8'))
   self.assertFalse(receipt['ready_for_prediction'])
 if __name__=='__main__':unittest.main()
