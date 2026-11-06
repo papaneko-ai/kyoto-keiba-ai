@@ -1,0 +1,1 @@
+Offline-only SHA locked SP profile original from run 42173462385 and repository PC profile for same horse. Compare 31 race events field by field; preserve mismatch, no new HTTP, no model training.
