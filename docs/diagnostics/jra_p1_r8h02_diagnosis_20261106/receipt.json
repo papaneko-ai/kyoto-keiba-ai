@@ -1,0 +1,32 @@
+{
+  "schema_version": "jra_batch13_r8_02_diagnostic.v1",
+  "race": 8,
+  "horse_number": 2,
+  "horse_name": "グラニットピーク",
+  "source_url": "https://jra.jp/JRADB/accessU.html?CNAME=pw01dud002020103507/A5",
+  "purpose": "INCIDENT_DIAGNOSIS_ONLY",
+  "prior_failed_source_original_recovered": false,
+  "network_requests": 1,
+  "prediction_ready": false,
+  "training_ready": false,
+  "state": "DIAGNOSED",
+  "captured_at_utc": "2026-11-06T05:56:31.422342+00:00",
+  "http_status": 200,
+  "source_bytes": 124811,
+  "source_sha256": "02673c9e62fa49e6d781abdd14c7ffe8e3993ebed3e479192f336c11f506bf5d",
+  "raw_saved_before_parser": true,
+  "history_rows_total": 28,
+  "valid_prior_rows": 26,
+  "invalid_rows": [
+    {
+      "row": 17,
+      "reason": "unparsed_surface_or_distance"
+    },
+    {
+      "row": 23,
+      "reason": "unparsed_surface_or_distance"
+    }
+  ],
+  "excluded_rows": [],
+  "nonfinish_rows": []
+}
