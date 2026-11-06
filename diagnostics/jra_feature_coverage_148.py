@@ -30,7 +30,9 @@ def source_for_race(n):
  return ROOT/"remaining8_20261106"/f"kyoto_{n:02d}_snapshot.json"
 def load(path):return json.loads(Path(path).read_text(encoding="utf8"))
 def profile_for(race,num):
- return ROOT/"jra_profile_replay_20261106"/f"race_{race:02d}_horse_{num:02d}_form.json"
+ if race in (1,5,11):
+  return ROOT/"jra_profile_replay_20261106"/f"race_{race:02d}_horse_{num:02d}_form.json"
+ return ROOT/"jra_nine_profiles_reparsed_20261106"/f"kyoto_{race:02d}_horse_{num:02d}_form.json"
 
 def first_features(rows):
  if not rows:return None
@@ -45,8 +47,15 @@ def first_features(rows):
    "recent_three_surface_counts":{k:sum(x.get("surface")==k for x in items) for k in ("芝","ダ","ダート","障")}}
 def build():
  profile_report=load(ROOT/"jra_profile_replay_20261106"/"replay_report.json")
+ nine_report=load(ROOT/"jra_nine_profiles_reparsed_20261106"/"replay_report.json")
+ if nine_report["reparsed"]!=9:raise ValueError("nine_profiles_not_fully_reparsed")
  profile_status={(x["race"],x["number"]):x for x in profile_report["items"]}
+ for extra in nine_report["items"]:
+  key=(extra["race"],extra["horse_number"])
+  if key in profile_status:raise ValueError("profile_duplicate_across_runs")
+  profile_status[key]=extra
  features=[];counts=[];dates_total=0;names_with_dates=0;profile_read=0
+ detailed_finishes=0;profile_empty=0;profile_events=0;profile_nonfinish=0
  for race in range(1,13):
   d=load(source_for_race(race))
   if d.get("race_number")!=race or d.get("race_date")!="2026-11-07":
@@ -100,18 +109,26 @@ def build():
     if p["status"]=="PARSED":
      file=profile_for(race,h["horse_number"])
      observed=load(file)
-     if (observed["horse_name"]!=h["horse_name"] or
-         observed["source_sha256"]!=p["original_source_sha256"]):
+     source_name=observed.get("horse_name",observed.get("name"))
+     source_hash=p.get("original_source_sha256",p.get("original_sha256"))
+     if (source_name!=h["horse_name"] or
+         observed["source_sha256"]!=source_hash):
       raise ValueError("profile_provenance_mismatch")
-     if datetime.fromisoformat(observed["fetched_at_utc"].replace("Z","+00:00"))>=CUTOFF:
+     source_time=observed.get("fetched_at_utc",observed.get("captured_at_utc"))
+     if datetime.fromisoformat(source_time.replace("Z","+00:00"))>=CUTOFF:
       raise ValueError("profile_after_cutoff")
      for r in observed["prior_rows"]:
       if date.fromisoformat(r["date"])>=EVENT_DAY:raise ValueError("future_prior_form_row")
      item["performance_features"]=first_features(observed["prior_rows"])
-     item["profile_status"]=p.get("history_status","PARSED")
-     item["source_coverage"]["horse_profile"]="VERIFIED_SOURCE_ROWS"
-     item["profile_source_sha256"]=p["original_source_sha256"]
+     item["profile_status"]=observed.get("history_status","PARSED")
+     empty=not observed["prior_rows"]
+     item["source_coverage"]["horse_profile"]="VERIFIED_EMPTY_HISTORY" if empty else "VERIFIED_SOURCE_ROWS"
+     item["profile_source_sha256"]=source_hash
      item["nonfinish_event_count"]=len(observed.get("nonfinish_rows",[]))
+     detailed_finishes+=len(observed["prior_rows"])
+     profile_events+=len(observed["prior_rows"])+len(observed.get("nonfinish_rows",[]))
+     profile_nonfinish+=len(observed.get("nonfinish_rows",[]))
+     profile_empty+=int(empty)
      profile_read+=1
     else:
      item["profile_status"]="SOURCE_RECEIPT_BLOCKED"
@@ -126,10 +143,17 @@ def build():
    "horses_with_prior_dates":names_with_dates,
    "profile_sources_queried":len(profile_status),
    "profile_sources_with_parsed_form":profile_read,
+   "profile_sources_with_actual_finishes":profile_read-profile_empty,
+   "profile_sources_verified_no_history":profile_empty,
+   "profile_actual_finished_race_rows":detailed_finishes,
+   "profile_actual_nonfinish_events":profile_nonfinish,
+   "profile_actual_prior_events":profile_events,
    "profile_sources_unqueried":148-len(profile_status),
    "source_status_by_group":{
      "racecard":{"status":"BASIC_ROSTER_148_VERIFIED","runners":148},
-     "horse_profile":{"status":"PARTIALLY_VERIFIED","parsed":profile_read,"queried":len(profile_status)},
+     "horse_profile":{"status":"PARTIALLY_VERIFIED","parsed":profile_read,"queried":len(profile_status),
+       "valid_finished_races":detailed_finishes,"nonfinish_events":profile_nonfinish,
+       "verified_empty_profiles":profile_empty},
      "race_conditions":{"status":"NOT_STRUCTURED_OR_VERIFIED"},
      "jockey_trainer":{"status":"NOT_COLLECTED_AS_OF"},
      "track_weather":{"status":"NOT_COLLECTED_AS_OF"},
