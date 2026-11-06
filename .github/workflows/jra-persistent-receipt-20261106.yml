@@ -1,0 +1,37 @@
+name: JRA one-page persistent diagnostic receipt
+on:
+  push:
+    branches: [jra-html-diagnostic-20261105]
+    paths: ['diagnostics/receipt_activation_20261106.txt']
+permissions:
+  contents: write
+concurrency:
+  group: jra-persistent-receipt-20261106
+  cancel-in-progress: false
+jobs:
+  once:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - name: Capture one historical JRA page with failure receipt
+        run: python diagnostics/jra_receipt_probe.py --out jra_receipt_evidence
+      - name: Save non-HTML receipt in diagnostic branch
+        run: |
+          mkdir -p docs/diagnostics
+          cp jra_receipt_evidence/receipt.json docs/diagnostics/JRA_RECEIPT_RESULT_20261106.json
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/diagnostics/JRA_RECEIPT_RESULT_20261106.json
+          git commit -m "Persist one-page JRA diagnostics receipt" || true
+          git push origin HEAD:jra-html-diagnostic-20261105
+      - name: Upload short-lived raw capture if any
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: jra-one-page-receipt-20261106
+          path: jra_receipt_evidence/
+          retention-days: 3
+          if-no-files-found: warn
