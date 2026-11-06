@@ -2,7 +2,7 @@ name: Kyoto P1-FB real source symmetric adapter and regression
 on:
   push:
     branches: [jra-html-diagnostic-20261105]
-    paths: ['diagnostics/activate_p1_fb_real_adapter_gate.txt']
+    paths: ['diagnostics/activate_p1_fb_real_adapter_gate.txt', 'diagnostics/activate_p1_fb_real_adapter_gate_retry.txt']
 permissions:
   contents: write
   actions: read
