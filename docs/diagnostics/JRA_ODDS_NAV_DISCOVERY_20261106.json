@@ -1,0 +1,151 @@
+{
+  "schema_version": "jra_official_odds_nav.v1",
+  "race": "2026-11-07-KYOTO-11R",
+  "sources": [
+    {
+      "channel": "PC",
+      "source": "https://jra.jp/JRADB/accessD.html?CNAME=pw01dde0108202605011120261107%2F13",
+      "captured_at_utc": "2026-11-06T04:04:29.508867+00:00",
+      "status": "NAVIGATION_AUDITED",
+      "sha256": "0c443ce664e6c8c7ed54ea2ebda837edef07f1a2697405bf069677b0cc67f565",
+      "bytes": 232708,
+      "http_status": 200,
+      "html_title": "出馬表　JRA",
+      "relevant_anchor_count": 11,
+      "relevant_anchors": [
+        {
+          "label": "ネット馬券 ログイン",
+          "href": "https://www.ipat.jra.go.jp/",
+          "onclick": "",
+          "mentions_official_odds_endpoint": false
+        },
+        {
+          "label": "オッズ",
+          "href": "#",
+          "onclick": "doAction('/JRADB/accessO.html','pw15oli00/6D');return false;",
+          "mentions_official_odds_endpoint": true
+        },
+        {
+          "label": "馬券・JRA-UMACA",
+          "href": "/kouza/",
+          "onclick": "",
+          "mentions_official_odds_endpoint": false
+        },
+        {
+          "label": "馬券・JRA-UMACA トップ",
+          "href": "/kouza/",
+          "onclick": "",
+          "mentions_official_odds_endpoint": false
+        },
+        {
+          "label": "馬券の種類",
+          "href": "/kouza/beginner/baken/",
+          "onclick": "",
+          "mentions_official_odds_endpoint": false
+        },
+        {
+          "label": "馬券の購入（現金）",
+          "href": "/kouza/beginner/buy/",
+          "onclick": "",
+          "mentions_official_odds_endpoint": false
+        },
+        {
+          "label": "馬券の購入（UMACA）",
+          "href": "/kouza/beginner/cashless/",
+          "onclick": "",
+          "mentions_official_odds_endpoint": false
+        },
+        {
+          "label": "ネット馬券購入",
+          "href": "/dento.html",
+          "onclick": "",
+          "mentions_official_odds_endpoint": false
+        },
+        {
+          "label": "ネット馬券購入 トップ",
+          "href": "/dento.html",
+          "onclick": "",
+          "mentions_official_odds_endpoint": false
+        },
+        {
+          "label": "オッズ",
+          "href": "#",
+          "onclick": "return doAction('/JRADB/accessO.html','pw15oli00/6D')",
+          "mentions_official_odds_endpoint": true
+        },
+        {
+          "label": "馬券は20歳になってから",
+          "href": "/kouza/baken/index.html#cat_info",
+          "onclick": "",
+          "mentions_official_odds_endpoint": false
+        }
+      ],
+      "odds_endpoints_visible": 2
+    },
+    {
+      "channel": "SP",
+      "source": "https://sp.jra.jp/JRADB/accessD.html?CNAME=sw01dde0108202605011120261107%2FA0",
+      "captured_at_utc": "2026-11-06T04:04:31.613201+00:00",
+      "status": "NAVIGATION_AUDITED",
+      "sha256": "de806dc0a9977a41ffd2a795a5e6cda485fb243e26fbf8eb56d932326986ba54",
+      "bytes": 128691,
+      "http_status": 200,
+      "html_title": "出馬表",
+      "relevant_anchor_count": 8,
+      "relevant_anchors": [
+        {
+          "label": "ネット馬券 ログイン",
+          "href": "https://www.ipat.jra.go.jp/sp/",
+          "onclick": "",
+          "mentions_official_odds_endpoint": false
+        },
+        {
+          "label": "オッズ",
+          "href": "#",
+          "onclick": "return doAction('/JRADB/accessO.html','sw15oli00/FA')",
+          "mentions_official_odds_endpoint": true
+        },
+        {
+          "label": "馬券の種類",
+          "href": "//www.jra.go.jp/kouza/beginner/baken/",
+          "onclick": "",
+          "mentions_official_odds_endpoint": false
+        },
+        {
+          "label": "馬券の購入（現金）",
+          "href": "//www.jra.go.jp/kouza/beginner/buy/",
+          "onclick": "",
+          "mentions_official_odds_endpoint": false
+        },
+        {
+          "label": "馬券の購入（UMACA）",
+          "href": "//www.jra.go.jp/kouza/beginner/cashless/",
+          "onclick": "",
+          "mentions_official_odds_endpoint": false
+        },
+        {
+          "label": "ネット馬券購入 トップ",
+          "href": "//www.jra.go.jp/dento.html",
+          "onclick": "",
+          "mentions_official_odds_endpoint": false
+        },
+        {
+          "label": "オッズ",
+          "href": "#",
+          "onclick": "return doAction('/JRADB/accessO.html','sw15oli00/FA')",
+          "mentions_official_odds_endpoint": true
+        },
+        {
+          "label": "馬券は20歳になってから",
+          "href": "//www.jra.go.jp/kouza/baken/index.html#cat_info",
+          "onclick": "",
+          "mentions_official_odds_endpoint": false
+        }
+      ],
+      "odds_endpoints_visible": 2
+    }
+  ],
+  "market_odds_verified": false,
+  "source_type": "source_racecard_navigation_only",
+  "training_ready": false
+}
