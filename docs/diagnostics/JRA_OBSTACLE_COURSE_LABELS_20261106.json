@@ -1,0 +1,28 @@
+{
+  "source_sha256": "a5c4bf38ad827ff0ba70b93b5d038322ea77b881be9e7a11581a98ab9596b92b",
+  "horse_name": "ロードリベラシオン",
+  "special_course_rows": [
+    {
+      "row": 2,
+      "date": "2026年6月20日",
+      "course": "芝ダ3110",
+      "finish": "1",
+      "field_size": "9"
+    },
+    {
+      "row": 4,
+      "date": "2026年3月7日",
+      "course": "芝ダ3200",
+      "finish": "10",
+      "field_size": "14"
+    },
+    {
+      "row": 6,
+      "date": "2025年12月13日",
+      "course": "芝ダ2970",
+      "finish": "1",
+      "field_size": "12"
+    }
+  ],
+  "model_ready": false
+}
