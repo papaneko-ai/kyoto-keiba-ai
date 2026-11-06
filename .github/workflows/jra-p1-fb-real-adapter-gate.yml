@@ -1,0 +1,39 @@
+name: Kyoto P1-FB real source symmetric adapter and regression
+on:
+  push:
+    branches: [jra-html-diagnostic-20261105]
+    paths: ['diagnostics/activate_p1_fb_real_adapter_gate.txt']
+permissions:
+  contents: write
+  actions: read
+jobs:
+  real-parity-and-symmetric-gate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    env:
+      PYTHONPATH: .
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: jra-html-diagnostic-20261105
+      - uses: actions/download-artifact@v4
+        with:
+          run-id: 42173462385
+          name: kyoto-p1-fb-sp-profile-original
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: originals
+      - run: python -m pip install 'beautifulsoup4>=4.12,<5'
+      - name: Enforce existing 15 safety cases plus new real adapter regression
+        run: |
+          python -m unittest discover -s tests -p 'test_jra_p1_failover_offline.py' -v
+          python -m unittest discover -s tests -p 'test_jra_p1_fb_real_adapter_gate.py' -v
+      - name: Verify real PC and SP original records and symmetric gated decision
+        run: python diagnostics/jra_p1_fb_real_sources_adapter_gate.py --artifact originals --out docs/diagnostics/jra_p1_fb_offline_20261106/real_sources_symmetric_decision.json
+      - name: Commit evidence-only decision receipt
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/diagnostics/jra_p1_fb_offline_20261106/real_sources_symmetric_decision.json
+          git commit -m "Verify real PC/SP normalized records and symmetric offline fallback"
+          git pull --rebase origin jra-html-diagnostic-20261105
+          git push origin HEAD:jra-html-diagnostic-20261105
