@@ -1,0 +1,1 @@
+P1 batch07: Kyoto R4 numbers4-9, exactly six genuine JRA profile GETs, after 48 previous profiles source verified and before prerace cutoff. No retries and no production writes.
