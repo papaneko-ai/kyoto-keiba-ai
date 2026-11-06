@@ -35,4 +35,12 @@ class RealFrozenFeatureAudit(unittest.TestCase):
   a,b=build()
   self.assertEqual(a,self.summary)
   self.assertEqual(b,self.rows)
+ def test_hurdle_mixed_surface_is_not_erased(self):
+  r=next(x for x in self.rows if x["race_number"]==8 and x["horse_number"]==1)
+  self.assertGreater(r["performance_features"]["recent_three_surface_counts"]["芝ダ"],0)
+ def test_race_eight_profile_is_source_verified(self):
+  r=next(x for x in self.rows if x["race_number"]==8 and x["horse_number"]==1)
+  self.assertEqual(r["source_coverage"]["horse_profile"],"VERIFIED_SOURCE_ROWS")
+  self.assertEqual(len(r["profile_source_sha256"]),64)
+
 if __name__=="__main__":unittest.main()
