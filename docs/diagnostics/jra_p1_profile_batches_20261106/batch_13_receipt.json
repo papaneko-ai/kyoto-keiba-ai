@@ -1,0 +1,63 @@
+{
+  "batch_id": "batch_13",
+  "batch_content_sha256": "6162b446efa109d9acfd123092037b53ce7bb2084192a76aaae8362ce43e8a95",
+  "state": "BLOCKED",
+  "attempted": 4,
+  "official_network_requests": 4,
+  "verified_count": 3,
+  "failed_count": 1,
+  "items": [
+    {
+      "race": 7,
+      "horse_number": 9,
+      "horse_name": "パンサーズ",
+      "source_url": "https://jra.jp/JRADB/accessU.html?CNAME=pw01dud002023104325/10",
+      "state": "SOURCE_PARSED",
+      "original_sha256": "f935e470c679d5f0c9f7f136662c86af47722b6a4f31fc4a647015fa9d39d4ae",
+      "source_bytes": 104808,
+      "captured_at_utc": "2026-11-06T05:48:54.600656+00:00",
+      "prior_valid_finishes": 5,
+      "nonfinish_events": 0,
+      "history_status": "HISTORY_TABLE_PARSED"
+    },
+    {
+      "race": 7,
+      "horse_number": 10,
+      "horse_name": "ニホンピロカラット",
+      "source_url": "https://jra.jp/JRADB/accessU.html?CNAME=pw01dud002021103842/C5",
+      "state": "SOURCE_PARSED",
+      "original_sha256": "bd9c2478caecfb945b47df1e13274cc0559739177c1aaa8fec8802977d46c1cc",
+      "source_bytes": 117859,
+      "captured_at_utc": "2026-11-06T05:48:57.681864+00:00",
+      "prior_valid_finishes": 19,
+      "nonfinish_events": 0,
+      "history_status": "HISTORY_TABLE_PARSED"
+    },
+    {
+      "race": 7,
+      "horse_number": 11,
+      "horse_name": "セールヴォラン",
+      "source_url": "https://jra.jp/JRADB/accessU.html?CNAME=pw01dud002021101057/AE",
+      "state": "SOURCE_PARSED",
+      "original_sha256": "18c8995b479d12cbee847d941536e4352ba5ce284c2672249f549c9ea34031a9",
+      "source_bytes": 121313,
+      "captured_at_utc": "2026-11-06T05:49:00.631830+00:00",
+      "prior_valid_finishes": 23,
+      "nonfinish_events": 0,
+      "history_status": "HISTORY_TABLE_PARSED"
+    },
+    {
+      "race": 8,
+      "horse_number": 2,
+      "horse_name": "グラニットピーク",
+      "source_url": "https://jra.jp/JRADB/accessU.html?CNAME=pw01dud002020103507/A5",
+      "state": "BLOCKED",
+      "error": "ValueError:invalid_history_rows"
+    }
+  ],
+  "sources_retained": false,
+  "historical_asof_reconstruction_authorized": false,
+  "prediction_ready": false,
+  "training_ready": false,
+  "reason": "stop_on_first_error"
+}
