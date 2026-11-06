@@ -2,7 +2,7 @@ name: Kyoto P1-FB stage4 mock transport dual-source integration
 on:
   push:
     branches: [jra-html-diagnostic-20261105]
-    paths: ['diagnostics/activate_p1_fb_stage4_mock.txt']
+    paths: ['diagnostics/activate_p1_fb_stage4_mock.txt', 'diagnostics/activate_p1_fb_stage4_mock_hardening.txt']
 permissions:
   contents: write
 jobs:
