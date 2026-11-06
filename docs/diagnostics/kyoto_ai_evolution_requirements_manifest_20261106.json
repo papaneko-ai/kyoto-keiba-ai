@@ -1,0 +1,38 @@
+{
+  "schema": "kyoto_evolution.v1",
+  "approved": "2026-11-06",
+  "stage_order": [
+    "P1",
+    "P2",
+    "P3",
+    "P4",
+    "P5",
+    "P6",
+    "P7",
+    "P8"
+  ],
+  "original_algorithms": "ALG-01..ALG-13 unchanged",
+  "features": {
+    "EVO-01": "value-ranked supplementary data P1,P2,P4",
+    "EVO-02": "automatic weaknesses P2,P3,P7",
+    "EVO-03": "shadow AI pre-race matched comparison P3,P6,P7",
+    "EVO-04": "pre-registered counterfactual portfolio P4,P5,P6,P7",
+    "EVO-05": "drift and deterioration P3,P5,P7,P8",
+    "EVO-06": "constrained autonomous research P2,P3,P6,P7,P8"
+  },
+  "guards": [
+    "no_future_data",
+    "frozen_prerace_predictions",
+    "official_payout_only",
+    "no_retrospective_ticket",
+    "no_unguarded_self_modification",
+    "independent_time_holdout_before_adoption",
+    "keep_champion_when_unproven",
+    "separate_virtual_actual_ledger",
+    "preserve_main_and_turso",
+    "no_old_app_reuse"
+  ],
+  "implementation": "required_not_yet_implemented",
+  "restart": "P1-FB stage5; verified 96/148, 52 remaining, 592 prior histories",
+  "spec": "docs/KYOTO_AI_AUTONOMOUS_EVOLUTION_SIX_CAPABILITIES_REQUIREMENTS_20261106.md"
+}
