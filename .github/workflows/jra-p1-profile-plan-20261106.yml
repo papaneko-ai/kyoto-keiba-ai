@@ -1,0 +1,33 @@
+name: Kyoto P1 official 136-horse profile plan acceptance
+on:
+  push:
+    branches: [jra-html-diagnostic-20261105]
+    paths:
+      - 'diagnostics/p1_plan_activation_20261106.txt'
+      - 'diagnostics/jra_pending_profile_plan.py'
+      - 'tests/test_jra_pending_profile_plan.py'
+      - '.github/workflows/jra-p1-profile-plan-20261106.yml'
+permissions:
+  contents: write
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    env:
+      PYTHONPATH: .
+    steps:
+      - uses: actions/checkout@v4
+      - name: Test no-network queue and fail-closed resume receipts
+        run: python -m unittest discover -s tests -p 'test_jra_pending_profile_plan.py' -v
+      - name: Generate stable queue from existing official 148-horse source evidence only
+        run: |
+          python diagnostics/jra_pending_profile_plan.py \
+            --out docs/diagnostics/JRA_PENDING_136_PROFILES_PLAN_20261106.json
+      - name: Commit reproducible plan separately from production
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/diagnostics/JRA_PENDING_136_PROFILES_PLAN_20261106.json
+          git commit -m "Freeze stable official 136-horse profile intake batches with guardrails" || true
+          git pull --rebase origin jra-html-diagnostic-20261105
+          git push origin HEAD:jra-html-diagnostic-20261105
