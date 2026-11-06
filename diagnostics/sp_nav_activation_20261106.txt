@@ -1,0 +1,1 @@
+Single short-lived SP official racecard source GET to inspect JRA-embedded official multi-race navigation; no guessing tokens, no production writes.
