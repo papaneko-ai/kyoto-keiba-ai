@@ -1,0 +1,46 @@
+{
+  "schema": "jra_p1_batch13_source_first_remainder.v1",
+  "batch_id": "batch_13_REMAINING_TWO",
+  "batch_content_sha256": "6162b446efa109d9acfd123092037b53ce7bb2084192a76aaae8362ce43e8a95",
+  "state": "SOURCE_PARSED_TEMPORARY",
+  "official_network_requests": 2,
+  "verified_count": 2,
+  "failed_count": 0,
+  "items": [
+    {
+      "race": 8,
+      "horse_number": 3,
+      "horse_name": "トーアモルペウス",
+      "source_url": "https://jra.jp/JRADB/accessU.html?CNAME=pw01dud002020103173/85",
+      "state": "SOURCE_PARSED",
+      "captured_at_utc": "2026-11-06T06:01:25.598877+00:00",
+      "source_sha256": "99362629f94ea4472c047de071dd43dc9de859664baf14788cea60f54ec92f95",
+      "source_bytes": 122539,
+      "original_saved_before_parser": true,
+      "invalid_rows": [],
+      "administrative_events": [],
+      "prior_valid_finishes": 24,
+      "nonfinish_events": 0,
+      "history_status": "HISTORY_TABLE_PARSED"
+    },
+    {
+      "race": 8,
+      "horse_number": 4,
+      "horse_name": "メイショウアツイタ",
+      "source_url": "https://jra.jp/JRADB/accessU.html?CNAME=pw01dud002018105731/58",
+      "state": "SOURCE_PARSED",
+      "captured_at_utc": "2026-11-06T06:01:28.590960+00:00",
+      "source_sha256": "ad27d4373c23169f873b702734426dad0c2297b6ed51cb0ed0ae22969cda1a9e",
+      "source_bytes": 134088,
+      "original_saved_before_parser": true,
+      "invalid_rows": [],
+      "administrative_events": [],
+      "prior_valid_finishes": 35,
+      "nonfinish_events": 1,
+      "history_status": "HISTORY_TABLE_PARSED"
+    }
+  ],
+  "retries": 0,
+  "prediction_ready": false,
+  "training_ready": false
+}
