@@ -1,0 +1,1 @@
+Zero-network independent replay of six real JRA official original HTML profiles saved in Actions run 42165454077. Validate each exact SHA-256, identity, UTC, and prior-race counts; persist structured normalized data without raw HTML in repo.
