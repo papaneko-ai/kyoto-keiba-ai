@@ -36,11 +36,14 @@ def replay(artifact,out):
             if captured>=CUTOFF:raise ValueError("late_horse_profile")
             parsed=parse_horse_history(raw,source_url=r["source_url"],
                 fetched_at_utc=captured,prediction_cutoff_utc=CUTOFF,
-                target_date=date(2026,11,7),expected_horse_name=horse["horse_name"])
+                target_date=date(2026,11,7),expected_horse_name=horse["horse_name"],
+                allow_verified_no_history=(race==5 and not horse.get("past_race_dates")) )
             item.update(status="PARSED",prior_rows=parsed["prior_row_count"],
                 total_rows=parsed["history_rows_total"],
                 excluded_rows=len(parsed["excluded_rows"]),
                 invalid_rows=len(parsed["invalid_rows"]),
+                nonfinish_rows=len(parsed.get("nonfinish_rows",[])),
+                history_status=parsed.get("history_status"),
                 extracted_fields=list(parsed["prior_rows"][0].keys()) if parsed["prior_rows"] else [],
                 profile_before_cutoff=parsed["profile_captured_before_cutoff"],
                 empty_history_verified=(race==5 and parsed["prior_row_count"]==0))
@@ -49,7 +52,10 @@ def replay(artifact,out):
                  "source_sha256":r["source_sha256"],
                  "fetched_at_utc":r["captured_at_utc"],
                  "prior_rows":parsed["prior_rows"],"excluded_rows":parsed["excluded_rows"],
-                 "invalid_rows":parsed["invalid_rows"],"prediction_ready":False,
+                 "invalid_rows":parsed["invalid_rows"],
+                 "nonfinish_rows":parsed.get("nonfinish_rows",[]),
+                 "history_status":parsed.get("history_status"),
+                 "prediction_ready":False,
                  "training_ready":False},ensure_ascii=False,indent=2)+"\n",encoding="utf8")
         except Exception as exc:
             item["reason"]=type(exc).__name__+":"+str(exc)[:220]
