@@ -1,0 +1,47 @@
+{
+  "schema_version": "jra_adaptive_evidence_acceptance.v1",
+  "date": "2026-11-07",
+  "venue": "KYOTO",
+  "sampled_races": [
+    1,
+    5,
+    6,
+    11,
+    12
+  ],
+  "total_checked_runners": 61,
+  "parity_passed_for_all_five": true,
+  "pc_total_bytes": 811107,
+  "sp_total_bytes": 524055,
+  "sp_bytes_reduction_pct": 35.4,
+  "pc_end_to_end_median_ms": 859.09,
+  "sp_end_to_end_median_ms": 709.89,
+  "sp_end_to_end_gain_pct": 17.4,
+  "sp_faster_race_count": 4,
+  "pc_samples_ms": [
+    782.76,
+    909.39,
+    777.15,
+    1085.21,
+    859.09
+  ],
+  "sp_samples_ms": [
+    709.89,
+    654.23,
+    833.33,
+    870.8,
+    554.43
+  ],
+  "router_candidate": "SP",
+  "router_state": "CANDIDATE",
+  "router_reason": "sp_validated_and_measurably_faster",
+  "safety": {
+    "production_switch_performed": false,
+    "longitudinal_speed_advantage_proven": false,
+    "all_history_fields_verified": false,
+    "final_scratches_verified": false,
+    "odds_verified": false,
+    "training_ready": false,
+    "prediction_ready": false
+  }
+}
