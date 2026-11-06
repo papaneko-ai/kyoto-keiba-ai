@@ -1,0 +1,1 @@
+P1 no-network plan acceptance: use already frozen official Kyoto 148-runner records, exclude 12 verified horse profiles, create 136 pending profiles in 6-item batches. Do not perform any JRA HTTP, Turso writes, or training.
