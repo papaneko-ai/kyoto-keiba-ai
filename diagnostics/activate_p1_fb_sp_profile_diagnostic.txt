@@ -1,0 +1,1 @@
+One authorized SP profile for previously PC-verified Kyoto 11R horse1, official link extracted from archived SP 11R racecard. Save SP HTML before parser, no automatic switch, no retries.
