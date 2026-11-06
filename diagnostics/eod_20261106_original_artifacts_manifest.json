@@ -1,0 +1,96 @@
+{
+  "schema": "kyoto_eod_original_artifact_references.v1",
+  "snapshot_commit": "855aa94dd1a562f7d258f09b4bf619e561ff4aea",
+  "groups": [
+    {
+      "index": 1,
+      "run_id": 42165454077,
+      "name": "jra-p1-profile-batch-01-originals-20261106"
+    },
+    {
+      "index": 2,
+      "run_id": 42166104655,
+      "name": "jra-p1-profile-batch-02-originals-20261106"
+    },
+    {
+      "index": 3,
+      "run_id": 42166373514,
+      "name": "jra-p1-profile-batch-03-originals-20261106"
+    },
+    {
+      "index": 4,
+      "run_id": 42166504652,
+      "name": "jra-p1-profile-batch-04-originals-20261106"
+    },
+    {
+      "index": 5,
+      "run_id": 42167231089,
+      "name": "kyoto-p1-batch05-source-20261106"
+    },
+    {
+      "index": 6,
+      "run_id": 42167373275,
+      "name": "kyoto-p1-batch06-source-20261106"
+    },
+    {
+      "index": 7,
+      "run_id": 42167817939,
+      "name": "kyoto-p1-batch07-20261106"
+    },
+    {
+      "index": 8,
+      "run_id": 42167963955,
+      "name": "kyoto-p1-batch08-20261106"
+    },
+    {
+      "index": 9,
+      "run_id": 42169512445,
+      "name": "kyoto-p1-batch09-originals"
+    },
+    {
+      "index": 10,
+      "run_id": 42169692197,
+      "name": "kyoto-p1-batch10-originals"
+    },
+    {
+      "index": 11,
+      "run_id": 42170129115,
+      "name": "kyoto-p1-batch11-originals"
+    },
+    {
+      "index": 12,
+      "run_id": 42170460994,
+      "name": "kyoto-p1-batch12-originals"
+    },
+    {
+      "index": 13,
+      "run_id": 42170611153,
+      "name": "kyoto-p1-batch13-originals"
+    },
+    {
+      "index": 14,
+      "run_id": 42171346385,
+      "name": "kyoto-r8h02-original-first-diagnostic"
+    },
+    {
+      "index": 15,
+      "run_id": 42171828383,
+      "name": "kyoto-batch13-remainder-source-first-originals"
+    },
+    {
+      "index": 16,
+      "run_id": 42172639135,
+      "name": "kyoto-batch14-source-first-originals"
+    },
+    {
+      "index": 17,
+      "run_id": 42173462385,
+      "name": "kyoto-p1-fb-sp-profile-original"
+    },
+    {
+      "index": 18,
+      "run_id": 42174986970,
+      "name": "kyoto-p1-fb-sp-second-profile-original"
+    }
+  ]
+}
