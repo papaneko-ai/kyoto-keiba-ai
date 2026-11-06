@@ -83,6 +83,7 @@ def run(*,folder,primary,secondary,horse_name,race,number,roster_sha,
                 or response.final_url!=source.url):
                 raise ValueError("untrusted_mock_http_response")
             digest=sha256(response.body).hexdigest()
+            outcome="PARSER_FAILED"  # source has arrived: failed persistence must block backup
             (dest/("original_"+source.channel.lower()+".html")).write_bytes(response.body)
             e.update(original_saved=True,source_sha256=digest,bytes=len(response.body),
                 captured_at_utc=t.astimezone(timezone.utc).isoformat())
