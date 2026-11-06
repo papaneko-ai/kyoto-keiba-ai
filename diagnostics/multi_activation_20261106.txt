@@ -1,0 +1,1 @@
+One bounded 2026-11-07 Kyoto 1R, 6R, 12R source capture (three individual GETs, no repeats/no cron). Keep original bytes in short-lived artifact and persist structured snapshots with UTC times.
