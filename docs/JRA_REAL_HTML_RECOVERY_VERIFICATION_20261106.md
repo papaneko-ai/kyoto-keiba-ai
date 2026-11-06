@@ -1,0 +1,9 @@
+# Kyoto JRA actual HTML recovery / 2026-11-06
+
+Historical GitHub Actions run IDs 41980749955, 41981074931, 41981827154, 41982371921 and 41982476503 returned successful jobs. Artifact 13393704408 was successfully downloaded and inspected (32 files, 217048 ZIP bytes, unexpired at check). This **resolves the missing-real-HTML issue**: it was absent from the user's prior backup but preserved in GitHub Actions.
+
+Using the genuine raw HTML `jra_action_capture/kyoto_all_results_20261031.html` from that Artifact, an independent local BeautifulSoup parser extracted 12 result tables, 154 result rows, 154 `/JRADB/accessU.html?CNAME=...` horse-profile links, with per-race counts [16,10,8,10,13,16,12,14,10,16,11,18], and no parsing errors. Race 1 was 16/16. Eleven locally run tests against this actual archived HTML passed (the local full parser/test suite is a downloadable separately delivered verification pack). A portable parser and synthetic smoke tests are committed in `diagnostics/parse_jra_result_roster.py` and `tests/test_jra_result_roster.py`. GitHub CI run status for these newly committed tests remains unverified.
+
+Important limitations: this is POST-RACE RESULT data, NOT an independently validated pre-race entry list; CNAME navigation tokens are NOT validated permanent horse IDs; 154 post-race links do NOT show that every pre-race competitor had a pre-race history fetched. All prediction-ready flags remain false. No new JRA requests, training, or production/Turso changes were made.
+
+Next: obtain an authorized and date-stamped pre-race entry HTML snapshot; independently reconcile field count, scratches and official horse IDs against saved results; use already collected one-horse history to develop at-cutoff prior-form extraction. Follow the locked operations schedule design; do not automate acquisition or promotion before evidence gates are satisfied.
