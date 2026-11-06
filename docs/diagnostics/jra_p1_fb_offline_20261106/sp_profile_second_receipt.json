@@ -1,0 +1,79 @@
+{
+  "schema": "p1_fb_second_official_sp_profile.v1",
+  "race": 11,
+  "number": 2,
+  "horse_name": "エティエンヌ",
+  "source_url": "https://sp.jra.jp/JRADB/accessU.html?CNAME=sj01ude002019105761/89",
+  "state": "PARSER_INVALID_ROWS",
+  "network_requests": 1,
+  "production_adoption": false,
+  "prediction_ready": false,
+  "training_ready": false,
+  "captured_at_utc": "2026-11-06T06:31:44.333054+00:00",
+  "source_sha256": "88fff685dec67e145b8e4cf68b8d4c738550798dae6a6806779d31351b0cfa45",
+  "source_bytes": 101052,
+  "original_saved_before_parser": true,
+  "history_rows_total": 39,
+  "prior_rows_count": 26,
+  "invalid_rows": [
+    {
+      "row": 20,
+      "reason": "sp_history_left_unparsed"
+    },
+    {
+      "row": 23,
+      "reason": "sp_history_left_unparsed"
+    },
+    {
+      "row": 24,
+      "reason": "sp_history_left_unparsed"
+    },
+    {
+      "row": 25,
+      "reason": "sp_history_left_unparsed"
+    },
+    {
+      "row": 26,
+      "reason": "sp_history_left_unparsed"
+    },
+    {
+      "row": 27,
+      "reason": "sp_history_left_unparsed"
+    },
+    {
+      "row": 28,
+      "reason": "sp_history_left_unparsed"
+    },
+    {
+      "row": 29,
+      "reason": "sp_history_left_unparsed"
+    },
+    {
+      "row": 30,
+      "reason": "sp_history_left_unparsed"
+    },
+    {
+      "row": 31,
+      "reason": "sp_history_left_unparsed"
+    },
+    {
+      "row": 32,
+      "reason": "sp_history_left_unparsed"
+    }
+  ],
+  "nonfinish_events": 0,
+  "administrative_events": [
+    {
+      "row": 22,
+      "date": "2023-04-27",
+      "event_type": "JRA_TRANSFER_IN",
+      "included_in_finish_metrics": false
+    },
+    {
+      "row": 33,
+      "date": "2022-09-01",
+      "event_type": "JRA_TRANSFER_OUT",
+      "included_in_finish_metrics": false
+    }
+  ]
+}
