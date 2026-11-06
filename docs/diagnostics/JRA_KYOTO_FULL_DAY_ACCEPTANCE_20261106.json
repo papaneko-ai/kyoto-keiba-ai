@@ -1,0 +1,28 @@
+{
+  "schema_version": "kyoto_full_day_acceptance.v1",
+  "date": "2026-11-07",
+  "venue": "KYOTO",
+  "test_outcome": "success",
+  "race_count": 12,
+  "runner_count": 148,
+  "prior_date_count": 396,
+  "counts_by_race": {
+    "1": 9,
+    "2": 15,
+    "3": 13,
+    "4": 15,
+    "5": 8,
+    "6": 11,
+    "7": 11,
+    "8": 9,
+    "9": 10,
+    "10": 14,
+    "11": 16,
+    "12": 17
+  },
+  "finished_at_utc": "2026-11-06T03:39:50.020007+00:00",
+  "pre_race_source_snapshot_verified_by_ci": true,
+  "html_bytes_independently_verified_by_ci": false,
+  "training_ready": false,
+  "prediction_ready": false
+}
