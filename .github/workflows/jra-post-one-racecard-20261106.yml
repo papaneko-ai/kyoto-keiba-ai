@@ -1,0 +1,37 @@
+name: JRA proven POST one-racecard diagnostic
+on:
+  push:
+    branches: [jra-html-diagnostic-20261105]
+    paths: ['diagnostics/post_activation_20261106.txt']
+permissions:
+  contents: write
+concurrency:
+  group: jra-post-one-race-20261106
+  cancel-in-progress: false
+jobs:
+  capture:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - name: One official historical racecard POST (same shape as verified earlier JRA code)
+        run: python diagnostics/jra_one_post_racecard.py --output jra_post_probe
+      - name: Persist metadata receipt only
+        run: |
+          mkdir -p docs/diagnostics
+          cp jra_post_probe/receipt.json docs/diagnostics/JRA_RACECARD_POST_20261106.json
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/diagnostics/JRA_RACECARD_POST_20261106.json
+          git commit -m "Record one official JRA racecard POST receipt" || true
+          git push origin HEAD:jra-html-diagnostic-20261105
+      - name: Retain original privately for 3 days
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: jra-racecard-post-one-page-20261106
+          path: jra_post_probe/
+          retention-days: 3
+          if-no-files-found: warn
