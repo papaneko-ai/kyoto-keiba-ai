@@ -1,0 +1,42 @@
+name: Inspect future Kyoto racecard actual runner rows
+on:
+  push:
+    branches: [jra-html-diagnostic-20261105]
+    paths: ['diagnostics/future_r7_structure_activation_20261106.txt']
+permissions:
+  contents: write
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install HTML parser
+        run: python -m pip install 'beautifulsoup4>=4.12,<5'
+      - name: Retrieve one official current racecard with dated receipt
+        run: python diagnostics/jra_future_racecard_probe.py --out jra_future_probe
+      - name: Parse official HTML rows locally
+        run: |
+          if test -f jra_future_probe/future_kyoto_r7.html; then
+            python diagnostics/jra_future_r7_structure.py --html jra_future_probe/future_kyoto_r7.html --out jra_future_probe/structure.json
+          fi
+      - name: Commit verification JSON only to diagnostics branch
+        run: |
+          mkdir -p docs/diagnostics
+          cp jra_future_probe/receipt.json docs/diagnostics/JRA_FUTURE_R7_STRUCTURE_RECEIPT_20261106.json
+          if test -f jra_future_probe/structure.json; then
+            cp jra_future_probe/structure.json docs/diagnostics/JRA_FUTURE_R7_STRUCTURE_20261106.json
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/diagnostics/JRA_FUTURE_R7_STRUCTURE*.json
+          git commit -m "Record verified current Kyoto racecard structure" || true
+          git push origin HEAD:jra-html-diagnostic-20261105
+      - name: Raw HTML original retained for 3 days only
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: jra-future-r7-structure-original-20261106
+          path: jra_future_probe/
+          retention-days: 3
+          if-no-files-found: warn
