@@ -1,0 +1,1 @@
+One-time offline parser fix verification: exact SHA source captured 2026-11-06 05:56 UTC, 26 finishes and two JRA transfer annotations, no new HTTP. Prior 87 horse rows remain protected, accept diagnostic profile 88 only after independent validation.
