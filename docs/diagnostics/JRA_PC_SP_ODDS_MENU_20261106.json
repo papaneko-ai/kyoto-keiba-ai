@@ -1,0 +1,131 @@
+{
+  "schema_version": "jra_pc_sp_odds_menu_probe.v1",
+  "race": "2026-11-07-KYOTO-11R",
+  "sources": [
+    {
+      "channel": "PC",
+      "status": "OFFICIAL_MENU_CAPTURED",
+      "captured_at_utc": "2026-11-06T04:05:23.810418+00:00",
+      "market_phase": "MENU_ONLY_UNVERIFIED",
+      "pre_race_odds_verified": false,
+      "training_ready": false,
+      "http_status": 200,
+      "content_sha256": "1b9e81da48970f974daf03cca50fa2fdf5fd89cd9001ab4992cfd529140a6c5e",
+      "raw_bytes": 58494,
+      "token_sha256": "cf5febc21368290f7684280e3c69dd7816ce59c550778276ad1accef86f32da3",
+      "title": "オッズ 開催選択　JRA",
+      "anchor_count": 7,
+      "anchors": [
+        {
+          "label": "オッズ",
+          "href": "#",
+          "onclick": "doAction('/JRADB/accessO.html','pw15oli00/6D');return false;"
+        },
+        {
+          "label": "海外競馬発売",
+          "href": "/keiba/overseas/",
+          "onclick": ""
+        },
+        {
+          "label": "発売レース一覧",
+          "href": "/kouza/yoko/",
+          "onclick": ""
+        },
+        {
+          "label": "発売",
+          "href": "/kouza/baken/index.html#cat_sell",
+          "onclick": ""
+        },
+        {
+          "label": "京都競馬場",
+          "href": "/facilities/race/kyoto/",
+          "onclick": ""
+        },
+        {
+          "label": "抽選・発売スケジュール",
+          "href": "/ticket/schedule/schedule.html",
+          "onclick": ""
+        },
+        {
+          "label": "オッズ",
+          "href": "#",
+          "onclick": "return doAction('/JRADB/accessO.html','pw15oli00/6D')"
+        }
+      ],
+      "market_terms": {
+        "馬連": 0,
+        "枠連": 0,
+        "オッズ": 7,
+        "発売": 5,
+        "京都": 1,
+        "2026年11月7日": 0
+      },
+      "contains_no_sale_notice": false,
+      "visible_context": "i-Fi（無線LAN） JRAからのお願い・ご注意 競馬場 競馬場トップ 札幌競馬場 函館競馬場 福島競馬場 新潟競馬場 東京競馬場 中山競馬場 中京競馬場 京都競馬場 阪神競馬場 小倉競馬場 ウインズ・エクセル ウインズ・エクセルトップ 北海道・東北地区 関東・甲信越地区 中部・関西地区 中国・四国・九州地区 J-PLACE J-PLACEトップ 北海道・東北地区 関東・甲信越地区 中部・関西地区 中国・四国・九州地区 その他施設 その他施設トップ 美浦トレーニング・センター 栗東トレーニング・センター 競馬学校 競走馬総合研究所 馬事公苑 根岸競馬記念公苑 競馬博物館 日高育成牧場 宮崎育成牧場 Gate J. VIESTA（仙台・熊本） 三木ホースランドパーク 指定席・入場券ネット予約 指定席・入場券ネット予約 指定席・入場券ネット予約 トップ メニューを閉じる 指定席・入場券ネット予約 ログイン 指定席・入場券ネット予約 トップ ネット予約会員登録 抽選・発売スケジュール 指定席転売対策への取組み 会員約定 個人情報保護方針 特定商取引法に基づく表示 JRAカード JRAカードトップ ポイントプログラム ログイン ログイン ログイン 加入者番号等がご不明な方 新規会員登録 ネット購入履歴 Club JRA-Net 指定席・入場券ネット予約 ログイン 指定席・入場券ネット予約 新規会員登録 検索ウィンドウ 検索キーワード 検索 競走馬、騎手や調教師、過去のレース結果等について 検索する場合は、以下のページをご利用ください。 競走馬検索 騎手・調教師データ 過去のレース結果 海外 過去のレース結果 競馬用語辞典 お問い合わせ/FAQ 緊急情報 開く 閉じる ホーム > 競馬メニュー > オッズ 開催選択 オッズ 開催選択 関連メニュー 開催お知らせ 出馬表 オッズ 払戻金 レース結果 特別レース登録馬 開催日程 馬場情報 今週の注目レース ここから本文です 今週のオッズ 今週のオッズは未発表です。 ページトップへ戻る ページトップへ戻る JRAからのお知らせ JRAのギャンブル等依存症対策 お出かけ前にJRAホームページでご確認を！ 馬券は20歳になってから 悪徳業者・違法インターネット賭事業者等にご注意ください！ ファンからの悪質な誹謗中傷および脅迫行為等に対する厳正な対応 競馬場へ移動中の騎手に関するお願い 払戻金の支払を受けた方へ カスタマーハラスメントに対する基本方針 FAQ/お問い合わせ サイトマップ リンク ご利用に際して ウェブアクセシビリティについて レース情報 ニュース 企業情報 Horse Racing in Japan Copyright © Japan Racing Association All rights reserved."
+    },
+    {
+      "channel": "SP",
+      "status": "OFFICIAL_MENU_CAPTURED",
+      "captured_at_utc": "2026-11-06T04:05:25.638810+00:00",
+      "market_phase": "MENU_ONLY_UNVERIFIED",
+      "pre_race_odds_verified": false,
+      "training_ready": false,
+      "http_status": 200,
+      "content_sha256": "c6860a5eb64f0f2092670138e83c5b47d6511cc52c69e421a99f24303fd02aff",
+      "raw_bytes": 56719,
+      "token_sha256": "98856fb4130ca95b2b47393749315b1011028c5c95d2a0919b9b2e081d744abf",
+      "title": "オッズ - 開催選択",
+      "anchor_count": 7,
+      "anchors": [
+        {
+          "label": "オッズ",
+          "href": "#",
+          "onclick": "return doAction('/JRADB/accessO.html','sw15oli00/FA')"
+        },
+        {
+          "label": "海外競馬発売",
+          "href": "//www.jra.go.jp/keiba/overseas/",
+          "onclick": ""
+        },
+        {
+          "label": "発売レース一覧",
+          "href": "//www.jra.go.jp/kouza/yoko/",
+          "onclick": ""
+        },
+        {
+          "label": "発売",
+          "href": "//www.jra.go.jp/kouza/baken/index.html#cat_sell",
+          "onclick": ""
+        },
+        {
+          "label": "京都競馬場",
+          "href": "//www.jra.go.jp/facilities/race/kyoto/",
+          "onclick": ""
+        },
+        {
+          "label": "抽選・発売スケジュール",
+          "href": "//www.jra.go.jp/ticket/schedule/schedule.html",
+          "onclick": ""
+        },
+        {
+          "label": "オッズ",
+          "href": "#",
+          "onclick": "return doAction('/JRADB/accessO.html','sw15oli00/FA')"
+        }
+      ],
+      "market_terms": {
+        "馬連": 0,
+        "枠連": 0,
+        "オッズ": 5,
+        "発売": 5,
+        "京都": 1,
+        "2026年11月7日": 0
+      },
+      "contains_no_sale_notice": false,
+      "visible_context": " 年間CM JRAポスター その他 JRA賞 競馬の殿堂 3分でわかった気になる名馬 アップデートムービー 競馬コラム 壁紙カレンダー デジタルブック ブログ 映像サービス・グッズ販売など 競馬場・ウインズ・その他施設 インフォメーション Wi-Fi（無線LAN） JRAからのお願い・ご注意 競馬場 競馬場トップ 札幌競馬場 函館競馬場 福島競馬場 新潟競馬場 東京競馬場 中山競馬場 中京競馬場 京都競馬場 阪神競馬場 小倉競馬場 ウインズ・エクセル ウインズ・エクセルトップ 北海道・東北地区 関東・甲信越地区 中部・関西地区 中国・四国・九州地区 J-PLACE J-PLACEトップ 北海道・東北地区 関東・甲信越地区 中部・関西地区 中国・四国・九州地区 その他施設 その他施設トップ 美浦トレーニング・センター 栗東トレーニング・センター 競馬学校 競走馬総合研究所 馬事公苑 根岸競馬記念公苑 競馬博物館 日高育成牧場 宮崎育成牧場 Gate J. VIESTA（仙台・熊本） 三木ホースランドパーク 指定席・入場券ネット予約 指定席・入場券ネット予約 ログイン 指定席・入場券ネット予約トップ ネット予約会員登録 抽選・発売スケジュール 指定席転売対策への取組み 会員約定 個人情報保護方針 特定商取引法に基づく表示 JRAカード JRAカードトップ ポイントプログラム ログイン ログイン ログイン 加入者番号等がご不明な方 新規会員登録 ネット購入履歴 Club JRA-Net 指定席・入場券ネット予約 ログイン 指定席・入場券ネット予約 新規会員登録 閉じる 検索ウィンドウ 検索キーワード 検索 競走馬、騎手や調教師、過去のレース結果等について 検索する場合は、以下のページをご利用ください。 競走馬検索 騎手・調教師データ 過去のレース結果 海外 過去のレース結果 競馬用語辞典 お問い合わせ/FAQ 今週の開催 出馬表 オッズ レース結果 払戻金 オッズ - 開催選択 今週のオッズは未発表です。 ページトップへ戻る JRAからのお知らせ JRAのギャンブル等依存症対策 お出かけ前にJRAホームページでご確認を！ 馬券は20歳になってから 悪徳業者・違法インターネット賭事業者等にご注意ください！ ファンからの悪質な誹謗中傷および脅迫行為等に対する厳正な対応 競馬場へ移動中の騎手に関するお願い 払戻金の支払を受けた方へ カスタマーハラスメントに対する基本方針 FAQ/お問い合わせ サイトマップ リンク ご利用に際して ウェブアクセシビリティについて レース情報 ニュース 企業情報 Horse Racing in Japan JRA（PCサイト） Copyright © Japan Racing Association All rights reserved."
+    }
+  ],
+  "prices_verified": false,
+  "payout_as_input_prohibited": true,
+  "training_ready": false
+}
