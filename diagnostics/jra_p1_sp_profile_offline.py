@@ -13,7 +13,9 @@ FINISH_WITHOUT_POPULARITY=re.compile(r"^(\d+)着(?:\s|$)")
 def parse(raw,expected_horse):
     if not raw or len(raw)>1800000:raise ValueError("invalid_bytes")
     soup=BeautifulSoup(raw.decode("cp932",errors="replace"),"html.parser")
-    if expected_horse not in soup.get_text(" ",strip=True):raise ValueError("horse_name_missing")
+    names=soup.select("div.bameiSection")
+    if len(names)!=1 or not any(str(t).strip()==expected_horse for t in names[0].strings):
+        raise ValueError("sp_profile_identity_anchor_missing_or_mismatch")
     table=next((t for t in soup.select("table") if "出走レース" in t.get_text(" ",strip=True)[:80]),None)
     if table is None:raise ValueError("sp_history_not_found")
     valid=[];nonfinish=[];invalid=[];administrative=[]
