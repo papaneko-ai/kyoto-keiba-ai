@@ -1,0 +1,64 @@
+name: Kyoto P1 R8H02 transfer parser fixed SHA original CI
+on:
+  push:
+    branches: [jra-html-diagnostic-20261105]
+    paths: ['diagnostics/activation_r8h02_transfer_fix_20261106.txt']
+permissions:
+  contents: write
+  actions: read
+concurrency:
+  group: kyoto-r8h02-transfer-fix-original
+  cancel-in-progress: false
+jobs:
+  replay:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    env:
+      PYTHONPATH: .
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: jra-html-diagnostic-20261105
+      - uses: actions/download-artifact@v4
+        with:
+          run-id: 42171346385
+          name: kyoto-r8h02-original-first-diagnostic
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: incident_originals
+      - run: python -m pip install 'beautifulsoup4>=4.12,<5'
+      - name: Regression test transfer events and unchanged fail-closed rules
+        run: |
+          python -m compileall -q diagnostics/jra_prior_form_offline.py diagnostics/jra_r8h02_fixed_parser_original_replay.py diagnostics/jra_r8h02_transfer_fix_acceptance.py
+          python -m unittest discover -s tests -p 'test_jra_prior_form_transfer_regression.py' -v
+          python -m unittest discover -s tests -p 'test_jra_batch13_r8h02_diagnostic.py' -v
+      - name: Independently parse real SHA sealed original, zero JRA HTTP
+        run: python diagnostics/jra_r8h02_fixed_parser_original_replay.py --artifact incident_originals --out docs/diagnostics/jra_p1_r8h02_diagnosis_20261106/replayed_fixed_parser
+      - name: Persist independent source replay
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/diagnostics/jra_p1_r8h02_diagnosis_20261106/replayed_fixed_parser/
+          git commit -m "Verify fixed JRA parser on byte-identical 28-row R8H02 official HTML"
+          git pull --rebase origin jra-html-diagnostic-20261105
+          git push origin HEAD:jra-html-diagnostic-20261105
+  acceptance:
+    needs: replay
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      PYTHONPATH: .
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: jra-html-diagnostic-20261105
+      - run: python -m pip install 'beautifulsoup4>=4.12,<5'
+      - name: Accept 88/148 with source provenance and unfinished batch13
+        run: python diagnostics/jra_r8h02_transfer_fix_acceptance.py --out docs/diagnostics/jra_p1_transfer_fixed_88_profiles_20261106
+      - name: Persist acceptance ledger without rewriting historical checkpoint
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/diagnostics/jra_p1_transfer_fixed_88_profiles_20261106/
+          git commit -m "Accept verified 88th profile and 355 prior runs while preserving batch13 partial"
+          git pull --rebase origin jra-html-diagnostic-20261105
+          git push origin HEAD:jra-html-diagnostic-20261105
