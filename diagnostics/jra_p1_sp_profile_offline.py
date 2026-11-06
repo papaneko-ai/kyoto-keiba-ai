@@ -1,6 +1,7 @@
 """Offline source-locked SP horse-history parser, no network or auto adoption."""
 from bs4 import BeautifulSoup
 from hashlib import sha256
+from datetime import date
 import re
 DATE=re.compile(r"^(\d{4})年(\d{1,2})月(\d{1,2})日\s+")
 COURSE=re.compile(r"(芝ダ|ダート|芝|ダ|障)(\d{3,4})")
@@ -13,7 +14,7 @@ def parse(raw,expected_horse):
     if expected_horse not in soup.get_text(" ",strip=True):raise ValueError("horse_name_missing")
     table=next((t for t in soup.select("table") if "出走レース" in t.get_text(" ",strip=True)[:80]),None)
     if table is None:raise ValueError("sp_history_not_found")
-    valid=[];nonfinish=[];invalid=[]
+    valid=[];nonfinish=[];invalid=[];administrative=[]
     rows=table.select("tr")[1:]
     for i,tr in enumerate(rows,1):
         cells=tr.find_all("td",recursive=False)
@@ -21,12 +22,25 @@ def parse(raw,expected_horse):
             invalid.append({"row":i,"reason":"sp_cell_count"});continue
         left,right=[x.get_text(" ",strip=True) for x in cells]
         d=DATE.match(left)
+        event=re.fullmatch(r"\s*(JRAへ転入|JRAより転出)\s*",left[d.end():]) if d else None
+        if event and not right.strip():
+            try:
+                event_date=date(*map(int,d.groups())).isoformat()
+            except ValueError:
+                invalid.append({"row":i,"reason":"sp_invalid_transfer_date"});continue
+            administrative.append({"row":i,"date":event_date,
+                "event_type":"JRA_TRANSFER_IN" if event.group(1)=="JRAへ転入" else "JRA_TRANSFER_OUT",
+                "included_in_finish_metrics":False})
+            continue
         c=COURSE.search(left)
         f=FIELD.search(left)
         venue=next((v for v in VENUES if left[d.end():].startswith(v+" ")) ,None) if d else None
         if not d or not c or not f or not venue:
             invalid.append({"row":i,"reason":"sp_history_left_unparsed"});continue
-        date_value="%04d-%02d-%02d"%tuple(map(int,d.groups()))
+        try:
+            date_value=date(*map(int,d.groups())).isoformat()
+        except ValueError:
+            invalid.append({"row":i,"reason":"sp_invalid_date"});continue
         if right.startswith(("除","取消","中止","失格")):
             nonfinish.append({"row":i,"date":date_value,"status":right.split()[0]})
             continue
@@ -43,4 +57,5 @@ def parse(raw,expected_horse):
     return {"horse_name":expected_horse,"source_sha256":sha256(raw).hexdigest(),
         "history_rows_total":len(rows),"prior_rows":valid,
         "nonfinish_rows":nonfinish,"invalid_rows":invalid,
+        "administrative_events":administrative,
         "prediction_ready":False,"training_ready":False}
