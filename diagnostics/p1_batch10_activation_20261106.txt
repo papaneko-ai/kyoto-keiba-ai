@@ -1,0 +1,1 @@
+P1 batch10 one-time guarded six-profile fetch (Kyoto 5R #8 and Kyoto 6R #2-6), no retries, >=2s interval, pre-race cutoff, independent offline replay and five-race acceptance.
