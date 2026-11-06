@@ -1,0 +1,33 @@
+name: Kyoto P1 resume checkpoint acceptance (18 verified, 130 pending)
+on:
+  push:
+    branches: [jra-html-diagnostic-20261105]
+    paths:
+      - 'diagnostics/p1_resume_checkpoint_activation_20261106.txt'
+      - 'diagnostics/jra_p1_progress_checkpoint.py'
+      - 'tests/test_jra_p1_progress_checkpoint.py'
+      - '.github/workflows/jra-p1-resume-checkpoint-20261106.yml'
+permissions:
+  contents: write
+jobs:
+  checkpoint:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    env:
+      PYTHONPATH: .
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify 6 source replay records and repeat-safe remaining 130 queue
+        run: python -m unittest discover -s tests -p 'test_jra_p1_progress_checkpoint.py' -v
+      - name: Freeze next-start checkpoint without any HTTP
+        run: |
+          python diagnostics/jra_p1_progress_checkpoint.py \
+            --out docs/diagnostics/JRA_P1_18_VERIFIED_130_PENDING_CHECKPOINT_20261106.json
+      - name: Commit durable stage receipt only
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/diagnostics/JRA_P1_18_VERIFIED_130_PENDING_CHECKPOINT_20261106.json
+          git commit -m "Lock P1 checkpoint 18 verified 130 pending, next batch02" || true
+          git pull --rebase origin jra-html-diagnostic-20261105
+          git push origin HEAD:jra-html-diagnostic-20261105
