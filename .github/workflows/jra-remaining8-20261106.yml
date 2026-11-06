@@ -1,0 +1,36 @@
+name: Complete Kyoto full 12-race pre-race snapshot
+on:
+  push:
+    branches: [jra-html-diagnostic-20261105]
+    paths: ['diagnostics/remaining8_activation_20261106.txt']
+permissions:
+  contents: write
+jobs:
+  capture:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - run: python -m pip install 'beautifulsoup4>=4.12,<5'
+      - name: Read confirmed JRA 12-race navigation and acquire only missing 8 races
+        run: |
+          python diagnostics/jra_remaining_8_20261106.py \
+            --nav docs/diagnostics/JRA_LIVE_NAV_DISCOVERY_20261106.json \
+            --out jra_remaining_8
+      - name: Persist eight source-backed structured receipts and snapshots
+        run: |
+          mkdir -p docs/diagnostics/remaining8_20261106
+          cp jra_remaining_8/*.json docs/diagnostics/remaining8_20261106/
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/diagnostics/remaining8_20261106/
+          git commit -m "Freeze remaining Kyoto pre-race snapshots from official nav" || true
+          git push origin HEAD:jra-html-diagnostic-20261105
+      - name: Retain eight HTML originals briefly
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: jra-kyoto-remaining8-originals-20261106
+          path: jra_remaining_8/
+          retention-days: 3
+          if-no-files-found: warn
