@@ -19,7 +19,7 @@ class P1FBAdapterSafety(unittest.TestCase):
         b={"date":"2026-09-12","status":"除外"}
         self.assertEqual(normalized([], [a]),normalized([], [b]))
     def test_field_difference_is_detectable(self):
-        one={k:"a" for k in FIELDS};two=dict(one);two["distance_m"]="1600"
+        one={k:"a" for k in FIELDS};one["popularity"]="3";two=dict(one);two["distance_m"]="1600"
         self.assertNotEqual(normalized([one],[]),normalized([two],[]))
     def test_real_two_source_control_pc_to_sp(self):
         self.assertEqual(choose(item("PC",False),item("SP"),cutoff=CUT)[0],"SP")
