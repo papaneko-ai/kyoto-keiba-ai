@@ -50,6 +50,7 @@ def parse_horse_history(raw:bytes,*,source_url:str,fetched_at_utc:datetime,
             'profile_captured_before_cutoff':fetched_at_utc<=prediction_cutoff_utc,
             'history_rows_total':0,'prior_rows':[],'prior_row_count':0,
             'excluded_rows':[],'invalid_rows':[],'nonfinish_rows':[],
+            'administrative_events':[],
             'profile_history_table_absent':True,
             'history_status':'NO_HISTORY_TABLE_WITH_IDENTITY_PROOF',
             'pre_race_snapshot_verified':False,'prediction_ready':False,
@@ -57,6 +58,7 @@ def parse_horse_history(raw:bytes,*,source_url:str,fetched_at_utc:datetime,
     headers=tuple(th.get_text(' ',strip=True) for th in table.select('tr th'))
     if headers!=HEADERS:raise ValueError('history_schema_changed')
     accepted,excluded,invalid,nonfinish=[],[],[],[]
+    administrative_events=[]
     seen=set()
     cutoff_date=prediction_cutoff_utc.astimezone(ZoneInfo('Asia/Tokyo')).date()
     for row,tr in enumerate(table.select('tr')[1:],1):
@@ -73,6 +75,18 @@ def parse_horse_history(raw:bytes,*,source_url:str,fetched_at_utc:datetime,
             excluded.append({'row':row,'date':dt.isoformat(),'reason':'same_day_or_future_event'});continue
         if dt>=cutoff_date:
             excluded.append({'row':row,'date':dt.isoformat(),'reason':'cutoff_date_not_proven'});continue
+        # Official JRA horse-history pages also contain administrative transfer
+        # annotations. They are NOT race finishes and have no course/distance.
+        # Treat only these two exact, blank-result shapes as non-race events.
+        # Other malformed course fields must continue to fail closed.
+        if (v[2] in ('JRAへ転入','JRAより転出') and
+                not v[3] and not v[5] and not v[7]):
+            administrative_events.append({'row':row,'date':dt.isoformat(),
+                'event_type':'JRA_TRANSFER_IN' if v[2]=='JRAへ転入' else 'JRA_TRANSFER_OUT',
+                'label':v[2], 'included_in_finish_metrics':False})
+            excluded.append({'row':row,'date':dt.isoformat(),
+                'reason':'administrative_transfer_not_a_race'})
+            continue
         if dt in seen:
             invalid.append({'row':row,'reason':'duplicate_race_date_unresolved'});continue
         seen.add(dt)
@@ -105,7 +119,9 @@ def parse_horse_history(raw:bytes,*,source_url:str,fetched_at_utc:datetime,
             'profile_captured_before_cutoff':fetched_at_utc<=prediction_cutoff_utc,
             'history_rows_total':len(table.select('tr'))-1,'prior_rows':accepted,
             'prior_row_count':len(accepted),'excluded_rows':excluded,'invalid_rows':invalid,
-            'nonfinish_rows':nonfinish,'profile_history_table_absent':False,
+            'nonfinish_rows':nonfinish,
+            'administrative_events':administrative_events,
+            'profile_history_table_absent':False,
             'history_status':'HISTORY_TABLE_PARSED',
             'pre_race_snapshot_verified':False,'prediction_ready':False,
             'missing_reason':'profile_snapshot_or_official_id_not_verified_at_prediction_cutoff'}
