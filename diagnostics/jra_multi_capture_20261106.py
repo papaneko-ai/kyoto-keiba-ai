@@ -11,8 +11,8 @@ SOURCES=(
  (1,"https://jra.jp/JRADB/accessD.html?CNAME=pw01dde0108202605010120261107%2FC1","2026-11-07T01:05:00+00:00"),
  (6,"https://jra.jp/JRADB/accessD.html?CNAME=pw01dde0108202605010620261107%2F4A","2026-11-07T03:55:00+00:00"),
  (12,"https://jra.jp/JRADB/accessD.html?CNAME=pw01dde0108202605011220261107%2FC8","2026-11-07T07:25:00+00:00"))
-DATES=re.compile(r"(20\\d{2})年\\s*(\\d{1,2})月\\s*(\\d{1,2})日")
-FRAMES=re.compile(r"枠\\s*([1-8])|([1-8])\\s*枠")
+DATES=re.compile(r"(20\d{2})年\s*(\d{1,2})月\s*(\d{1,2})日")
+FRAMES=re.compile(r"枠\s*([1-8])|([1-8])\s*枠")
 MAX=1500000
 def clock():return datetime.now(timezone.utc).isoformat()
 def parse(raw,race):
@@ -53,8 +53,8 @@ def parse(raw,race):
  if sorted(nums)!=list(range(1,len(rows)+1)):errors.append("non_contiguous_numbers")
  frames=[r["frame_number"] for r in rows]
  if any(x is None for x in frames) or frames!=sorted(x for x in frames if x is not None):errors.append("invalid_frames")
- if not re.search(r"2026年\\s*11月\\s*7日",text):errors.append("date_not_confirmed")
- if not re.search(r"(?<!\\d)"+str(race)+r"\\s*(?:レース|R)(?!\\d)",text):errors.append("race_number_not_confirmed")
+ if not re.search(r"2026年\s*11月\s*7日",text):errors.append("date_not_confirmed")
+ if not re.search(r"(?<!\d)"+str(race)+r"\s*(?:レース|R)(?!\d)",text):errors.append("race_number_not_confirmed")
  if not rows:errors.append("no_runner_rows")
  return rows,errors
 
@@ -99,15 +99,15 @@ def capture(output,opener=urlopen,now=clock):
     "parse_errors":errors,"roster_verified":not errors,
     "scratch_final_verification":False,"permanent_ids_verified":False,
     "odds_verified":False,"prediction_ready":False,"training_ready":False}
-   (root/f"kyoto_{race:02d}_snapshot.json").write_text(json.dumps(snapshot,ensure_ascii=False,indent=2)+"\\n",encoding="utf8")
+   (root/f"kyoto_{race:02d}_snapshot.json").write_text(json.dumps(snapshot,ensure_ascii=False,indent=2)+"\n",encoding="utf8")
   except Exception as exc:
    rec.update(status="FAILED",error=type(exc).__name__+":"+str(exc)[:200])
-  (root/f"kyoto_{race:02d}_receipt.json").write_text(json.dumps(rec,ensure_ascii=False,indent=2)+"\\n",encoding="utf8")
+  (root/f"kyoto_{race:02d}_receipt.json").write_text(json.dumps(rec,ensure_ascii=False,indent=2)+"\n",encoding="utf8")
   results.append(rec)
  summary={"schema_version":"jra_multi_capture_report.v1","receipts":results,
   "verified_races":[r["race_number"] for r in results if r["roster_verified"]],
   "ready_for_training":False}
- (root/"report.json").write_text(json.dumps(summary,ensure_ascii=False,indent=2)+"\\n",encoding="utf8")
+ (root/"report.json").write_text(json.dumps(summary,ensure_ascii=False,indent=2)+"\n",encoding="utf8")
  return summary
 
 if __name__=="__main__":
