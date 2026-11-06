@@ -33,4 +33,11 @@ class Budget(unittest.TestCase):
     def test_no_guessed_host(self):self.assertEqual(check(backup_url="https://example.com/JRADB/accessU.html?CNAME=guessed")["reason"],"not_verified_official_endpoint")
     def test_clock_without_timezone(self):self.assertEqual(check(asof_utc=datetime(2026,11,6))["reason"],"naive_clock")
     def test_no_successful_source_refetch(self):self.assertEqual(check(attempts=make(status="VALIDATED"))["reason"],"primary_failure_not_preserved")
+    def test_http_failure_without_html_can_fallback_if_error_receipt_saved(self):
+        self.assertEqual(check(attempts=make(status="HTTP_FAILED",saved=False))["status"],"DRY_RUN_ELIGIBLE")
+    def test_http_failure_without_evidence_cannot_fallback(self):
+        bad=Attempt("PC",PC,T-timedelta(seconds=3),11,1,"HTTP_FAILED",False,False)
+        self.assertEqual(check(attempts=[bad])["reason"],"primary_failure_not_preserved")
+    def test_roster_sha_must_be_hex(self):
+        self.assertEqual(check(roster_sha256="z"*64)["reason"],"identity_provenance_missing")
 if __name__=="__main__":unittest.main()
