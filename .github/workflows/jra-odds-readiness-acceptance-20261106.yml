@@ -2,7 +2,12 @@ name: Official PC SP odds publication milestone acceptance
 on:
   push:
     branches: [jra-html-diagnostic-20261105]
-    paths: ['diagnostics/odds_readiness_acceptance_activation_20261106.txt']
+    paths:
+      - 'diagnostics/odds_readiness_acceptance_activation_20261106.txt'
+      - 'diagnostics/jra_live_odds_readiness.py'
+      - 'diagnostics/jra_pc_sp_odds_menu.py'
+      - 'tests/test_jra_live_odds_readiness.py'
+      - '.github/workflows/jra-odds-readiness-acceptance-20261106.yml'
 permissions:
   contents: write
 jobs:
