@@ -1,0 +1,28 @@
+{
+  "schema": "p1_fb_pc_sp_31_event_row_parity.v1",
+  "horse_name": "モンドプリューム",
+  "race": 11,
+  "horse_number": 1,
+  "pc_sha256": "87bcbe38112dc1855f22099edb9bff5cc30a14b78b595470373b6355b2907b9c",
+  "sp_sha256": "b26d60b459e8d5936df50f78bcdfa482fd291c3b630f55fbb3ac5041f86dac22",
+  "pc_finish_rows": 30,
+  "sp_finish_rows": 30,
+  "pc_nonfinish_rows": 1,
+  "sp_nonfinish_rows": 1,
+  "checked_finish_fields": [
+    "date",
+    "venue",
+    "surface",
+    "distance_m",
+    "field_size",
+    "finish_position",
+    "popularity"
+  ],
+  "checked_finish_cells": 210,
+  "mismatches": [],
+  "row_parity": true,
+  "network_requests": 0,
+  "live_auto_fallback_authorized": false,
+  "training_ready": false,
+  "prediction_ready": false
+}
