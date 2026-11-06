@@ -1,0 +1,22 @@
+{
+  "schema_version": "kyoto_fresh_prerace_probe.v1",
+  "source_url": "https://jra.jp/JRADB/accessD.html?CNAME=pw01dde0108202605010720261107%2FFF",
+  "date_of_race_jst": "2026-11-07",
+  "race_number": 7,
+  "fetched_at_utc": "2026-11-06T03:23:31.744694+00:00",
+  "status": "PRERACE_RACECARD_STRUCTURE_CANDIDATE",
+  "http_status": 200,
+  "source_sha256": "fcba7d4c5c16b7dea2b4092a1fa511afefa891d5c6c3f9d7f7dba485d54d7657",
+  "source_bytes": 177555,
+  "raw_html_path": "future_kyoto_r7.html",
+  "horse_rows_verified": false,
+  "official_id_verified": false,
+  "ready_for_prediction": false,
+  "training_ready": false,
+  "html_title": "出馬表　JRA",
+  "html_tables": 1,
+  "html_rows": 12,
+  "response_url": "https://jra.jp/JRADB/accessD.html?CNAME=pw01dde0108202605010720261107%2FFF",
+  "contains_kyoto": true,
+  "finished_at_utc": "2026-11-06T03:23:32.965347+00:00"
+}
