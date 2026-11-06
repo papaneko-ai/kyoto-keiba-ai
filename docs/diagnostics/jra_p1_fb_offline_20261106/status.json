@@ -1,8 +1,8 @@
 {
   "schema": "p1_fb_offline_gate.v1",
   "state": "OFFLINE_GATE_TESTED",
-  "original_bytes_sha256": "8dfa5655377f805a17f9929305c2c19e10548463f892cd5ca902ee6f69d49e76",
-  "pc_sp_bidirectional_synthetic_cases": 12,
+  "original_bytes_sha256": "2755ec8c4b89385ff9f43ea58151036dc61c194009e9721e40a0c78a5e78aba3",
+  "pc_sp_bidirectional_synthetic_cases": 15,
   "network_requests": 0,
   "real_sp_profile_parser_verified": false,
   "live_automatic_switch_authorized": false,
