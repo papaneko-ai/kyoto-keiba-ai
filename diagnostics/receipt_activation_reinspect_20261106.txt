@@ -1,0 +1,1 @@
+One bounded reinspection of prior HTTP 200 non-racecard response; raw HTML only in short-lived artifact, metadata in branch. No schedule.
