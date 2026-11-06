@@ -1,0 +1,1 @@
+No further JRA GET. Offline SHA replay from prior SP source run 42174986970 and prior first SP run 42173462385. Confirm 39 rows 37 races 2 transfers, 11 LOCAL races and 1 popularity absent; rerun first SP horse 31-event PC parity unchanged.
