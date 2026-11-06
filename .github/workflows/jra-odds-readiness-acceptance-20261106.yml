@@ -1,0 +1,33 @@
+name: Official PC SP odds publication milestone acceptance
+on:
+  push:
+    branches: [jra-html-diagnostic-20261105]
+    paths: ['diagnostics/odds_readiness_acceptance_activation_20261106.txt']
+permissions:
+  contents: write
+jobs:
+  acceptance:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    env:
+      PYTHONPATH: .
+    steps:
+      - uses: actions/checkout@v4
+      - name: Independently test official source readiness and odds parsers
+        run: |
+          python -m pip install 'beautifulsoup4>=4.12,<5'
+          python -m unittest discover -s tests -p 'test_jra_market_integrity_gate.py' -v
+          python -m unittest discover -s tests -p 'test_jra_odds_matrix_parser.py' -v
+          python -m unittest discover -s tests -p 'test_jra_live_odds_readiness.py' -v
+      - name: Certify real official PC/SP unavailability receipt without network
+        run: |
+          python diagnostics/jra_live_odds_readiness.py \
+            --out docs/diagnostics/JRA_ODDS_READINESS_ACCEPTANCE_20261106.json
+      - name: Persist evidence with no raw source or future odds
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/diagnostics/JRA_ODDS_READINESS_ACCEPTANCE_20261106.json
+          git commit -m "Record verified official PC SP odds not-published state" || true
+          git pull --rebase origin jra-html-diagnostic-20261105
+          git push origin HEAD:jra-html-diagnostic-20261105
