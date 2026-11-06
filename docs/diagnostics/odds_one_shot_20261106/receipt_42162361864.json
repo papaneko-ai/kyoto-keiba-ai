@@ -1,0 +1,12 @@
+{
+  "schema_version": "jra_one_shot_market_capture.v1",
+  "race_id": "2026-11-07_KYOTO_11R",
+  "channel": "PC",
+  "started_at_utc": "2026-11-06T04:24:59.582567+00:00",
+  "verified_start_utc": "2026-11-07T06:45:00+00:00",
+  "state": "WAIT_FOR_OFFICIAL_SALES",
+  "request_receipts": [],
+  "pre_race_prices_accepted": false,
+  "prediction_ready": false,
+  "training_ready": false
+}
