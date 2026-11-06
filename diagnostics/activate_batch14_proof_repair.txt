@@ -1,0 +1,1 @@
+Offline SHA replay of six already obtained batch14 originals from run 42172639135. Repair fixed 2-count to 6, preserve all source timestamps and SHA; accept 96 profiles Kyoto1R-8R. No official JRA GET.
