@@ -1,0 +1,43 @@
+name: Kyoto P1 batch 04 six real JRA profiles
+on:
+  push:
+    branches: [jra-html-diagnostic-20261105]
+    paths: ['diagnostics/p1_batch04_activation_20261106.txt']
+permissions:
+  contents: write
+concurrency:
+  group: kyoto-p1-profile-batch04
+  cancel-in-progress: false
+jobs:
+  capture:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    env:
+      PYTHONPATH: .
+    steps:
+      - uses: actions/checkout@v4
+      - run: python -m pip install 'beautifulsoup4>=4.12,<5'
+      - name: Verify batch02 and batch03 completed source receipts
+        run: python -m unittest discover -s tests -p 'test_jra_next_three_batches_probe.py' -v
+      - name: Six official requests maximum and hard cutoff
+        run: python diagnostics/jra_next_three_batches_probe.py --batch batch_04 --out actual_batch04
+      - name: Save exact real status
+        if: always()
+        run: |
+          mkdir -p docs/diagnostics/jra_p1_profile_batches_20261106
+          if test -f actual_batch04/batch_receipt.json; then
+            cp actual_batch04/batch_receipt.json docs/diagnostics/jra_p1_profile_batches_20261106/batch_04_receipt.json
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add docs/diagnostics/jra_p1_profile_batches_20261106/batch_04_receipt.json
+            git commit -m "Record actual batch04 six-JRA-profile source receipt" || true
+            git pull --rebase origin jra-html-diagnostic-20261105
+            git push origin HEAD:jra-html-diagnostic-20261105
+          fi
+      - name: Temporary source originals
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: jra-p1-profile-batch-04-originals-20261106
+          path: actual_batch04/
+          retention-days: 3
