@@ -1,6 +1,6 @@
 """P1 full Kyoto R1-R4 provenance-backed profile coverage acceptance.
 
-Rebuilds from immutable prior 148-row baseline plus four separately SHA-replayed
+Rebuilds from immutable prior 148-row baseline plus eight separately SHA-replayed
 official source batches. Offline, no JRA requests, no model or production changes.
 """
 from pathlib import Path
@@ -81,7 +81,7 @@ def build():
     "finished_prior_rows_baseline":107,"finished_prior_rows_from_eight_batches":more_prior,
     "total_finished_prior_rows":107+more_prior,
     "completed_races":[1,2,3,4],"completed_race_runner_counts":{"1":9,"2":15,"3":13,"4":15},
-    "completed_batches":[f"batch_{i:02d}" for i in range(1,7)],
+    "completed_batches":[f"batch_{i:02d}" for i in range(1,9)],
     "next_batch":"batch_09","next_batch_automatically_authorized":False,
     "source_replay_receipt_sha256":receipt_hashes,
     "permanent_html_archive_completed":False,"feature_complete":False,
