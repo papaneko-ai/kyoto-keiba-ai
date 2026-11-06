@@ -1,0 +1,160 @@
+{
+  "schema_version": "jra_pc_sp_11r_runner_comparison.v1",
+  "pc_runner_count": 16,
+  "sp_runner_candidate_count": 0,
+  "unique_sp_candidate_names": 0,
+  "number_match_count": 0,
+  "full_number_name_parity": false,
+  "sp_extracted_rows": [],
+  "checks": [
+    {
+      "pc_horse_number": 1,
+      "pc_horse_name": "モンドプリューム",
+      "sp_horse_number": null,
+      "sp_found": false,
+      "number_matches": false,
+      "sp_frame_cell_text": null,
+      "sp_profile_link_present": false
+    },
+    {
+      "pc_horse_number": 2,
+      "pc_horse_name": "エティエンヌ",
+      "sp_horse_number": null,
+      "sp_found": false,
+      "number_matches": false,
+      "sp_frame_cell_text": null,
+      "sp_profile_link_present": false
+    },
+    {
+      "pc_horse_number": 3,
+      "pc_horse_name": "エコロレーヴ",
+      "sp_horse_number": null,
+      "sp_found": false,
+      "number_matches": false,
+      "sp_frame_cell_text": null,
+      "sp_profile_link_present": false
+    },
+    {
+      "pc_horse_number": 4,
+      "pc_horse_name": "ナムラフランク",
+      "sp_horse_number": null,
+      "sp_found": false,
+      "number_matches": false,
+      "sp_frame_cell_text": null,
+      "sp_profile_link_present": false
+    },
+    {
+      "pc_horse_number": 5,
+      "pc_horse_name": "ノボリショウリュウ",
+      "sp_horse_number": null,
+      "sp_found": false,
+      "number_matches": false,
+      "sp_frame_cell_text": null,
+      "sp_profile_link_present": false
+    },
+    {
+      "pc_horse_number": 6,
+      "pc_horse_name": "アメリカンチケット",
+      "sp_horse_number": null,
+      "sp_found": false,
+      "number_matches": false,
+      "sp_frame_cell_text": null,
+      "sp_profile_link_present": false
+    },
+    {
+      "pc_horse_number": 7,
+      "pc_horse_name": "コウセキ",
+      "sp_horse_number": null,
+      "sp_found": false,
+      "number_matches": false,
+      "sp_frame_cell_text": null,
+      "sp_profile_link_present": false
+    },
+    {
+      "pc_horse_number": 8,
+      "pc_horse_name": "メイショウホウレン",
+      "sp_horse_number": null,
+      "sp_found": false,
+      "number_matches": false,
+      "sp_frame_cell_text": null,
+      "sp_profile_link_present": false
+    },
+    {
+      "pc_horse_number": 9,
+      "pc_horse_name": "ゼットエール",
+      "sp_horse_number": null,
+      "sp_found": false,
+      "number_matches": false,
+      "sp_frame_cell_text": null,
+      "sp_profile_link_present": false
+    },
+    {
+      "pc_horse_number": 10,
+      "pc_horse_name": "ジョーメッドヴィン",
+      "sp_horse_number": null,
+      "sp_found": false,
+      "number_matches": false,
+      "sp_frame_cell_text": null,
+      "sp_profile_link_present": false
+    },
+    {
+      "pc_horse_number": 11,
+      "pc_horse_name": "ジョーローリット",
+      "sp_horse_number": null,
+      "sp_found": false,
+      "number_matches": false,
+      "sp_frame_cell_text": null,
+      "sp_profile_link_present": false
+    },
+    {
+      "pc_horse_number": 12,
+      "pc_horse_name": "アブキールベイ",
+      "sp_horse_number": null,
+      "sp_found": false,
+      "number_matches": false,
+      "sp_frame_cell_text": null,
+      "sp_profile_link_present": false
+    },
+    {
+      "pc_horse_number": 13,
+      "pc_horse_name": "ファムエレガンテ",
+      "sp_horse_number": null,
+      "sp_found": false,
+      "number_matches": false,
+      "sp_frame_cell_text": null,
+      "sp_profile_link_present": false
+    },
+    {
+      "pc_horse_number": 14,
+      "pc_horse_name": "ルージュラナキラ",
+      "sp_horse_number": null,
+      "sp_found": false,
+      "number_matches": false,
+      "sp_frame_cell_text": null,
+      "sp_profile_link_present": false
+    },
+    {
+      "pc_horse_number": 15,
+      "pc_horse_name": "シークレットヴァウ",
+      "sp_horse_number": null,
+      "sp_found": false,
+      "number_matches": false,
+      "sp_frame_cell_text": null,
+      "sp_profile_link_present": false
+    },
+    {
+      "pc_horse_number": 16,
+      "pc_horse_name": "イツモニコニコ",
+      "sp_horse_number": null,
+      "sp_found": false,
+      "number_matches": false,
+      "sp_frame_cell_text": null,
+      "sp_profile_link_present": false
+    }
+  ],
+  "profile_navigation_id_equivalence_proven": false,
+  "frame_equivalence_proven": false,
+  "past_run_field_equivalence_proven": false,
+  "prediction_ready": false,
+  "training_ready": false
+}
