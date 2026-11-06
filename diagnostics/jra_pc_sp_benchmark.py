@@ -1,0 +1,158 @@
+"""One-time bounded PC/SP representative-race benchmark; never production-adopt.
+Official racecard links read from archived JRA navigation, not generated.
+"""
+from __future__ import annotations
+import argparse,hashlib,json,re,time
+from pathlib import Path
+from datetime import datetime,timezone
+from urllib.request import urlopen,Request
+from urllib.parse import urlsplit
+from statistics import median
+from bs4 import BeautifulSoup
+from diagnostics.jra_multi_capture_20261106 import parse as pc_parse
+
+RACES=(1,5,6,11,12)  # small, maiden/newcomer, 16/17 runners
+PC_NAV=Path('docs/diagnostics/JRA_LIVE_NAV_DISCOVERY_20261106.json')
+SP_NAV=Path('docs/diagnostics/JRA_SP_NAV_LINKS_20261106.json')
+ROOT=Path('docs/diagnostics')
+UA_SP="Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 Version/17.0 Mobile/15E148 Safari/604.1"
+UA_PC="Mozilla/5.0"
+BYTES_LIMIT=1_000_000
+
+def pc_urls(nav):
+  result={}
+  for x in nav['links']:
+    href=x.get('href','')
+    m=re.fullmatch(r"/JRADB/accessD.html\?CNAME=(pw01dde010820260501)(\d{2})(20261107)/([0-9A-Z]{2})",href)
+    if m:
+      n=int(m.group(2))
+      result[n]="https://jra.jp"+href.replace("/"+m.group(4),"%2F"+m.group(4))
+  if set(result)!=set(range(1,13)):raise ValueError("unverified_pc_nav")
+  return result
+
+def frozen(n):
+  if n==7:path=ROOT/'JRA_KYOTO_R7_PRERACE_FROZEN_20261106.json'
+  elif n in (1,6,12):path=ROOT/'multirace_20261106'/f'kyoto_{n:02d}_snapshot.json'
+  else:path=ROOT/'remaining8_20261106'/f'kyoto_{n:02d}_snapshot.json'
+  return json.loads(path.read_text(encoding='utf8'))
+
+def fetch_once(channel,url,opener=urlopen,clock=time.perf_counter):
+  host='jra.jp' if channel=='PC' else 'sp.jra.jp'
+  u=urlsplit(url)
+  if u.scheme!='https' or u.hostname!=host or u.path!='/JRADB/accessD.html':
+    raise ValueError('invalid_official_source')
+  req=Request(url,headers={'User-Agent':UA_PC if channel=='PC' else UA_SP,
+                          'Accept':'text/html'},method='GET')
+  start=clock()
+  with opener(req,timeout=20) as resp:
+    code=resp.status; final=urlsplit(resp.geturl())
+    content_type=resp.headers.get('Content-Type','')
+    raw=resp.read(BYTES_LIMIT+1)
+  elapsed=(clock()-start)*1000
+  if (code!=200 or final.scheme!='https' or final.hostname not in
+    (('jra.jp','www.jra.go.jp') if channel=='PC' else ('sp.jra.jp','app.jra.jp'))
+    or not 0<len(raw)<=BYTES_LIMIT or 'html' not in content_type.lower()):
+    raise ValueError('invalid_response')
+  return raw,round(elapsed,2)
+
+def sp_rows(raw):
+  soup=BeautifulSoup(raw.decode('cp932',errors='replace'),'html.parser')
+  tables=soup.select('table')
+  if not tables:raise ValueError('sp_missing_table')
+  output=[]
+  frame=None
+  for tr in tables[0].select('tr'):
+    # A true entrant is a row with one SP profile anchor and .uban number.
+    anchors=tr.select('a[href*="/JRADB/accessU.html"]')
+    numbers=tr.select('.uban')
+    if len(anchors)!=1 or len(numbers)!=1:continue
+    number_text=numbers[0].get_text(' ',strip=True)
+    if not number_text.isascii() or not number_text.isdigit():raise ValueError('bad_sp_number')
+    n=int(number_text)
+    if not 1<=n<=18:raise ValueError('sp_number_out_of_range')
+    slot=tr.select_one('.wban')
+    if slot:
+      raw_frame=slot.get_text(' ',strip=True)
+      if raw_frame:
+        if not raw_frame.isascii() or not raw_frame.isdigit() or not 1<=int(raw_frame)<=8:
+          raise ValueError('bad_sp_frame')
+        frame=int(raw_frame)
+    if frame is None:raise ValueError('missing_initial_sp_frame')
+    name=anchors[0].get_text(' ',strip=True)
+    if not name:raise ValueError('empty_sp_name')
+    output.append((n,frame,name))
+  nums=[x[0] for x in output]
+  if not output or nums!=list(range(1,len(output)+1)):raise ValueError('incomplete_mobile_roster')
+  if len(output)!=len(set(output)):raise ValueError('duplicate_mobile_roster')
+  return tuple(output)
+
+def pc_rows(raw,race):
+  runners,errors=pc_parse(raw,race)
+  if errors:raise ValueError('pc_parser_errors:'+','.join(errors))
+  return tuple((x['horse_number'],x['frame_number'],x['horse_name']) for x in runners)
+
+def benchmark(out):
+  directory=Path(out);directory.mkdir(parents=True,exist_ok=True)
+  pc=pc_urls(json.loads(PC_NAV.read_text(encoding='utf8')))
+  sp={int(k):v for k,v in json.loads(SP_NAV.read_text(encoding='utf8'))['official_race_links'].items()}
+  if set(sp)!=set(range(1,13)):raise ValueError('SP navigation incomplete')
+  cutoff=datetime.fromisoformat('2026-11-07T01:05:00+00:00')
+  if datetime.now(timezone.utc)>=cutoff:raise ValueError('race_started')
+  receipts=[]
+  for idx,n in enumerate(RACES):
+    # Alternate order to reduce systematic first-request/cache advantage.
+    sequence=('PC','SP') if idx%2==0 else ('SP','PC')
+    observations={}
+    for channel in sequence:
+      if receipts or observations:time.sleep(1)
+      rec={'channel':channel,'race':n,'source_url':pc[n] if channel=='PC' else sp[n],
+           'recorded_at_utc':datetime.now(timezone.utc).isoformat(),
+           'status':'STARTED','network_ms':None,'parse_ms':None,
+           'prediction_ready':False,'training_ready':False}
+      try:
+        if datetime.now(timezone.utc)>=cutoff:raise ValueError('race_cutoff')
+        raw,elapsed=fetch_once(channel,rec['source_url'])
+        start=time.perf_counter()
+        rows=pc_rows(raw,n) if channel=='PC' else sp_rows(raw)
+        parse_ms=round((time.perf_counter()-start)*1000,2)
+        rec.update(status='PARSED',source_sha256=hashlib.sha256(raw).hexdigest(),
+            raw_bytes=len(raw),network_ms=elapsed,parse_ms=parse_ms,
+            rows=len(rows),roster=rows)
+        (directory/f'race_{n:02d}_{channel.lower()}.html').write_bytes(raw)
+      except Exception as exc:
+        rec.update(status='FAILED',error=type(exc).__name__+':'+str(exc)[:200])
+      observations[channel]=rec
+      # Commit only receipts and numeric/validation comparison; no raw HTML in GitHub.
+      (directory/f'race_{n:02d}_{channel.lower()}_receipt.json').write_text(
+        json.dumps({k:v for k,v in rec.items() if k!='roster'},ensure_ascii=False,indent=2)+'\n',encoding='utf8')
+    expected=frozen(n)
+    baseline=tuple((x['horse_number'],x['frame_number'],x['horse_name']) for x in expected['runners'])
+    good_pc=observations['PC']['status']=='PARSED'
+    good_sp=observations['SP']['status']=='PARSED'
+    pc_match=good_pc and observations['PC']['roster']==baseline
+    sp_match=good_sp and observations['SP']['roster']==baseline
+    receipts.append({'race':n,'expected_count':len(baseline),
+       'pc_snapshot_match':pc_match,'sp_snapshot_match':sp_match,
+       'pc':{k:v for k,v in observations['PC'].items() if k!='roster'},
+       'sp':{k:v for k,v in observations['SP'].items() if k!='roster'}})
+  pc_latency=[x['pc']['network_ms'] for x in receipts if x['pc']['network_ms'] is not None and x['pc_snapshot_match']]
+  sp_latency=[x['sp']['network_ms'] for x in receipts if x['sp']['network_ms'] is not None and x['sp_snapshot_match']]
+  complete=len(pc_latency)==len(sp_latency)==len(RACES)
+  result={'schema_version':'jra_pc_sp_empirical_benchmark.v1',
+    'target_day':'2026-11-07','official_navigation_not_guessed':True,
+    'sample_races':list(RACES),'races':receipts,
+    'full_roster_parity':complete,
+    'pc_median_network_ms':round(median(pc_latency),2) if complete else None,
+    'sp_median_network_ms':round(median(sp_latency),2) if complete else None,
+    'sp_network_gain_pct':round(100*(1-median(sp_latency)/median(pc_latency)),1) if complete else None,
+    'pc_total_bytes':sum(x['pc'].get('raw_bytes',0) for x in receipts),
+    'sp_total_bytes':sum(x['sp'].get('raw_bytes',0) for x in receipts),
+    'pc_first_baseline':True,'allow_auto_switch':False,
+    'odds_verified':False,'scratch_verified':False,
+    'training_ready':False,'prediction_ready':False}
+  (directory/'benchmark_report.json').write_text(json.dumps(result,ensure_ascii=False,indent=2)+'\n',encoding='utf8')
+  return result
+if __name__=='__main__':
+ ap=argparse.ArgumentParser();ap.add_argument('--out',default='jra_pc_sp_benchmark');args=ap.parse_args()
+ data=benchmark(args.out)
+ print(json.dumps({k:v for k,v in data.items() if k!='races'},ensure_ascii=False))
