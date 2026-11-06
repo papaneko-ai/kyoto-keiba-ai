@@ -1,0 +1,1 @@
+Accept four full Kyoto 2026-11-07 racecards R1-R4, 52 runners all source-backed; 60 detailed profiles across day with 88 missing, exact original SHA replay of batches01-08, no network in acceptance, next batch09.
