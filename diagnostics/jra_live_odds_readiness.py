@@ -3,7 +3,9 @@ Does not call JRA, guess CNAME, synthesize prices, or alter production.
 """
 from datetime import date
 from pathlib import Path
-import argparse,json
+import argparse,json,re
+from hashlib import sha256
+from urllib.parse import urlsplit
 from diagnostics.jra_market_integrity_gate import publication_status,normal_sales_open,utc
 
 ROOT=Path("docs/diagnostics")
@@ -32,8 +34,13 @@ def accept(menu,links):
             raise ValueError("menu_original_provenance_missing")
         if n.get("odds_endpoints_visible",0)<1:
             raise ValueError("official_source_link_not_confirmed")
-        if hostname not in r.get("source",""):
+        source_url=n.get("source","")
+        if urlsplit(source_url).scheme!="https" or urlsplit(source_url).hostname!=hostname:
             raise ValueError("unexpected_origin")
+        from diagnostics.jra_pc_sp_odds_menu import link_for_channel
+        token=link_for_channel(n)
+        if sha256(token.encode()).hexdigest()!=r.get("token_sha256"):
+            raise ValueError("menu_token_does_not_match_official_navigation")
         if "オッズ" not in r.get("title",""):
             raise ValueError("not_an_official_odds_menu")
         verdict=publication_status(
