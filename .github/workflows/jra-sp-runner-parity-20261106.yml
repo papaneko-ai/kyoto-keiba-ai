@@ -2,7 +2,7 @@ name: Verify JRA SP runner parity against PC frozen racecard
 on:
   push:
     branches: [jra-html-diagnostic-20261105]
-    paths: ['diagnostics/sp_parity_activation_20261106.txt']
+    paths: ['diagnostics/sp_parity_fix_activation_20261106.txt']
 permissions:
   contents: write
 jobs:
@@ -18,9 +18,9 @@ jobs:
         if: always()
         run: |
           mkdir -p docs/diagnostics
-          cp jra_sp_parity/receipt.json docs/diagnostics/JRA_SP_RUNNER_PARITY_RECEIPT_20261106.json
+          cp jra_sp_parity/receipt.json docs/diagnostics/JRA_SP_RUNNER_PARITY_FIXED_RECEIPT_20261106.json
           if test -f jra_sp_parity/sp_runner_comparison.json; then
-            cp jra_sp_parity/sp_runner_comparison.json docs/diagnostics/JRA_SP_RUNNER_PARITY_20261106.json
+            cp jra_sp_parity/sp_runner_comparison.json docs/diagnostics/JRA_SP_RUNNER_PARITY_FIXED_20261106.json
           fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
