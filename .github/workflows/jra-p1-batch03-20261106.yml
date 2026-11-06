@@ -2,7 +2,10 @@ name: Kyoto P1 batch 03 six real JRA profiles
 on:
   push:
     branches: [jra-html-diagnostic-20261105]
-    paths: ['diagnostics/p1_batch03_activation_20261106.txt']
+    paths:
+      - 'diagnostics/p1_batch03_activation_20261106.txt'
+      - 'tests/test_jra_next_three_batches_probe.py'
+      - '.github/workflows/jra-p1-batch03-20261106.yml'
 permissions:
   contents: write
 concurrency:
