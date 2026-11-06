@@ -1,0 +1,1 @@
+One-time independent CI check for Kyoto 2026-11-07 1R,6R,7R,12R frozen structured snapshots; record verdict in GitHub repo, no new JRA requests.
