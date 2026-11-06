@@ -1,0 +1,96 @@
+{
+  "schema": "p1_fb_sp_second_invalid_exact_evidence.v1",
+  "source_sha256": "88fff685dec67e145b8e4cf68b8d4c738550798dae6a6806779d31351b0cfa45",
+  "invalid_count": 11,
+  "rows": [
+    {
+      "row": 20,
+      "reason": "sp_history_left_unparsed",
+      "cells": [
+        "2023年7月27日 園田 藻川特別 ダ1400 \r\n良 \r\n11頭 エナジーポコアポコ",
+        "2着 1:29.1 502kg 西村 淳也 56.0"
+      ]
+    },
+    {
+      "row": 23,
+      "reason": "sp_history_left_unparsed",
+      "cells": [
+        "2023年4月10日 船橋 普通C1四五 ダ1500 \r\n良 \r\n11頭 (グリーンダイヤル)",
+        "1着  1人気 1:37.9 513kg 矢野 貴之\r\n56.0"
+      ]
+    },
+    {
+      "row": 24,
+      "reason": "sp_history_left_unparsed",
+      "cells": [
+        "2023年3月13日 船橋 舞浜賞 ダ1600 \r\n良 \r\n14頭 フォールロワ",
+        "2着  1人気 1:46.6 512kg 矢野 貴之\r\n56.0"
+      ]
+    },
+    {
+      "row": 25,
+      "reason": "sp_history_left_unparsed",
+      "cells": [
+        "2023年2月8日 船橋 普通C2三四 ダ1500 \r\n良 \r\n12頭 (ヴェニーレ)",
+        "1着  2人気 1:38.9 504kg 矢野 貴之\r\n56.0"
+      ]
+    },
+    {
+      "row": 26,
+      "reason": "sp_history_left_unparsed",
+      "cells": [
+        "2023年1月19日 船橋 普通C3一特選 ダ1500 \r\n良 \r\n11頭 (ハイエストコード)",
+        "1着  1人気 1:40.7 507kg 矢野 貴之\r\n56.0"
+      ]
+    },
+    {
+      "row": 27,
+      "reason": "sp_history_left_unparsed",
+      "cells": [
+        "2022年12月11日 水沢 B2二組 ダ1600 \r\n重 \r\n12頭 ビクトリーカノン",
+        "2着  1人気 1:43.6 520kg 山本 聡哉\r\n56.0"
+      ]
+    },
+    {
+      "row": 28,
+      "reason": "sp_history_left_unparsed",
+      "cells": [
+        "2022年11月22日 盛岡 ゼラニウム賞 ダ1600 \r\n良 \r\n11頭 (チムドンドン)",
+        "1着  1人気 1:40.3 518kg 山本 聡哉\r\n56.0"
+      ]
+    },
+    {
+      "row": 29,
+      "reason": "sp_history_left_unparsed",
+      "cells": [
+        "2022年11月8日 盛岡 C1四組 ダ1600 \r\n稍重 \r\n10頭 (クラトリガー)",
+        "1着  1人気 1:39.8 526kg 山本 聡哉\r\n56.0"
+      ]
+    },
+    {
+      "row": 30,
+      "reason": "sp_history_left_unparsed",
+      "cells": [
+        "2022年10月18日 盛岡 C2一組 ダ1400 \r\n良 \r\n11頭 (チムドンドン)",
+        "1着  1人気 1:26.5 523kg 山本 聡哉\r\n56.0"
+      ]
+    },
+    {
+      "row": 31,
+      "reason": "sp_history_left_unparsed",
+      "cells": [
+        "2022年10月3日 盛岡 C2六組 ダ1200 \r\n良 \r\n9頭 (トーセンローラ)",
+        "1着  1人気 1:12.8 521kg 山本 聡哉\r\n56.0"
+      ]
+    },
+    {
+      "row": 32,
+      "reason": "sp_history_left_unparsed",
+      "cells": [
+        "2022年9月26日 盛岡 3歳C2五組 ダ1200 \r\n稍重 \r\n10頭 (ブライティアコバ)",
+        "1着  3人気 1:12.8 526kg 山本 聡哉\r\n56.0"
+      ]
+    }
+  ],
+  "new_network_requests": 0
+}
