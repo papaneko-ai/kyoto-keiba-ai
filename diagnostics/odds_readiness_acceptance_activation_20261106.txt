@@ -1,0 +1,1 @@
+One-time independent offline acceptance of official PC/SP Kyoto 11R odds pages. Both sources report weekly odds not yet published. Test market parsers and original integrity gates; no network or production DB writes.
