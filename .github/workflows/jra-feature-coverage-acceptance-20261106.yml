@@ -2,7 +2,11 @@ name: Full Kyoto 148 runner predictive feature completeness acceptance
 on:
   push:
     branches: [jra-html-diagnostic-20261105]
-    paths: ['diagnostics/feature_coverage_activation_20261106.txt']
+    paths:
+      - 'diagnostics/feature_coverage_activation_20261106.txt'
+      - 'diagnostics/jra_feature_coverage_148.py'
+      - 'tests/test_jra_feature_coverage_148.py'
+      - '.github/workflows/jra-feature-coverage-acceptance-20261106.yml'
 permissions:
   contents: write
 jobs:
