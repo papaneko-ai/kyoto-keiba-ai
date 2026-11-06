@@ -1,0 +1,1 @@
+Offline only. Read SHA-locked original from GitHub Actions 42171346385. Inspect JRA history row 17 and 23 course value. Do not make JRA HTTP requests, do not train.
