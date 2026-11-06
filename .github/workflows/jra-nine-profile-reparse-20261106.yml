@@ -2,7 +2,11 @@ name: Reparse nine JRA genuine horse originals with obstacle course support
 on:
   push:
     branches: [jra-html-diagnostic-20261105]
-    paths: ['diagnostics/nine_profile_reparse_activation_20261106.txt']
+    paths:
+      - 'diagnostics/nine_profile_reparse_activation_20261106.txt'
+      - 'diagnostics/jra_prior_form_offline.py'
+      - 'diagnostics/jra_nine_profile_artifact_replay.py'
+      - '.github/workflows/jra-nine-profile-reparse-20261106.yml'
 permissions:
   actions: read
   contents: write
