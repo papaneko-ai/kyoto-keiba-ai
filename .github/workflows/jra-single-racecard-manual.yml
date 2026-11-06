@@ -1,0 +1,25 @@
+name: JRA one racecard manual diagnostic
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  one_page:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+      - name: Mock test before access
+        run: python -m unittest discover -s tests -p 'test_jra_one_racecard_capture.py' -v
+      - name: One GET of an official historical racecard
+        run: |
+          python diagnostics/jra_one_racecard_capture.py \
+            --url 'https://www.jra.go.jp/JRADB/accessD.html?CNAME=pw01dde0108202604100120261031%2F52'
+      - name: Upload evidence if present
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: jra-single-racecard-manual-diagnostic
+          path: jra_single_racecard_diagnostic/
+          retention-days: 5
+          if-no-files-found: warn
