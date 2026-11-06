@@ -1,0 +1,106 @@
+name: Kyoto P1 guarded batch13 Kyoto 7R complete
+on:
+  push:
+    branches: [jra-html-diagnostic-20261105]
+    paths: ['diagnostics/p1_batch13_activation_20261106.txt']
+permissions:
+  contents: write
+  actions: read
+concurrency:
+  group: kyoto-p1-batch13-guarded
+  cancel-in-progress: false
+jobs:
+  capture:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    env:
+      PYTHONPATH: .
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: jra-html-diagnostic-20261105
+      - run: python -m pip install 'beautifulsoup4>=4.12,<5'
+      - name: Check frozen plan before any HTTP
+        run: python -c 'from diagnostics.jra_p1_batch13_guarded import preflight; assert len(preflight()["items"]) == 6'
+      - name: Check Python syntax and deadline fail-closed without HTTP
+        run: |
+          python -m compileall -q diagnostics/jra_p1_batch13_guarded.py diagnostics/jra_p1_batch13_original_replay.py diagnostics/jra_p1_batch13_acceptance.py
+          python - <<'PY'
+          from diagnostics.jra_p1_batch13_guarded import capture, CUTOFF
+          import tempfile
+          with tempfile.TemporaryDirectory() as tmp:
+              def no_http(*args, **kwargs):
+                  raise AssertionError("unexpected_network")
+              receipt = capture(tmp, opener=no_http, clock=lambda: CUTOFF)
+              assert receipt["official_network_requests"] == 0
+              assert receipt["reason"] == "pre_race_asof_cutoff_expired"
+          PY
+      - name: Fetch six official profiles, 2 seconds apart, no retries
+        run: python diagnostics/jra_p1_batch13_guarded.py --out batch13_originals
+      - name: Persist small source receipt on development branch
+        if: always()
+        run: |
+          if test -f batch13_originals/batch_receipt.json; then
+            mkdir -p docs/diagnostics/jra_p1_profile_batches_20261106
+            cp batch13_originals/batch_receipt.json docs/diagnostics/jra_p1_profile_batches_20261106/batch_13_receipt.json
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add docs/diagnostics/jra_p1_profile_batches_20261106/batch_13_receipt.json
+            git commit -m "Record bounded P1 batch13 JRA official HTTP outcome"
+            git pull --rebase origin jra-html-diagnostic-20261105
+            git push origin HEAD:jra-html-diagnostic-20261105
+          fi
+      - name: Original HTML in expiring 3-day artifact, not repository
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: kyoto-p1-batch13-originals
+          path: batch13_originals/
+          retention-days: 3
+  replay:
+    needs: capture
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    env:
+      PYTHONPATH: .
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: jra-html-diagnostic-20261105
+      - uses: actions/download-artifact@v4
+        with:
+          name: kyoto-p1-batch13-originals
+          path: offline_originals
+      - run: python -m pip install 'beautifulsoup4>=4.12,<5'
+      - name: Offline independent SHA replay, zero HTTP requests
+        run: |
+          python diagnostics/jra_p1_batch13_original_replay.py --batch batch_13 --artifact offline_originals --out docs/diagnostics/jra_p1_profile_batches_20261106/replayed_batch_13
+      - name: Commit replay proof, never source HTML
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/diagnostics/jra_p1_profile_batches_20261106/replayed_batch_13/
+          git commit -m "Independently replay batch13 original source SHA and parsed history"
+          git pull --rebase origin jra-html-diagnostic-20261105
+          git push origin HEAD:jra-html-diagnostic-20261105
+  acceptance:
+    needs: replay
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      PYTHONPATH: .
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: jra-html-diagnostic-20261105
+      - run: python -m pip install 'beautifulsoup4>=4.12,<5'
+      - name: Build 148-runner provenance ledger with batch13
+        run: python diagnostics/jra_p1_batch13_acceptance.py --out docs/diagnostics/jra_p1_thirteen_batches_20261106
+      - name: Commit verified checkpoint
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/diagnostics/jra_p1_thirteen_batches_20261106/
+          git commit -m "Accept Kyoto P1 batch13 90-profile checkpoint"
+          git pull --rebase origin jra-html-diagnostic-20261105
+          git push origin HEAD:jra-html-diagnostic-20261105
