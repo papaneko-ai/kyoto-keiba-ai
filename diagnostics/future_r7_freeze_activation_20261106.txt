@@ -1,0 +1,1 @@
+Freeze one official 2026-11-07 Kyoto R7 live pre-race source. No automatic prediction, no mass download, no production writes.
