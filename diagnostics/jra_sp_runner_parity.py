@@ -13,15 +13,17 @@ def extract_sp_rows(raw):
  tab=soup.select_one('table')
  if tab is None:raise ValueError('sp_main_table_missing')
  entries=[]
- for tag in tab.select('.bamei'):
-  a=tag.select_one('a[href*="/JRADB/accessU.html"]')
-  if a is None:continue
+ # On mobile, the actual runner link need not be nested inside .bamei.
+ # Use each official horse profile anchor in main entry table, and exclude
+ # historical horses by validating the official PC roster in evaluate().
+ for a in tab.select('a[href*="/JRADB/accessU.html"]'):
   name=a.get_text(' ',strip=True)
-  tr=tag.find_parent('tr')
-  if tr is None:raise ValueError('bamei_not_in_table_row')
+  if not name:continue
+  tr=a.find_parent('tr')
+  if tr is None:continue
   numtag=tr.select_one('.uban')
   num_text=numtag.get_text(' ',strip=True) if numtag else ''
-  num_match=re.search(r'(?<!\d)(1[0-8]|[1-9])(?!\d)',num_text)
+  num_match=re.search(r'(?<!\\d)(1[0-8]|[1-9])(?!\\d)',num_text)
   num=int(num_match.group(1)) if num_match else None
   wban=tr.select_one('.wban')
   frame_hint=wban.get_text(' ',strip=True) if wban else None
@@ -31,7 +33,9 @@ def extract_sp_rows(raw):
  return entries
 
 def evaluate(raw,pc):
- entries=extract_sp_rows(raw)
+ entries_all=extract_sp_rows(raw)
+ names={p['horse_name'] for p in pc['runners']}
+ entries=[x for x in entries_all if x['name'] in names]
  seen={}
  for x in entries:
   if x['name'] in seen:raise ValueError('duplicate_SP_runner_name')
@@ -50,6 +54,7 @@ def evaluate(raw,pc):
     'unique_sp_candidate_names':len(seen),'number_match_count':sum(x['number_matches'] for x in checks),
     'full_number_name_parity':len(entries)==len(pc['runners']) and all(x['number_matches'] for x in checks),
     'sp_extracted_rows':entries,'checks':checks,
+    'all_profile_anchors_in_primary_table':len(entries_all),
     'profile_navigation_id_equivalence_proven':False,
     'frame_equivalence_proven':False,'past_run_field_equivalence_proven':False,
     'prediction_ready':False,'training_ready':False}
