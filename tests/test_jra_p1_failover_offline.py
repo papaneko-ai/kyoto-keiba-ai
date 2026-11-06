@@ -1,6 +1,8 @@
 import unittest
+import tempfile,json
+from pathlib import Path
 from datetime import datetime,timezone
-from diagnostics.jra_p1_failover_offline import ChannelResult,choose
+from diagnostics.jra_p1_failover_offline import ChannelResult,choose,write_case
 H="a"*64
 CUTOFF=datetime(2026,11,7,tzinfo=timezone.utc)
 def item(channel,verified=True,horse="試験馬",race=8,number=2,roster=H,
@@ -46,4 +48,24 @@ class DualSourceOffline(unittest.TestCase):
     def test_no_fallback(self):
         self.assertEqual(choose(item("SP",False),cutoff=CUTOFF),
                          (None,"PRIMARY_FAILED"))
+    def test_failed_original_is_required(self):
+        with self.assertRaisesRegex(ValueError,"original_not_preserved"):
+            choose(item("PC",False,raw=False),cutoff=CUTOFF)
+    def test_immutable_incident_recorder_keeps_failed_channel(self):
+        with tempfile.TemporaryDirectory() as folder:
+            target=Path(folder)/"case1"
+            receipt=write_case(target,item("PC",False),item("SP"),cutoff=CUTOFF)
+            self.assertEqual(receipt["selected_channel"],"SP")
+            self.assertTrue(receipt["separate_incidents"][0]["incident_open"])
+            self.assertFalse(receipt["separate_incidents"][1]["incident_open"])
+            self.assertFalse(receipt["automatic_live_fallback"])
+            self.assertEqual(json.loads((target/"receipt.json").read_text())["decision"],"FALLBACK_VALID_PRIMARY_STILL_BROKEN")
+            with self.assertRaisesRegex(ValueError,"incident_receipt_already_exists"):
+                write_case(target,item("PC",False),item("SP"),cutoff=CUTOFF)
+    def test_incident_record_rejects_cross_horse_before_create(self):
+        with tempfile.TemporaryDirectory() as folder:
+            target=Path(folder)/"case2"
+            with self.assertRaisesRegex(ValueError,"horse_identity_conflict"):
+                write_case(target,item("SP",False),item("PC",horse="別馬"),cutoff=CUTOFF)
+            self.assertFalse(target.exists())
 if __name__=="__main__":unittest.main()
