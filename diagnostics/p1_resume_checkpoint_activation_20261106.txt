@@ -1,0 +1,1 @@
+No-HTTP 18 source-profile progress checkpoint: original 12 plus 6 real profile source SHA-replayed records. Remaining 130 in 22 batches; keep original HTML long-term status unverified. No production or model writes.
