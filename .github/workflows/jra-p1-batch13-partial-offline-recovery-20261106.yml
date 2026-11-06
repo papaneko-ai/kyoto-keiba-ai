@@ -1,0 +1,61 @@
+name: Kyoto P1 batch13 partial original-only recovery (no JRA HTTP)
+on:
+  push:
+    branches: [jra-html-diagnostic-20261105]
+    paths: ['diagnostics/p1_batch13_partial_offline_activation_20261106.txt']
+permissions:
+  contents: write
+  actions: read
+concurrency:
+  group: kyoto-p1-batch13-partial-offline
+  cancel-in-progress: false
+jobs:
+  replay:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    env:
+      PYTHONPATH: .
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: jra-html-diagnostic-20261105
+      - uses: actions/download-artifact@v4
+        with:
+          run-id: 42170611153
+          name: kyoto-p1-batch13-originals
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: recovered_originals
+      - run: python -m pip install 'beautifulsoup4>=4.12,<5'
+      - name: Offline strict replay of only 3 valid sources; no official GET
+        run: |
+          python -m compileall -q diagnostics/jra_p1_batch13_partial_replay.py diagnostics/jra_p1_batch13_partial_acceptance.py
+          python diagnostics/jra_p1_batch13_partial_replay.py --batch batch_13 --artifact recovered_originals --out docs/diagnostics/jra_p1_profile_batches_20261106/replayed_batch_13_partial
+      - name: Commit partial original SHA evidence
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/diagnostics/jra_p1_profile_batches_20261106/replayed_batch_13_partial/
+          git commit -m "Preserve three SHA verified original sources from blocked batch13"
+          git pull --rebase origin jra-html-diagnostic-20261105
+          git push origin HEAD:jra-html-diagnostic-20261105
+  acceptance:
+    needs: replay
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      PYTHONPATH: .
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: jra-html-diagnostic-20261105
+      - run: python -m pip install 'beautifulsoup4>=4.12,<5'
+      - name: Confirm seven full races and quarantined R8 horse02 without any HTTP
+        run: python diagnostics/jra_p1_batch13_partial_acceptance.py --out docs/diagnostics/jra_p1_seven_races_partial_20261106
+      - name: Commit explicitly partial safe checkpoint
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/diagnostics/jra_p1_seven_races_partial_20261106/
+          git commit -m "Accept Kyoto seven races from three verified originals; quarantine batch13 parser failure"
+          git pull --rebase origin jra-html-diagnostic-20261105
+          git push origin HEAD:jra-html-diagnostic-20261105
