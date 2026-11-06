@@ -1,0 +1,1 @@
+One bounded historical racecard POST using previously successful JRA doAction form submission. Metadata receipt only; raw HTML in expiring Artifact; no cron.
