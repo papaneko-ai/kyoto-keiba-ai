@@ -19,7 +19,8 @@
     "EVO-04": "pre-registered counterfactual portfolio P4,P5,P6,P7",
     "EVO-05": "drift and deterioration P3,P5,P7,P8",
     "EVO-06": "constrained autonomous research P2,P3,P6,P7,P8",
-    "EVO-07": "independent evolution certification audit P7; supporting evidence P1-P6 and reporting P8"
+    "EVO-07": "independent evolution certification audit P7; supporting evidence P1-P6 and reporting P8",
+    "EVO-08": "surprise discovery, counterexamples and falsifiable insight hypotheses in P2,P6,P7,P8"
   },
   "guards": [
     "no_future_data",
@@ -38,10 +39,14 @@
     "multiple_testing_guard",
     "certification_separate_from_promotion",
     "forward_monitoring_after_promotion",
-    "measure_research_engine_efficiency"
+    "measure_research_engine_efficiency",
+    "surprise_is_hypothesis_not_proof",
+    "no_same_result_discovery_and_independent_validation",
+    "counterexamples_and_multiple_comparison_required"
   ],
   "implementation": "required_not_yet_implemented",
   "restart": "P1-FB stage5; verified 96/148, 52 remaining, 592 prior histories",
   "spec": "docs/KYOTO_AI_AUTONOMOUS_EVOLUTION_SIX_CAPABILITIES_REQUIREMENTS_20261106.md",
-  "audit_spec": "docs/KYOTO_AI_INDEPENDENT_EVOLUTION_CERTIFICATION_AUDIT_20261106.md"
+  "audit_spec": "docs/KYOTO_AI_INDEPENDENT_EVOLUTION_CERTIFICATION_AUDIT_20261106.md",
+  "insight_spec": "docs/KYOTO_AI_INSIGHT_SURPRISE_DISCOVERY_HYPOTHESIS_ENGINE_20261106.md"
 }
