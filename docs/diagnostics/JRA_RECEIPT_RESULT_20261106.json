@@ -1,0 +1,17 @@
+{
+  "schema_version": "jra_get_receipt.v1",
+  "target_url": "https://www.jra.go.jp/JRADB/accessD.html?CNAME=pw01dde0108202604100120261031%2F52",
+  "started_at_utc": "2026-11-06T03:19:28.932698+00:00",
+  "completed_at_utc": "2026-11-06T03:19:30.064687+00:00",
+  "status": "CAPTURE_FAILED",
+  "http_status": 200,
+  "html_saved": false,
+  "html_sha256": null,
+  "html_bytes": 0,
+  "html_tables": null,
+  "error_type": "ValueError",
+  "error_message": "not_racecard_html_shape",
+  "historical_pre_race_proven": false,
+  "full_roster_verified": false,
+  "ready_for_training": false
+}
