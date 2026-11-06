@@ -1,0 +1,1 @@
+ONE authorized official GET: 2026-11-07 Kyoto race 7 official racecard, before scheduled race; preserve bytes in short-lived artifact and metadata on diagnostic branch. No schedule or repeated polling.
