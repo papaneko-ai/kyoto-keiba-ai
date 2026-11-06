@@ -1,0 +1,1 @@
+Once-only corrected SP link-anchor extraction for Kyoto 2026-11-07 11R, compared against frozen PC 16-runner data. No production changes.
