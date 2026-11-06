@@ -1,0 +1,29 @@
+name: Kyoto P1 R1-R4 all horses full feature acceptance
+on:
+  push:
+    branches: [jra-html-diagnostic-20261105]
+    paths: ['diagnostics/p1_four_races_acceptance_activation_20261106.txt']
+permissions:
+  contents: write
+jobs:
+  accept:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      PYTHONPATH: .
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify full race profiles and prior 8 independent source replays
+        run: python -m unittest discover -s tests -p 'test_jra_p1_four_complete_races.py' -v
+      - name: Generate canonical 148-runner registry with 60 real profiles
+        run: |
+          python diagnostics/jra_p1_four_complete_races.py \
+            --out docs/diagnostics/jra_p1_four_complete_races_20261106
+      - name: Preserve 60 verified and 88 pending resume state
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/diagnostics/jra_p1_four_complete_races_20261106
+          git commit -m "Freeze Kyoto R1-R4 all runners source backed, 60 profiles and 88 pending" || true
+          git pull --rebase origin jra-html-diagnostic-20261105
+          git push origin HEAD:jra-html-diagnostic-20261105
