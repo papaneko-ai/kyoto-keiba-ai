@@ -8,6 +8,8 @@ COURSE=re.compile(r"(障芝|障ダ|芝ダ|ダート|芝|ダ|障)(\d{3,4})")
 FIELD=re.compile(r"(\d{1,2})頭")
 FINISH=re.compile(r"^(\d+)着\s+(\d+)人気")
 VENUES=("札幌","函館","福島","新潟","東京","中山","中京","京都","阪神","小倉")
+LOCAL_VENUES=("園田","船橋","水沢","盛岡")
+FINISH_WITHOUT_POPULARITY=re.compile(r"^(\d+)着(?:\s|$)")
 def parse(raw,expected_horse):
     if not raw or len(raw)>1800000:raise ValueError("invalid_bytes")
     soup=BeautifulSoup(raw.decode("cp932",errors="replace"),"html.parser")
@@ -34,7 +36,7 @@ def parse(raw,expected_horse):
             continue
         c=COURSE.search(left)
         f=FIELD.search(left)
-        venue=next((v for v in VENUES if left[d.end():].startswith(v+" ")) ,None) if d else None
+        venue=next((v for v in VENUES+LOCAL_VENUES if left[d.end():].startswith(v+" ")) ,None) if d else None
         if not d or not c or not f or not venue:
             invalid.append({"row":i,"reason":"sp_history_left_unparsed"});continue
         try:
