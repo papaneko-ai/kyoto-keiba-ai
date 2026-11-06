@@ -26,7 +26,7 @@ def _html_race_identity(raw,day,venue,race):
 def audit_source_originals(menu_raw,market_raw,market_urls,*,race_key,
         race_day,venue,race_number,channel,captured_at_utc,
         verified_start_utc,active_runners,historical=False,
-        archive_directory=None):
+        archive_directory=None, market_captured_at_utc=None):
     """Only a validated live 2-market source can be archived; never auto-predict."""
     if channel not in ("PC","SP"):raise SourceChainError("invalid_channel")
     if not _html_race_identity(menu_raw,race_day,venue,race_number):
@@ -43,6 +43,14 @@ def audit_source_originals(menu_raw,market_raw,market_urls,*,race_key,
             "menu_sha256":sha256(menu_raw).hexdigest(),
             "markets":{},"historical_final_quarantined":False,
             "prediction_ready":False,"training_ready":False}
+    if market_captured_at_utc is None:
+        # Backward-compatible offline single-fixture audit only. Actual live
+        # multi-request capture must provide separate timestamps for both.
+        if archive_directory is not None:
+            raise SourceChainError("individual_market_capture_times_required")
+        market_captured_at_utc={m:captured_at_utc for m in ("quinella","bracket_quinella")}
+    if set(market_captured_at_utc)!={"quinella","bracket_quinella"}:
+        raise SourceChainError("both_market_capture_times_required")
     staged=[]
     for market in ("quinella","bracket_quinella"):
         raw=market_raw.get(market);url=market_urls.get(market)
@@ -55,12 +63,13 @@ def audit_source_originals(menu_raw,market_raw,market_urls,*,race_key,
             raise SourceChainError("conflicting_market_phases")
         phase="HISTORICAL_FINAL" if historical or phase_final else "LIVE_PRE_RACE"
         quotes=tuple((q["pair"][0],q["pair"][1],q["odds"]) for q in data["pairs"])
-        evidence=MarketEvidence(race_key,market,phase,url,captured_at_utc,
+        evidence=MarketEvidence(race_key,market,phase,url,market_captured_at_utc[market],
                 data["source_sha256"],len(raw),tuple(active_runners),quotes,True,True)
         verdict=check(evidence,race_start_utc=verified_start_utc,source_bytes=raw)
         output["markets"][market]={
             "source_sha256":data["source_sha256"],"source_bytes":len(raw),
             "pair_count":len(quotes),"phase":phase,
+            "captured_at_utc":market_captured_at_utc[market],
             "integrity_state":verdict["state"],"reason":verdict.get("reason"),
             "pre_race_usable":verdict["usable"]}
         staged.append((market,raw,url,data,verdict))
@@ -82,7 +91,7 @@ def audit_source_originals(menu_raw,market_raw,market_urls,*,race_key,
                 "source_phase":"LIVE_PRE_RACE",
                 "source_sha256":data["source_sha256"],"source_bytes":len(raw),
                 "official_race_identity_verified":True,"source_url":url,
-                "captured_at_utc":captured_at_utc,"race_id":race_key,
+                "captured_at_utc":market_captured_at_utc[market],"race_id":race_key,
                 "usage":"SOURCE_ONLY",
                 "market_integrity_state":verdict["state"],
                 "market_pair_count":len(data["pairs"])}
