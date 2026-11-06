@@ -1,0 +1,1 @@
+Execute exactly six new official P1 profile requests from batch05 using frozen 36-profile checkpoint, hard cutoff, no duplicates, no live production changes.
