@@ -5,6 +5,9 @@
 **チャット・セクション・担当実行環境が変わっても、特殊な事情がない限り、既定の工程をその順序と完了条件どおりに継続する。** 新しいチャットに移行したこと自体を、工程変更、方針の再提案、既済実験の再実行、既存の実証結果の破棄、勝手な実装簡素化の理由にしてはならない。
 
 ## 継続する正本
+- **新チャット最初の入口（移行パック）**：`docs/KYOTO_AI_COMPLETE_MIGRATION_PACK_20261106.md`
+- **そのまま貼り付ける開始指示文**：`docs/KYOTO_AI_NEW_CHAT_STARTER_20261106.md`
+- **移行前の精査・矛盾/留保**：`docs/KYOTO_AI_MIGRATION_PRECHECK_AUDIT_20261106.md`
 - 全13項目のアルゴリズム要件：`docs/KYOTO_AI_ALGORITHM_REQUIREMENTS_REGISTER_v1_20261106.md`
 - P1〜P8の固定工程・完了ゲート：`docs/KYOTO_AI_ALGORITHM_AND_EXECUTION_ROADMAP_20261106.md`
 - **最新の確定進捗・証拠（優先参照）**：`docs/KYOTO_AI_P1_FOUR_RACES_COMPLETE_HANDOFF_20261106.md`
