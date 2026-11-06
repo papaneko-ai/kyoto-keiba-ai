@@ -1,0 +1,10 @@
+{
+  "status": "DISCOVERY_RECORDED",
+  "source": "https://sp.jra.jp/JRADB/accessD.html?CNAME=sw01dde0108202605011120261107%2FA0",
+  "started_at_utc": "2026-11-06T03:57:06.375182+00:00",
+  "sha256": "de806dc0a9977a41ffd2a795a5e6cda485fb243e26fbf8eb56d932326986ba54",
+  "bytes": 128691,
+  "race_links": 12,
+  "complete": true,
+  "finished_at_utc": "2026-11-06T03:57:07.579319+00:00"
+}

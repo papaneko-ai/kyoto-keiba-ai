@@ -1,0 +1,22 @@
+{
+  "schema": "sp_navigation_discovery_v1",
+  "official_race_links": {
+    "1": "https://sp.jra.jp/JRADB/accessD.html?CNAME=sw01dde0108202605010120261107%2F4E",
+    "2": "https://sp.jra.jp/JRADB/accessD.html?CNAME=sw01dde0108202605010220261107%2F03",
+    "3": "https://sp.jra.jp/JRADB/accessD.html?CNAME=sw01dde0108202605010320261107%2FB8",
+    "4": "https://sp.jra.jp/JRADB/accessD.html?CNAME=sw01dde0108202605010420261107%2F6D",
+    "5": "https://sp.jra.jp/JRADB/accessD.html?CNAME=sw01dde0108202605010520261107%2F22",
+    "6": "https://sp.jra.jp/JRADB/accessD.html?CNAME=sw01dde0108202605010620261107%2FD7",
+    "7": "https://sp.jra.jp/JRADB/accessD.html?CNAME=sw01dde0108202605010720261107%2F8C",
+    "8": "https://sp.jra.jp/JRADB/accessD.html?CNAME=sw01dde0108202605010820261107%2F41",
+    "9": "https://sp.jra.jp/JRADB/accessD.html?CNAME=sw01dde0108202605010920261107%2FF6",
+    "10": "https://sp.jra.jp/JRADB/accessD.html?CNAME=sw01dde0108202605011020261107%2FEB",
+    "11": "https://sp.jra.jp/JRADB/accessD.html?CNAME=sw01dde0108202605011120261107%2FA0",
+    "12": "https://sp.jra.jp/JRADB/accessD.html?CNAME=sw01dde0108202605011220261107%2F55"
+  },
+  "link_count": 29,
+  "race_link_count": 12,
+  "full_12_race_links": true,
+  "prediction_ready": false,
+  "training_ready": false
+}
