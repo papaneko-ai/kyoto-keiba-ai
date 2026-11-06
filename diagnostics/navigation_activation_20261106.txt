@@ -1,0 +1,1 @@
+One official current Kyoto R7 source GET and offline navigation inventory. No bulk download, no schedule, no production writes.
