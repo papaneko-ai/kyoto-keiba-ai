@@ -1,0 +1,1 @@
+Offline SHA256 and parser replay of all six official Kyoto horse profiles in P1 batch02 from Actions run 42166104655, no additional JRA requests.
