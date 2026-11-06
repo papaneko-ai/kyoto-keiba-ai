@@ -1,0 +1,1 @@
+Offline only. Reuse prior official PC saved normalized form and original SHA locked SP artifact from 42173462385 for same horse. Test 15+9 safety cases and symmetric source switching. No official GET or production changes.
