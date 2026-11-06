@@ -1,0 +1,34 @@
+{
+  "schema_version": "jra_live_odds_readiness_gate.v1",
+  "race": "2026-11-07-KYOTO-11R",
+  "normal_sale_start_utc": "2026-11-06T09:30:00+00:00",
+  "source_channels": [
+    {
+      "channel": "PC",
+      "captured_at_utc": "2026-11-06T04:05:23.810418+00:00",
+      "menu_sha256": "1b9e81da48970f974daf03cca50fa2fdf5fd89cd9001ab4992cfd529140a6c5e",
+      "official_link_sha256": "0c443ce664e6c8c7ed54ea2ebda837edef07f1a2697405bf069677b0cc67f565",
+      "status": "NOT_PUBLISHED",
+      "usable": false,
+      "market_matrix_captured": false,
+      "market_price_verified": false
+    },
+    {
+      "channel": "SP",
+      "captured_at_utc": "2026-11-06T04:05:25.638810+00:00",
+      "menu_sha256": "c6860a5eb64f0f2092670138e83c5b47d6511cc52c69e421a99f24303fd02aff",
+      "official_link_sha256": "de806dc0a9977a41ffd2a795a5e6cda485fb243e26fbf8eb56d932326986ba54",
+      "status": "NOT_PUBLISHED",
+      "usable": false,
+      "market_matrix_captured": false,
+      "market_price_verified": false
+    }
+  ],
+  "both_not_published": true,
+  "status": "OFFICIAL_UNPUBLISHED_CONFIRMED",
+  "pre_race_odds_available": false,
+  "market_capture_success": false,
+  "historical_final_as_prerace_forbidden": true,
+  "prediction_ready": false,
+  "training_ready": false
+}
