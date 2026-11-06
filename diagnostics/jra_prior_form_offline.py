@@ -8,7 +8,7 @@ import re
 
 HEADERS=('年月日','場','レース名','距離','馬場','頭数','人気','着順','騎手名','負担重量','馬体重','タイム','Rt','1着馬（2着馬）')
 DATE=re.compile(r'^(\d{4})年(\d{1,2})月(\d{1,2})日$')
-COURSE=re.compile(r'^(芝ダ|芝|ダート|ダ|障)(\d{3,4})
+COURSE=re.compile(r'^(芝ダ|芝|ダート|ダ|障)(\d{3,4})$')
 
 def parse_horse_history(raw:bytes,*,source_url:str,fetched_at_utc:datetime,
                         prediction_cutoff_utc:datetime,target_date:date,
