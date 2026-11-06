@@ -1,0 +1,1 @@
+batch_09 P1 only. Trigger one bounded capture of Kyoto 5R horses 2-7; refuse if checkpoint changed; official requests <=6, no retry, strict 2026-11-07T00:00Z cutoff. Offline replay and acceptance required.
