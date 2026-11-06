@@ -14,7 +14,7 @@ def urls_from_nav(nav):
   href=item.get("href","")
   if not href.startswith(prefix):continue
   tail=href[len(prefix):]
-  if len(tail)!=17 or not tail[:2].isdigit() or tail[2:10]!="20261107" or tail[10]!="/":continue
+  if len(tail)!=13 or not tail[:2].isdigit() or tail[2:10]!="20261107" or tail[10]!="/":continue
   n=int(tail[:2])
   if not 1<=n<=12:continue
   url="https://jra.jp"+prefix+quote(tail,safe="")
