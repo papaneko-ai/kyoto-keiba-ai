@@ -58,7 +58,7 @@ def replay(originals,out,*,batch_id="batch_02"):
         reports.append({"race":race,"horse_number":num,"horse_name":expected["horse_name"],
             "source_sha256":digest,"prior_rows":result["prior_row_count"],
             "state":"REPLAYED_FROM_ORIGINAL_SHA_VERIFIED"})
-    summary={"schema_version":"jra_batch01_independent_replay.v1",
+    summary={"schema_version":"jra_next_batch_independent_replay.v1",
         "batch_id":batch_id,"verified_profiles":len(reports),
         "total_profiles_including_prior_12":12+len(reports),
         "remaining_unqueried_profiles":136-len(reports),
@@ -69,5 +69,5 @@ def replay(originals,out,*,batch_id="batch_02"):
     return summary
 
 if __name__=="__main__":
- p=argparse.ArgumentParser();p.add_argument("--artifact",required=True);p.add_argument("--out",required=True);a=p.parse_args()
+ p=argparse.ArgumentParser();p.add_argument("--artifact",required=True);p.add_argument("--out",required=True);p.add_argument("--batch",required=True);a=p.parse_args()
  print(json.dumps(replay(a.artifact,a.out,batch_id=a.batch),ensure_ascii=False))
