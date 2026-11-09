@@ -38,3 +38,6 @@
 - 回帰テスト：`tests/test_jra_p1_fb_stage5_guarded_replay.py`、`tests/test_jra_p1_fb_stage5_registry_binding.py`＋旧4組。
 - CI：`.github/workflows/jra-p1-fb-stage5-offline.yml`を拡充。
 - **まだ実装していないもの：** JRAへの自動取得、全馬SP公式プロフィールURL取得、オッズ・調教・天候等の学習入力、実際の予測、仮想投資の公式払戻採点、自己進化。実践投入は未到達。
+
+## 2026-11-09後発のより新しい統合進捗
+- 新正本 `docs/KYOTO_AI_20261109_P1_FB_STAGE5_SHARED_LEDGER_MILESTONE_HANDOFF.md`。当該ファイルの88件PASSに、グローバルSQLite台帳・模擬PC/SP接続・4プロセス同時競合テストを追加し、**110件（CI 42546465445）成功**。88件も正しい履歴だが、最新再開地点は新正本の実通信安全・共有台帳ゲート。
