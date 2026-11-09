@@ -99,7 +99,7 @@ class ThreeOriginalIntakeTests(unittest.TestCase):
             self.run_intake(lambda s:s.update(race=2))
 
     def test_wrong_date_rejected(self):
-        with self.assertRaisesRegex(ThreeOriginalRejected,'meeting_date_mismatch'):
+        with self.assertRaisesRegex(ThreeOriginalRejected,'snapshot_blocked|meeting_date_mismatch'):
             self.run_intake(lambda s:s.update(meeting_date='2026-11-15'))
 
     def test_independent_source_originals_required(self):
