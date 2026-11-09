@@ -7,6 +7,7 @@ from datetime import datetime, timedelta, timezone
 from hashlib import sha256
 import json
 import re
+from math import isfinite
 
 HEX = re.compile(r"[0-9a-f]{64}\Z")
 HORSE = re.compile(r"[0-9A-Za-z_-]{4,64}\Z")
@@ -111,7 +112,7 @@ def evaluate(snapshot, *, observed_utc):
                 if key in seen_pairs:
                     reasons.append("odds_pair_duplicate")
                 seen_pairs.add(key)
-                if type(value) not in (float, int) or not 1.0 < value < 100000:
+                if type(value) not in (float, int) or not isfinite(value) or not 1.0 < value < 100000:
                     reasons.append("odds_value_invalid")
     unique = sorted(set(reasons))
     return {"status": "STRUCTURAL_CHECK_ONLY" if not unique else "BLOCKED",
