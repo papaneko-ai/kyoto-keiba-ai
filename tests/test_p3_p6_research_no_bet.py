@@ -91,6 +91,30 @@ class ResearchEngineTests(unittest.TestCase):
         self.assertEqual(r['unspent_yen'],0)
         self.assertFalse(r['prediction_ready'])
 
+    def test_reject_nonfinite_confidence(self):
+        bad={'date':'2026-11-14','race':1,'ticket_type':'QUINELLA',
+             'prediction_ready':True,'market_verified':True,'model_calibrated':True,
+             'clock_verified':True,'confidence':float('nan'),
+             'tickets':[{'amount_yen':100}]}
+        with self.assertRaisesRegex(ResearchRejected,'confidence_invalid'):
+            allocate_research_budget([bad],daily_limit_yen=1000)
+
+    def test_reject_invalid_ticket_metadata(self):
+        bad={'date':'2026-11-14','race':1,'ticket_type':'QUINELLA',
+             'prediction_ready':True,'market_verified':True,'model_calibrated':True,
+             'clock_verified':True,'confidence':.5,'tickets':[None]}
+        with self.assertRaisesRegex(ResearchRejected,'ticket_invalid'):
+            allocate_research_budget([bad],daily_limit_yen=1000)
+
+    def test_reject_duplicate_race(self):
+        row={'date':'2026-11-14','race':1,'ticket_type':'QUINELLA'}
+        with self.assertRaisesRegex(ResearchRejected,'duplicate_race'):
+            allocate_research_budget([row,dict(row)],daily_limit_yen=1000)
+
+    def test_reject_invalid_very_extreme_strength(self):
+        with self.assertRaises(ResearchRejected):
+            quinella_from_strength({1:1e300,2:1e-300})
+
     def test_actual_historical_csv_never_produces_bets(self):
         rows=list(csv.DictReader(CSV.open(encoding='utf-8')))
         r=historical_no_bet_receipt(rows)
