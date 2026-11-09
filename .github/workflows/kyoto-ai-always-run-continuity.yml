@@ -1,0 +1,44 @@
+name: Kyoto AI always-run resume and reuse gate
+on:
+  push:
+    branches: [jra-html-diagnostic-20261105]
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  existing-capability-first:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    env:
+      PYTHONPATH: .
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Validate existing feature inventory and change intent
+        run: |
+          python -m diagnostics.kyoto_development_preflight --root .
+      - name: Destructive regression - reject duplicate new implementations
+        run: |
+          python -m unittest discover -s tests -p 'test_kyoto_development_preflight.py' -v
+      - name: Always check current historic evidence availability before development CI PASS
+        run: |
+          gh api 'repos/papaneko-ai/kyoto-keiba-ai/actions/artifacts/13482994623' > /tmp/kyoto_recovery_metadata.json
+          python -m diagnostics.kyoto_resume_gate --root . --artifact-json /tmp/kyoto_recovery_metadata.json --out /tmp/kyoto_resume.json
+      - name: Preserve result and exact commit evidence
+        run: |
+          python - <<'PY'
+          import json, os
+          from pathlib import Path
+          result=json.loads(Path('/tmp/kyoto_resume.json').read_text(encoding='utf-8'))
+          assert result['decision']=='RESUME_EVIDENCE_ACCEPTED_NOT_LIVE_AUTHORIZATION'
+          print('CONTINUITY_PREFLIGHT_PASS_AT_SHA='+os.environ['GITHUB_SHA'])
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: kyoto-ai-always-run-continuity-receipt
+          path: /tmp/kyoto_resume.json
+          retention-days: 30
