@@ -98,7 +98,7 @@ P1 予測用データの取得・欠落と時点の証明
 - **新しい開始入口**：GitHubルート `KYOTO_AI_START_HERE.md` をチャット・端末・担当変更後の最初に読む。
 - **既存証拠の正本台帳**：`docs/diagnostics/kyoto_ai_resume_evidence_registry_v1.json`。2026-11-06の公式HTML復旧アーティファクト `13482994623`（run `42176719321`）と原本SHA、84頭の原本再解析、残る12頭、485＋107＝592有効過去走、335特徴量照合を固定。
 - **再開判定プログラム**：`diagnostics/kyoto_resume_gate.py`。必要文書のGit blob SHA、148頭の状態、96/52、77/19/52、既存の原本84/12、Artifact ID・SHA・保存期限を照合。現在のGitHub Artifact API JSONまたは原本ZIPのSHA検証がない場合は`BLOCK_NEW_IMPLEMENTATION`、終了コード2。
-- **回帰テストとCI**：`tests/test_kyoto_resume_gate.py`、`.github/workflows/kyoto-ai-resume-evidence-gate.yml`。現行版のソースで11件ローカルPASS。GitHub Actions成功は独立のrun/job/logが確認されるまで宣言しない。
+- **回帰テストとCI**：`tests/test_kyoto_resume_gate.py`、`.github/workflows/kyoto-ai-resume-evidence-gate.yml`。現行版のソースで13件ローカルPASS。GitHub Actions成功は独立のrun/job/logが確認されるまで宣言しない。
 - **禁止**：今回すでに見つかった原本を「所在不明」と再宣言すること。既成功バッチを無断GETすること。静的な2026-11-06移行文書の古い進捗を現在のHEAD/statusより優先すること。未検証の新規取得・予測を完了と称すること。
 - **現在の実開発対象**：P1の未発走新開催日の公式出馬表・馬連／枠連発走前オッズの許容される取得と原本保全。既存復旧原本84頭の再証明は実施済み。原本12頭分は引き続き欠落として保持する。
 - 新規の成果物・取得・CI成功・原本の保全状態を更新したい場合、既存の台帳v1を密かに書き換えるのでなく、根拠と旧値を保持して正本台帳の次版を発行し、その版を新入口から参照する。
