@@ -7,7 +7,7 @@ or permission to fetch, and never asserts prediction readiness.
 import argparse
 import hashlib
 import json
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from pathlib import Path
 
 
@@ -29,19 +29,22 @@ def instant(value):
     return dt.astimezone(timezone.utc)
 
 
-def verify(manifest, root):
+def verify(manifest, root, *, observed_utc=None):
     if not isinstance(manifest, dict):
         raise EvidenceRejected('manifest_invalid')
     if manifest.get('schema') != 'kyoto_p1_future_race_source_evidence.v1':
         raise EvidenceRejected('manifest_schema_invalid')
     meeting = manifest.get('meeting_date')
     cutoff = instant(manifest.get('cutoff_utc'))
+    observed = instant(observed_utc.isoformat()) if isinstance(observed_utc, datetime) else instant(observed_utc) if observed_utc is not None else datetime.now(timezone.utc)
     try:
         day = datetime.fromisoformat(meeting).date()
     except (TypeError, ValueError) as exc:
         raise EvidenceRejected('meeting_date_invalid') from exc
     if day.isoformat() != meeting or day.isoformat() <= '2026-11-07':
         raise EvidenceRejected('not_a_future_target_from_baseline')
+    if (cutoff + timedelta(hours=9)).date() != day:
+        raise EvidenceRejected('cutoff_not_on_meeting_day_jst')
     rows = manifest.get('sources')
     if not isinstance(rows, list) or not rows:
         raise EvidenceRejected('sources_missing')
@@ -59,6 +62,8 @@ def verify(manifest, root):
         recorded = instant(row.get('captured_utc'))
         if recorded >= cutoff:
             raise EvidenceRejected('post_cutoff_source')
+        if recorded > observed:
+            raise EvidenceRejected('future_dated_source')
         path_value = row.get('path')
         if not isinstance(path_value, str) or not path_value or Path(path_value).is_absolute() or '..' in Path(path_value).parts:
             raise EvidenceRejected('unsafe_source_path')
