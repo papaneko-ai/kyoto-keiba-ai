@@ -10,6 +10,7 @@ from diagnostics.p1_monitor_viewmodel import summarize, StatusInvalid
 from diagnostics.p1_registry_reconcile import reconcile, RegistryConflict
 from diagnostics.p2_historical_feature_matrix import materialize, render_csv, build_receipt
 from diagnostics.p3_p6_research_no_bet import historical_no_bet_receipt
+from diagnostics.p1_historical_day_handoff import evaluate as evaluate_archived_day, DayHandoffRejected
 
 ROOT = Path(__file__).resolve().parents[1]
 STATUS = ROOT / "docs/diagnostics/jra_p1_batch14_96_profiles_20261106/status.json"
@@ -32,7 +33,8 @@ try:
     matrix_rows = materialize(status, rows)
     matrix_bytes = render_csv(matrix_rows)
     matrix_receipt = build_receipt(matrix_rows, matrix_bytes)
-except (StatusInvalid, RegistryConflict, KeyError, TypeError):
+    day_evidence = evaluate_archived_day(ROOT / 'docs/diagnostics')
+except (StatusInvalid, RegistryConflict, DayHandoffRejected, KeyError, TypeError, ValueError, OSError):
     st.error("保存された検証記録に矛盾があります。表示を停止します。")
     st.stop()
 
@@ -58,6 +60,14 @@ st.info(
     "詳細確認済み96頭＝過去走あり77頭＋履歴なしを確認済み19頭。"
     "未取得は52頭です。1～8Rは全馬確認済みで、残り5頭の確認分は9～12Rに属します。"
 )
+st.subheader("全12レースの発走前出馬表・オッズ証拠")
+st.caption("2026年11月7日の終了済み京都競馬。既存の公式保存記録だけを監査した結果です。")
+st.write({"出馬表の確認":f"{day_evidence['race_count']}レース／{day_evidence['runner_count']}頭",
+          "過去走の日付":f"{day_evidence['historical_prior_dates']}件",
+          "実証できた当時の発走前馬連価格":0,
+          "実証できた当時の発走前枠連価格":0})
+st.warning("11月6日13時05分ごろの公式PC/SPオッズ画面は未発表でした。その時刻の観測であり、翌日の全レースについて未発売を証明したものではありません。")
+st.caption("10月31日の馬連120組・枠連36組は過去の確定後オッズです。発走前の予想価格には流用しません。")
 st.subheader("実データ特徴量（研究・診断専用）")
 st.caption("148頭の保存済み過去走から作る履歴特徴量です。着順の正解ラベル・払戻・当日オッズは含みません。未取得はゼロ埋めしません。")
 with st.expander("特徴量の取得率・欠損状況", expanded=False):
