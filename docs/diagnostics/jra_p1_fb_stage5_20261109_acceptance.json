@@ -1,0 +1,59 @@
+{
+  "schema": "kyoto_p1_fb_stage5_offline_milestone.v1",
+  "date": "2026-11-09",
+  "stage": "P1-FB stage5",
+  "offline_gate": "PASSED",
+  "full_stage5_production_gate": "NOT_PASSED",
+  "github_actions_run_id": 42545936023,
+  "github_actions_job_id": 128930848806,
+  "ci_conclusion": "success",
+  "offline_test_groups": {
+    "stage5_guarded_replay": 19,
+    "stage5_archived_registry_binding": 10,
+    "stage4_mock_adapter": 17,
+    "request_budget_policy": 16,
+    "SP_exception_parser": 11,
+    "offline_failover": 15
+  },
+  "tests_total": 88,
+  "python_compile_passed": true,
+  "offline_no_client_check_passed": true,
+  "actual_jra_gets": 0,
+  "live_automatic_failover_authorized": false,
+  "actual_network_adapter_implemented": false,
+  "production_adopted": false,
+  "train_ready": false,
+  "predict_ready": false,
+  "registry_archive": "docs/diagnostics/jra_p1_batch14_96_profiles_20261106/feature_rows_148.json",
+  "archived_runners": 148,
+  "archived_profiles_verified": 96,
+  "archived_profiles_unqueried": 52,
+  "archived_prior_race_rows": 592,
+  "registry_binding_channels": [
+    "PC"
+  ],
+  "SP_profile_url_from_PC_inference_forbidden": true,
+  "historical_target_date": "2026-11-07",
+  "as_of_note": "This target date is now past; no post-race source can be relabeled as pre-race.",
+  "implemented": [
+    "offline_roster_link_binder",
+    "verified_identity_preflight",
+    "no_requery_verified_profiles",
+    "dynamic_race_date_cutoff",
+    "immutable_no_overwrite_raw_html",
+    "file_and_directory_fsync",
+    "atomic_receipt_replace",
+    "bidirectional_parser_failure_regression"
+  ],
+  "pending": [
+    "PC_SP_real_URL_pairing_from_official_source",
+    "real_HTTP_adapter_and_terms_review",
+    "real_wall_clock_gap_and_max_request_enforcement",
+    "cross_process_attempt_lock_and_durable_global_ledger",
+    "replay_source_hash_verification_for_multi_horse_real_PC_SP_fixtures",
+    "official_new_future_meeting_cutoff_proof",
+    "error_recovery_post_crash",
+    "durable_archive_policy"
+  ],
+  "main_changed": false
+}
