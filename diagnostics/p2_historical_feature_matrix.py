@@ -19,14 +19,14 @@ FIELDS = (
     "prior_valid_finishes", "recent_three_mean_distance_m",
     "recent_three_mean_finish_percentile", "recent_three_wins",
     "recent_three_turf_count", "recent_three_dirt_count",
-    "recent_three_jump_count", "recent_90day_date_count",
+    "recent_three_mixed_turf_dirt_count", "recent_three_jump_count", "recent_90day_date_count",
     "last_observed_prior_race_days_ago", "source_row_status",
 )
 FEATURES = (
     "prior_valid_finishes", "recent_three_mean_distance_m",
     "recent_three_mean_finish_percentile", "recent_three_wins",
     "recent_three_turf_count", "recent_three_dirt_count",
-    "recent_three_jump_count", "recent_90day_date_count",
+    "recent_three_mixed_turf_dirt_count", "recent_three_jump_count", "recent_90day_date_count",
     "last_observed_prior_race_days_ago",
 )
 PRESENT = "VERIFIED_SOURCE_ROWS"
@@ -47,6 +47,8 @@ def materialize(status, rows):
             surfaces = perf.get("recent_three_surface_counts")
             if not isinstance(surfaces, dict):
                 raise ValueError("invalid_surface_counts")
+            if set(surfaces) - {"芝", "ダ", "ダート", "芝ダ", "障"}:
+                raise ValueError("unknown_surface_category")
             surface_total = sum(v for v in surfaces.values() if type(v) is int and v >= 0)
             if any(type(v) is not int or v < 0 for v in surfaces.values()) or surface_total > 3:
                 raise ValueError("invalid_surface_counts")
@@ -58,9 +60,10 @@ def materialize(status, rows):
                 "recent_three_wins": perf["recent_three_wins"],
                 "recent_three_turf_count": surfaces.get("芝", 0),
                 "recent_three_dirt_count": dirt,
+                "recent_three_mixed_turf_dirt_count": surfaces.get("芝ダ", 0),
                 "recent_three_jump_count": surfaces.get("障", 0),
             }
-            for field in ("prior_valid_finishes", "recent_three_wins", "recent_three_turf_count", "recent_three_dirt_count", "recent_three_jump_count"):
+            for field in ("prior_valid_finishes", "recent_three_wins", "recent_three_turf_count", "recent_three_dirt_count", "recent_three_mixed_turf_dirt_count", "recent_three_jump_count"):
                 if type(values[field]) is not int or values[field] < 0:
                     raise ValueError("invalid_nonnegative_feature")
             from math import isfinite
@@ -90,7 +93,7 @@ def materialize(status, rows):
         if state != PRESENT and any(record.get(key) is not None for key in FEATURES):
             # A verified-empty profile may have date-only evidence, but not
             # performance values. Never synthesize a zero-valued racing record.
-            if any(record.get(key) is not None for key in FEATURES[:7]):
+            if any(record.get(key) is not None for key in FEATURES[:8]):
                 raise ValueError("profile_without_history_has_performance")
         output.append(record)
     if len(output) != 148 or check["counts"] != {"with_history":77, "verified_empty":19, "unqueried":52}:
