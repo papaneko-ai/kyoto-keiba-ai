@@ -1,0 +1,55 @@
+name: Kyoto P3-P6 research mechanics and no-bet acceptance
+on:
+  push:
+    branches: [jra-html-diagnostic-20261105]
+    paths:
+      - '.github/workflows/jra-p3-p6-research-no-bet.yml'
+      - 'diagnostics/p3_p6_research_no_bet.py'
+      - 'diagnostics/p3_p6_research_no_bet_cli.py'
+      - 'tests/test_p3_p6_research_no_bet.py'
+      - 'docs/diagnostics/p2_historical_feature_matrix_20261107_148.csv'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  research-and-historical-no-bet:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    env:
+      PYTHONPATH: .
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Compile numerical and no-bet guard code
+        run: |
+          python -m py_compile diagnostics/p3_p6_research_no_bet.py diagnostics/p3_p6_research_no_bet_cli.py tests/test_p3_p6_research_no_bet.py
+      - name: Test probabilities, frames, odds arithmetic and strict refusal
+        run: python -m unittest discover -s tests -p 'test_p3_p6_research_no_bet.py' -v
+      - name: Process actual historical CSV into no-bet receipt
+        run: |
+          python diagnostics/p3_p6_research_no_bet_cli.py \
+            --features docs/diagnostics/p2_historical_feature_matrix_20261107_148.csv \
+            --receipt /tmp/kyoto-p3-p6-historical-no-bet.json
+      - name: Verify no virtual purchase or historical prediction was generated
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          x=json.loads(Path('/tmp/kyoto-p3-p6-historical-no-bet.json').read_text())
+          assert x['runner_count']==148
+          assert x['suggested_races']==[]
+          assert x['quinella_tickets']==[] and x['bracket_tickets']==[]
+          assert x['virtual_investment_yen']==0
+          assert x['ledger_events_written']==0
+          assert x['prediction_ready'] is False and x['actual_purchase'] is False
+          assert x['model_calibrated'] is False and x['market_verified'] is False
+          print('P3_P6_HISTORICAL_NO_BET_PASS; no network/real orders')
+          PY
+      - name: Retain reproducible no-bet research receipt
+        uses: actions/upload-artifact@v4
+        with:
+          name: kyoto-p3-p6-historical-no-bet
+          path: /tmp/kyoto-p3-p6-historical-no-bet.json
+          retention-days: 7
