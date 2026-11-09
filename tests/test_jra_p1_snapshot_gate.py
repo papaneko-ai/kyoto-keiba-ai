@@ -49,6 +49,10 @@ class GateTests(unittest.TestCase):
     def test_never_ready_even_with_all_pairs(self):
         x=self.case(lambda x:None)
         self.assertFalse(x['prediction_ready'])
+    def test_invalid_odds_nan(self):
+        self.assertIn('odds_value_invalid', self.case(lambda x:x['odds'][0].update(decimal=float('nan')))['reasons'])
+    def test_bad_source_shape(self):
+        self.assertIn('odds_sha_invalid', self.case(lambda x:x['sources'].update(odds=None))['reasons'])
     def test_naive_observed_clock(self):
         x=evaluate(BASE,observed_utc='2026-11-13T04:30:00')
         self.assertEqual(x['status'],'BLOCKED')
