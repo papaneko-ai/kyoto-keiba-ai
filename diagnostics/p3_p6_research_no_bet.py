@@ -92,8 +92,14 @@ def market_ev(pair_probs, market, *, uncertainty_margin=0.0):
     """
     if type(uncertainty_margin) not in (float,int) or not 0 <= uncertainty_margin < 1:
         raise ResearchRejected("uncertainty_invalid")
+    if not isinstance(pair_probs,dict) or not pair_probs:
+        raise ResearchRejected("pair_probabilities_missing")
     if not isinstance(market,dict) or set(market)!=set(pair_probs):
         raise ResearchRejected("market_coverage_mismatch")
+    if any(type(p) not in (float,int) or not math.isfinite(p) or not 0 <= p <= 1 for p in pair_probs.values()):
+        raise ResearchRejected("pair_probability_invalid")
+    if not math.isclose(math.fsum(pair_probs.values()),1.0,rel_tol=0,abs_tol=1e-10):
+        raise ResearchRejected("pair_probabilities_not_normalized")
     result=[]
     for pair in sorted(pair_probs):
         p=pair_probs[pair]
