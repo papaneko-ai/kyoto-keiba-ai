@@ -134,6 +134,22 @@ class ScheduledTests(unittest.TestCase):
         with self.assertRaisesRegex(Blocked,"global_request_budget_exhausted"):
             self.run_case(global_attempt_limit=1)
         self.assertEqual(len(self.inventory()),1)
+    def test_real_monotonic_sleep_two_seconds_without_network(self):
+        import time
+        now=datetime.now(timezone.utc)
+        from dataclasses import replace
+        tomorrow=(now+timedelta(days=1)).date().isoformat()
+        fresh=replace(HORSE,meeting_date=tomorrow)
+        began=time.monotonic()
+        result=self.run_case(roster=fresh,now=now,
+            cutoff=now+timedelta(hours=1),wall_clock=lambda:datetime.now(timezone.utc),
+            monotonic_clock=time.monotonic,sleep=time.sleep)
+        elapsed=time.monotonic()-began
+        self.assertGreaterEqual(elapsed,2.0)
+        ticks=result["measured_monotonic_seconds"]
+        self.assertEqual(len(ticks),2)
+        self.assertGreaterEqual(ticks[1]-ticks[0],2.0)
+        self.assertEqual(result["network_requests"],0)
     def test_previous_run_cannot_revisit_attempted_url(self):
         self.run_case(parsers={"PC":good,"SP":bad})
         with self.assertRaisesRegex(Blocked,"url_already_reserved_in_global_ledger"):
