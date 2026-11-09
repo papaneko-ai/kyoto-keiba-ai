@@ -45,7 +45,7 @@ a.metric("出走馬", f"{total}頭")
 b.metric("詳細確認", f"{verified}頭")
 c.metric("未取得", f"{pending}頭")
 st.progress(verified / total, text=f"プロフィール取得履歴：{verified}/{total}（{verified/total:.1%}）")
-st.metric("確認済みの有効過去走", f"{summary["prior_rows"]}件")
+st.metric("確認済みの有効過去走", f"{summary['prior_rows']}件")
 st.subheader("レース別の取得状態（148頭の個別記録から再集計）")
 for number in range(1, 13):
     r = actual["by_race"][str(number)]
@@ -89,7 +89,7 @@ with st.expander("未実証の情報"):
     for key in summary["unverified_groups"]:
         st.write(f"・{key}")
 if not status.get("permanent_html_archive_completed"):
-    st.warning("公式HTML原本の期限外長期保全は完了していません。")
+    st.warning("全96頭のPC版原本保全は未完了です。84頭分は復旧済みですが、12頭分の原本は未復元です。")
 
 st.divider()
 st.subheader("オフライン受渡しZIPの整合性検査")
