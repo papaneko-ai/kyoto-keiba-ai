@@ -1,0 +1,62 @@
+{
+  "schema": "kyoto_ai_resume_gate_acceptance_receipt.v1",
+  "date": "2026-11-09",
+  "project": "papaneko-ai/kyoto-keiba-ai",
+  "branch": "jra-html-diagnostic-20261105",
+  "root_cause": "Previous handoff captured original source recovery artifact but new development did not require artifact inventory lookup and GitHub proof checks before implementation",
+  "implemented": {
+    "entrypoint": "KYOTO_AI_START_HERE.md",
+    "registry": "docs/diagnostics/kyoto_ai_resume_evidence_registry_v1.json",
+    "source": "diagnostics/kyoto_resume_gate.py",
+    "tests": "tests/test_kyoto_resume_gate.py",
+    "workflow": ".github/workflows/kyoto-ai-resume-evidence-gate.yml",
+    "permanent_incident": "docs/KYOTO_AI_20261109_HANDOFF_ROOT_CAUSE_AND_PREVENTION.md",
+    "continued_rules": "docs/KYOTO_AI_CONTINUITY_AND_STAGE_GATE_RULES_20261106.md"
+  },
+  "actual_checks": {
+    "required_source_document_git_blobs": 6,
+    "required_source_document_matches": 6,
+    "local_regressions_executed": 13,
+    "local_regressions_passed": 13,
+    "github_source_identical_to_locally_tested": true,
+    "github_test_identical_to_locally_tested": true,
+    "source_git_blob": "6527aeef7b0d8734b2f3e174c984679b263a6575",
+    "test_git_blob": "ca021e2a921b86c6449ad70b2f6ab38a49894937",
+    "registry_git_blob": "3089e1f38a4007fac77644c3e2c45b070ed7a61e",
+    "artifact_id": 13482994623,
+    "artifact_expired": false,
+    "artifact_digest_matched": true,
+    "artifact_expires_at_utc": "2027-02-04T06:47:55Z",
+    "new_github_workflow_run_success": "NOT_CONFIRMED"
+  },
+  "known_source_evidence": {
+    "runner_count": 148,
+    "verified_profile_count": 96,
+    "unqueried": 52,
+    "source_reparsed_profiles": 84,
+    "missing_original_profiles": 12,
+    "source_reparsed_valid_prior_runs": 485,
+    "missing_sources_registry_only_prior_runs": 107,
+    "feature_fields_revalidated": 335
+  },
+  "stop_conditions": [
+    "Missing or changed evidence file SHA",
+    "Historic profile counts or feature proof contradicted",
+    "Missing current artifact API receipt AND missing SHA-verified portable recovery ZIP",
+    "Expired artifact with no proven portable recovery",
+    "Previously captured original incorrectly declared absent"
+  ],
+  "limits": [
+    "CI is path-scoped and workflow_dispatch, not mandatory protected-branch status",
+    "New chat must read root entrypoint before next implementation",
+    "Past evidence does not authorize JRA live collection or official bets",
+    "External API attestation used at checking time; stored receipt is not future proof",
+    "12 original PC source files still missing"
+  ],
+  "production_main_modified": false,
+  "turso_modified": false,
+  "secrets_modified": false,
+  "real_bets_modified": false,
+  "live_network_JRA_GETs": 0,
+  "next_gate": "P1 lawful future official racecard and prereace quinella/bracket odds verified, before predictions or simulation"
+}
