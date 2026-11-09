@@ -1,0 +1,53 @@
+name: Kyoto P1 archived full-day racecard and market handoff
+on:
+  push:
+    branches: [jra-html-diagnostic-20261105]
+    paths:
+      - '.github/workflows/jra-p1-historical-day-handoff.yml'
+      - 'diagnostics/p1_historical_day_handoff.py'
+      - 'tests/test_p1_historical_day_handoff.py'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  historical-offline-handoff:
+    runs-on: ubuntu-latest
+    timeout-minutes: 7
+    env:
+      PYTHONPATH: .
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Compile and test against already verified actual 12-race 148-horse snapshots
+        run: |
+          python -m py_compile diagnostics/p1_historical_day_handoff.py tests/test_p1_historical_day_handoff.py
+          python -m unittest discover -s tests -p 'test_p1_historical_day_handoff.py' -v
+      - name: Read previously saved actual PC-SP unpublished odds and segregate final odds
+        run: |
+          python -m diagnostics.p1_historical_day_handoff --source-dir docs/diagnostics --out /tmp/kyoto-p1-day-handoff-receipt.json
+      - name: Block unverified P1 market from P3 and P6
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('/tmp/kyoto-p1-day-handoff-receipt.json')
+          x=json.loads(p.read_text(encoding='utf-8'))
+          assert x['race_count']==12 and x['runner_count']==148
+          assert x['historical_prior_dates']==396
+          assert x['actual_20261107_prerace_quinella_prices']==0
+          assert x['actual_20261107_prerace_bracket_prices']==0
+          assert x['existing_official_market_parse_20261031']['quinella_pairs']==120
+          assert x['existing_official_market_parse_20261031']['bracket_pairs']==36
+          assert x['real_prediction_ready'] is False and x['virtual_tickets']==[]
+          assert x['jra_requests']==0
+          assert all(r['prediction_ready'] is False for r in x['race_statuses'])
+          print('12R 148 HORSES 396 PRIOR DATES; OFFICIAL MARKET PUBLISHED AT START UNKNOWN; NO LAB OR LIVE BET')
+          PY
+      - name: Persist actual pre-race snapshot crosswalk receipt (no HTML distribution)
+        uses: actions/upload-artifact@v4
+        with:
+          name: kyoto-p1-12-race-market-handoff
+          path: /tmp/kyoto-p1-day-handoff-receipt.json
+          retention-days: 30
