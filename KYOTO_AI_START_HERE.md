@@ -46,6 +46,14 @@ P1は未完了。**新開催日の許容されたデータ取得経路と発走�
 ## 6. チャット移行時に貼る短文
 「京都競馬AI既存開発を継続。まずGitHubの `KYOTO_AI_START_HERE.md` を読み、`kyoto_ai_resume_evidence_registry_v1.json` と `kyoto_resume_gate.py` で原本・バックアップ・最新進捗を照合。84頭の実原本再解析と485過去走・335特徴量は既達で繰り返さない。Artifact 13482994623と携帯用復旧ZIPを先に探し、原本不在と誤認しない。P1～P8・ALG01～13・EVO01～08を維持。現在の未完P1（新開催日の合法的な出馬表と発走前馬連/枠連オッズ）から進め、本番main/Turso/Secretsは保護する。ゲートの証拠確認なしに工程を進めない。」
 
+## 【最新】2026-11-09 新チャットへの確定移行入口
+
+- **最優先で読む完全移行パック**：`docs/KYOTO_AI_20261109_COMPLETE_MIGRATION_PACK_FINAL.md`
+- **そのまま新チャットへ渡す指示書**：`docs/KYOTO_AI_NEXT_CHAT_START_20261109.md`
+- **今回のP1市場全組合せ受入証拠**：`docs/diagnostics/p1_market_completeness_CI_verified_20261109.json`。実行ID `42569049451`、8+16=24件PASS。18頭153組は**模擬数値の構造検証**であり、実際のJRA発走前オッズ取得成功ではない。
+- GitHubでの最新HEAD・現在のCI・復旧Artifact・本番mainを照合してから開発再開。保存済みの旧HEADがその時点の最新だと推測しない。
+- P1～P8／ALG-01～13／EVO-01～08を保持し、過去の成功・失敗記録と未達の公式発走前市場を区別する。
+
 ## 7. 2026-11-09 後発の確定済み実測・CI調査（**新チャットで必読**）
 - `docs/diagnostics/kyoto_ai_full_resume_ci_reconciliation_20261109.json`：GitHub REST APIで**push時のActions実行**まで列挙し、各ジョブ／ログを確認した最新のCI実測台帳。以前のPR限定APIやcombined statuses空配列で「CI成功未確認」と判断しない。
 - **再開ゲート** run `42568017053` success（13件、必須原本・進捗24ファイル照合）。
