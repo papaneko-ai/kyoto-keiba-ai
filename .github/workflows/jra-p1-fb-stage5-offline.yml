@@ -18,12 +18,13 @@ jobs:
         run: python -m pip install 'beautifulsoup4>=4.12,<5'
       - name: Compile and test stage5 plus prior offline gates
         run: |
-          python -m compileall -q diagnostics/jra_p1_fb_stage5_guarded_replay.py diagnostics/jra_p1_fb_stage4_mock_adapter.py diagnostics/jra_p1_fb_stage5_registry_binding.py diagnostics/jra_p1_fb_stage5_global_attempt_registry.py diagnostics/jra_p1_fb_stage5_ledger_replay.py diagnostics/jra_p1_fb_stage5_live_preflight_disabled.py
+          python -m compileall -q diagnostics/jra_p1_fb_stage5_guarded_replay.py diagnostics/jra_p1_fb_stage4_mock_adapter.py diagnostics/jra_p1_fb_stage5_registry_binding.py diagnostics/jra_p1_fb_stage5_global_attempt_registry.py diagnostics/jra_p1_fb_stage5_ledger_replay.py diagnostics/jra_p1_fb_stage5_live_preflight_disabled.py diagnostics/jra_p1_fb_stage5_offline_http_envelope.py
           python -m unittest discover -s tests -p 'test_jra_p1_fb_stage5_guarded_replay.py' -v
           python -m unittest discover -s tests -p 'test_jra_p1_fb_stage5_registry_binding.py' -v
           python -m unittest discover -s tests -p 'test_jra_p1_fb_stage5_global_attempt_registry.py' -v
           python -m unittest discover -s tests -p 'test_jra_p1_fb_stage5_ledger_replay.py' -v
           python -m unittest discover -s tests -p 'test_jra_p1_fb_stage5_live_preflight_disabled.py' -v
+          python -m unittest discover -s tests -p 'test_jra_p1_fb_stage5_offline_http_envelope.py' -v
           python -m unittest discover -s tests -p 'test_jra_p1_fb_stage4_mock_adapter.py' -v
           python -m unittest discover -s tests -p 'test_jra_p1_fb_request_budget_policy.py' -v
           python -m unittest discover -s tests -p 'test_jra_p1_fb_sp_special_regressions.py' -v
@@ -38,5 +39,8 @@ jobs:
           candidate=Path('diagnostics/jra_p1_fb_stage5_live_preflight_disabled.py').read_text()
           assert 'import requests' not in candidate and 'import urllib.request' not in candidate
           assert 'live_jra_http_not_authorized_or_implemented' in candidate
+          envelope=Path('diagnostics/jra_p1_fb_stage5_offline_http_envelope.py').read_text()
+          assert 'import requests' not in envelope and 'import urllib.request' not in envelope
+          assert 'real_http_transport_still_disabled' in envelope
           print('OFFLINE_ONLY_GATE_PASSED')
           PY
