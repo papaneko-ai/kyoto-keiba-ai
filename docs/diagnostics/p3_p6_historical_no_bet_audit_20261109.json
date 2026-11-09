@@ -1,0 +1,32 @@
+{
+  "schema": "kyoto_p3_p6_historical_refusal_audit.v1",
+  "as_of": "2026-11-09",
+  "source_csv_path": "docs/diagnostics/p2_historical_feature_matrix_20261107_148.csv",
+  "source_csv_git_blob_sha": "ebdf629227c9671c9696fa8e868b8849f2d2fdcd",
+  "historical_meeting_date": "2026-11-07",
+  "runners_checked": 148,
+  "source_state_counts": {
+    "VERIFIED_SOURCE_ROWS": 77,
+    "VERIFIED_EMPTY_HISTORY": 19,
+    "NOT_QUERIED": 52
+  },
+  "decision": "HISTORICAL_NO_BET",
+  "explanation": [
+    "Meeting is in the past; no contemporaneous frozen forecasting record",
+    "Theoretical Plackett-Luce and Harville calculations are not a calibrated predictive model",
+    "No authenticated pre-race quinella market and complete odds",
+    "No authenticated pre-race bracket market or scratches",
+    "Historical feature registry is not the original HTML source reparse"
+  ],
+  "suggested_races": [],
+  "quinella_tickets": [],
+  "bracket_tickets": [],
+  "total_stake_yen": 0,
+  "virtual_ledger_events": 0,
+  "real_purchase_events": 0,
+  "prediction_ready": false,
+  "model_calibrated": false,
+  "paper_trading_performed": false,
+  "actual_jra_requests": 0,
+  "verified_scope": "Github-stored 148-line historical CSV row state audit only, not CI execution"
+}
