@@ -1,0 +1,39 @@
+{
+  "schema": "kyoto_ai_resume_evidence_registry.v1",
+  "project": "PERSONAL_HOBBY_KYOTO_KEIBA_AI",
+  "branch": "jra-html-diagnostic-20261105",
+  "required_files": {
+    "docs/KYOTO_AI_COMPLETE_MIGRATION_PACK_20261106.md": "0e451190bae7338d07509e744bef6efc220a49d1",
+    "docs/KYOTO_AI_CONTINUITY_AND_STAGE_GATE_RULES_20261106.md": "ae7172fba749762ed1826994040afdd4128ca75f",
+    "docs/KYOTO_AI_20261106_FINAL_BACKUP_VERIFIED_RECEIPT.md": "2e0c25876a6487c01d4f72420f26fd849028057a",
+    "docs/diagnostics/jra_p1_batch14_96_profiles_20261106/status.json": "31638a46f48da2d28cb160f9453bad7d56b70de2",
+    "docs/diagnostics/jra_p1_batch14_96_profiles_20261106/feature_rows_148.json": "cbde475c0d5f8a8b29c4b690b620fa80bbf6e785",
+    "docs/diagnostics/p1_real_recovery_archive_84_source_reparse_20261109.json": "f5264ddc676d34cebad2ab2e9c41cec0551f8142"
+  },
+  "status_path": "docs/diagnostics/jra_p1_batch14_96_profiles_20261106/status.json",
+  "registry_path": "docs/diagnostics/jra_p1_batch14_96_profiles_20261106/feature_rows_148.json",
+  "real_original_replay_path": "docs/diagnostics/p1_real_recovery_archive_84_source_reparse_20261109.json",
+  "recovery_artifact": {
+    "id": 13482994623,
+    "run_id": 42176719321,
+    "sha256": "49d61bff4eca82405d9d63e4244092e0fd2650bec5f899eba4f5ed2679c68863",
+    "expires_at": "2027-02-04T06:47:55Z"
+  },
+  "portable_recovery": {
+    "name": "KYOTO_AI_P1_REAL_ORIGINAL_84_REPLAY_VERIFIED_20261109.zip",
+    "sha256": "7e16c23a595e13574554a7970cfc8ec3c4de652337f0bcbd7934ce1af4c83bd9"
+  },
+  "decisions": {
+    "verified_raw_html_profiles": 84,
+    "profiles_missing_originals": 12,
+    "prior_runs_reparsed": 485,
+    "prior_runs_registry_only": 107,
+    "feature_fields_recomputed": 335,
+    "old_future_recommendations_authorized": false,
+    "live_jra_get_authorized": false,
+    "policy": "NO_RECOLLECT_OF_VERIFIED_ORIGINALS; NO_CLAIM_MISSING_WHILE_ARTIFACT_KNOWN; NO_PRODUCTION_SWITCH"
+  },
+  "last_integrity_audit": "2026-11-09",
+  "update_policy": "append explicit registry v2 only after real evidence; do not silently overwrite v1",
+  "external_verification": "For a current availability claim, supply GitHub artifact API JSON or SHA-verified portable recovery ZIP. A static past receipt is not current availability proof."
+}
