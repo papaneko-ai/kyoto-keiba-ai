@@ -1,0 +1,31 @@
+name: Kyoto P1 future-race evidence offline acceptance
+on:
+  push:
+    branches: [jra-html-diagnostic-20261105]
+    paths:
+      - '.github/workflows/jra-p1-future-evidence-offline.yml'
+      - 'diagnostics/jra_p1_future_evidence.py'
+      - 'tests/test_jra_p1_future_evidence.py'
+permissions:
+  contents: read
+jobs:
+  offline-evidence:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    env:
+      PYTHONPATH: .
+    steps:
+      - uses: actions/checkout@v4
+      - name: Compile and run evidence regression
+        run: |
+          python -m py_compile diagnostics/jra_p1_future_evidence.py tests/test_jra_p1_future_evidence.py
+          python -m unittest discover -s tests -p test_jra_p1_future_evidence.py -v
+      - name: Refuse network code in evidence gate
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          text=Path('diagnostics/jra_p1_future_evidence.py').read_text()
+          forbidden=('import requests','import socket','urllib.request','http.client','subprocess','urlopen(')
+          assert not any(term in text for term in forbidden)
+          print('OFFLINE_ONLY; no JRA GET')
+          PY
