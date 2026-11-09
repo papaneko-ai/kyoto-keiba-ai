@@ -9,6 +9,8 @@ on:
       - 'tests/test_p1_monitor_viewmodel.py'
       - 'diagnostics/p1_registry_reconcile.py'
       - 'tests/test_p1_registry_reconcile.py'
+      - 'diagnostics/jra_p1_historical_raw_inventory.py'
+      - 'tests/test_jra_p1_historical_raw_inventory.py'
       - 'docs/diagnostics/jra_p1_batch14_96_profiles_20261106/feature_rows_148.json'
       - 'diagnostics/jra_p1_intake_bridge.py'
       - 'tests/test_jra_p1_intake_bridge.py'
@@ -31,10 +33,23 @@ jobs:
         run: python -m pip install 'streamlit>=1.38,<2'
       - name: Compile and validate actual archived receipt
         run: |
-          python -m py_compile diagnostics/p1_readonly_monitor_app.py diagnostics/p1_monitor_viewmodel.py tests/test_p1_monitor_viewmodel.py diagnostics/p1_registry_reconcile.py tests/test_p1_registry_reconcile.py diagnostics/jra_p1_intake_bridge.py tests/test_jra_p1_intake_bridge.py
+          python -m py_compile diagnostics/p1_readonly_monitor_app.py diagnostics/p1_monitor_viewmodel.py tests/test_p1_monitor_viewmodel.py diagnostics/p1_registry_reconcile.py tests/test_p1_registry_reconcile.py diagnostics/jra_p1_intake_bridge.py tests/test_jra_p1_intake_bridge.py diagnostics/jra_p1_historical_raw_inventory.py tests/test_jra_p1_historical_raw_inventory.py
           python -m unittest discover -s tests -p 'test_p1_monitor_viewmodel.py' -v
           python -m unittest discover -s tests -p 'test_p1_registry_reconcile.py' -v
+          python -m unittest discover -s tests -p 'test_jra_p1_historical_raw_inventory.py' -v
           python -m unittest discover -s tests -p 'test_jra_p1_intake_bridge.py' -v
+      - name: Inventory already-stored original HTML by SHA (no downloads)
+        run: |
+          python diagnostics/jra_p1_historical_raw_inventory.py \
+            docs/diagnostics/jra_p1_batch14_96_profiles_20261106/feature_rows_148.json \
+            docs/diagnostics \
+            --output /tmp/p1_historical_original_availability.json
+      - name: Retain original-availability evidence as a limited CI artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: p1-historical-original-availability
+          path: /tmp/p1_historical_original_availability.json
+          retention-days: 7
       - name: Run real Streamlit AppTest against repository status
         run: |
           python - <<'PY'
