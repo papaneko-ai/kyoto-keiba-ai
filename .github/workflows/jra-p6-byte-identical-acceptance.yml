@@ -1,0 +1,97 @@
+name: Kyoto P6 byte-identical source acceptance
+on:
+  push:
+    branches: [jra-html-diagnostic-20261105]
+    paths:
+      - '.github/workflows/jra-p6-byte-identical-acceptance.yml'
+      - 'diagnostics/p6_fixture_durable_ledger.py'
+      - 'diagnostics/p6_virtual_settlement_fixture_lab.py'
+      - 'tests/test_p6_fixture_durable_ledger.py'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  acceptance:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      PYTHONPATH: .
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Verify source byte identity
+        run: |
+          python - <<'PY'
+          import hashlib
+          from pathlib import Path
+          locked={
+             'diagnostics/p6_virtual_settlement_fixture_lab.py':'a847b3daced6e77a171ca8839a909df9ca15ec97',
+             'diagnostics/p6_fixture_durable_ledger.py':'1680f2c421cdb44d545e76e63204ce2a9feca4b8',
+             'tests/test_p6_fixture_durable_ledger.py':'e064fdc35334a11ed2ad607322e379d346ef61aa'
+          }
+          for name, expected in locked.items():
+              raw=Path(name).read_bytes()
+              actual=hashlib.sha1(b'blob '+str(len(raw)).encode()+b'\x00'+raw).hexdigest()
+              assert actual==expected,(name,actual,expected)
+          print('P6_GITHUB_BYTES_MATCH_PREVIOUS_LOCAL_TEST')
+          PY
+      - name: Compile and run 15 source-locked regression cases
+        run: |
+          python -m py_compile diagnostics/p6_virtual_settlement_fixture_lab.py diagnostics/p6_fixture_durable_ledger.py tests/test_p6_fixture_durable_ledger.py
+          python -m unittest discover -s tests -p 'test_p6_fixture_durable_ledger.py' -v
+      - name: Write fixture journal and separately lock final head
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          from diagnostics.p6_fixture_durable_ledger import append_record
+          from diagnostics.p6_virtual_settlement_fixture_lab import freeze_fixture
+          root=Path('/tmp/p6_source_lock')
+          root.mkdir(exist_ok=True)
+          journal=root/'fixture.jsonl'
+          frozen=freeze_fixture(scenario_id='LAB-SOURCE-LOCK',ticket_type='QUINELLA',
+              frozen_utc='2026-11-13T04:00:00Z',cutoff_utc='2026-11-14T04:50:00Z',
+              model_version='fixture-only',source_sha256='a'*64,
+              tickets=[{'pair':[1,2],'stake_yen':200,'probability':0.3,'odds':5.0}])
+          state=append_record(journal,'FROZEN',frozen,expected_head='0'*64)
+          for v,kind,amount in [(1,'RESULT_PRELIMINARY',0),(2,'PAYOUT_FINAL',500),(3,'PAYOUT_FINAL',400)]:
+              ev={'scenario_id':'LAB-SOURCE-LOCK','source_kind':'FIXTURE','version':v,'state':kind,
+                  'payout_per_100':{'1-2':amount} if kind=='PAYOUT_FINAL' else {},'refunded_pairs':[]}
+              state=append_record(journal,'RESULT_EVENT',ev,expected_head=state['head'])
+          (root/'head.txt').write_text(state['head']+'\n')
+          PY
+      - name: Reopen from a separate Python process and verify tamper evidence
+        run: |
+          python - <<'PY'
+          import json, os
+          from pathlib import Path
+          from diagnostics.p6_fixture_durable_ledger import read_journal, LabRejected
+          root=Path('/tmp/p6_source_lock')
+          journal=root/'fixture.jsonl'
+          locked=(root/'head.txt').read_text().strip()
+          recovered=read_journal(journal,expected_head=locked)
+          assert len(recovered['entries'])==4
+          assert recovered['result']['payout_yen']==800
+          assert recovered['result']['profit_yen']==600
+          original=journal.read_bytes()
+          journal.write_bytes(b''.join(original.splitlines(keepends=True)[:-1]))
+          try:
+              read_journal(journal,expected_head=locked)
+          except LabRejected as exc:
+              assert str(exc)=='journal_head_anchor_mismatch'
+          else:
+              raise AssertionError('undetected_tail_truncation')
+          receipt={'schema':'kyoto_p6_github_source_lock.v1','revision':os.environ.get('GITHUB_SHA'),
+                   'identical_blobs':True,'fixture_unit_tests':15,'restart':True,
+                   'truncation_rejected':True,'fixture_only':True,
+                   'jra_live_requests':0,'real_purchases':0,'live_prediction_ready':False}
+          (root/'acceptance.json').write_text(json.dumps(receipt,indent=2,sort_keys=True)+'\n')
+          print('P6_SOURCE_LOCKED_RESTART_AND_TAMPER_PASS')
+          PY
+      - name: Archive acceptance receipt, not racing data
+        uses: actions/upload-artifact@v4
+        with:
+          name: p6-source-locked-fixture-acceptance
+          path: /tmp/p6_source_lock/acceptance.json
+          retention-days: 7
