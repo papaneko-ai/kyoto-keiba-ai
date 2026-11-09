@@ -144,3 +144,7 @@ P8 Streamlitによるスマホ/PC向け本番統合、Turso、環境変数、UI�
 - **最優先で読む正本：** `docs/KYOTO_AI_20261109_STAGE5_HTTP_ENVELOPE_138TEST_MIGRATION_HANDOFF.md`、機械可読受入 `docs/diagnostics/jra_p1_fb_stage5_http_envelope_offline_acceptance_20261109.json`。CI `42548704950`で138件成功、JRA GET0。
 - 前回の123件までの安全ゲートを維持し、固定HTTP模擬応答のHTTP200/MIME/容量/リダイレクトなしの検査をグローバル台帳・PC/SP失敗隔離・原本保存へ接続した。**ネットワークHTTP本体は無効で未実証**。
 - ここで新チャットへ移動を推奨。次はP1-FB第5段階の実HTTP安全・公式SPリンクと異ホスト重複防止・利用条件を検証。2026-11-07の未取得52頭を事後取得して発走前と偽らない。ALG-01～13/EVO-01～08/P1～P8を維持。
+
+## 2026-11-09 Stage5新正本：実時刻観測のオフライン取得スケジューラー
+- 以前の138件の節目に続き、`docs/KYOTO_AI_20261109_STAGE5_154TEST_CLOCK_SCHEDULER_MILESTONE_AND_HANDOFF.md`、`docs/diagnostics/jra_p1_fb_stage5_observed_clock_154tests_20261109.json`を最新受入成果として追加。CI `42549866841`は154件成功。JRA追加GET0。
+- **実ネットワークは未実装・未承認**。続きは安全な本番HTTPの利用条件・公式リンク・分散取得予約の証明から。新開催の原本時点なしで予測可としない。旧成功URLを再取得しない。
