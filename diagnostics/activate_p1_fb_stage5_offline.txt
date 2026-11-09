@@ -4,3 +4,5 @@
 2026-11-09 stage5 milestone: atomic durable receipts, real saved roster identity, future date cutoff, full offline regressions.
 
 2026-11-09 SQLite global durable single-URL reservation, rate, cutoff, crash and concurrent-process gate.
+
+2026-11-09 P1-FB durable ledger integrated with failure and backup replay, all regression checks.
