@@ -30,7 +30,7 @@ def record(path,obj):
     path.write_text(json.dumps(obj,sort_keys=True,ensure_ascii=False,indent=2)+"\n",encoding="utf8")
 
 def run(*,folder,primary,secondary,horse_name,race,number,roster_sha,
-        cutoff=CUTOFF,now,transport,parsers,prior_attempts=(),source_writer=None,receipt_writer=None,prior_race_cutoff="2026-11-07"):
+        cutoff=CUTOFF,now,transport,parsers,prior_attempts=(),source_writer=None,receipt_writer=None,prior_race_cutoff="2026-11-07",fatal_transport_exceptions=()):
     """Exactly one primary and, if allowed, one alternate. No built-in URL opener.
 
     A previously created folder forbids a restart. Failure evidence is saved
@@ -117,6 +117,8 @@ def run(*,folder,primary,secondary,horse_name,race,number,roster_sha,
             info["incidents"].append({"channel":source.channel,"reason":e["reason"],
                 "source_sha256":e.get("source_sha256"),"open":True})
             commit()
+            if isinstance(exc, fatal_transport_exceptions):
+                raise
         attempts.append(Attempt(source.channel,source.url,t,race,number,outcome,
             e["original_saved"],True))
         return outcome
