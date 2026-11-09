@@ -112,7 +112,8 @@ jobs:
           python - <<'PY'
           from pathlib import Path
           from diagnostics.p6_fixture_durable_ledger import read_journal
-          a=read_journal('/tmp/kyoto-p6-fixture-durable.jsonl')
+          head=Path('/tmp/kyoto-p6-fixture-expected-head.txt').read_text().strip()
+          a=read_journal('/tmp/kyoto-p6-fixture-durable.jsonl', expected_head=head)
           assert len(a['entries'])==3
           assert a['result']['payout_yen']==800
           assert a['result']['profit_yen']==600
