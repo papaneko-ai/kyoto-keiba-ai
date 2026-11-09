@@ -74,3 +74,7 @@ P1 予測用データの取得・欠落と時点の証明
 
 ## 2026-11-09 後発のStage5共有URL予約・障害隔離ゲート
 - 新しい実装/受入正本 `docs/KYOTO_AI_20261109_P1_FB_STAGE5_SHARED_LEDGER_MILESTONE_HANDOFF.md` と `docs/diagnostics/jra_p1_fb_stage5_shared_ledger_gate_20261109.json`を優先。CI `42546465445`は110件success。単一SQLite上の排他予約・途中障害後の再取得禁止を実装したが、他ホストの共有永続データベースや本番HTTP制御は未実証。**P1-FB stage5全体PASSとは宣言しない**。
+
+## 2026-11-09 追加更新：P1-FB Stage5の最新123件オフライン検証
+- **最新の工程正本** `docs/KYOTO_AI_20261109_P1_FB_STAGE5_LIVE_DISABLED_PREFLIGHT_MILESTONE_HANDOFF.md` と `docs/diagnostics/jra_p1_fb_stage5_live_disabled_preflight_gate_20261109.json`、CI `42547524417`（123件success）。旧110件合格は履歴。厳格なURL・取得期限・時計注入間隔の安全判定と実通信常時拒否を追加。**本番HTTP実装・通信時刻の実証・公式SP全馬リンク・複数ホスト共有台帳は未完**。
+- 次回はP1-FB Stage5の実通信安全・利用条件と原本証拠から。2026-11-07残52頭を事後に発走前と偽らない。ALG-01～13、EVO-01～08、P1～P8を遵守。
