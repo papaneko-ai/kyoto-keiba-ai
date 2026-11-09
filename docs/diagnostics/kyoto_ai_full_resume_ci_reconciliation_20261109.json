@@ -1,0 +1,114 @@
+{
+  "schema": "kyoto_ai_full_resume_ci_reconciliation_20261109.v1",
+  "date": "2026-11-09",
+  "method": "Independent Github Actions REST list runs plus jobs/logs, not combined statuses or PR-only workflow run endpoint",
+  "infrastructure": {
+    "repo": "papaneko-ai/kyoto-keiba-ai",
+    "development_branch": "jra-html-diagnostic-20261105",
+    "production_main_expected": "471b60e632d878b52b6dcb4aa1a622becba40882"
+  },
+  "confirmed_success": [
+    {
+      "workflow": "Kyoto AI mandatory evidence-first resume gate",
+      "run_id": 42568017053,
+      "job_id": 128998717687,
+      "tests": 13,
+      "receipt": "REENTRY_GATE_PASS_PRIOR_84_SOURCES_FOUND",
+      "registered_evidence_files": 24
+    },
+    {
+      "workflow": "Kyoto P1 verified saved originals 84 horse replay",
+      "run_id": 42565633708,
+      "job_id": 128991418029,
+      "verified_html_profiles": 84,
+      "verified_prior_runs": 485,
+      "verified_fields": 335
+    },
+    {
+      "workflow": "Kyoto P1 archived full-day racecard and market handoff",
+      "run_id": 42567681829,
+      "job_id": 128997694220,
+      "tests": 12,
+      "races": 12,
+      "runners": 148,
+      "prior_date_rows": 396
+    },
+    {
+      "workflow": "Kyoto P1 read-only Streamlit monitor acceptance",
+      "run_id": 42567945287,
+      "job_id": 128998496139,
+      "tests_by_suite": [
+        11,
+        12,
+        10,
+        14,
+        7,
+        13
+      ],
+      "total_tests": 67,
+      "streamlit_AppTest": "APPTEST_PASS",
+      "market_prediction_blocked": true
+    },
+    {
+      "workflow": "Kyoto P3-P6 research mechanics and no-bet acceptance",
+      "run_id": 42567612106,
+      "job_id": 128997481146,
+      "tests_by_suite": [
+        20,
+        18,
+        15
+      ],
+      "total_tests": 53,
+      "fixture_payout_reconciliation": "P6_LAB_REPLAY_PASS",
+      "persistent_restart": "P6_DURABLE_FIXTURE_RESTART_PASS"
+    },
+    {
+      "workflow": "Kyoto P6 byte-identical source acceptance",
+      "run_id": 42567627196,
+      "job_id": 128997528865,
+      "tests": 15,
+      "byte_identical": true,
+      "tail_tamper_rejected": true
+    }
+  ],
+  "root_causes_fixed": [
+    {
+      "incident": "P3-P6 three fixture settlement regression failures",
+      "failed_run": 42564668348,
+      "failed_job": 128988471079,
+      "bug": "stake aggregation local variable overwritten by individual last-ticket stake",
+      "correction_commit": "022ac599e3770c14a9b960dfffc8ba54ff2ef2fa",
+      "regressions_added_commit": "2f62a0b6dc85af113f822d6539d9e27332a9741a",
+      "verified_success_run": 42567612106
+    },
+    {
+      "incident": "P1 Streamlit monitor 15 previous CI failures",
+      "last_pre_fix_failure_run": 42563600681,
+      "bug": "f-string nested double quote invalid on Python 3.11; later AppTest referenced nonexistent alert.message attribute",
+      "repair_commits": [
+        "2f0d5b3b239099fa283d1604eed54760e6abc8aa",
+        "33fe9ff32ba5c2ed6847ef07b63593816e9cdc39"
+      ],
+      "verified_success_run": 42567945287
+    }
+  ],
+  "actual_historical_source_findings": {
+    "past_meeting": "2026-11-07 Kyoto",
+    "racecards": 12,
+    "horses": 148,
+    "prior_date_items": 396,
+    "PC_SP_odds_menu_observation": "2026-11-06T04:05Z",
+    "odds_at_observation": "NOT_PUBLISHED",
+    "old_20261031_final_quinella_pairs": 120,
+    "old_20261031_final_bracket_pairs": 36,
+    "actual_certified_20261107_prerace_prices": 0,
+    "uncertainty": "No verified actual future betting market from this observation; not proof none appeared later",
+    "source_profile_originals_reparsed": 84
+  },
+  "no_real_bets": true,
+  "no_live_JRA_get": true,
+  "prediction_ready": false,
+  "github_actions_runs_verified": true,
+  "continuous_collection_permission": "NOT_VERIFIED",
+  "intended_next": "Lawful official data feed and actual future prerace odds/withdrawals/cutoff integration, then calibrated model"
+}
