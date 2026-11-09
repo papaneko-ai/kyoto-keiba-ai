@@ -8,6 +8,11 @@
 - `cutoff_utc` を日本標準時へ換算した日付が、manifestの `meeting_date` と一致しなければ `cutoff_not_on_meeting_day_jst` で拒否。JRA正式発走時刻を判定するものではなく、日付の矛盾だけを検出する。
 - `tests/test_jra_p1_future_evidence.py`: 従前8件の固定時刻入力を整備し、未来日時・誤った開催日・UTC/JST境界・観測時刻一致・非UTC観測入力の5件を追加。合計13件をCI対象とする。
 
+## ローカル実行の再現確認
+- 2026-11-09、ローカルのPython unittestで13件全件成功（0.012秒）。Python py_compileも成功。
+- 実行に使用した2ファイルは、GitHub保存済みblobのSHA-1と完全一致を確認。ソース: `21a65afd02341c3e89cef7e47c2fd1dd7e636e02`、テスト: `1c0b26ced4590e2f358716fb336155823fdf7ab0`。したがって、異なる仮コードのテストではない。
+- この結果はローカルオフラインテストの合格であり、GitHub Actionsの新CIや実運用での合格ではない。
+
 ## 証拠の厳密な範囲
 - 最新の変更はGitHubへコミット済み。ただし本書作成時点で新13件のGitHub Actions成功レシートは確認できていない。**13件PASSとは宣言しない。**
 - 旧154件のGitHub Actions success（run `42549866841`）は旧実装に対する独立した履歴であり、今回の新テストの成功証拠には転用しない。
