@@ -83,3 +83,6 @@ P1 予測用データの取得・欠落と時点の証明
 - **最優先で読む正本：** `docs/KYOTO_AI_20261109_STAGE5_HTTP_ENVELOPE_138TEST_MIGRATION_HANDOFF.md`、機械可読受入 `docs/diagnostics/jra_p1_fb_stage5_http_envelope_offline_acceptance_20261109.json`。CI `42548704950`で138件成功、JRA GET0。
 - 前回の123件までの安全ゲートを維持し、固定HTTP模擬応答のHTTP200/MIME/容量/リダイレクトなしの検査をグローバル台帳・PC/SP失敗隔離・原本保存へ接続した。**ネットワークHTTP本体は無効で未実証**。
 - ここで新チャットへ移動を推奨。次はP1-FB第5段階の実HTTP安全・公式SPリンクと異ホスト重複防止・利用条件を検証。2026-11-07の未取得52頭を事後取得して発走前と偽らない。ALG-01～13/EVO-01～08/P1～P8を維持。
+
+## 2026-11-09 最新154件の実時計模擬取得ゲート
+- 新正本`docs/KYOTO_AI_20261109_STAGE5_154TEST_CLOCK_SCHEDULER_MILESTONE_AND_HANDOFF.md`。CI `42549866841` 154件success。模擬通信で実際のmonotonic2秒待機を検証したが、**実JRA HTTPの2秒間隔や本番readyではない**。次回はP1-FB Stage5の実通信・公式SPリンク・異ホスト共有台帳ゲートから再開。
