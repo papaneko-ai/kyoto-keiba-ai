@@ -1,0 +1,66 @@
+{
+  "schema": "kyoto_p1_fb_stage5_http_envelope_offline_acceptance.v1",
+  "as_of_date": "2026-11-09",
+  "stage": "P1-FB stage5",
+  "subgate": "scripted HTTP-like response validation + global attempt registry + source-first PC/SP offline failover",
+  "status": "OFFLINE_ACCEPTED_LIVE_NOT_AUTHORIZED",
+  "ci": {
+    "run_id": 42548704950,
+    "job_id": 128939241547,
+    "conclusion": "success",
+    "suites": {
+      "stage5_guarded": 19,
+      "archive_identity": 10,
+      "global_registry": 14,
+      "ledger_bridge": 8,
+      "strict_preflight": 13,
+      "http_envelope": 15,
+      "stage4_mock": 17,
+      "request_policy": 16,
+      "sp_special": 11,
+      "offline_failover": 15
+    },
+    "total_tests": 138
+  },
+  "jra_new_gets": 0,
+  "main_changed": false,
+  "production_turso_changed": false,
+  "live_http_implemented": false,
+  "production_prediction_ready": false,
+  "training_ready": false,
+  "implementation": [
+    "diagnostics/jra_p1_fb_stage5_offline_http_envelope.py",
+    "tests/test_jra_p1_fb_stage5_offline_http_envelope.py"
+  ],
+  "tests_include": [
+    "malformed_http_status",
+    "redirect_to_different_url",
+    "redirect_even_to_same_url",
+    "url_authority_injection",
+    "response_size_cap",
+    "unexpected_mime",
+    "compressed_response_block",
+    "binary_nulls",
+    "duplicate_transport_fetch",
+    "immutable_fixture_mapping",
+    "real_transport_factory_disabled",
+    "mock_pc_to_sp_with_global_ledger_and_bytes",
+    "http_failure_quarantine_then_sp_simulated_success"
+  ],
+  "unresolved": [
+    "official_JRA_automated_access_terms_and_permission",
+    "real_response_no_redirect_secure_transport",
+    "real_monotonic_gap_enforcement_across_process_hosts",
+    "distinct_SP_official_link_evidence",
+    "shared_persistent_multihost_deduplication",
+    "future_race_prerace_data_proof",
+    "permanent_original_archive"
+  ],
+  "preserved": {
+    "date": "2026-11-07",
+    "runners": 148,
+    "verified_profile_sources": 96,
+    "unqueried_profiles": 52,
+    "valid_prior_finish_rows": 592
+  }
+}
