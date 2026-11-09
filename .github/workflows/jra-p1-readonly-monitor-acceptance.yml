@@ -7,6 +7,9 @@ on:
       - 'diagnostics/p1_readonly_monitor_app.py'
       - 'diagnostics/p1_monitor_viewmodel.py'
       - 'tests/test_p1_monitor_viewmodel.py'
+      - 'diagnostics/p1_registry_reconcile.py'
+      - 'tests/test_p1_registry_reconcile.py'
+      - 'docs/diagnostics/jra_p1_batch14_96_profiles_20261106/feature_rows_148.json'
       - 'diagnostics/jra_p1_intake_bridge.py'
       - 'tests/test_jra_p1_intake_bridge.py'
       - 'docs/diagnostics/jra_p1_batch14_96_profiles_20261106/status.json'
@@ -28,8 +31,9 @@ jobs:
         run: python -m pip install 'streamlit>=1.38,<2'
       - name: Compile and validate actual archived receipt
         run: |
-          python -m py_compile diagnostics/p1_readonly_monitor_app.py diagnostics/p1_monitor_viewmodel.py tests/test_p1_monitor_viewmodel.py diagnostics/jra_p1_intake_bridge.py tests/test_jra_p1_intake_bridge.py
+          python -m py_compile diagnostics/p1_readonly_monitor_app.py diagnostics/p1_monitor_viewmodel.py tests/test_p1_monitor_viewmodel.py diagnostics/p1_registry_reconcile.py tests/test_p1_registry_reconcile.py diagnostics/jra_p1_intake_bridge.py tests/test_jra_p1_intake_bridge.py
           python -m unittest discover -s tests -p 'test_p1_monitor_viewmodel.py' -v
+          python -m unittest discover -s tests -p 'test_p1_registry_reconcile.py' -v
           python -m unittest discover -s tests -p 'test_jra_p1_intake_bridge.py' -v
       - name: Run real Streamlit AppTest against repository status
         run: |
@@ -39,8 +43,8 @@ jobs:
           assert not at.exception, [str(e.message) for e in at.exception]
           assert len(at.metric) >= 4, f'unexpected metrics {len(at.metric)}'
           assert at.error, 'must show prediction blocked state'
-          assert any('91' in str(x.value) for x in at.caption), 'must explain 91 counted profiles'
-          print('APPTEST_PASS: real historical status; 91-vs-96 disclosed; prediction blocked')
+          assert any('77' in str(x.message) and '19' in str(x.message) for x in at.info), 'must distinguish 77 source-history and 19 verified empty'
+          print('APPTEST_PASS: real 148-runner registry; 77 historical +19 verified-empty +52 missing; prediction blocked')
           PY
       - name: Launch Streamlit and verify HTTP health locally only
         run: |
