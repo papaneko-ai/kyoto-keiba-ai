@@ -87,3 +87,11 @@ P1は未完了。**新開催日の許容されたデータ取得経路と発走�
 - PC/SP acquisition, odds parsing and P3-P6 research **already have source code**; do not say they are unimplemented. Inspect those modules' actual code before changing them. Treat historic final odds as not current prerace odds.
 - **Enforcement boundary:** CI does not physically block pushes without required status check/branch protection. GitHub ruleset listing is empty and branch protection read currently returns 403. Do not claim an unbypassable lock.
 - P1–P8 are unchanged, but judge completion by actual end-to-end acceptance gates C0–C6, not by mock test count or isolated wrapper count.
+
+
+## 2026-11-09 PC/SP actual existing parser reuse milestone (continue here)
+- Read `docs/KYOTO_AI_20261109_PC_SP_EXISTING_PARSERS_REUSED_MILESTONE.md` before designing acquisition or SP fallback again.
+- Previously existing `diagnostics.jra_multi_capture_20261106.parse` is now future-date parameterized; previously existing `diagnostics.jra_pc_sp_benchmark.pc_rows` and `sp_rows` feed `reconcile_saved_racecards` for offline source-byte SHA/UTC, roster parity and SP fallback.
+- Both channels already matched frozen real 2026-11-07 racecards in a historical five-race benchmark. Initial 11R SP 0-row failure was repaired; use `JRA_SP_RUNNER_PARITY_FIXED_20261106.json` not the old broken parity record.
+- Current GitHub Actions run `42575107672`, job `129020946710`: 13+8=21 tests PASS on the source-refactor workflow at commit `9512b6b096364467e7fb671d97387654c9e3477c`. Later commits require same-commit continuity CI revalidation.
+- This was no JRA GET; live PC/SP retrieval, fresh official prerace quinella/bracket quotes and official scratch feeds are still not integrated. No predictions or real tickets authorized.
