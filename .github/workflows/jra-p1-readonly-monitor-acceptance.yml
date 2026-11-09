@@ -1,0 +1,65 @@
+name: Kyoto P1 read-only Streamlit monitor acceptance
+on:
+  push:
+    branches: [jra-html-diagnostic-20261105]
+    paths:
+      - '.github/workflows/jra-p1-readonly-monitor-acceptance.yml'
+      - 'diagnostics/p1_readonly_monitor_app.py'
+      - 'diagnostics/p1_monitor_viewmodel.py'
+      - 'tests/test_p1_monitor_viewmodel.py'
+      - 'docs/diagnostics/jra_p1_batch14_96_profiles_20261106/status.json'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  monitor:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    env:
+      PYTHONPATH: .
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install Streamlit for isolated monitor testing
+        run: python -m pip install 'streamlit>=1.38,<2'
+      - name: Compile and validate actual archived receipt
+        run: |
+          python -m py_compile diagnostics/p1_readonly_monitor_app.py diagnostics/p1_monitor_viewmodel.py tests/test_p1_monitor_viewmodel.py
+          python -m unittest discover -s tests -p 'test_p1_monitor_viewmodel.py' -v
+      - name: Run real Streamlit AppTest against repository status
+        run: |
+          python - <<'PY'
+          from streamlit.testing.v1 import AppTest
+          at = AppTest.from_file('diagnostics/p1_readonly_monitor_app.py', default_timeout=20).run()
+          assert not at.exception, [str(e.message) for e in at.exception]
+          assert len(at.metric) >= 4, f'unexpected metrics {len(at.metric)}'
+          assert at.error, 'must show prediction blocked state'
+          assert any('91' in str(x.value) for x in at.caption), 'must explain 91 counted profiles'
+          print('APPTEST_PASS: real historical status; 91-vs-96 disclosed; prediction blocked')
+          PY
+      - name: Launch Streamlit and verify HTTP health locally only
+        run: |
+          python -m streamlit run diagnostics/p1_readonly_monitor_app.py --server.headless true --server.address 127.0.0.1 --server.port 8501 > /tmp/p1-streamlit.log 2>&1 &
+          PID=$!
+          trap 'kill $PID 2>/dev/null || true' EXIT
+          for i in $(seq 1 25); do
+            if curl --fail --silent http://127.0.0.1:8501/_stcore/health > /tmp/p1-health.txt; then
+              cat /tmp/p1-health.txt
+              exit 0
+            fi
+            sleep 1
+          done
+          cat /tmp/p1-streamlit.log
+          exit 1
+      - name: Ensure no JRA/network collecting logic was added to monitor
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          for name in ['diagnostics/p1_readonly_monitor_app.py', 'diagnostics/p1_monitor_viewmodel.py']:
+              s=Path(name).read_text()
+              for token in ['requests.get(', 'urllib.request', 'socket.connect(', 'httpx.get(', 'subprocess.run(']:
+                  assert token not in s, (name, token)
+          print('MONITOR_READ_ONLY; historical JSON only; no JRA GET')
+          PY
