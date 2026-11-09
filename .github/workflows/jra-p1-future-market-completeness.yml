@@ -1,0 +1,49 @@
+name: Kyoto P1 future market complete offline gate
+on:
+  push:
+    branches: [jra-html-diagnostic-20261105]
+    paths:
+      - '.github/workflows/jra-p1-future-market-completeness.yml'
+      - 'diagnostics/p1_prerace_market_coverage.py'
+      - 'tests/test_p1_prerace_market_coverage.py'
+      - 'diagnostics/jra_p1_intake_bridge.py'
+      - 'tests/test_jra_p1_intake_bridge.py'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  structural-coverage:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      PYTHONPATH: .
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Compile P1 bounded offline data intake
+        run: |
+          python -m py_compile diagnostics/p1_prerace_market_coverage.py diagnostics/jra_p1_intake_bridge.py tests/test_p1_prerace_market_coverage.py tests/test_jra_p1_intake_bridge.py
+      - name: Complete vs partial real-format market structure regressions
+        run: |
+          python -m unittest discover -s tests -p 'test_p1_prerace_market_coverage.py' -v
+          python -m unittest discover -s tests -p 'test_jra_p1_intake_bridge.py' -v
+      - name: Confirm no market-proof shortcut enables predictions
+        run: |
+          python - <<'PY'
+          from diagnostics.p1_prerace_market_coverage import inspect_quinella_coverage
+          runners=[{'number':i} for i in range(1,19)]
+          all_odds=[{'first':i,'second':j,'decimal':5.0}
+                    for i in range(1,19) for j in range(i+1,19)]
+          x=inspect_quinella_coverage({
+              'schema':'kyoto_p1_prerace_snapshot.v1','race':1,
+              'runners':runners,'odds':all_odds})
+          assert x['expected_quinella_pairs']==153
+          assert x['observed_quinella_pairs']==153
+          assert x['market_completeness']=='STRUCTURAL_COMPLETE'
+          assert x['prediction_ready'] is False
+          assert x['official_source_verified'] is False
+          assert x['actual_orders_authorized'] is False
+          print('P1_153_PAIR_STRUCTURE_ONLY_NO_PREDICTION_PASS')
+          PY
