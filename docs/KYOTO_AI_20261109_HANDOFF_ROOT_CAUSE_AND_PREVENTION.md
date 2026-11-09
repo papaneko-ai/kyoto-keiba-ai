@@ -28,7 +28,7 @@
 - 読取専用、stdlibのみ、GitHubやJRAに自動通信しない。ユーザーの本番環境を書き換えない。
 
 ### D. 回帰検査とCI
-- `tests/test_kyoto_resume_gate.py`：本物の148馬レジストリを用いた**11件のテストをローカル実行し11/11 PASS**。
+- `tests/test_kyoto_resume_gate.py`：本物の148馬レジストリを用いた**13件のテストをローカル実行し13/13 PASS**。
 - `diagnostics/kyoto_resume_gate.py` とテストのGit blob SHAが、手元で実行したソースと**2/2一致**。
 - `.github/workflows/kyoto-ai-resume-evidence-gate.yml`：GitHub上でテストを再実行した後、`gh api` で原本Artifactの最新metadataを取得し、正本の6ファイルのSHA/計数をゲート検査。最後にJSONレシートを保存。
 - 今回GitHub connectorで現在の正本6ファイルのGit SHA一致 **6/6**、実Artifactの`expired=false`とSHA一致を確認。
@@ -49,4 +49,4 @@
 - **この修正を「全チャットの引継ぎを自動保証」とは呼ばない**。現在の既知事故について検査・停止・再開位置を強化し、次回の実開発で確実にこのゲートを通す。
 
 ## 5. 今回の判定
-**原因特定：済／同根問題（古い静的記録・バックアップ見落とし・再開前証拠不足）対策：正本台帳＋入口＋検査プログラム＋11件回帰＋CI定義として実装／ローカル検証：11/11 PASS／現行正本6件＋Artifact metadata照合：PASS／新CI実行確認：未達。**
+**原因特定：済／同根問題（古い静的記録・バックアップ見落とし・再開前証拠不足）対策：正本台帳＋入口＋検査プログラム＋13件回帰＋CI定義として実装／ローカル検証：13/13 PASS／現行正本6件＋Artifact metadata照合：PASS／新CI実行確認：未達。**
