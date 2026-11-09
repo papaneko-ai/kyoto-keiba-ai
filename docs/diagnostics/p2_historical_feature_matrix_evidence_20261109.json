@@ -1,0 +1,131 @@
+{
+  "schema": "kyoto_p2_real_archived_feature_matrix_evidence.v1",
+  "as_of": "2026-11-09",
+  "meeting_date": "2026-11-07",
+  "venue": "KYOTO",
+  "upstream_registry_git_blob_sha": "cbde475c0d5f8a8b29c4b690b620fa80bbf6e785",
+  "upstream_status_git_blob_sha": "31638a46f48da2d28cb160f9453bad7d56b70de2",
+  "materialized_csv_git_blob_sha": "e0e98104060d1f7697925ba17b0b66cdc3a2b454",
+  "materialized_csv_path": "docs/diagnostics/p2_historical_feature_matrix_20261107_148.csv",
+  "total_runners": 148,
+  "with_valid_history": 77,
+  "identity_verified_empty_history": 19,
+  "not_queried": 52,
+  "verified_prior_rows": 592,
+  "per_race": {
+    "1": {
+      "runners": 9,
+      "with_history": 9,
+      "confirmed_empty": 0,
+      "not_queried": 0,
+      "prior_rows": 14
+    },
+    "2": {
+      "runners": 15,
+      "with_history": 15,
+      "confirmed_empty": 0,
+      "not_queried": 0,
+      "prior_rows": 32
+    },
+    "3": {
+      "runners": 13,
+      "with_history": 13,
+      "confirmed_empty": 0,
+      "not_queried": 0,
+      "prior_rows": 22
+    },
+    "4": {
+      "runners": 15,
+      "with_history": 15,
+      "confirmed_empty": 0,
+      "not_queried": 0,
+      "prior_rows": 22
+    },
+    "5": {
+      "runners": 8,
+      "with_history": 0,
+      "confirmed_empty": 8,
+      "not_queried": 0,
+      "prior_rows": 0
+    },
+    "6": {
+      "runners": 11,
+      "with_history": 0,
+      "confirmed_empty": 11,
+      "not_queried": 0,
+      "prior_rows": 0
+    },
+    "7": {
+      "runners": 11,
+      "with_history": 11,
+      "confirmed_empty": 0,
+      "not_queried": 0,
+      "prior_rows": 156
+    },
+    "8": {
+      "runners": 9,
+      "with_history": 9,
+      "confirmed_empty": 0,
+      "not_queried": 0,
+      "prior_rows": 261
+    },
+    "9": {
+      "runners": 10,
+      "with_history": 2,
+      "confirmed_empty": 0,
+      "not_queried": 8,
+      "prior_rows": 25
+    },
+    "10": {
+      "runners": 14,
+      "with_history": 1,
+      "confirmed_empty": 0,
+      "not_queried": 13,
+      "prior_rows": 8
+    },
+    "11": {
+      "runners": 16,
+      "with_history": 1,
+      "confirmed_empty": 0,
+      "not_queried": 15,
+      "prior_rows": 30
+    },
+    "12": {
+      "runners": 17,
+      "with_history": 1,
+      "confirmed_empty": 0,
+      "not_queried": 16,
+      "prior_rows": 22
+    }
+  },
+  "feature_presence": {
+    "prior_valid_finishes": 77,
+    "recent_three_mean_distance_m": 77,
+    "recent_three_mean_finish_percentile": 77,
+    "recent_three_wins": 77,
+    "recent_three_turf_count": 77,
+    "recent_three_dirt_count": 77,
+    "recent_three_jump_count": 77,
+    "recent_90day_date_count": 96,
+    "last_observed_prior_race_days_ago": 77
+  },
+  "provenance": "Feature register already stored in repo; not a fresh HTML replay",
+  "independent_checks": {
+    "registry_rows_count_match": true,
+    "per_race_totals_match": true,
+    "csv_horse_identity_rows_match": true,
+    "prior_history_counts_match": true,
+    "archive_not_ready": true
+  },
+  "prediction_ready": false,
+  "training_ready": false,
+  "real_JRA_GETs": 0,
+  "not_established": [
+    "original_html_sha_replay",
+    "official_live_prerace_odds",
+    "horse_race_result_labels",
+    "walk_forward_calibration",
+    "confidence",
+    "profitability"
+  ]
+}
