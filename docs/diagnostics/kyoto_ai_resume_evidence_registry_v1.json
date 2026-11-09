@@ -4,7 +4,7 @@
   "branch": "jra-html-diagnostic-20261105",
   "required_files": {
     "docs/KYOTO_AI_COMPLETE_MIGRATION_PACK_20261106.md": "0e451190bae7338d07509e744bef6efc220a49d1",
-    "docs/KYOTO_AI_CONTINUITY_AND_STAGE_GATE_RULES_20261106.md": "ae7172fba749762ed1826994040afdd4128ca75f",
+    "docs/KYOTO_AI_CONTINUITY_AND_STAGE_GATE_RULES_20261106.md": "7f64b13dbe05fe702fd09bbde91342183f6522b5",
     "docs/KYOTO_AI_20261106_FINAL_BACKUP_VERIFIED_RECEIPT.md": "2e0c25876a6487c01d4f72420f26fd849028057a",
     "docs/diagnostics/jra_p1_batch14_96_profiles_20261106/status.json": "31638a46f48da2d28cb160f9453bad7d56b70de2",
     "docs/diagnostics/jra_p1_batch14_96_profiles_20261106/feature_rows_148.json": "cbde475c0d5f8a8b29c4b690b620fa80bbf6e785",
