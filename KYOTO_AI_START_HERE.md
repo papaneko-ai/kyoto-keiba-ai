@@ -45,3 +45,15 @@ P1は未完了。**新開催日の許容されたデータ取得経路と発走�
 
 ## 6. チャット移行時に貼る短文
 「京都競馬AI既存開発を継続。まずGitHubの `KYOTO_AI_START_HERE.md` を読み、`kyoto_ai_resume_evidence_registry_v1.json` と `kyoto_resume_gate.py` で原本・バックアップ・最新進捗を照合。84頭の実原本再解析と485過去走・335特徴量は既達で繰り返さない。Artifact 13482994623と携帯用復旧ZIPを先に探し、原本不在と誤認しない。P1～P8・ALG01～13・EVO01～08を維持。現在の未完P1（新開催日の合法的な出馬表と発走前馬連/枠連オッズ）から進め、本番main/Turso/Secretsは保護する。ゲートの証拠確認なしに工程を進めない。」
+
+## 7. 2026-11-09 後発の確定済み実測・CI調査（**新チャットで必読**）
+- `docs/diagnostics/kyoto_ai_full_resume_ci_reconciliation_20261109.json`：GitHub REST APIで**push時のActions実行**まで列挙し、各ジョブ／ログを確認した最新のCI実測台帳。以前のPR限定APIやcombined statuses空配列で「CI成功未確認」と判断しない。
+- **再開ゲート** run `42568017053` success（13件、必須原本・進捗24ファイル照合）。
+- **実HTML原本再解析** run `42565633708` success（84頭／485過去走／335特徴量）。
+- **全12R実出馬表と過去オッズ遮断** run `42567681829` success（12件、148頭、過去走日付396件）。`diagnostics/p1_historical_day_handoff.py` と `docs/diagnostics/JRA_ODDS_READINESS_ACCEPTANCE_20261106.json` は既存の11月6日13:05のPC/SP未発表画面を確認。過去10/31馬連120組・枠連36組は**最終オッズ**であり11/07の発走前価格に代用禁止。
+- **P3～P6の収支計算** run `42567612106` success（20+18+15=53件、発走前凍結・訂正・再起動研究用）。それ以前のrun `42564668348` は失敗、原因は合計賭け金変数を最後の買い目額で上書きした不具合。修正済み。失敗履歴を無視しない。
+- **P6ソース同一性** run `42567627196` success（15件）。
+- **診断用Streamlit AppTest** run `42567945287` success（11+12+10+14+7+13=67件、画面テスト）。以前の15回失敗はPython3.11非互換のf-stringとAppTestの不存在属性参照を修正した。正確な現況は上記成功runのログを参照。
+- 最新の「HTML原本保全84頭」と「出馬表全12レース取得148頭」と「詳細プロフィール96頭（原本未復元12頭）」は**異なる範囲を数える**。合算や再取得は禁止。
+- **最新の引継ぎ台帳には現在24件の必須ファイルSHA**を登録。出馬表12本、PC/SPの未発表オッズ・10/31最終オッズ証拠、解析器を含む。GitHub Actionsは実通信を認可するものではない。
+- 新チャットではまずGithub Actions RESTの `/repos/papaneko-ai/kyoto-keiba-ai/actions/runs?branch=jra-html-diagnostic-20261105&per_page=30` に相当する実行履歴を確認し、対象のjob/step/logを辿る。問題を再分析する前に**既存の失敗と修正済みrun**を照合する。
