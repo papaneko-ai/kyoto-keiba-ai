@@ -1,0 +1,61 @@
+{
+  "schema": "kyoto_ai_20261109_final_migration_gate.v1",
+  "date": "2026-11-09",
+  "project": "papaneko-ai/kyoto-keiba-ai",
+  "development_branch": "jra-html-diagnostic-20261105",
+  "migration_files": [
+    "KYOTO_AI_START_HERE.md",
+    "docs/KYOTO_AI_20261109_COMPLETE_MIGRATION_PACK_FINAL.md",
+    "docs/KYOTO_AI_NEXT_CHAT_START_20261109.md"
+  ],
+  "last_milestone": {
+    "name": "P1_offline_quinella_complete_market",
+    "source": "diagnostics/p1_prerace_market_coverage.py",
+    "bridge": "diagnostics/jra_p1_intake_bridge.py",
+    "workflow": ".github/workflows/jra-p1-future-market-completeness.yml",
+    "run_id": 42569049451,
+    "job_id": 129001941064,
+    "conclusion": "success",
+    "tests": {
+      "complete_market": 8,
+      "intake_bridge": 16,
+      "all": 24
+    },
+    "eighteen_runner_combination_count": 153,
+    "prediction_ready": false,
+    "real_official_market_captured": false
+  },
+  "retained_evidence": {
+    "real_20261107_racecards": 12,
+    "runners": 148,
+    "registry_profiles_verified": 96,
+    "recovered_PC_originals_reparsed": 84,
+    "recovered_prior_rows": 485,
+    "reverified_features": 335,
+    "source_originals_missing": 12,
+    "registry_only_prior_rows": 107,
+    "source_artifact_id": 13482994623,
+    "source_artifact_expires_at": "2027-02-04T06:47:55Z"
+  },
+  "prior_success_runs": {
+    "resume_gate": 42568017053,
+    "real_html_84_reparse": 42565633708,
+    "archived_full_day": 42567681829,
+    "P3_P6_research": 42567612106,
+    "P6_frozen_source": 42567627196,
+    "Streamlit_diagnostic": 42567945287
+  },
+  "next_priority": "P1 legal stable acquisition of real future official racecard, withdrawals and full live pre-race quinella/bracket market, freeze timestamp, only then paper trade",
+  "prohibitions": [
+    "No JRA unapproved automated HTTP requests",
+    "No synthetic odds claimed real",
+    "No rewriting production main/app.py",
+    "No Turso/Streamlit Secrets changes",
+    "No new architecture replacing archived 2026-11-09 branch",
+    "No ignoring known solved incident/action run evidence"
+  ],
+  "status": "CURRENT_MILESTONE_COMPLETE_AND_MIGRATION_DOCS_READY_NOT_PRODUCTION_READY",
+  "github_actions_current_migration_docs": "no CI is configured to execute for documentation-only changes",
+  "actual_bets": 0,
+  "actual_paper_trades": 0
+}
