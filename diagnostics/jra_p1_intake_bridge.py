@@ -10,6 +10,7 @@ from datetime import datetime
 
 from diagnostics.jra_p1_offline_handoff import import_bundle
 from diagnostics.jra_p1_snapshot_gate import evaluate
+from diagnostics.jra_p1_future_evidence import instant
 
 
 class IntakeRejected(ValueError):
@@ -31,6 +32,12 @@ def inspect_bundle_and_snapshot(bundle: bytes, snapshot: dict, *, observed_utc: 
     checked = evaluate(snapshot, observed_utc=observed_utc)
     if checked['status'] != 'STRUCTURAL_CHECK_ONLY':
         raise IntakeRejected('snapshot_structural_blocked:' + ','.join(checked['reasons']))
+    # Evidence and structured data must describe the SAME frozen pre-race cutoff.
+    # Matching race and source hashes alone cannot establish that time contract.
+    if instant(manifest.get('cutoff_utc')) != instant(snapshot.get('prediction_cutoff_utc')):
+        raise IntakeRejected('cutoff_time_mismatch')
+    if instant(observed_utc) >= instant(snapshot['prediction_cutoff_utc']):
+        raise IntakeRejected('cutoff_already_elapsed')
     if manifest.get('meeting_date') != snapshot.get('meeting_date'):
         raise IntakeRejected('meeting_date_mismatch')
     if receipt.get('source_count') != 2 or len(manifest.get('sources', [])) != 2:
