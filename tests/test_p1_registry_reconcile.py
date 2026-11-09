@@ -57,6 +57,13 @@ class RegistryReconcileTests(unittest.TestCase):
         with self.assertRaisesRegex(RegistryConflict,"verified_profile_source_missing"):
             reconcile(self.status,rows)
 
+    def test_empty_history_must_retain_identity_proof_status(self):
+        rows=copy.deepcopy(self.rows)
+        row=next(x for x in rows if x["source_coverage"]["horse_profile"]=="VERIFIED_EMPTY_HISTORY")
+        row["profile_status"]="NOT_QUERIED"
+        with self.assertRaisesRegex(RegistryConflict,"profile_state_evidence_disagreement"):
+            reconcile(self.status,rows)
+
     def test_historical_prediction_is_never_enabled(self):
         status=copy.deepcopy(self.status)
         status["prediction_ready"]=True
