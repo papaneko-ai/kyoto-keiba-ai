@@ -36,6 +36,34 @@ def _utc(t):
 def _canonical(obj):
     return (json.dumps(obj, ensure_ascii=False, sort_keys=True, separators=(",", ":"))+"\n").encode("utf8")
 
+def _sync_directory(directory):
+    """Persist directory metadata on POSIX; fail closed on unsupported platforms."""
+    fd = os.open(str(directory), os.O_RDONLY | getattr(os, "O_DIRECTORY", 0))
+    try:
+        os.fsync(fd)
+    finally:
+        os.close(fd)
+
+def atomic_receipt(path, obj):
+    """Durable replacement of a journal snapshot, without exposing partial JSON."""
+    target = Path(path)
+    if not target.parent.is_dir() or target.is_symlink():
+        raise ValueError("unsafe_receipt_destination")
+    payload = _canonical(obj)
+    fd, staging = tempfile.mkstemp(prefix=".receipt-", suffix=".tmp", dir=target.parent)
+    try:
+        with os.fdopen(fd, "wb") as f:
+            f.write(payload)
+            f.flush()
+            os.fsync(f.fileno())
+        os.replace(staging, target)
+        _sync_directory(target.parent)
+        if target.read_bytes() != payload:
+            raise ValueError("receipt_durability_verification_failed")
+    finally:
+        if os.path.exists(staging):
+            os.unlink(staging)
+
 def atomic_seal(directory, filename, data):
     """Create immutable original by atomic no-overwrite hard link + fsync.
 
@@ -48,7 +76,7 @@ def atomic_seal(directory, filename, data):
     if not isinstance(data, bytes) or not data:
         raise ValueError("bad_source_bytes")
     dest = d / filename
-    if dest.exists():
+    if dest.exists() or dest.is_symlink():
         raise FileExistsError("original_already_exists")
     fd, name = tempfile.mkstemp(prefix=".sealed-", suffix=".tmp", dir=d)
     try:
@@ -57,6 +85,7 @@ def atomic_seal(directory, filename, data):
             out.flush()
             os.fsync(out.fileno())
         os.link(name, dest)
+        _sync_directory(d)
         if dest.read_bytes() != data:
             raise ValueError("sealed_source_mismatch")
         return {"source_sha256": sha256(data).hexdigest(), "bytes": len(data), "path": filename}
@@ -122,7 +151,8 @@ def run_guarded_replay(*, folder, roster, now, cutoff, replay_transport,
                         number=roster.number, roster_sha=roster.racecard_sha256,
                         cutoff=cutoff, now=now, transport=replay_transport,
                         parsers=parsers, prior_attempts=tuple(prior_attempts),
-                        source_writer=lambda path, body: atomic_seal(path.parent, path.name, body))
+                        source_writer=lambda path, body: atomic_seal(path.parent, path.name, body),
+                        receipt_writer=atomic_receipt)
     out = Path(folder)
     gate_bytes = _canonical(gate)
     atomic_seal(out, "stage5_preflight.json", gate_bytes)
