@@ -119,5 +119,23 @@ class Stage5Offline(unittest.TestCase):
         with self.assertRaisesRegex(ValueError,"immutable_incident_directory_already_exists"):
             self.case(folder=f)
 
+
+    def test_stage5_uses_atomic_writer_not_stage4_direct_write(self):
+        from unittest.mock import patch
+        with patch("pathlib.Path.write_bytes", side_effect=AssertionError("legacy_write_forbidden")):
+            result, folder = self.case()
+        self.assertEqual(result["selected"], "SP")
+        self.assertEqual((folder/"original_pc.html").read_bytes(), RAW)
+        self.assertEqual((folder/"original_sp.html").read_bytes(), RAW)
+
+    def test_atomic_link_failure_stops_backup(self):
+        from unittest.mock import patch
+        with patch("os.link", side_effect=OSError("simulated_atomic_link_failure")):
+            result, folder = self.case()
+        self.assertEqual(result["status"], "FALLBACK_BLOCKED")
+        self.assertEqual(len(result["attempts"]), 1)
+        self.assertFalse((folder/"original_pc.html").exists())
+        self.assertEqual(result["actual_network_requests"], 0)
+
 if __name__ == "__main__":
     unittest.main()
