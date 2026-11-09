@@ -62,7 +62,7 @@ jobs:
           assert not at.exception, [str(e.message) for e in at.exception]
           assert len(at.metric) >= 4, f'unexpected metrics {len(at.metric)}'
           assert at.error, 'must show prediction blocked state'
-          assert any('77' in str(x.message) and '19' in str(x.message) for x in at.info), 'must distinguish 77 source-history and 19 verified empty'
+          assert any('77' in str(x.proto) and '19' in str(x.proto) for x in at.info), 'must distinguish 77 source-history and 19 verified empty'
           print('APPTEST_PASS: real 148-runner registry; 77 historical +19 verified-empty +52 missing; prediction blocked')
           PY
       - name: Launch Streamlit and verify HTTP health locally only
