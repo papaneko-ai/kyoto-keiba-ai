@@ -144,5 +144,39 @@ class Stage5Offline(unittest.TestCase):
         self.assertFalse((folder/"original_pc.html").exists())
         self.assertEqual(receipt["actual_network_requests"], 0)
 
+
+    def test_atomic_receipt_replaces_complete_document(self):
+        from diagnostics.jra_p1_fb_stage5_guarded_replay import atomic_receipt
+        d=tempfile.TemporaryDirectory()
+        self.addCleanup(d.cleanup)
+        path=Path(d.name)/"receipt.json"
+        atomic_receipt(path,{"status":"ONE","version":1})
+        atomic_receipt(path,{"status":"TWO","version":2})
+        self.assertEqual(json.loads(path.read_text())["status"],"TWO")
+        self.assertFalse(list(Path(d.name).glob(".receipt-*.tmp")))
+
+    def test_receipt_swap_failure_keeps_old_document(self):
+        from unittest.mock import patch
+        from diagnostics.jra_p1_fb_stage5_guarded_replay import atomic_receipt
+        d=tempfile.TemporaryDirectory()
+        self.addCleanup(d.cleanup)
+        path=Path(d.name)/"receipt.json"
+        atomic_receipt(path,{"state":"BEFORE"})
+        with patch("os.replace",side_effect=OSError("injected_rename_failure")):
+            with self.assertRaisesRegex(OSError,"injected_rename_failure"):
+                atomic_receipt(path,{"state":"AFTER"})
+        self.assertEqual(json.loads(path.read_text()),{"state":"BEFORE"})
+        self.assertFalse(list(Path(d.name).glob(".receipt-*.tmp")))
+
+    def test_current_meeting_date_blocks_same_day_race_history(self):
+        from dataclasses import replace
+        new_roster=replace(ROSTER,meeting_date="2026-11-14")
+        def future_rows(body, horse):
+            return {"horse_name": horse,"prior_rows":[{"date":"2026-11-14"}],"invalid_rows":[]}
+        result,_=self.case(roster=new_roster, now=datetime(2026,11,13,tzinfo=timezone.utc),
+           cutoff=datetime(2026,11,14,tzinfo=timezone.utc),
+           parsers={"PC":future_rows,"SP":future_rows})
+        self.assertEqual(result["status"],"BOTH_FAILED_QUARANTINED")
+
 if __name__ == "__main__":
     unittest.main()
