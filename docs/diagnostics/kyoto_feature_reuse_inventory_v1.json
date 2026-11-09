@@ -1,0 +1,88 @@
+{
+  "schema": "kyoto_feature_reuse_inventory.v1",
+  "features": [
+    {
+      "id": "PC_RACECARD",
+      "status": "IMPLEMENTED_PARTIAL",
+      "code_paths": [
+        "diagnostics/follow_kyoto_all_races.py"
+      ],
+      "evidence_paths": [
+        "docs/diagnostics/JRA_KYOTO_FULL_DAY_ACCEPTANCE_20261106.json"
+      ],
+      "remaining": "Complete future racecard integration with current source."
+    },
+    {
+      "id": "SP_RACECARD",
+      "status": "IMPLEMENTED_PARTIAL",
+      "code_paths": [
+        "diagnostics/jra_sp_runner_parity.py",
+        "diagnostics/jra_pc_sp_comparison.py"
+      ],
+      "evidence_paths": [
+        "docs/diagnostics/JRA_KYOTO_FULL_DAY_ACCEPTANCE_20261106.json"
+      ],
+      "remaining": "Complete SP fallback using existing parser and parity."
+    },
+    {
+      "id": "PC_PROFILE",
+      "status": "IMPLEMENTED_VERIFIED",
+      "code_paths": [
+        "diagnostics/follow_jra_horse_get.py"
+      ],
+      "evidence_paths": [
+        "docs/diagnostics/jra_p1_batch14_96_profiles_20261106/status.json"
+      ],
+      "remaining": "Preserve 84 replayed sources and separately track 52 unqueried."
+    },
+    {
+      "id": "ODDS_FINAL_HTML",
+      "status": "IMPLEMENTED_VERIFIED",
+      "code_paths": [
+        "diagnostics/extract_kyoto_odds_matrix.py",
+        "diagnostics/jra_odds_matrix_parser.py"
+      ],
+      "evidence_paths": [
+        "docs/diagnostics/JRA_HISTORICAL_MATRIX_EVIDENCE_20261106.json"
+      ],
+      "remaining": "Historical final prices cannot substitute for prerace prices."
+    },
+    {
+      "id": "PC_SP_ODDS_MENU",
+      "status": "IMPLEMENTED_PARTIAL",
+      "code_paths": [
+        "diagnostics/jra_pc_sp_odds_menu.py",
+        "diagnostics/jra_live_odds_readiness.py"
+      ],
+      "evidence_paths": [
+        "docs/diagnostics/JRA_PC_SP_ODDS_MENU_20261106.json",
+        "docs/diagnostics/JRA_ODDS_READINESS_ACCEPTANCE_20261106.json"
+      ],
+      "remaining": "Obtain actual prerace market after open, compare PC SP."
+    },
+    {
+      "id": "QUINELLA_BRACKET_RESEARCH",
+      "status": "IMPLEMENTED_PARTIAL",
+      "code_paths": [
+        "diagnostics/jra_p1_intake_bridge.py",
+        "diagnostics/p1_three_original_dual_intake.py"
+      ],
+      "evidence_paths": [
+        "docs/diagnostics/kyoto_ai_p1_dual_three_original_checkpoint_v2_20261109.json"
+      ],
+      "remaining": "Get real official source and pass current CI, not only synthetic tests."
+    },
+    {
+      "id": "P6_PAPER_LAB",
+      "status": "IMPLEMENTED_PARTIAL",
+      "code_paths": [
+        "diagnostics/p3_p6_research_no_bet.py",
+        "diagnostics/p6_fixture_durable_ledger.py"
+      ],
+      "evidence_paths": [
+        "docs/diagnostics/kyoto_ai_full_resume_ci_reconciliation_20261109.json"
+      ],
+      "remaining": "Complete official preregistered prediction and settlement."
+    }
+  ]
+}
