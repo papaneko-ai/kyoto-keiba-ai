@@ -56,6 +56,18 @@ class IntakeTests(unittest.TestCase):
     def test_deterministic(self):
         self.assertEqual(self.run_case(),self.run_case())
 
+    def test_reject_cutoff_mismatch(self):
+        with self.assertRaisesRegex(IntakeRejected,'cutoff_time_mismatch'):
+            self.run_case(mutate_manifest=lambda m:m.update(cutoff_utc='2026-11-14T04:40:00Z'))
+
+    def test_reject_expired_prediction_cutoff(self):
+        raw=export_bundle(self.manifest,self.root,observed_utc=NOW)
+        with self.assertRaisesRegex(IntakeRejected,'cutoff_already_elapsed'):
+            inspect_bundle_and_snapshot(raw,self.snapshot,observed_utc='2026-11-14T04:51:00Z')
+
+    def test_cutoff_equal_with_utc_alias(self):
+        self.assertFalse(self.run_case(mutate_manifest=lambda m:m.update(cutoff_utc='2026-11-14T04:50:00+00:00'))['prediction_ready'])
+
     def test_wrong_race(self):
         with self.assertRaisesRegex(IntakeRejected,'race_number_mismatch'):
             self.run_case(mutate_snapshot=lambda s:s.update(race=2))
