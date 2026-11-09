@@ -1,0 +1,78 @@
+name: Kyoto AI mandatory evidence-first resume gate
+on:
+  push:
+    branches: [jra-html-diagnostic-20261105]
+    paths:
+      - '.github/workflows/kyoto-ai-resume-evidence-gate.yml'
+      - 'diagnostics/kyoto_resume_gate.py'
+      - 'tests/test_kyoto_resume_gate.py'
+      - 'docs/diagnostics/kyoto_ai_resume_evidence_registry_v1.json'
+      - 'docs/KYOTO_AI_20261106_FINAL_BACKUP_VERIFIED_RECEIPT.md'
+      - 'docs/diagnostics/p1_real_recovery_archive_84_source_reparse_20261109.json'
+      - 'docs/diagnostics/jra_p1_batch14_96_profiles_20261106/status.json'
+      - 'docs/diagnostics/jra_p1_batch14_96_profiles_20261106/feature_rows_148.json'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  resume-evidence-first:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      PYTHONPATH: .
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Verify exact locally tested source and test bytes
+        run: |
+          python - <<'PY'
+          import hashlib
+          from pathlib import Path
+          required={
+              'diagnostics/kyoto_resume_gate.py':'6527aeef7b0d8734b2f3e174c984679b263a6575',
+              'tests/test_kyoto_resume_gate.py':'b436afa665866ea1da2ae94f3de363d6f6d76de8'
+          }
+          for name,expected in required.items():
+              raw=Path(name).read_bytes()
+              got=hashlib.sha1(b'blob '+str(len(raw)).encode()+b'\x00'+raw).hexdigest()
+              assert got==expected,(name,got,expected)
+          print('RESUME_GATE_SOURCE_GIT_BLOB_MATCHED')
+          PY
+      - name: Run regression tests before accessing any JRA URL
+        run: |
+          python -m py_compile diagnostics/kyoto_resume_gate.py tests/test_kyoto_resume_gate.py
+          python -m unittest discover -s tests -p 'test_kyoto_resume_gate.py' -v
+      - name: Fresh GitHub status of archived Nov 6 original artifact
+        run: |
+          gh api 'repos/papaneko-ai/kyoto-keiba-ai/actions/artifacts/13482994623' > /tmp/kyoto_archive_live_metadata.json
+      - name: Enforce locked prior evidence, hashes, totals, and no-rediscovery gate
+        run: |
+          python -m diagnostics.kyoto_resume_gate \
+            --root . \
+            --artifact-json /tmp/kyoto_archive_live_metadata.json \
+            --out /tmp/kyoto_ai_resume_receipt.json
+      - name: Ensure gate receipt never promotes unverified current betting
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          receipt=json.loads(Path('/tmp/kyoto_ai_resume_receipt.json').read_text())
+          assert receipt['decision']=='RESUME_EVIDENCE_ACCEPTED_NOT_LIVE_AUTHORIZATION'
+          assert receipt['already_reparsed_profiles']==84
+          assert receipt['original_profiles_missing']==12
+          assert receipt['already_reparsed_prior_runs']==485
+          assert receipt['registry_only_prior_runs']==107
+          assert receipt['live_JRA_http_authorized'] is False
+          assert receipt['new_prediction_ready'] is False
+          print('REENTRY_GATE_PASS_PRIOR_84_SOURCES_FOUND')
+          PY
+      - name: Save machine-readable resume evidence for next chat
+        uses: actions/upload-artifact@v4
+        with:
+          name: kyoto-ai-resume-evidence-gate-receipt
+          path: /tmp/kyoto_ai_resume_receipt.json
+          retention-days: 30
