@@ -72,3 +72,9 @@ P1は未完了。**新開催日の許容されたデータ取得経路と発走�
 - `diagnostics/jra_p1_intake_bridge.py` now exposes `inspect_bundle_and_dual_snapshot` connecting source-byte/time checks and strict dual market structure; 13 isolated plus 10 integration regression cases were added. This is **not** a JRA-authenticated or prediction-ready path.
 - New push CI must be verified with actual Actions run/job/log. A PR-only workflow API empty response is not evidence of missing push CI. Do not promote checkpoint to PASS without the actual run.
 - Historical 84 original profiles and all former successful Actions are unchanged. Main/Turso/Secrets remain protected.
+
+## 2026-11-09 P1 three-independent-originals upgrade (v2 authoritative continuation)
+- Continue from `docs/KYOTO_AI_20261109_P1_DUAL_THREE_ORIGINALS_MILESTONE_V2.md` and `docs/diagnostics/kyoto_ai_p1_dual_three_original_checkpoint_v2_20261109.json` **instead of stopping at the earlier two-original dual-market checkpoint**.
+- `inspect_three_original_dual_intake` requires separate racecard, quinella and bracket market originals with distinct SHA256 and UTC bindings. The older two-source entry point remains non-production for compatibility. 14 more tests added; 37 new cases in this wider integration cycle.
+- Actual live GitHub push run/log for these new commits has **not yet been independently confirmed**; do not say CI passed merely because workflows are present. Do not promote fixture completeness to authenticated JRA data or `prediction_ready=true`.
+- Next P1 gate: authorized real future-race sources, independent official origin and sales/withdrawal evidence, CI proven, forward-only paper trade. Never repeat the 84 historic HTML original recovery.
