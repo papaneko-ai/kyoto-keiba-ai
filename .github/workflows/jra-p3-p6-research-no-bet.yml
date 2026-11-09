@@ -9,6 +9,8 @@ on:
       - 'tests/test_p3_p6_research_no_bet.py'
       - 'diagnostics/p6_virtual_settlement_fixture_lab.py'
       - 'tests/test_p6_virtual_settlement_fixture_lab.py'
+      - 'diagnostics/p6_fixture_durable_ledger.py'
+      - 'tests/test_p6_fixture_durable_ledger.py'
       - 'docs/diagnostics/p2_historical_feature_matrix_20261107_148.csv'
   workflow_dispatch:
 permissions:
@@ -26,11 +28,12 @@ jobs:
           python-version: '3.11'
       - name: Compile numerical and no-bet guard code
         run: |
-          python -m py_compile diagnostics/p3_p6_research_no_bet.py diagnostics/p3_p6_research_no_bet_cli.py tests/test_p3_p6_research_no_bet.py diagnostics/p6_virtual_settlement_fixture_lab.py tests/test_p6_virtual_settlement_fixture_lab.py
+          python -m py_compile diagnostics/p3_p6_research_no_bet.py diagnostics/p3_p6_research_no_bet_cli.py tests/test_p3_p6_research_no_bet.py diagnostics/p6_virtual_settlement_fixture_lab.py tests/test_p6_virtual_settlement_fixture_lab.py diagnostics/p6_fixture_durable_ledger.py tests/test_p6_fixture_durable_ledger.py
       - name: Test probabilities, frames, odds arithmetic and strict refusal
         run: |
           python -m unittest discover -s tests -p 'test_p3_p6_research_no_bet.py' -v
           python -m unittest discover -s tests -p 'test_p6_virtual_settlement_fixture_lab.py' -v
+          python -m unittest discover -s tests -p 'test_p6_fixture_durable_ledger.py' -v
       - name: Process actual historical CSV into no-bet receipt
         run: |
           python diagnostics/p3_p6_research_no_bet_cli.py \
@@ -85,6 +88,44 @@ jobs:
         with:
           name: kyoto-p6-fixture-only-settlement-replay
           path: /tmp/kyoto-p6-fixture-replay.json
+          retention-days: 7
+      - name: Verify durable P6 fixture journal across process restart
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          from diagnostics.p6_fixture_durable_ledger import append_record
+          from diagnostics.p6_virtual_settlement_fixture_lab import freeze_fixture
+          f=freeze_fixture(scenario_id='LAB-CI-DURABLE',ticket_type='QUINELLA',
+              frozen_utc='2026-11-13T04:00:00Z',cutoff_utc='2026-11-14T04:50:00Z',
+              model_version='research-fixture',source_sha256='a'*64,
+              tickets=[{'pair':[1,2],'stake_yen':200,'probability':.3,'odds':5.0}])
+          path=Path('/tmp/kyoto-p6-fixture-durable.jsonl')
+          s=append_record(path,'FROZEN',f,expected_head='0'*64)
+          for version,amount in [(1,500),(2,400)]:
+              event={'scenario_id':'LAB-CI-DURABLE','source_kind':'FIXTURE',
+                     'version':version,'state':'PAYOUT_FINAL',
+                     'payout_per_100':{'1-2':amount},'refunded_pairs':[]}
+              s=append_record(path,'RESULT_EVENT',event,expected_head=s['head'])
+          Path('/tmp/kyoto-p6-fixture-expected-head.txt').write_text(s['head']+'\\n')
+          PY
+          python - <<'PY'
+          from pathlib import Path
+          from diagnostics.p6_fixture_durable_ledger import read_journal
+          a=read_journal('/tmp/kyoto-p6-fixture-durable.jsonl')
+          assert len(a['entries'])==3
+          assert a['result']['payout_yen']==800
+          assert a['result']['profit_yen']==600
+          assert a['head']==Path('/tmp/kyoto-p6-fixture-expected-head.txt').read_text().strip()
+          print('P6_DURABLE_FIXTURE_RESTART_PASS')
+          PY
+      - name: Save durability witness only (never official prediction or result)
+        uses: actions/upload-artifact@v4
+        with:
+          name: kyoto-p6-fixture-journal-and-head
+          path: |
+            /tmp/kyoto-p6-fixture-durable.jsonl
+            /tmp/kyoto-p6-fixture-expected-head.txt
           retention-days: 7
       - name: Retain reproducible no-bet research receipt
         uses: actions/upload-artifact@v4
