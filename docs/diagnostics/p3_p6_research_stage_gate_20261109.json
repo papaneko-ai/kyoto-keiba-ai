@@ -11,7 +11,7 @@
   ],
   "artifacts": {
     "diagnostics/p3_p6_research_no_bet.py": {
-      "git_blob_sha": "5e41be96ed1df711c34eeff4b752a80d62183965"
+      "git_blob_sha": "a06c1ee84e015be2c8b3c26d4aaf26854d044279"
     },
     "diagnostics/p3_p6_research_no_bet_cli.py": {
       "git_blob_sha": "c688921d10a452199cc17dd3181ef0fe54a2685f"
@@ -20,8 +20,8 @@
       "git_blob_sha": "a847b3daced6e77a171ca8839a909df9ca15ec97"
     },
     "tests/test_p3_p6_research_no_bet.py": {
-      "git_blob_sha": "4b1b7924c40f49ef8e87f843b8208d6cf47b65a6",
-      "tests_defined": 19
+      "git_blob_sha": "299eb75c252ab0236003f23ed584d8be7ef10659",
+      "tests_defined": 20
     },
     "tests/test_p6_virtual_settlement_fixture_lab.py": {
       "git_blob_sha": "0d708e92a0a6ff0a65906cfa2bb8669080874d32",
@@ -36,7 +36,7 @@
   },
   "checks": {
     "source_and_test_files_fetchable_from_git": true,
-    "required_test_definitions": 35,
+    "required_test_definitions": 36,
     "tests_passed_this_turn": "NOT_VERIFIED",
     "new_actions_run_id": null,
     "new_actions_job_id": null,
@@ -45,7 +45,8 @@
     "unlabeled_historical_rows_used_as_training": false,
     "real_purchase_created": false,
     "historical_no_bet_audit_saved": true,
-    "actual_official_settlement_performed": false
+    "actual_official_settlement_performed": false,
+    "expected_joint_probability_normalization_gate": true
   },
   "risk_blocks": [
     "UNVERIFIED_JRA_LIVE_ACCESS_PERMISSIONS",
