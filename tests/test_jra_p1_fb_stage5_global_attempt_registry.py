@@ -15,6 +15,16 @@ def url(i,channel="PC"):
     host="jra.jp" if channel=="PC" else "sp.jra.jp"
     token="pw" if channel=="PC" else "sj"
     return f"https://{host}/JRADB/accessU.html?CNAME={token}01dud002020103876/{i:02d}"
+
+def _other_process_reserve(path):
+    db=GlobalAttemptRegistry(path,max_attempts=4)
+    try:
+        db.reserve(channel="PC",url=url(1),race_key=RACE,horse_number=1,
+                   roster_sha=SHA,now=T,cutoff=CUTOFF,official_roster_observed=True)
+        return "ok"
+    except Blocked:
+        return "blocked"
+
 class GlobalAttemptRegistryTests(unittest.TestCase):
     def setUp(self):
         self.t=tempfile.TemporaryDirectory()
@@ -93,6 +103,15 @@ class GlobalAttemptRegistryTests(unittest.TestCase):
         with ThreadPoolExecutor(max_workers=8) as pool:
             results=list(pool.map(worker,range(8)))
         self.assertEqual(sum(x[0]=="ok" for x in results),1)
+        self.assertEqual(len(self.store.inventory()),1)
+
+
+    def test_independent_processes_compete_on_same_global_url(self):
+        from concurrent.futures import ProcessPoolExecutor
+        with ProcessPoolExecutor(max_workers=4) as pool:
+            outcomes=list(pool.map(_other_process_reserve,[str(self.path)]*4))
+        self.assertEqual(outcomes.count("ok"),1)
+        self.assertEqual(outcomes.count("blocked"),3)
         self.assertEqual(len(self.store.inventory()),1)
 
     def test_crash_like_unresolved_reservation_not_released(self):
