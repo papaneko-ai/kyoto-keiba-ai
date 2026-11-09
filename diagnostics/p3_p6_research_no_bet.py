@@ -25,12 +25,17 @@ def ordered_first_second(weights):
         if type(number) is not int or not 1 <= number <= 18:
             raise ResearchRejected("horse_number_invalid")
         clean[number] = _positive(value, "strength")
-    total = sum(clean.values())
+    max_strength = max(clean.values())
+    clean = {n: v / max_strength for n,v in clean.items()}
+    total = math.fsum(clean.values())
     ordered = {}
     for i in sorted(clean):
         for j in sorted(clean):
             if i != j:
-                ordered[(i,j)] = (clean[i] / total) * (clean[j] / (total - clean[i]))
+                remaining = math.fsum(v for n,v in clean.items() if n != i)
+                if remaining <= 0:
+                    raise ResearchRejected("weights_numerically_degenerate")
+                ordered[(i,j)] = (clean[i] / total) * (clean[j] / remaining)
     return ordered
 
 def quinella_from_strength(weights):
@@ -126,11 +131,17 @@ def allocate_research_budget(races, *, daily_limit_yen):
         tickets=race.get("tickets")
         if not isinstance(tickets,list) or not 1 <= len(tickets) <= 3:
             continue
-        if any(type(t.get("amount_yen")) is not int or t["amount_yen"] < 100
-               or t["amount_yen"]%100 for t in tickets if isinstance(t,dict)):
-            raise ResearchRejected("stake_invalid")
         if any(not isinstance(t,dict) for t in tickets):
             raise ResearchRejected("ticket_invalid")
+        if any(type(t.get("amount_yen")) is not int or t["amount_yen"] < 100
+               or t["amount_yen"]%100 for t in tickets):
+            raise ResearchRejected("stake_invalid")
+        if (race.get("ticket_type") not in ("QUINELLA", "BRACKET") or
+                type(race.get("race")) is not int or not 1 <= race["race"] <= 12):
+            raise ResearchRejected("race_metadata_invalid")
+        confidence = race.get("confidence",0)
+        if type(confidence) not in (float,int) or not math.isfinite(confidence) or not 0 <= confidence <= 1:
+            raise ResearchRejected("confidence_invalid")
         eligible.append((race,tickets))
     # Budget is a ceiling. Prefer keeping capital unspent, no forced allocation.
     eligible.sort(key=lambda rt:(-float(rt[0].get("confidence",0)),rt[0]["race"]))
