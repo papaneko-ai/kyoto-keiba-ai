@@ -17,13 +17,15 @@ def audit(registry, root):
         raise ValueError("expected_148_historical_rows")
     target = {}
     pending = 0
+    seen_identifiers = set()
     for row in registry:
         if not isinstance(row, dict):
             raise ValueError("invalid_registry_row")
         state = row.get("source_coverage", {}).get("horse_profile")
         key = f"{row.get('race_number')}:{row.get('horse_number')}"
-        if key in target:
+        if key in seen_identifiers:
             raise ValueError("duplicate_registry_identity")
+        seen_identifiers.add(key)
         if state == "NOT_QUERIED":
             if row.get("profile_source_sha256"):
                 raise ValueError("unqueried_has_original_hash")
