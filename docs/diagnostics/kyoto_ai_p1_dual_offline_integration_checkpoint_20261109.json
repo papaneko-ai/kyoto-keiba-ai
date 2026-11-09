@@ -1,0 +1,29 @@
+{
+  "schema": "kyoto_ai_p1_dual_offline_integration_checkpoint.v1",
+  "date": "2026-11-09",
+  "branch": "jra-html-diagnostic-20261105",
+  "previous_head": "8775fe51f285f3402a2b55c2f3fd032983153d90",
+  "components": [
+    "diagnostics/p1_dual_market_offline_audit.py",
+    "diagnostics/jra_p1_intake_bridge.py",
+    "tests/test_p1_dual_market_offline_audit.py",
+    "tests/test_jra_p1_intake_bridge.py",
+    ".github/workflows/kyoto-p1-dual-market-offline.yml"
+  ],
+  "new_standalone_test_cases": 13,
+  "new_intake_integration_test_cases": 10,
+  "old_intake_tests_retained": 16,
+  "new_push_ci_run_id": null,
+  "new_push_ci_job_conclusion": "NOT_YET_VERIFIED",
+  "github_ci_pass_claimed": false,
+  "official_quinella_source_authenticated": false,
+  "official_bracket_source_authenticated": false,
+  "withdrawal_status_authenticated": false,
+  "market_sale_state_authenticated": false,
+  "market_prices_from_official_prerace_source": false,
+  "prediction_ready": false,
+  "actual_orders_authorized": false,
+  "new_jra_network_gets": 0,
+  "github_original_recovery_artifact_id": 13482994623,
+  "next": "Verify push CI job/log; establish authorized three-original dual-market source provenance and temporal acceptance before P1 signoff"
+}
