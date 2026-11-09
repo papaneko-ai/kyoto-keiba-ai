@@ -15,7 +15,9 @@ DATES=re.compile(r"(20\d{2})年\s*(\d{1,2})月\s*(\d{1,2})日")
 FRAMES=re.compile(r"枠\s*([1-8])|([1-8])\s*枠")
 MAX=1500000
 def clock():return datetime.now(timezone.utc).isoformat()
-def parse(raw,race):
+def parse(raw,race,*,meeting_date=DAY):
+ if isinstance(meeting_date,str):meeting_date=date.fromisoformat(meeting_date)
+ if not isinstance(meeting_date,date):raise ValueError('meeting_date_invalid')
  soup=BeautifulSoup(raw.decode("cp932",errors="replace"),"html.parser")
  text=soup.get_text(" ",strip=True)
  tables=[t for t in soup.select("table") if all(t.select_one("th."+x) for x in ("horse","num","waku"))]
@@ -44,7 +46,7 @@ def parse(raw,race):
    if not m:continue
    try:d=date(*map(int,m.groups()))
    except ValueError:errors.append("bad_history_date");continue
-   if d>=DAY:errors.append("history_future_or_same_day")
+   if d>=meeting_date:errors.append("history_future_or_same_day")
    else:prior.append(d.isoformat())
   rows.append({"horse_number":int(num),"frame_number":frame,"horse_name":name,
    "horse_profile_href":link,"past_race_dates":prior,
@@ -53,7 +55,7 @@ def parse(raw,race):
  if sorted(nums)!=list(range(1,len(rows)+1)):errors.append("non_contiguous_numbers")
  frames=[r["frame_number"] for r in rows]
  if any(x is None for x in frames) or frames!=sorted(x for x in frames if x is not None):errors.append("invalid_frames")
- if not re.search(r"2026年\s*11月\s*7日",text):errors.append("date_not_confirmed")
+ if not re.search(rf"{meeting_date.year}年\s*{meeting_date.month}月\s*{meeting_date.day}日",text):errors.append("date_not_confirmed")
  if not re.search(r"(?<!\d)"+str(race)+r"\s*(?:レース|R)(?!\d)",text):errors.append("race_number_not_confirmed")
  if not rows:errors.append("no_runner_rows")
  return rows,errors
