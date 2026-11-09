@@ -113,7 +113,15 @@ def settle_fixture(frozen, events):
     if not by_version:
         return {"status":"UNSETTLED","stake_yen":stake,"payout_yen":None,"profit_yen":None,
                 "ticket_hits":None,"official_confirmation":False,"fixture_only":True}
-    version=max(by_version)
+    versions=sorted(by_version)
+    final_seen=False
+    for v in versions:
+        state=by_version[v][1]["state"]
+        if final_seen and state=="RESULT_PRELIMINARY":
+            raise LabRejected("final_to_preliminary_regression")
+        if state=="PAYOUT_FINAL":
+            final_seen=True
+    version=versions[-1]
     event=by_version[version][1]
     if event["state"]=="RESULT_PRELIMINARY":
         return {"status":"PRELIMINARY_UNSETTLED","stake_yen":stake,"payout_yen":None,
