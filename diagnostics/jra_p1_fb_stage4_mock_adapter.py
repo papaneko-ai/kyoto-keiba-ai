@@ -30,7 +30,7 @@ def record(path,obj):
     path.write_text(json.dumps(obj,sort_keys=True,ensure_ascii=False,indent=2)+"\n",encoding="utf8")
 
 def run(*,folder,primary,secondary,horse_name,race,number,roster_sha,
-        cutoff=CUTOFF,now,transport,parsers,prior_attempts=()):
+        cutoff=CUTOFF,now,transport,parsers,prior_attempts=(),source_writer=None):
     """Exactly one primary and, if allowed, one alternate. No built-in URL opener.
 
     A previously created folder forbids a restart. Failure evidence is saved
@@ -86,7 +86,11 @@ def run(*,folder,primary,secondary,horse_name,race,number,roster_sha,
                 raise ValueError("untrusted_mock_http_response")
             digest=sha256(response.body).hexdigest()
             outcome="PARSER_FAILED"  # source has arrived: failed persistence must block backup
-            (dest/("original_"+source.channel.lower()+".html")).write_bytes(response.body)
+            raw_target=dest/("original_"+source.channel.lower()+".html")
+            if source_writer is None:
+                raw_target.write_bytes(response.body)
+            else:
+                source_writer(raw_target,response.body)
             e.update(original_saved=True,source_sha256=digest,bytes=len(response.body),
                 captured_at_utc=t.astimezone(timezone.utc).isoformat())
             commit()  # raw source sealed BEFORE parser
