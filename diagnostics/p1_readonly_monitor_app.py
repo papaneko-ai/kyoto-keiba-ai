@@ -7,9 +7,11 @@ import json
 from pathlib import Path
 import streamlit as st
 from diagnostics.p1_monitor_viewmodel import summarize, StatusInvalid
+from diagnostics.p1_registry_reconcile import reconcile, RegistryConflict
 
 ROOT = Path(__file__).resolve().parents[1]
 STATUS = ROOT / "docs/diagnostics/jra_p1_batch14_96_profiles_20261106/status.json"
+REGISTRY = ROOT / "docs/diagnostics/jra_p1_batch14_96_profiles_20261106/feature_rows_148.json"
 
 st.set_page_config(page_title="京都競馬AI | 取得状況", page_icon="🏇", layout="centered")
 st.title("京都競馬AI｜取得状況")
@@ -17,13 +19,15 @@ st.caption("診断専用・読み取りのみ。馬券予想や購入を行う�
 
 try:
     status = json.loads(STATUS.read_text(encoding="utf-8"))
+    rows = json.loads(REGISTRY.read_text(encoding="utf-8"))
 except (OSError, ValueError) as exc:
     st.error("検証記録を読み取れません。実データを推測して表示することはできません。")
     st.stop()
 
 try:
     summary = summarize(status)
-except (StatusInvalid, KeyError, TypeError):
+    actual = reconcile(status, rows)
+except (StatusInvalid, RegistryConflict, KeyError, TypeError):
     st.error("保存された検証記録に矛盾があります。表示を停止します。")
     st.stop()
 
@@ -37,18 +41,18 @@ b.metric("詳細確認", f"{verified}頭")
 c.metric("未取得", f"{pending}頭")
 st.progress(verified / total, text=f"プロフィール取得履歴：{verified}/{total}（{verified/total:.1%}）")
 st.metric("確認済みの有効過去走", f"{summary["prior_rows"]}件")
-st.subheader("詳細確認済みのレース")
-races = summary["completed_race_counts"]
+st.subheader("レース別の取得状態（148頭の個別記録から再集計）")
 for number in range(1, 13):
-    if str(number) in races:
-        st.write(f"京都{number}R：詳細 {races[str(number)]}頭確認")
-    else:
-        st.write(f"京都{number}R：全馬の詳細確認は未完了")
-
-st.caption(f"1～8Rのレース別確認数合計：{summary['completed_race_sum']}頭")
-unallocated = summary["verified_not_allocated_to_completed_races"]
-if unallocated:
-    st.warning(f"詳細確認済み{verified}頭のうち{unallocated}頭は、上のレース別完了数には割り当てられていません。保存記録のみでは所属レースを確定できません。")
+    r = actual["by_race"][str(number)]
+    st.write(
+        f"京都{number}R：過去走あり {r['with_history']}頭 / "
+        f"履歴なし確認済み {r['verified_empty']}頭 / "
+        f"未取得 {r['unqueried']}頭（計{r['total']}頭）"
+    )
+st.info(
+    "詳細確認済み96頭＝過去走あり77頭＋履歴なしを確認済み19頭。"
+    "未取得は52頭です。1～8Rは全馬確認済みで、残り5頭の確認分は9～12Rに属します。"
+)
 st.subheader("予測への利用判定")
 st.error("予測不可・見送り")
 st.write("発走前の新開催日データ、確定した馬ID、必要な馬場情報、当時の馬連・枠連オッズなどが揃っていません。")
