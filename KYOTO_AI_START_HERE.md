@@ -78,3 +78,12 @@ P1は未完了。**新開催日の許容されたデータ取得経路と発走�
 - `inspect_three_original_dual_intake` requires separate racecard, quinella and bracket market originals with distinct SHA256 and UTC bindings. The older two-source entry point remains non-production for compatibility. 14 more tests added; 37 new cases in this wider integration cycle.
 - Actual live GitHub push run/log for these new commits has **not yet been independently confirmed**; do not say CI passed merely because workflows are present. Do not promote fixture completeness to authenticated JRA data or `prediction_ready=true`.
 - Next P1 gate: authorized real future-race sources, independent official origin and sales/withdrawal evidence, CI proven, forward-only paper trade. Never repeat the 84 historic HTML original recovery.
+
+
+## 2026-11-09 Continuity root-cause repair — MUST CHECK BEFORE NEW FEATURE WORK
+- **Authoritative incident and end criteria:** `docs/KYOTO_AI_CONTINUITY_ROOT_CAUSE_AND_FINITE_DELIVERY_20261109.md`.
+- **Existing-code inventory:** `docs/diagnostics/kyoto_feature_reuse_inventory_v1.json`; **work intent:** `docs/diagnostics/kyoto_change_intent_v1.json`.
+- Always-run action: `.github/workflows/kyoto-ai-always-run-continuity.yml`. It checks existing feature code/evidence paths, rejects duplicate-`NEW` declarations, reruns the historical `kyoto_resume_gate.py`, and has **no push path filter**. Verify actual same-commit GitHub push run/job/log before declaring PASS.
+- PC/SP acquisition, odds parsing and P3-P6 research **already have source code**; do not say they are unimplemented. Inspect those modules' actual code before changing them. Treat historic final odds as not current prerace odds.
+- **Enforcement boundary:** CI does not physically block pushes without required status check/branch protection. GitHub ruleset listing is empty and branch protection read currently returns 403. Do not claim an unbypassable lock.
+- P1–P8 are unchanged, but judge completion by actual end-to-end acceptance gates C0–C6, not by mock test count or isolated wrapper count.
