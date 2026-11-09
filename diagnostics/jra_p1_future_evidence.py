@@ -51,7 +51,7 @@ def verify(manifest, root, *, observed_utc=None):
     root = Path(root).resolve(strict=True)
     seen = set()
     for row in rows:
-        if not isinstance(row, dict) or row.get('kind') not in ('racecard', 'pre_race_odds'):
+        if not isinstance(row, dict) or row.get('kind') not in ('racecard', 'pre_race_odds', 'bracket_odds'):
             raise EvidenceRejected('source_type_invalid')
         if type(row.get('race')) is not int or not 1 <= row['race'] <= 12:
             raise EvidenceRejected('race_invalid')
