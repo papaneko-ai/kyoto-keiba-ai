@@ -1,0 +1,60 @@
+name: Kyoto P2 real historical feature matrix acceptance
+on:
+  push:
+    branches: [jra-html-diagnostic-20261105]
+    paths:
+      - '.github/workflows/jra-p2-historical-feature-matrix.yml'
+      - 'diagnostics/p2_historical_feature_matrix.py'
+      - 'diagnostics/p1_registry_reconcile.py'
+      - 'tests/test_p2_historical_feature_matrix.py'
+      - 'docs/diagnostics/jra_p1_batch14_96_profiles_20261106/feature_rows_148.json'
+      - 'docs/diagnostics/jra_p1_batch14_96_profiles_20261106/status.json'
+      - 'docs/diagnostics/p2_historical_feature_matrix_20261107_148.csv'
+      - 'docs/diagnostics/p2_historical_feature_matrix_evidence_20261109.json'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  historical-feature-matrix:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      PYTHONPATH: .
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Compile and exercise P2 against 148 actually archived horse rows
+        run: |
+          python -m py_compile diagnostics/p2_historical_feature_matrix.py tests/test_p2_historical_feature_matrix.py diagnostics/p1_registry_reconcile.py
+          python -m unittest discover -s tests -p 'test_p2_historical_feature_matrix.py' -v
+          python -m unittest discover -s tests -p 'test_p1_registry_reconcile.py' -v
+      - name: Materialize actual locked historical CSV and reproducible receipt
+        run: |
+          python diagnostics/p2_historical_feature_matrix.py \
+            --registry docs/diagnostics/jra_p1_batch14_96_profiles_20261106/feature_rows_148.json \
+            --status docs/diagnostics/jra_p1_batch14_96_profiles_20261106/status.json \
+            --output-dir /tmp/p2_historical_feature_matrix
+      - name: Block any accidental model or future-result adoption
+        run: |
+          python - <<'PY'
+          import csv, json
+          from pathlib import Path
+          root=Path('/tmp/p2_historical_feature_matrix')
+          rec=json.loads((root/'receipt.json').read_text())
+          rows=list(csv.DictReader((root/'historical_feature_matrix.csv').open()))
+          assert len(rows)==148 and rec['csv_rows']==148
+          assert rec['prediction_ready'] is False and rec['training_ready'] is False
+          assert rec['post_race_results_included'] is False
+          assert rec['network_requests']==0
+          assert {row['profile_state'] for row in rows}=={'VERIFIED_SOURCE_ROWS','VERIFIED_EMPTY_HISTORY','NOT_QUERIED'}
+          assert all(row['prior_valid_finishes']=='' for row in rows if row['profile_state']!='VERIFIED_SOURCE_ROWS')
+          print('HISTORICAL_ONLY_SOURCE_AUDIT; no official JRA requests')
+          PY
+      - name: Save historical outputs for inspection (not live predictor data)
+        uses: actions/upload-artifact@v4
+        with:
+          name: kyoto-p2-historical-feature-matrix-archived-only
+          path: /tmp/p2_historical_feature_matrix/
+          retention-days: 7
