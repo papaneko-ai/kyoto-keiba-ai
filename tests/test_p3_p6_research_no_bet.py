@@ -52,8 +52,13 @@ class ResearchEngineTests(unittest.TestCase):
         with self.assertRaisesRegex(ResearchRejected,'market_coverage_mismatch'):
             market_ev(q,{(1,2):4.5})
 
+    def test_ev_rejects_unnormalized_probability(self):
+        with self.assertRaisesRegex(ResearchRejected,'pair_probabilities_not_normalized'):
+            market_ev({(1,2):.25},{(1,2):5})
+
     def test_market_ev_numeric(self):
-        result=market_ev({(1,2):.25},{(1,2):5},uncertainty_margin=.2)[0]
+        result=market_ev({(1,2):.25,(1,3):.25,(2,3):.5},
+                         {(1,2):5,(1,3):2,(2,3):2},uncertainty_margin=.2)[0]
         self.assertAlmostEqual(result['gross_return_per_1'],1.25)
         self.assertAlmostEqual(result['lower_bound_net_per_1'],0)
         self.assertAlmostEqual(result['expected_net_per_1'],.25)
@@ -61,7 +66,7 @@ class ResearchEngineTests(unittest.TestCase):
     def test_reject_nonfinite_odds(self):
         for bad in ("NaN","Infinity",0,1,-3):
             with self.subTest(bad=bad),self.assertRaises(ResearchRejected):
-                market_ev({(1,2):.1},{(1,2):bad})
+                market_ev({(1,2):1.0},{(1,2):bad})
 
     def test_zero_daily_budget_means_no_tickets(self):
         r=allocate_research_budget([],daily_limit_yen=0)
