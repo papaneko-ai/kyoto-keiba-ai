@@ -18,9 +18,10 @@ jobs:
         run: python -m pip install 'beautifulsoup4>=4.12,<5'
       - name: Compile and test stage5 plus prior offline gates
         run: |
-          python -m compileall -q diagnostics/jra_p1_fb_stage5_guarded_replay.py diagnostics/jra_p1_fb_stage4_mock_adapter.py diagnostics/jra_p1_fb_stage5_registry_binding.py
+          python -m compileall -q diagnostics/jra_p1_fb_stage5_guarded_replay.py diagnostics/jra_p1_fb_stage4_mock_adapter.py diagnostics/jra_p1_fb_stage5_registry_binding.py diagnostics/jra_p1_fb_stage5_global_attempt_registry.py
           python -m unittest discover -s tests -p 'test_jra_p1_fb_stage5_guarded_replay.py' -v
           python -m unittest discover -s tests -p 'test_jra_p1_fb_stage5_registry_binding.py' -v
+          python -m unittest discover -s tests -p 'test_jra_p1_fb_stage5_global_attempt_registry.py' -v
           python -m unittest discover -s tests -p 'test_jra_p1_fb_stage4_mock_adapter.py' -v
           python -m unittest discover -s tests -p 'test_jra_p1_fb_request_budget_policy.py' -v
           python -m unittest discover -s tests -p 'test_jra_p1_fb_sp_special_regressions.py' -v
