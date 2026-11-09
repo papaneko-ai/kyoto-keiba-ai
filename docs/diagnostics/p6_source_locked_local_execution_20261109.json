@@ -1,0 +1,43 @@
+{
+  "schema": "kyoto_p6_source_locked_execution_receipt.v1",
+  "date": "2026-11-09",
+  "branch": "jra-html-diagnostic-20261105",
+  "base_commit": "d56521640a73234db03139f464a3cbf59d8b9225",
+  "tested_git_blob_shas": {
+    "diagnostics/p6_virtual_settlement_fixture_lab.py": "a847b3daced6e77a171ca8839a909df9ca15ec97",
+    "diagnostics/p6_fixture_durable_ledger.py": "1680f2c421cdb44d545e76e63204ce2a9feca4b8",
+    "tests/test_p6_fixture_durable_ledger.py": "e064fdc35334a11ed2ad607322e379d346ef61aa"
+  },
+  "source_blob_identity": "THREE_OF_THREE_VERIFIED",
+  "local_python_unit_tests": {
+    "defined": 15,
+    "executed": 15,
+    "passed": 15,
+    "failed": 0
+  },
+  "separate_python_process_restart": "PASS",
+  "externally_anchored_tail_deletion": "PASS",
+  "fixture_only_settlement": {
+    "scenarios": 1,
+    "events": 4,
+    "corrected_payout_yen": 800,
+    "corrected_profit_yen": 600,
+    "head": "ddfb97f4bd4f0c39b2c10395230876acd34b92639f396d2009c06f47280ee24e",
+    "official_confirmation": false
+  },
+  "offline_zip_sha256": "c44f4ff26a30be03f36de1c2af4059a135aa63c0314b03fb064f33d362233236",
+  "zip_file": "KYOTO_AI_P6_GITHUB_EXACT_VERIFIED_LAB_20261109.zip",
+  "github_actions_ci_status": "NOT_VERIFIED",
+  "current_live_p1_data_status": "NOT_AVAILABLE",
+  "real_paper_trades": 0,
+  "real_bets": 0,
+  "network_JRA_GETs": 0,
+  "production_main_modified": false,
+  "limitations": [
+    "exact byte matching applies to three P6 fixture source/test files only",
+    "15 unit tests executed locally, not all 51 CI tests",
+    "fixture only, no JRA official pre-race odds or authorized automated feed",
+    "GitHub Actions execution and streamlit startup still need actual logs",
+    "multi-process durability, cryptographic signature, official clock not established"
+  ]
+}
