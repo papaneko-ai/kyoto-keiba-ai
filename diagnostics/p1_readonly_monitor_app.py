@@ -72,4 +72,24 @@ if bundle is not None:
         st.warning("公式原本の真正性・取得権限・開催前の予測利用は未証明のため、予測不可です。")
     except (ValueError, OSError, KeyError):
         st.error("ZIPの整合性を確認できません。取込を拒否しました。")
+st.divider()
+st.subheader("原本と出馬表・オッズの照合（試験用）")
+st.caption("既存のオフラインZIPと、その開催の構造化スナップショットJSONを両方選択した場合だけ、日時・レース・原本SHAを照合します。予測処理には接続しません。")
+snapshot_upload = st.file_uploader("同じ開催のスナップショットJSON", type=["json"])
+if bundle is not None and snapshot_upload is not None:
+    from datetime import datetime, timezone
+    from diagnostics.jra_p1_intake_bridge import inspect_bundle_and_snapshot, IntakeRejected
+    try:
+        raw_snapshot = snapshot_upload.getvalue()
+        if len(raw_snapshot) > 250_000:
+            raise IntakeRejected("snapshot_size_exceeded")
+        snapshot = json.loads(raw_snapshot.decode("utf-8"))
+        outcome = inspect_bundle_and_snapshot(
+            bundle.getvalue(), snapshot, observed_utc=datetime.now(timezone.utc).isoformat()
+        )
+        st.success("ファイル間の構造・レース・取得時刻・原本SHAが一致しました。")
+        st.write({"対象開催": outcome["meeting_date"], "レース": outcome["race"], "出走馬数": outcome["runner_count"]})
+        st.warning("公式原本の真正性やオッズの完全性は未確認です。予測は引き続き停止しています。")
+    except (IntakeRejected, ValueError, TypeError, KeyError, UnicodeError):
+        st.error("ファイル間の照合に失敗しました。データの利用を許可しません。")
 st.caption("本番 main/app.py、Turso、Secretsは参照・更新しません。")
