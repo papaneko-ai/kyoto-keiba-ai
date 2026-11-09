@@ -1,0 +1,75 @@
+name: Kyoto P1 verified saved originals 84 horse replay
+on:
+  push:
+    branches: [jra-html-diagnostic-20261105]
+    paths:
+      - '.github/workflows/jra-p1-archived-original-reparse.yml'
+      - 'diagnostics/jra_p1_eod_raw_replay.py'
+      - 'diagnostics/jra_prior_form_offline.py'
+      - 'tests/test_jra_p1_eod_raw_replay.py'
+      - 'docs/diagnostics/jra_p1_batch14_96_profiles_20261106/feature_rows_148.json'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  original-byte-replay:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      PYTHONPATH: .
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install existing HTML parser dependency
+        run: python -m pip install beautifulsoup4
+      - name: Validate exact Git source bytes already locally tested
+        run: |
+          python - <<'PY'
+          import hashlib
+          from pathlib import Path
+          known={
+            'diagnostics/jra_prior_form_offline.py':'bd986d15d642dd8388643825941893d3a8c69045',
+            'diagnostics/jra_p1_eod_raw_replay.py':'ced4e1fb02ed0e99362b2e288a929584cc62771a',
+            'tests/test_jra_p1_eod_raw_replay.py':'25a46582c341d9e0b426bb50b34ddc62de8d6064',
+          }
+          for name,expected in known.items():
+              raw=Path(name).read_bytes()
+              observed=hashlib.sha1(b'blob '+str(len(raw)).encode()+b'\x00'+raw).hexdigest()
+              assert observed==expected,(name,observed,expected)
+          print('P1_REPLAY_GIT_SOURCE_BYTES_IDENTICAL')
+          PY
+      - name: Recover already saved source artifact, NOT from JRA
+        run: |
+          gh api "repos/papaneko-ai/kyoto-keiba-ai/actions/artifacts/13482994623" --jq '.expired' | grep -x false
+          gh api "repos/papaneko-ai/kyoto-keiba-ai/actions/artifacts/13482994623/zip" > /tmp/kyoto-p1-20261106-recovery.zip
+          echo '49d61bff4eca82405d9d63e4244092e0fd2650bec5f899eba4f5ed2679c68863  /tmp/kyoto-p1-20261106-recovery.zip' | sha256sum --check --status
+      - name: Reparse original 84 horses, 485 rows, and all 335 feature fields
+        run: |
+          python -m diagnostics.jra_p1_eod_raw_replay \
+            --archive /tmp/kyoto-p1-20261106-recovery.zip \
+            --registry docs/diagnostics/jra_p1_batch14_96_profiles_20261106/feature_rows_148.json \
+            --out /tmp/kyoto-p1-reparse-84-receipt.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          r=json.loads(Path('/tmp/kyoto-p1-reparse-84-receipt.json').read_text(encoding='utf-8'))
+          assert r['statuses']=={'REPARSE_MATCH':84,'ORIGINAL_NOT_IN_RECOVERY':12}
+          assert r['reparsed_matching_profiles']==84
+          assert r['reparsed_valid_prior_rows']==485
+          assert r['verified_feature_fields']==335
+          assert r['prediction_ready'] is False and r['new_jra_http_requests']==0
+          print('REAL_ARCHIVED_SOURCE_84_485_335_ACCEPTED; 12 missing originals noted')
+          PY
+      - name: Actual archived-original tests, no synthetic substitution
+        run: |
+          KYOTO_P1_RECOVERY_ARCHIVE=/tmp/kyoto-p1-20261106-recovery.zip python -m unittest discover -s tests -p 'test_jra_p1_eod_raw_replay.py' -v
+      - name: Retain reparse report, not raw JRA HTML in logs
+        uses: actions/upload-artifact@v4
+        with:
+          name: kyoto-p1-eod-84-originals-reparse-proof
+          path: /tmp/kyoto-p1-reparse-84-receipt.json
+          retention-days: 7
