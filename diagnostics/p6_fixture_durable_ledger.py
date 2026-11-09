@@ -23,11 +23,13 @@ def canonical(value):
 def digest(value):
     return hashlib.sha256(canonical(value)).hexdigest()
 
-def read_journal(path):
+def read_journal(path, *, expected_head=None):
     path = Path(path)
     if path.is_symlink():
         raise LabRejected("journal_symlink_forbidden")
     if not path.exists():
+        if expected_head is not None and expected_head != "0"*64:
+            raise LabRejected("journal_head_anchor_mismatch")
         return {"entries": [], "head": "0"*64, "state": "EMPTY", "result": None}
     if not path.is_file() or path.stat().st_size > MAX_JOURNAL:
         raise LabRejected("journal_size_invalid")
@@ -87,6 +89,8 @@ def read_journal(path):
         entries.append(entry)
     if entries and frozen is None:
         raise LabRejected("journal_freeze_missing")
+    if expected_head is not None and chain != expected_head:
+        raise LabRejected("journal_head_anchor_mismatch")
     result = settle_fixture(frozen,list(event_versions.values())) if frozen else None
     return {"entries": entries, "head": chain, "state": "FROZEN" if frozen else "EMPTY", "result": result}
 
