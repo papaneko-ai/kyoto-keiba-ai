@@ -130,12 +130,19 @@ class Stage5Offline(unittest.TestCase):
 
     def test_atomic_link_failure_stops_backup(self):
         from unittest.mock import patch
+        d=tempfile.TemporaryDirectory()
+        self.addCleanup(d.cleanup)
+        folder=Path(d.name)/"case"
         with patch("os.link", side_effect=OSError("simulated_atomic_link_failure")):
-            result, folder = self.case()
-        self.assertEqual(result["status"], "FALLBACK_BLOCKED")
-        self.assertEqual(len(result["attempts"]), 1)
+            with self.assertRaisesRegex(OSError,"simulated_atomic_link_failure"):
+                run_guarded_replay(folder=folder, roster=ROSTER, now=NOW,
+                                   cutoff=CUTOFF, replay_transport=replay,
+                                   parsers={"PC": broken, "SP": valid})
+        receipt=json.loads((folder/"receipt.json").read_text())
+        self.assertEqual(receipt["status"], "FALLBACK_BLOCKED")
+        self.assertEqual(len(receipt["attempts"]), 1)
         self.assertFalse((folder/"original_pc.html").exists())
-        self.assertEqual(result["actual_network_requests"], 0)
+        self.assertEqual(receipt["actual_network_requests"], 0)
 
 if __name__ == "__main__":
     unittest.main()
