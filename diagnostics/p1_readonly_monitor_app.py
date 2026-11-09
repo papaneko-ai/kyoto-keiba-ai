@@ -9,6 +9,7 @@ import streamlit as st
 from diagnostics.p1_monitor_viewmodel import summarize, StatusInvalid
 from diagnostics.p1_registry_reconcile import reconcile, RegistryConflict
 from diagnostics.p2_historical_feature_matrix import materialize, render_csv, build_receipt
+from diagnostics.p3_p6_research_no_bet import historical_no_bet_receipt
 
 ROOT = Path(__file__).resolve().parents[1]
 STATUS = ROOT / "docs/diagnostics/jra_p1_batch14_96_profiles_20261106/status.json"
@@ -72,6 +73,15 @@ st.download_button(
     help="診断用の過去データです。発走前予測・学習済みモデルには接続されません。",
 )
 st.warning("特徴量の整合性が確認されても、原本HTMLの再解析・実開催の発走前オッズ・訓練の時系列検証が未完了のため予測利用不可です。")
+st.subheader("数理モデルと仮想投資の現状")
+refusal = historical_no_bet_receipt(matrix_rows)
+st.metric("仮想投資額（未実行）", "0円")
+st.caption("Plackett–Luce型の馬連・枠連確率計算、オッズ期待値、上限予算の研究部品はありますが、較正済みモデルや実際の発走前オッズがないため推奨を出しません。")
+with st.expander("見送り理由と研究用の証拠"):
+    st.write(refusal["reason_codes"])
+    st.write({"予測生成":len(refusal["suggested_races"]),
+              "仮想取引記録":refusal["ledger_events_written"],
+              "実購入":refusal["actual_purchase"]})
 st.subheader("予測への利用判定")
 st.error("予測不可・見送り")
 st.write("発走前の新開催日データ、確定した馬ID、必要な馬場情報、当時の馬連・枠連オッズなどが揃っていません。")
