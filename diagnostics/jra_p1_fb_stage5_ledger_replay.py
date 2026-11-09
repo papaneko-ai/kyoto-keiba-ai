@@ -11,7 +11,8 @@ from diagnostics.jra_p1_fb_stage5_global_attempt_registry import Blocked, Global
 
 def run_ledger_replay(*, folder, roster, now, cutoff, replay_transport,
                       parsers, ledger_path, prior_attempts=(),
-                      channels=("PC","SP"), global_attempt_limit=24):
+                      channels=("PC","SP"), global_attempt_limit=24,
+                      reservation_clock=None):
     if not getattr(replay_transport,"offline_replay_only",False):
         raise Blocked("offline_replay_transport_only")
     gate=preflight(roster=roster,prior_attempts=prior_attempts,
@@ -28,11 +29,13 @@ def run_ledger_replay(*, folder, roster, now, cutoff, replay_transport,
             expected=gate["channels"][ix] if ix<len(gate["channels"]) else None
             if not expected or expected["channel"]!=channel or expected["url"]!=url:
                 raise Blocked("unexpected_channel_or_url")
+            reservation_now=(reservation_clock(channel,url,ix) if reservation_clock is not None
+                             else _utc(now)+timedelta(seconds=2*ix))
             rid=ledger.reserve(channel=channel,url=url,
                                race_key=f"{roster.meeting_date}_KYOTO_{roster.race:02d}R",
                                horse_number=roster.number,
                                roster_sha=roster.racecard_sha256,
-                               now=_utc(now)+timedelta(seconds=2*ix),
+                               now=reservation_now,
                                cutoff=cutoff,official_roster_observed=True)
             reserved[channel]=rid
             return replay_transport(channel,url)
