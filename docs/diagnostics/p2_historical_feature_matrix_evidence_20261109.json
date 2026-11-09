@@ -5,7 +5,7 @@
   "venue": "KYOTO",
   "upstream_registry_git_blob_sha": "cbde475c0d5f8a8b29c4b690b620fa80bbf6e785",
   "upstream_status_git_blob_sha": "31638a46f48da2d28cb160f9453bad7d56b70de2",
-  "materialized_csv_git_blob_sha": "e0e98104060d1f7697925ba17b0b66cdc3a2b454",
+  "materialized_csv_git_blob_sha": "ebdf629227c9671c9696fa8e868b8849f2d2fdcd",
   "materialized_csv_path": "docs/diagnostics/p2_historical_feature_matrix_20261107_148.csv",
   "total_runners": 148,
   "with_valid_history": 77,
@@ -107,7 +107,8 @@
     "recent_three_dirt_count": 77,
     "recent_three_jump_count": 77,
     "recent_90day_date_count": 96,
-    "last_observed_prior_race_days_ago": 77
+    "last_observed_prior_race_days_ago": 77,
+    "recent_three_mixed_turf_dirt_count": 77
   },
   "provenance": "Feature register already stored in repo; not a fresh HTML replay",
   "independent_checks": {
@@ -115,7 +116,9 @@
     "per_race_totals_match": true,
     "csv_horse_identity_rows_match": true,
     "prior_history_counts_match": true,
-    "archive_not_ready": true
+    "archive_not_ready": true,
+    "mixed_surface_source_preserved": true,
+    "updated_csv_148_rows_and_19_columns": true
   },
   "prediction_ready": false,
   "training_ready": false,
@@ -127,5 +130,6 @@
     "walk_forward_calibration",
     "confidence",
     "profitability"
-  ]
+  ],
+  "mixed_turf_dirt_source_observations": 8
 }
