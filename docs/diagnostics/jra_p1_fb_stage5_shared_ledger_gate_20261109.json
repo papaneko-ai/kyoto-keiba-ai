@@ -1,0 +1,50 @@
+{
+  "schema": "kyoto_p1_fb_stage5_global_attempt_gate.v1",
+  "recorded_date": "2026-11-09",
+  "milestone": "P1-FB Stage5 shared SQLite ledger + source-first mock integration",
+  "gate": "OFFLINE_PASS_ONLY",
+  "ci_run": 42546465445,
+  "ci_job": 128932427036,
+  "ci_conclusion": "success",
+  "test_cases_by_suite": {
+    "stage5_guarded_replay": 19,
+    "archive_registry_binding": 10,
+    "global_attempt_registry": 14,
+    "ledger_stage5_adapter": 8,
+    "stage4_mock": 17,
+    "request_budget_policy": 16,
+    "sp_special_parser": 11,
+    "offline_failover": 15
+  },
+  "total_tests_passed": 110,
+  "additional_jra_gets": 0,
+  "offline_only": true,
+  "live_auto_switch_authorized": false,
+  "production_readiness": false,
+  "prediction_ready": false,
+  "training_ready": false,
+  "global_scope": "ONLY_PROCESSES_SHARING_IDENTICAL_PERSISTENT_SQLITE_PATH",
+  "durable_attempt_policy": "Reserve before mocked transport; never release URL after failure or crash; atomic receipt after processing",
+  "known_limitations": [
+    "no_live_HTTP_adapter_or_JRA_permissions_verification",
+    "no_SP_links_for_all_horses",
+    "no_cross_host_distributed_lock",
+    "test_logical_2_second_spacing_is_not_real_wall_clock_rate_proof",
+    "no_official_new_future_racecard_fixture",
+    "no_extended_powerloss_fault_injection_or_recovery_of_stale_global_rows",
+    "no_guarantee_existing_archived_2026_11_07_data_are_current"
+  ],
+  "preserved": {
+    "old_date": "2026-11-07",
+    "runners": 148,
+    "profile_sources_verified": 96,
+    "unqueried": 52,
+    "prior_finish_rows": 592
+  },
+  "no_changes": [
+    "main/app.py",
+    "production_Turso",
+    "actual_betting"
+  ],
+  "next_checkpoint": "P1-FB Stage5 real-time legal source integration + distributed attempt coordination proof (live auto-fetch disabled until explicit acceptance)"
+}
