@@ -34,7 +34,7 @@ jobs:
           from pathlib import Path
           required={
               'diagnostics/kyoto_resume_gate.py':'6527aeef7b0d8734b2f3e174c984679b263a6575',
-              'tests/test_kyoto_resume_gate.py':'b436afa665866ea1da2ae94f3de363d6f6d76de8'
+              'tests/test_kyoto_resume_gate.py':'ca021e2a921b86c6449ad70b2f6ab38a49894937'
           }
           for name,expected in required.items():
               raw=Path(name).read_bytes()
