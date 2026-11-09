@@ -5,6 +5,8 @@ on:
     paths:
       - 'diagnostics/p1_dual_market_offline_audit.py'
       - 'tests/test_p1_dual_market_offline_audit.py'
+      - 'diagnostics/jra_p1_intake_bridge.py'
+      - 'tests/test_jra_p1_intake_bridge.py'
       - '.github/workflows/kyoto-p1-dual-market-offline.yml'
   workflow_dispatch:
 permissions:
@@ -23,3 +25,4 @@ jobs:
       - run: python -m py_compile diagnostics/p1_dual_market_offline_audit.py tests/test_p1_dual_market_offline_audit.py
       - run: python -m unittest discover -s tests -p 'test_p1_dual_market_offline_audit.py' -v
       - run: python -m unittest discover -s tests -p 'test_p1_prerace_market_coverage.py' -v
+      - run: python -m unittest discover -s tests -p 'test_jra_p1_intake_bridge.py' -v
