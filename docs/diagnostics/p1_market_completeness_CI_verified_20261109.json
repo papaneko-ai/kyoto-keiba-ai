@@ -1,0 +1,45 @@
+{
+  "schema": "kyoto_ai_p1_market_completeness_20261109.v1",
+  "date": "2026-11-09",
+  "branch": "jra-html-diagnostic-20261105",
+  "source_files": [
+    "diagnostics/p1_prerace_market_coverage.py",
+    "diagnostics/jra_p1_intake_bridge.py",
+    "tests/test_p1_prerace_market_coverage.py",
+    "tests/test_jra_p1_intake_bridge.py"
+  ],
+  "new_workflow": ".github/workflows/jra-p1-future-market-completeness.yml",
+  "github_actions": {
+    "run_id": 42569049451,
+    "job_id": 129001941064,
+    "conclusion": "success",
+    "test_groups": [
+      {
+        "file": "tests/test_p1_prerace_market_coverage.py",
+        "executed": 8,
+        "passed": 8
+      },
+      {
+        "file": "tests/test_jra_p1_intake_bridge.py",
+        "executed": 16,
+        "passed": 16
+      }
+    ],
+    "runner_size_lab": 18,
+    "expected_quinella_combinations_lab": 153,
+    "log_marker": "P1_153_PAIR_STRUCTURE_ONLY_NO_PREDICTION_PASS"
+  },
+  "safety": {
+    "structurally_complete_does_not_authenticate_JRA": true,
+    "actual_2026_11_14_official_prerace_market_captured": false,
+    "real_prerace_quinella_prices_captured": 0,
+    "official_bracket_odds_complete": false,
+    "withdrawals_verified": false,
+    "market_sales_state_verified": false,
+    "model_calibrated": false,
+    "prediction_ready": false,
+    "actual_orders_authorized": false,
+    "new_live_JRA_HTTP_requests": 0
+  },
+  "next_unresolved": "authorized independent official pre-race racecard, quinella + bracket odds and capture UTC + withdrawal + official provenance, then strict forward-only paper trading"
+}
