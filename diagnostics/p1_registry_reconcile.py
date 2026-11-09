@@ -3,7 +3,6 @@
 Offline, historical only. Do not convert this into a live/prerace model input.
 """
 import re
-from hashlib import sha256
 
 
 class RegistryConflict(ValueError):
@@ -46,6 +45,11 @@ def reconcile(status, rows):
         state = coverage.get("horse_profile")
         if state not in statuses:
             raise RegistryConflict("unknown_profile_state")
+        expected_profile_state = {"VERIFIED_SOURCE_ROWS": "HISTORY_TABLE_PARSED",
+                                  "VERIFIED_EMPTY_HISTORY": "NO_HISTORY_TABLE_WITH_IDENTITY_PROOF",
+                                  "NOT_QUERIED": "NOT_QUERIED"}[state]
+        if row.get("profile_status") != expected_profile_state:
+            raise RegistryConflict("profile_state_evidence_disagreement")
         source = row.get("racecard_source_sha256")
         if not isinstance(source, str) or not re.fullmatch("[0-9a-f]{64}", source):
             raise RegistryConflict("bad_racecard_hash")
