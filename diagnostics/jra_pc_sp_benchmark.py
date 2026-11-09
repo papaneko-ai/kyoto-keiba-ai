@@ -86,8 +86,8 @@ def sp_rows(raw):
   if len(output)!=len(set(output)):raise ValueError('duplicate_mobile_roster')
   return tuple(output)
 
-def pc_rows(raw,race):
-  runners,errors=pc_parse(raw,race)
+def pc_rows(raw,race,*,meeting_date='2026-11-07'):
+  runners,errors=pc_parse(raw,race,meeting_date=meeting_date)
   if errors:raise ValueError('pc_parser_errors:'+','.join(errors))
   return tuple((x['horse_number'],x['frame_number'],x['horse_name']) for x in runners)
 
@@ -156,3 +156,75 @@ if __name__=='__main__':
  ap=argparse.ArgumentParser();ap.add_argument('--out',default='jra_pc_sp_benchmark');args=ap.parse_args()
  data=benchmark(args.out)
  print(json.dumps({k:v for k,v in data.items() if k!='races'},ensure_ascii=False))
+
+
+def reconcile_saved_racecards(channels, frozen_snapshot, *, meeting_date, race, cutoff_utc, observed_utc):
+  """Reuse the existing PC and SP parsers on locally saved original bytes only.
+
+  A verified frozen reference is required. SP may replace a bad/unavailable PC
+  record if its complete (number, frame, name) roster matches that reference.
+  This proves no official current-day freshness, permission or sale status.
+  """
+  from datetime import datetime,timezone
+  import hashlib
+  def utc(v):
+    if not isinstance(v,str):
+      raise ValueError("timestamp_missing")
+    dt=datetime.fromisoformat(v.replace('Z','+00:00'))
+    if dt.tzinfo is None or dt.utcoffset().total_seconds()!=0:
+      raise ValueError("timestamp_not_utc")
+    return dt.astimezone(timezone.utc)
+  if (not isinstance(channels,dict) or not set(channels).issubset({"PC","SP"})
+          or not channels or not isinstance(frozen_snapshot,dict)
+          or type(race) is not int or not 1<=race<=12):
+    raise ValueError("offline_input_invalid")
+  if (frozen_snapshot.get("race_number")!=race
+          or frozen_snapshot.get("race_date")!=meeting_date
+          or frozen_snapshot.get("roster_verified") is not True
+          or not frozen_snapshot.get("runners")):
+    raise ValueError("frozen_reference_mismatch")
+  reference=tuple((row["horse_number"],row["frame_number"],row["horse_name"])
+                  for row in frozen_snapshot["runners"])
+  if len(reference)!=len(set(reference)) or not 2<=len(reference)<=18:
+    raise ValueError("frozen_reference_roster_invalid")
+  cutoff=utc(cutoff_utc); observed=utc(observed_utc)
+  if observed>=cutoff:
+    raise ValueError("cutoff_elapsed")
+  outcomes={}
+  for channel in ("PC","SP"):
+    item=channels.get(channel)
+    if item is None:
+      outcomes[channel]={"status":"UNAVAILABLE"}
+      continue
+    if not isinstance(item,dict) or not isinstance(item.get("raw"),bytes):
+      raise ValueError("source_bytes_invalid")
+    raw=item["raw"]
+    if not 0<len(raw)<=1_500_000:
+      raise ValueError("source_bytes_invalid")
+    captured=utc(item.get("captured_utc"))
+    if captured>observed or captured>=cutoff:
+      raise ValueError("source_not_before_cutoff")
+    digest=hashlib.sha256(raw).hexdigest()
+    if item.get("sha256")!=digest:
+      raise ValueError("source_sha_mismatch")
+    try:
+      rows=(pc_rows(raw,race,meeting_date=meeting_date)
+            if channel=="PC" else sp_rows(raw))
+      valid=rows==reference
+      outcomes[channel]={"status":"MATCH" if valid else "ROSTER_MISMATCH",
+                         "source_sha256":digest,"captured_utc":captured.isoformat(),
+                         "runner_count":len(rows)}
+    except (ValueError,KeyError,TypeError) as exc:
+      outcomes[channel]={"status":"PARSER_FAILED","source_sha256":digest,
+                         "captured_utc":captured.isoformat(),
+                         "error":str(exc)[:120]}
+  valid=[x for x in ("PC","SP") if outcomes[x]["status"]=="MATCH"]
+  chosen="PC" if "PC" in valid else "SP" if "SP" in valid else None
+  return {"schema":"kyoto_p1_saved_pc_sp_roster_reconciliation.v1",
+          "race_date":meeting_date,"race":race,"runner_count":len(reference),
+          "sources":outcomes,"selected_channel":chosen,
+          "fallback_to_sp":chosen=="SP",
+          "reference_matched":chosen is not None,
+          "state":"OFFLINE_ROSTER_RECONCILED" if chosen else "BLOCKED",
+          "official_live_odds_verified":False,
+          "predictions_authorized":False,"network_requests":0}
