@@ -121,7 +121,8 @@ def run_guarded_replay(*, folder, roster, now, cutoff, replay_transport,
                         horse_name=roster.horse_name, race=roster.race,
                         number=roster.number, roster_sha=roster.racecard_sha256,
                         cutoff=cutoff, now=now, transport=replay_transport,
-                        parsers=parsers, prior_attempts=tuple(prior_attempts))
+                        parsers=parsers, prior_attempts=tuple(prior_attempts),
+                        source_writer=lambda path, body: atomic_seal(path.parent, path.name, body))
     out = Path(folder)
     gate_bytes = _canonical(gate)
     atomic_seal(out, "stage5_preflight.json", gate_bytes)
