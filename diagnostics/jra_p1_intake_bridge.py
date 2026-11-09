@@ -11,6 +11,7 @@ from datetime import datetime
 from diagnostics.jra_p1_offline_handoff import import_bundle
 from diagnostics.jra_p1_snapshot_gate import evaluate
 from diagnostics.jra_p1_future_evidence import instant
+from diagnostics.p1_prerace_market_coverage import inspect_quinella_coverage, MarketCoverageRejected
 
 
 class IntakeRejected(ValueError):
@@ -34,10 +35,21 @@ def inspect_bundle_and_snapshot(bundle: bytes, snapshot: dict, *, observed_utc: 
         raise IntakeRejected('snapshot_structural_blocked:' + ','.join(checked['reasons']))
     # Evidence and structured data must describe the SAME frozen pre-race cutoff.
     # Matching race and source hashes alone cannot establish that time contract.
-    if instant(manifest.get('cutoff_utc')) != instant(snapshot.get('prediction_cutoff_utc')):
-        raise IntakeRejected('cutoff_time_mismatch')
-    if instant(observed_utc) >= instant(snapshot['prediction_cutoff_utc']):
-        raise IntakeRejected('cutoff_already_elapsed')
+    try:
+        if instant(manifest.get('cutoff_utc')) != instant(snapshot.get('prediction_cutoff_utc')):
+            raise IntakeRejected('cutoff_time_mismatch')
+        if instant(observed_utc) >= instant(snapshot['prediction_cutoff_utc']):
+            raise IntakeRejected('cutoff_already_elapsed')
+    except (ValueError, TypeError, KeyError, AttributeError) as exc:
+        if isinstance(exc, IntakeRejected):
+            raise
+        raise IntakeRejected('cutoff_timestamp_invalid') from exc
+    try:
+        coverage = inspect_quinella_coverage(snapshot)
+    except MarketCoverageRejected as exc:
+        raise IntakeRejected('market_coverage_invalid:' + str(exc)) from exc
+    if coverage['market_completeness'] != 'STRUCTURAL_COMPLETE':
+        raise IntakeRejected('incomplete_quinella_pairs')
     if manifest.get('meeting_date') != snapshot.get('meeting_date'):
         raise IntakeRejected('meeting_date_mismatch')
     if receipt.get('source_count') != 2 or len(manifest.get('sources', [])) != 2:
@@ -65,6 +77,8 @@ def inspect_bundle_and_snapshot(bundle: bytes, snapshot: dict, *, observed_utc: 
         raise IntakeRejected('bundle_source_count_mismatch')
     return {'status': 'OFFLINE_SOURCE_JOIN_ONLY', 'meeting_date': snapshot['meeting_date'],
             'race': snapshot['race'], 'runner_count': checked['runner_count'],
+            'expected_quinella_pairs': coverage['expected_quinella_pairs'],
+            'market_coverage': coverage['market_completeness'],
             'bundle_sha256': inspected['raw_sha256'],
             'snapshot_sha256': checked['snapshot_sha256'],
             'prediction_ready': False, 'network_requests': 0,
