@@ -10,3 +10,5 @@
 2026-11-09 final four-process DB concurrency stress gate.
 
 2026-11-09 strict URL wall-clock measured offline-only preflight network hard-disabled.
+
+2026-11-09 scripted strict HTTP response envelope integration with original first archival and global ledger.
