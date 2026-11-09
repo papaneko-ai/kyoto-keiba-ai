@@ -66,3 +66,8 @@ P1 予測用データの取得・欠落と時点の証明
 
 ## EVO-08「閃き」要件はチャット移行後も維持
 - `docs/KYOTO_AI_INSIGHT_SURPRISE_DISCOVERY_HYPOTHESIS_ENGINE_20261106.md` が必読。EVO-02・06・07連携で意外性発見→反証可能な仮説→新期間検証を行う。EVO-08は既存工程/ALGに重ねる補強機能であり無断削除しない。
+
+
+## 2026-11-09の実装再開境界
+- `docs/KYOTO_AI_20261109_P1_FB_STAGE5_OFFLINE_MILESTONE_AND_HANDOFF.md` および `docs/diagnostics/jra_p1_fb_stage5_20261109_acceptance.json`を最新の工程レシートとして読込む。第5段階のオフラインゲート（88件CI成功）は完了。**実通信ゲート・本番切替は未完**。
+- 2026-11-07の残52頭は、11/09以降に収集しても過去の予想時点証拠ではない。成功済みURL重複GET・未来情報漏洩を防ぐ。次開催では公式の新しい出馬表・発走前時点・原本が必要。
