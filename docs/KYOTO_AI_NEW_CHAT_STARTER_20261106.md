@@ -62,3 +62,7 @@ GitHub接続ツールで以下のファイルを**実際に読み、最新HEAD�
 - **最新の実装正本**：`docs/KYOTO_AI_20261109_P1_FB_STAGE5_SHARED_LEDGER_MILESTONE_HANDOFF.md` と `docs/diagnostics/jra_p1_fb_stage5_shared_ledger_gate_20261109.json`。CI `42546465445` 成功、**110件**の模擬/オフラインテスト合格。以前の88件のレシートは履歴であり、現在は同一永続SQLiteを共有する複数処理の排他予約まで実証。
 - **未PASS**：JRA実HTTP・PC/SP公式実リンクの完全同定・他のホスト間の共有永続台帳・現実時間の2秒通信間隔。本番自動取得を有効にしない。次はP1-FB第5段階の**実通信安全ゲート**から、既定P1→P8を守る。
 - 2026-11-07レースの残52頭を事後に発走前データ化しない。EVO-01～08とALG-01～13、P6仮想投資/P7進化監査は引き続き必須。
+
+## 2026-11-09 追加更新：P1-FB Stage5の最新123件オフライン検証
+- **最新の工程正本** `docs/KYOTO_AI_20261109_P1_FB_STAGE5_LIVE_DISABLED_PREFLIGHT_MILESTONE_HANDOFF.md` と `docs/diagnostics/jra_p1_fb_stage5_live_disabled_preflight_gate_20261109.json`、CI `42547524417`（123件success）。旧110件合格は履歴。厳格なURL・取得期限・時計注入間隔の安全判定と実通信常時拒否を追加。**本番HTTP実装・通信時刻の実証・公式SP全馬リンク・複数ホスト共有台帳は未完**。
+- 次回はP1-FB Stage5の実通信安全・利用条件と原本証拠から。2026-11-07残52頭を事後に発走前と偽らない。ALG-01～13、EVO-01～08、P1～P8を遵守。
