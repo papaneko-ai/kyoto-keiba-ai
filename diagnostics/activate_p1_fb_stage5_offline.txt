@@ -2,3 +2,5 @@
 2026-11-09 stage5 atomic no-overwrite source writer + injected failure regression.
 2026-11-09 assert persisted fail-closed receipt when atomic source archiving fails.
 2026-11-09 stage5 milestone: atomic durable receipts, real saved roster identity, future date cutoff, full offline regressions.
+
+2026-11-09 SQLite global durable single-URL reservation, rate, cutoff, crash and concurrent-process gate.
