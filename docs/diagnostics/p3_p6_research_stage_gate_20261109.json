@@ -1,0 +1,62 @@
+{
+  "schema": "kyoto_ai_p3_p6_research_gate.v1",
+  "as_of": "2026-11-09",
+  "branch": "jra-html-diagnostic-20261105",
+  "phases": [
+    "P3_theoretical_pair_probabilities",
+    "P4_research_market_ev",
+    "P5_research_budget",
+    "P6_fixture_only_freeze_result_replay",
+    "historical_no_bet_refusal"
+  ],
+  "artifacts": {
+    "diagnostics/p3_p6_research_no_bet.py": {
+      "git_blob_sha": "5e41be96ed1df711c34eeff4b752a80d62183965"
+    },
+    "diagnostics/p3_p6_research_no_bet_cli.py": {
+      "git_blob_sha": "c688921d10a452199cc17dd3181ef0fe54a2685f"
+    },
+    "diagnostics/p6_virtual_settlement_fixture_lab.py": {
+      "git_blob_sha": "a847b3daced6e77a171ca8839a909df9ca15ec97"
+    },
+    "tests/test_p3_p6_research_no_bet.py": {
+      "git_blob_sha": "4b1b7924c40f49ef8e87f843b8208d6cf47b65a6",
+      "tests_defined": 19
+    },
+    "tests/test_p6_virtual_settlement_fixture_lab.py": {
+      "git_blob_sha": "0d708e92a0a6ff0a65906cfa2bb8669080874d32",
+      "tests_defined": 16
+    },
+    ".github/workflows/jra-p3-p6-research-no-bet.yml": {
+      "git_blob_sha": "258e0605102ce3400d48c8a2493f25c420863883"
+    },
+    "docs/diagnostics/p3_p6_historical_no_bet_audit_20261109.json": {
+      "git_blob_sha": "ea0bd066187aa955ab7ba029b0f2da1e170908dc"
+    }
+  },
+  "checks": {
+    "source_and_test_files_fetchable_from_git": true,
+    "required_test_definitions": 35,
+    "tests_passed_this_turn": "NOT_VERIFIED",
+    "new_actions_run_id": null,
+    "new_actions_job_id": null,
+    "streamlit_app_started": "NOT_VERIFIED",
+    "jra_live_data_collected": false,
+    "unlabeled_historical_rows_used_as_training": false,
+    "real_purchase_created": false,
+    "historical_no_bet_audit_saved": true,
+    "actual_official_settlement_performed": false
+  },
+  "risk_blocks": [
+    "UNVERIFIED_JRA_LIVE_ACCESS_PERMISSIONS",
+    "P1_RAW_SOURCE_INCOMPLETE",
+    "NO_PRE_RACE_MARKET_OR_OFFICIAL_PAYOUT",
+    "NO_P3_CALIBRATION",
+    "NO_P6_DURABLE_APPEND_ONLY_LEDGER",
+    "NO_EVO07_OUT_OF_SAMPLE_CERTIFICATION"
+  ],
+  "conclusion": "RESEARCH_MATH_AND_FIXTURE_IMPLEMENTED_NOT_LIVE_ACCEPTED",
+  "main_modified": false,
+  "turso_modified": false,
+  "actual_bet_account_modified": false
+}
