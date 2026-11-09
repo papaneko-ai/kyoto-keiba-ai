@@ -136,7 +136,8 @@ def preflight(*, roster, prior_attempts, now, cutoff, channels=("PC", "SP")):
             "prediction_ready": False, "training_ready": False}
 
 def run_guarded_replay(*, folder, roster, now, cutoff, replay_transport,
-                       parsers, prior_attempts=(), channels=("PC", "SP")):
+                       parsers, prior_attempts=(), channels=("PC", "SP"),
+                       fatal_transport_exceptions=()):
     """Stage5 integrates canonical roster and stage4 with replay-only transport."""
     if not getattr(replay_transport, "offline_replay_only", False):
         raise ValueError("offline_replay_transport_only")
@@ -153,7 +154,8 @@ def run_guarded_replay(*, folder, roster, now, cutoff, replay_transport,
                         parsers=parsers, prior_attempts=tuple(prior_attempts),
                         source_writer=lambda path, body: atomic_seal(path.parent, path.name, body),
                         receipt_writer=atomic_receipt,
-                        prior_race_cutoff=roster.meeting_date)
+                        prior_race_cutoff=roster.meeting_date,
+                        fatal_transport_exceptions=fatal_transport_exceptions)
     out = Path(folder)
     gate_bytes = _canonical(gate)
     atomic_seal(out, "stage5_preflight.json", gate_bytes)
