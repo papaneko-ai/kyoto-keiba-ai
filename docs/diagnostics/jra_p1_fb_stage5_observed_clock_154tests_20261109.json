@@ -1,0 +1,60 @@
+{
+  "schema": "kyoto_p1_fb_stage5_observed_clock_offline_gate.v1",
+  "as_of": "2026-11-09",
+  "stage": "P1-FB Stage5",
+  "result": "OFFLINE_SCHEDULED_GATE_PASS_LIVE_BLOCKED",
+  "ci_run_id": 42549866841,
+  "ci_job_id": 128942805561,
+  "ci_conclusion": "success",
+  "suite_counts": {
+    "guarded_replay": 19,
+    "official_archived_registry": 10,
+    "global_sqlite_attempts": 14,
+    "ledger_bridge": 8,
+    "strict_request_preflight": 13,
+    "http_envelope": 15,
+    "scheduled_offline_replay": 16,
+    "stage4_mock": 17,
+    "request_budget": 16,
+    "sp_special": 11,
+    "offline_failover": 15
+  },
+  "total_tests": 154,
+  "real_clock_wait_test": "test_real_monotonic_sleep_two_seconds_without_network",
+  "real_clock_test_success": true,
+  "actual_jra_http_gets": 0,
+  "raw_archived_profiles": 96,
+  "old_race_date": "2026-11-07",
+  "old_race_runners": 148,
+  "old_prior_rows": 592,
+  "unqueried_old_race_horses": 52,
+  "verified_scope": [
+    "scripted_in_memory_transport_exact_type",
+    "global_sqlite_one_shot_reservation",
+    "clock_and_monotonic_rechecked_per_scripted_attempt",
+    "minimum_two_second_elapsed_monotonic_between_PC_SP_in_one_runner",
+    "time_crossing_cutoff_blocks_SP",
+    "frozen_or_reversed_clock_fail_closed",
+    "source_first_original_storage_and_incident_capture"
+  ],
+  "not_verified": [
+    "JRA official access automation permission/terms",
+    "real HTTP/TLS/DNS/redirect boundary",
+    "multi_host_shared_durable_request_budget_and_lock",
+    "independently proven official SP URL for all horses",
+    "real communication pacing on production network",
+    "future race official preregistered observations",
+    "new horse sources and prediction"
+  ],
+  "live_network_allowed": false,
+  "production_adopted": false,
+  "training_ready": false,
+  "prediction_ready": false,
+  "main_changed": false,
+  "turso_changed": false,
+  "new_source_files": [
+    "diagnostics/jra_p1_fb_stage5_scheduled_offline_replay.py",
+    "tests/test_jra_p1_fb_stage5_scheduled_offline_replay.py"
+  ],
+  "next": "P1-FB stage5 remaining real-HTTP legality, secure network transport, multihost global lease and future race evidence. Do not repeat historical JRA GETs."
+}
