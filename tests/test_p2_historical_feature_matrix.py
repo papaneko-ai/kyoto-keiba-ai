@@ -79,6 +79,17 @@ class HistoricalMatrixTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError,"finish_percentile_out_of_range"):
             materialize(self.status,rows)
 
+    def test_real_mixed_turf_dirt_source_is_not_lost(self):
+        records = materialize(self.status,self.rows)
+        self.assertEqual(sum(r["recent_three_mixed_turf_dirt_count"] or 0 for r in records),8)
+
+    def test_unknown_surface_category_rejected(self):
+        rows = copy.deepcopy(self.rows)
+        row=next(x for x in rows if x["source_coverage"]["horse_profile"]=="VERIFIED_SOURCE_ROWS")
+        row["performance_features"]["recent_three_surface_counts"]["unknown"]=1
+        with self.assertRaisesRegex(ValueError,"unknown_surface_category"):
+            materialize(self.status,rows)
+
     def test_bad_surface_counts_rejected(self):
         rows=copy.deepcopy(self.rows)
         row=next(x for x in rows if x["source_coverage"]["horse_profile"]=="VERIFIED_SOURCE_ROWS")
@@ -97,7 +108,7 @@ class HistoricalMatrixTests(unittest.TestCase):
             "prior_valid_finishes", "recent_three_mean_distance_m",
             "recent_three_mean_finish_percentile", "recent_three_wins",
             "recent_three_turf_count", "recent_three_dirt_count",
-            "recent_three_jump_count", "recent_90day_date_count",
+            "recent_three_mixed_turf_dirt_count", "recent_three_jump_count", "recent_90day_date_count",
             "last_observed_prior_race_days_ago"
         }
         for a, b in zip(expected, actual):
