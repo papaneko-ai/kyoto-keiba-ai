@@ -8,6 +8,7 @@ from pathlib import Path
 import streamlit as st
 from diagnostics.p1_monitor_viewmodel import summarize, StatusInvalid
 from diagnostics.p1_registry_reconcile import reconcile, RegistryConflict
+from diagnostics.p2_historical_feature_matrix import materialize, render_csv, build_receipt
 
 ROOT = Path(__file__).resolve().parents[1]
 STATUS = ROOT / "docs/diagnostics/jra_p1_batch14_96_profiles_20261106/status.json"
@@ -27,6 +28,9 @@ except (OSError, ValueError) as exc:
 try:
     summary = summarize(status)
     actual = reconcile(status, rows)
+    matrix_rows = materialize(status, rows)
+    matrix_bytes = render_csv(matrix_rows)
+    matrix_receipt = build_receipt(matrix_rows, matrix_bytes)
 except (StatusInvalid, RegistryConflict, KeyError, TypeError):
     st.error("保存された検証記録に矛盾があります。表示を停止します。")
     st.stop()
@@ -53,6 +57,21 @@ st.info(
     "詳細確認済み96頭＝過去走あり77頭＋履歴なしを確認済み19頭。"
     "未取得は52頭です。1～8Rは全馬確認済みで、残り5頭の確認分は9～12Rに属します。"
 )
+st.subheader("実データ特徴量（研究・診断専用）")
+st.caption("148頭の保存済み過去走から作る履歴特徴量です。着順の正解ラベル・払戻・当日オッズは含みません。未取得はゼロ埋めしません。")
+with st.expander("特徴量の取得率・欠損状況", expanded=False):
+    st.write({"過去走の件数が確認済み": matrix_receipt["feature_nonnull_count"]["prior_valid_finishes"],
+              "プロフィール未取得": actual["counts"]["unqueried"],
+              "履歴なしを確認済み": actual["counts"]["verified_empty"],
+              "予測・学習への投入": "不可"})
+st.download_button(
+    "148頭の履歴特徴量CSVを保存",
+    data=matrix_bytes,
+    file_name="kyoto_20261107_historical_features_NOT_TRAINING_READY.csv",
+    mime="text/csv",
+    help="診断用の過去データです。発走前予測・学習済みモデルには接続されません。",
+)
+st.warning("特徴量の整合性が確認されても、原本HTMLの再解析・実開催の発走前オッズ・訓練の時系列検証が未完了のため予測利用不可です。")
 st.subheader("予測への利用判定")
 st.error("予測不可・見送り")
 st.write("発走前の新開催日データ、確定した馬ID、必要な馬場情報、当時の馬連・枠連オッズなどが揃っていません。")
