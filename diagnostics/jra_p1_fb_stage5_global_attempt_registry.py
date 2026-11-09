@@ -70,7 +70,7 @@ class GlobalAttemptRegistry:
             raise Blocked("missing_new_official_roster_evidence")
         if not official(channel,url) or not re.fullmatch(r"[0-9a-f]{64}", roster_sha):
             raise Blocked("untrusted_official_url_or_roster")
-        if not re.fullmatch(r"20\\d{2}-\\d{2}-\\d{2}_KYOTO_\\d{2}R",race_key):
+        if not re.fullmatch(r"20\d{2}-\d{2}-\d{2}_KYOTO_\d{2}R",race_key):
             raise Blocked("invalid_race_key")
         if type(horse_number) is not int or not 1<=horse_number<=18:
             raise Blocked("invalid_horse_number")
