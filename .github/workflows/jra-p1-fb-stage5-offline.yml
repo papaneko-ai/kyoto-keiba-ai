@@ -1,0 +1,31 @@
+name: Kyoto P1-FB stage5 offline guarded replay
+on:
+  push:
+    branches: [jra-html-diagnostic-20261105]
+    paths:
+      - 'diagnostics/activate_p1_fb_stage5_offline.txt'
+permissions:
+  contents: read
+jobs:
+  stage5-offline:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    env:
+      PYTHONPATH: .
+    steps:
+      - uses: actions/checkout@v4
+      - name: Compile and test stage5 plus prior offline gates
+        run: |
+          python -m compileall -q diagnostics/jra_p1_fb_stage5_guarded_replay.py diagnostics/jra_p1_fb_stage4_mock_adapter.py
+          python -m unittest discover -s tests -p 'test_jra_p1_fb_stage5_guarded_replay.py' -v
+          python -m unittest discover -s tests -p 'test_jra_p1_fb_stage4_mock_adapter.py' -v
+          python -m unittest discover -s tests -p 'test_jra_p1_fb_request_budget_policy.py' -v
+      - name: Ensure no network transport is defined by stage5
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('diagnostics/jra_p1_fb_stage5_guarded_replay.py').read_text()
+          assert 'import requests' not in p and 'import urllib.request' not in p
+          assert 'offline_replay_only' in p
+          print('OFFLINE_ONLY_GATE_PASSED')
+          PY
