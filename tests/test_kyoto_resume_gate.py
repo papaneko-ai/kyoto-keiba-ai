@@ -4,6 +4,7 @@ import hashlib
 import json
 import tempfile
 import unittest
+import zipfile
 from datetime import datetime, timezone
 from pathlib import Path
 from diagnostics.kyoto_resume_gate import ResumeBlocked, blob_sha, check
@@ -94,6 +95,22 @@ class ResumeGateTests(unittest.TestCase):
         self.manifest['required_files']['docs/diagnostics/rows.json']=blob_sha(p.read_bytes())
         with self.assertRaisesRegex(ResumeBlocked,'duplicated_horse_identity'):
             self.audited(artifact_metadata=self.metadata)
+    def test_verified_local_recovery_allows_resume_without_api(self):
+        archive=self.root/'portable.zip'
+        with zipfile.ZipFile(archive,'w') as zf:
+            zf.writestr('known.txt',b'held offline')
+        self.manifest['portable_recovery']['sha256']=hashlib.sha256(archive.read_bytes()).hexdigest()
+        r=self.audited(local_recovery=archive)
+        self.assertEqual(r['artifact_availability'],'LOCAL_RECOVERY_BYTES_VERIFIED')
+        self.assertFalse(r['live_JRA_http_authorized'])
+
+    def test_portable_recovery_wrong_sha_rejected(self):
+        archive=self.root/'portable.zip'
+        with zipfile.ZipFile(archive,'w') as zf:
+            zf.writestr('known.txt',b'held offline')
+        with self.assertRaisesRegex(ResumeBlocked,'portable_recovery_sha_invalid'):
+            self.audited(local_recovery=archive)
+
     def test_unsupported_timestamp_rejected(self):
         with self.assertRaisesRegex(ResumeBlocked,'clock_not_timezone_aware'):
             check(self.root,self.manifest,at_utc=datetime(2026,11,9))
