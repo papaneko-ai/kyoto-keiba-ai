@@ -58,6 +58,22 @@ class VirtualLabTests(unittest.TestCase):
         with self.assertRaisesRegex(LabRejected,"final_to_preliminary_regression"):
             settle_fixture(self.f,[event(1),event(2,state="RESULT_PRELIMINARY")])
 
+    def test_all_losing_tickets_charge_full_stake(self):
+        r=settle_fixture(self.f,[event(payout_per_100={})])
+        self.assertEqual(r["stake_yen"],300)
+        self.assertEqual(r["payout_yen"],0)
+        self.assertEqual(r["profit_yen"],-300)
+
+    def test_final_stake_is_invariant_under_ticket_reordering(self):
+        p=copy.deepcopy(BASE)
+        p["tickets"].reverse()
+        other=freeze_fixture(**p)
+        first=settle_fixture(self.f,[event()])
+        second=settle_fixture(other,[event()])
+        self.assertEqual(first["stake_yen"],300)
+        self.assertEqual(first["profit_yen"],second["profit_yen"])
+        self.assertEqual(first["payout_yen"],second["payout_yen"])
+
     def test_refunds_return_stake(self):
         r=settle_fixture(self.f,[event(payout_per_100={},refunded_pairs=[[1,3]])])
         self.assertEqual(r["payout_yen"],100)
