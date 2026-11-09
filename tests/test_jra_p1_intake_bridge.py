@@ -100,5 +100,30 @@ class IntakeTests(unittest.TestCase):
         with self.assertRaisesRegex(IntakeRejected,'snapshot_structural_blocked'):
             self.run_case(mutate_snapshot=lambda s:s.update(captured_utc='2026-11-13T06:00:00Z'))
 
+    def test_three_runner_complete_odds_join_stays_unapproved(self):
+        def add(s):
+            s['runners'].append({'number':3,'horse_id':'horse0003','name':'C'})
+            s['odds'] += [
+                {'first':1,'second':3,'decimal':4.1},
+                {'first':2,'second':3,'decimal':6.3}]
+        x=self.run_case(mutate_snapshot=add)
+        self.assertEqual(x['expected_quinella_pairs'],3)
+        self.assertEqual(x['market_coverage'],'STRUCTURAL_COMPLETE')
+        self.assertFalse(x['prediction_ready'])
+
+    def test_three_runner_partial_market_cannot_join(self):
+        def add(s):
+            s['runners'].append({'number':3,'horse_id':'horse0003','name':'C'})
+        with self.assertRaisesRegex(IntakeRejected,'incomplete_quinella_pairs'):
+            self.run_case(mutate_snapshot=add)
+
+    def test_invalid_cutoff_is_controlled_rejection(self):
+        raw=export_bundle(self.manifest,self.root,observed_utc=NOW)
+        bad=copy.deepcopy(self.snapshot)
+        bad['prediction_cutoff_utc']=None
+        with self.assertRaisesRegex(IntakeRejected,'snapshot_structural_blocked'):
+            inspect_bundle_and_snapshot(raw,bad,observed_utc=NOW)
+
+
 
 if __name__=='__main__':unittest.main()
