@@ -1,0 +1,71 @@
+{
+  "schema": "kyoto_ai_migration_20261109_v154_integrity.v1",
+  "date": "2026-11-09",
+  "status": "DOCS_VERIFIED_NOT_PROGRAM_RELEASE",
+  "repository": "papaneko-ai/kyoto-keiba-ai",
+  "branch": "jra-html-diagnostic-20261105",
+  "source_files": [
+    {
+      "path": "docs/KYOTO_AI_20261109_COMPLETE_MIGRATION_PACK_V20261109_154.md",
+      "blob_sha": "faab84b321f6f0a33850eef4a191fc82b3decbe3",
+      "read_verified": true,
+      "characters": 10206
+    },
+    {
+      "path": "docs/KYOTO_AI_20261109_MIGRATION_STARTER_V20261109_154.md",
+      "blob_sha": "01d1c7d2ddc71f8c11f2fbe8d27ca8daa3bf510f",
+      "read_verified": true,
+      "characters": 3094
+    },
+    {
+      "path": "docs/KYOTO_AI_ALGORITHM_REQUIREMENTS_REGISTER_v1_20261106.md",
+      "blob_sha": "d453d33fcf7f02e1feb65f8333c31590f101c962",
+      "read_verified": true,
+      "characters": 4842
+    },
+    {
+      "path": "docs/KYOTO_AI_ALGORITHM_AND_EXECUTION_ROADMAP_20261106.md",
+      "blob_sha": "d4786861792af5c34282202d786ede81c6d696f5",
+      "read_verified": true,
+      "characters": 4967
+    },
+    {
+      "path": "docs/diagnostics/jra_p1_batch14_96_profiles_20261106/status.json",
+      "blob_sha": "31638a46f48da2d28cb160f9453bad7d56b70de2",
+      "read_verified": true,
+      "characters": 3231
+    },
+    {
+      "path": "docs/diagnostics/jra_p1_fb_stage5_observed_clock_154tests_20261109.json",
+      "blob_sha": "0eb2e036c2f47417b3aa25a99712614d496e29c5",
+      "read_verified": true,
+      "characters": 2190
+    },
+    {
+      "path": "docs/diagnostics/kyoto_ai_evolution_requirements_manifest_20261106.json",
+      "blob_sha": "d206d929662b5f1d1d07afa36675ef0dd7f4bdd5",
+      "read_verified": true,
+      "characters": 1981
+    }
+  ],
+  "latest_ci": {
+    "run_id": 42549866841,
+    "head_sha": "5bec523d7329d5e412e7135c7c2f706a217ec765",
+    "status": "completed",
+    "conclusion": "success",
+    "offline_tests_passed": 154
+  },
+  "confirmed_p1": {
+    "race_date": "2026-11-07",
+    "runners": 148,
+    "profiles": 96,
+    "not_queried": 52,
+    "prior_rows": 592
+  },
+  "next": "P1-FB stage5 real network gates; no JRA GET, no production modification",
+  "notes": [
+    "file SHA are Git blob identifiers, not cryptographic signatures of approval",
+    "CI predates migration documents; verifies code/tests, not this documentation",
+    "existing older files are historical, the new pack and starter take priority"
+  ]
+}
