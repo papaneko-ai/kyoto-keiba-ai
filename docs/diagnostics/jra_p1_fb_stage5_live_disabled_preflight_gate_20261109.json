@@ -1,0 +1,41 @@
+{
+  "schema": "kyoto_p1_fb_stage5_live_disabled_preflight_gate.v1",
+  "date": "2026-11-09",
+  "subgate": "strict request envelope and offline clock-injected scheduling",
+  "status": "OFFLINE_PASS_LIVE_NOT_AUTHORIZED",
+  "github_actions_run_id": 42547524417,
+  "github_actions_job_id": 128935646813,
+  "ci_conclusion": "success",
+  "tests_by_suite": {
+    "stage5_guarded_replay": 19,
+    "stage5_archived_registry": 10,
+    "global_attempt_registry": 14,
+    "ledger_replay": 8,
+    "live_disabled_preflight": 13,
+    "stage4_mock": 17,
+    "request_policy": 16,
+    "sp_special": 11,
+    "offline_failover": 15
+  },
+  "total_tests_passed": 123,
+  "proof_scope": [
+    "strict_official_url_validation",
+    "archive_link_and_source_sha_preflight",
+    "race_identifier_date_cutoff",
+    "injected_monotonic_interval_guard",
+    "global_attempt_consumption_before_any_io",
+    "fail_closed_untrusted_source",
+    "live_execution_unconditionally_raises"
+  ],
+  "actual_jra_gets": 0,
+  "network_adapter_operable": false,
+  "real_wall_clock_elapsed_between_actual_communications_proven": false,
+  "independent_real_SP_profile_urls_for_all_horses_proven": false,
+  "official_terms_approved": false,
+  "shared_multi_host_persistent_ledger_proven": false,
+  "training_ready": false,
+  "prediction_ready": false,
+  "production_turso_changed": false,
+  "protected_main_changed": false,
+  "next": "P1-FB stage5: formal live HTTP transport/security gate, official SP real link verification, distributed one-shot idempotent coordination; do not enable network until independently proved"
+}
