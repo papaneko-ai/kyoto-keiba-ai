@@ -71,3 +71,8 @@ GitHub接続ツールで以下のファイルを**実際に読み、最新HEAD�
 - **最優先で読む正本：** `docs/KYOTO_AI_20261109_STAGE5_HTTP_ENVELOPE_138TEST_MIGRATION_HANDOFF.md`、機械可読受入 `docs/diagnostics/jra_p1_fb_stage5_http_envelope_offline_acceptance_20261109.json`。CI `42548704950`で138件成功、JRA GET0。
 - 前回の123件までの安全ゲートを維持し、固定HTTP模擬応答のHTTP200/MIME/容量/リダイレクトなしの検査をグローバル台帳・PC/SP失敗隔離・原本保存へ接続した。**ネットワークHTTP本体は無効で未実証**。
 - ここで新チャットへ移動を推奨。次はP1-FB第5段階の実HTTP安全・公式SPリンクと異ホスト重複防止・利用条件を検証。2026-11-07の未取得52頭を事後取得して発走前と偽らない。ALG-01～13/EVO-01～08/P1～P8を維持。
+
+## ★ 2026-11-09 最新の実装再開位置（154件合格）
+- 最優先正本 `docs/KYOTO_AI_20261109_STAGE5_154TEST_CLOCK_SCHEDULER_MILESTONE_AND_HANDOFF.md` と `docs/diagnostics/jra_p1_fb_stage5_observed_clock_154tests_20261109.json`。CI `42549866841`で**154件success**。以前の138件は履歴。
+- オフライン模擬HTTPのPC→SPフォールバック時に壁時計とmonotonicを再観測し、実際に2秒待機するテストまで合格。**JRAの実通信は未実施、本番HTTP・別ホストの台帳・SP公式全馬リンク・利用条件未解決**。
+- P1-FB Stage5の残ゲートから継続。11/07の96頭・過去走592件、残52頭は時点漏洩なく保護。ALG01～13、EVO01～08、P1～P8維持。旧公開app・本番main/Tursoは変更禁止。新チャットへ移行する際は本書優先。
