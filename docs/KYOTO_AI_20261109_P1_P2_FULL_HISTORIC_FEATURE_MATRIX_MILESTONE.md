@@ -23,10 +23,10 @@
 
 ## 3. UIとテスト・CI
 - `diagnostics/p1_readonly_monitor_app.py`：既存スマホ対応診断画面へ、個別148頭レジストリから生成した特徴量の取得率と、履歴CSVのダウンロードを追加。履歴研究専用・予測不可の警告を維持。
-- `tests/test_p2_historical_feature_matrix.py`：現在13件のケースを設定。148頭の正本、欠損区分、決定性、ラベル混入禁止、実公開CSVとの数値一致、異常値と馬場分類欠落の拒否を対象とする。
+- `tests/test_p2_historical_feature_matrix.py`：現在14件のケースを設定。148頭の正本、欠損区分、決定性、ラベル混入禁止、実公開CSVとの数値一致、異常値と馬場分類欠落の拒否を対象とする。
 - `.github/workflows/jra-p2-historical-feature-matrix.yml`：GitHub Actionsの無償Python環境でP2特徴量再生成・テスト・発行制約の検査を定義。CI artifact保存は7日。ファイルをJRAへ再取得するものではない。
 - `.github/workflows/jra-p1-readonly-monitor-acceptance.yml`：履歴特徴量生成の実テスト、アプリのAppTest、以前の原本SHA所在監査とローカルHTTPヘルス検証を一括して対象にした。
-- 現在のGitHub connectorは新しいGitHub Actions run/job IDを確認できていない。**新規13件のPythonテスト成功・Streamlit実起動・新CI PASSは未確認**。GitHubへのソース保存とCI定義追加を合格の代用にしない。
+- 現在のGitHub connectorは新しいGitHub Actions run/job IDを確認できていない。**新規14件のPythonテスト成功・Streamlit実起動・新CI PASSは未確認**。GitHubへのソース保存とCI定義追加を合格の代用にしない。
 
 ## 4. 保存済みHTML原本の取扱い
 - 前節目で用意した `diagnostics/jra_p1_historical_raw_inventory.py` は既存HTMLファイルのSHAが保存済み96頭に一致するか調べるが、当該新CIの走査結果は未確認。
