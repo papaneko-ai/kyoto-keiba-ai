@@ -136,3 +136,18 @@ def evaluate(root):
             "real_prediction_ready": False, "virtual_tickets": [], "jra_requests": 0,
             "source_type": "PREVIOUSLY_CAPTURED_OFFICIAL_STRUCTURED_EVIDENCE",
             "important_limit": "RACECARD STRUCTURED SNAPSHOTS RECONCILED; RAW HTML BYTES NOT REPARSED"}
+
+def main():
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--source-dir",type=Path,default=Path("docs/diagnostics"))
+    parser.add_argument("--out",type=Path,required=True)
+    args=parser.parse_args()
+    receipt=evaluate(args.source_dir)
+    args.out.parent.mkdir(parents=True,exist_ok=True)
+    args.out.write_text(json.dumps(receipt,ensure_ascii=False,sort_keys=True,indent=2)+"\n",encoding="utf-8")
+    print("P1_HISTORICAL_CROSSWALK: 12 races, 148 horses, 396 prior dates; NO verified pre-race market quotes")
+
+
+if __name__=="__main__":
+    main()
