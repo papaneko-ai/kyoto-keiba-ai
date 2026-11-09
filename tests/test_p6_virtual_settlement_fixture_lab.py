@@ -54,6 +54,10 @@ class VirtualLabTests(unittest.TestCase):
         self.assertEqual(r["profit_yen"],500)
         self.assertEqual(r["event_version"],2)
 
+    def test_final_cannot_regress_to_preliminary(self):
+        with self.assertRaisesRegex(LabRejected,"final_to_preliminary_regression"):
+            settle_fixture(self.f,[event(1),event(2,state="RESULT_PRELIMINARY")])
+
     def test_refunds_return_stake(self):
         r=settle_fixture(self.f,[event(payout_per_100={},refunded_pairs=[[1,3]])])
         self.assertEqual(r["payout_yen"],100)
