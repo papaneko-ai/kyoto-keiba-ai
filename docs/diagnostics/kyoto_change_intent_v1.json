@@ -1,0 +1,25 @@
+{
+  "schema": "kyoto_change_intent.v1",
+  "changes": [
+    {
+      "feature_id": "PC_RACECARD",
+      "action": "INTEGRATE",
+      "rationale": "Reuse the existing PC acquisition path while connecting SP fallback."
+    },
+    {
+      "feature_id": "SP_RACECARD",
+      "action": "REUSE",
+      "rationale": "Reuse SP parity and PC/SP comparison rather than rewrite."
+    },
+    {
+      "feature_id": "PC_SP_ODDS_MENU",
+      "action": "REPAIR",
+      "rationale": "Extend existing odds probes to published prerace data."
+    },
+    {
+      "feature_id": "P6_PAPER_LAB",
+      "action": "REUSE",
+      "rationale": "Preserve existing research and settlement components."
+    }
+  ]
+}
