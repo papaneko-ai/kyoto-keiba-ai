@@ -1,0 +1,37 @@
+{
+  "schema": "kyoto_p6_durable_fixture_local_acceptance.v1",
+  "as_of": "2026-11-09",
+  "source_branch": "jra-html-diagnostic-20261105",
+  "scenario": "LAB-ACCEPT-20261109",
+  "execution_environment": "isolated local Python 3; no JRA HTTP; no Streamlit/Turso",
+  "local_test_suite": "tests/test_p6_fixture_durable_ledger.py",
+  "local_test_count": 15,
+  "local_result": "PASS",
+  "restart_replay": "PASS_separate_Python_process",
+  "append_event_count": 4,
+  "events": [
+    "FROZEN",
+    "RESULT_PRELIMINARY",
+    "PAYOUT_FINAL",
+    "PAYOUT_FINAL_CORRECTION"
+  ],
+  "frozen_lab_stake_yen": 200,
+  "preliminary_profit": "UNSETTLED",
+  "initial_fixture_payout_yen": 1000,
+  "corrected_fixture_payout_yen": 800,
+  "corrected_fixture_profit_yen": 600,
+  "externally_anchored_head": "1612045394788de511d4ed686956f5158c91b24937fbef84185a7b4b0877f481",
+  "real_JRA_source_count": 0,
+  "actual_purchases": 0,
+  "real_paper_trade_performed": false,
+  "production_ledger_modified": false,
+  "independent_validation_scope": "new local implementation and local dependency compatible with existing fixture API",
+  "limitations": [
+    "Source files on GitHub are not demonstrated byte-identical to locally executed copies",
+    "Github Actions full 51 cases not observed successful",
+    "End-of-file complete-line truncation detectable only with independently retained expected head",
+    "Concurrent multi-process writers, remote storage and cloud durability unproven",
+    "No cryptographic signature or independent timestamp attestation",
+    "Official pre-race odds, results, payout and live P1 remain unavailable"
+  ]
+}
