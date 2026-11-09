@@ -14,3 +14,5 @@
 2026-11-09 scripted strict HTTP response envelope integration with original first archival and global ledger.
 
 2026-11-09 observed wall+monotonic clock schedule with cutoff crossing and source-first ledger regression.
+
+2026-11-09 final stage5 wall+monotonic actual two seconds in GitHub CI, no HTTP.
