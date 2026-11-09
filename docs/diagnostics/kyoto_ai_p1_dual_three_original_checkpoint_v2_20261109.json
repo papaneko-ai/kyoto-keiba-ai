@@ -1,0 +1,50 @@
+{
+  "schema": "kyoto_ai_p1_dual_three_original_checkpoint.v2",
+  "date": "2026-11-09",
+  "project": "papaneko-ai/kyoto-keiba-ai",
+  "branch": "jra-html-diagnostic-20261105",
+  "base_prior_cycle": "8775fe51f285f3402a2b55c2f3fd032983153d90",
+  "new_code": [
+    "diagnostics/p1_three_original_dual_intake.py",
+    "diagnostics/p1_dual_market_offline_audit.py",
+    "diagnostics/jra_p1_intake_bridge.py",
+    "diagnostics/jra_p1_future_evidence.py"
+  ],
+  "new_tests": {
+    "dual_standalone": 13,
+    "dual_bridge_added": 10,
+    "three_original_added": 14,
+    "total_added": 37
+  },
+  "new_workflows": [
+    ".github/workflows/kyoto-p1-dual-market-offline.yml",
+    ".github/workflows/kyoto-p1-three-original-dual.yml"
+  ],
+  "source_protection": {
+    "three_separate_sha_claims": true,
+    "official_current_jra_html_received": false,
+    "three_real_source_bytes_verified": false,
+    "live_jra_access_permission_verified": false
+  },
+  "verification": {
+    "new_push_ci_run_id": null,
+    "new_push_ci_job": null,
+    "new_push_ci_status": "PENDING_INDEPENDENT_GITHUB_ACTIONS_LOG_CONFIRMATION",
+    "local_test_execution_claimed": false
+  },
+  "readiness": {
+    "prediction_ready": false,
+    "actual_orders_authorized": false,
+    "network_requests": 0,
+    "p1_accepted": false
+  },
+  "original_archive_artifact": 13482994623,
+  "no_changes": [
+    "main",
+    "Turso",
+    "Secrets",
+    "real_betting",
+    "old_public_app"
+  ],
+  "next_gate": "GitHub push CI run+logs, authentic and authorized new race three-original captures, official market+scratches and time proof"
+}
