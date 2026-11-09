@@ -27,7 +27,7 @@ jobs:
           import hashlib
           from pathlib import Path
           locked={
-             'diagnostics/p6_virtual_settlement_fixture_lab.py':'a847b3daced6e77a171ca8839a909df9ca15ec97',
+             'diagnostics/p6_virtual_settlement_fixture_lab.py':'4875490e46cebc633ef0552cce31c3286d70731d',
              'diagnostics/p6_fixture_durable_ledger.py':'1680f2c421cdb44d545e76e63204ce2a9feca4b8',
              'tests/test_p6_fixture_durable_ledger.py':'e064fdc35334a11ed2ad607322e379d346ef61aa'
           }
