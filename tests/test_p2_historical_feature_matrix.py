@@ -1,5 +1,8 @@
 """Tests against the actual stored 148-entry Kyoto P1 archive, not random racing data."""
 import copy
+import csv
+import io
+from decimal import Decimal
 import hashlib
 import json
 import unittest
@@ -82,6 +85,28 @@ class HistoricalMatrixTests(unittest.TestCase):
         row["performance_features"]["recent_three_surface_counts"]["芝"]=100
         with self.assertRaisesRegex(ValueError,"invalid_surface_counts"):
             materialize(self.status,rows)
+
+    def test_published_csv_semantically_matches_source_derived_matrix(self):
+        derived = render_csv(materialize(self.status,self.rows)).decode("utf-8")
+        published = (DATA.parent / "p2_historical_feature_matrix_20261107_148.csv").read_text(encoding="utf-8")
+        expected = list(csv.DictReader(io.StringIO(derived)))
+        actual = list(csv.DictReader(io.StringIO(published)))
+        self.assertEqual(len(expected), 148)
+        self.assertEqual(len(actual), 148)
+        numeric = {
+            "prior_valid_finishes", "recent_three_mean_distance_m",
+            "recent_three_mean_finish_percentile", "recent_three_wins",
+            "recent_three_turf_count", "recent_three_dirt_count",
+            "recent_three_jump_count", "recent_90day_date_count",
+            "last_observed_prior_race_days_ago"
+        }
+        for a, b in zip(expected, actual):
+            self.assertEqual(set(a), set(b))
+            for key in a:
+                if key in numeric and a[key] and b[key]:
+                    self.assertEqual(Decimal(a[key]), Decimal(b[key]), (key, a["horse_name"]))
+                else:
+                    self.assertEqual(a[key], b[key], (key, a["horse_name"]))
 
     def test_no_nan_feature_permitted(self):
         rows=copy.deepcopy(self.rows)
