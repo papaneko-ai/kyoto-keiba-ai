@@ -8,7 +8,25 @@
     "docs/KYOTO_AI_20261106_FINAL_BACKUP_VERIFIED_RECEIPT.md": "2e0c25876a6487c01d4f72420f26fd849028057a",
     "docs/diagnostics/jra_p1_batch14_96_profiles_20261106/status.json": "31638a46f48da2d28cb160f9453bad7d56b70de2",
     "docs/diagnostics/jra_p1_batch14_96_profiles_20261106/feature_rows_148.json": "cbde475c0d5f8a8b29c4b690b620fa80bbf6e785",
-    "docs/diagnostics/p1_real_recovery_archive_84_source_reparse_20261109.json": "f5264ddc676d34cebad2ab2e9c41cec0551f8142"
+    "docs/diagnostics/p1_real_recovery_archive_84_source_reparse_20261109.json": "f5264ddc676d34cebad2ab2e9c41cec0551f8142",
+    "docs/diagnostics/JRA_KYOTO_FULL_DAY_ACCEPTANCE_20261106.json": "5ed35a1a71f1936e3f3a7d48b9a0ca2af5a3f18a",
+    "docs/diagnostics/JRA_ODDS_READINESS_ACCEPTANCE_20261106.json": "6e73980679955df4bcdda6d5f032733e0c36d519",
+    "docs/diagnostics/JRA_PC_SP_ODDS_MENU_20261106.json": "62975cfff9dde04dcbaa9e65e4a98a45d1373a5f",
+    "docs/diagnostics/JRA_HISTORICAL_MATRIX_EVIDENCE_20261106.json": "1b965ce640cc3718b8069dce6a2ab4fac6c0dc99",
+    "diagnostics/p1_historical_day_handoff.py": "9e80d532a06ce75f496f488f765faf491ab0f51e",
+    "tests/test_p1_historical_day_handoff.py": "bc6f1f5decea4699a36732fd7f595842900863f4",
+    "docs/diagnostics/multirace_20261106/kyoto_01_snapshot.json": "ea998c08a88e01fbd0ca38ce6914488e811a71ba",
+    "docs/diagnostics/remaining8_20261106/kyoto_02_snapshot.json": "eea91dec5229a73087c7b3f3fcd885d4a8ce108c",
+    "docs/diagnostics/remaining8_20261106/kyoto_03_snapshot.json": "364f9232738ab1a45fe6a75f098627df36eda47d",
+    "docs/diagnostics/remaining8_20261106/kyoto_04_snapshot.json": "d8f31b5aa005c0656826512deb39d1cf4b562cc9",
+    "docs/diagnostics/remaining8_20261106/kyoto_05_snapshot.json": "5c44db83453f1f8816cda965eb97ed3dd0284735",
+    "docs/diagnostics/multirace_20261106/kyoto_06_snapshot.json": "6e5ba54be4f81e03be5a26e3424d109d44dad498",
+    "docs/diagnostics/JRA_KYOTO_R7_PRERACE_FROZEN_20261106.json": "3241962c0d9a458e3def763a5927fb2a6dd0546a",
+    "docs/diagnostics/remaining8_20261106/kyoto_08_snapshot.json": "4faf33aca6d2dccd247683e16529b6e744f743ae",
+    "docs/diagnostics/remaining8_20261106/kyoto_09_snapshot.json": "5efbf8c141ab85eb620c0f27f882a149cfb0bedd",
+    "docs/diagnostics/remaining8_20261106/kyoto_10_snapshot.json": "29a33db608edf6de0899bf8864c20ad07ffecea2",
+    "docs/diagnostics/remaining8_20261106/kyoto_11_snapshot.json": "50bd05b4797967c0eba73b19c5ef53b18a0b7854",
+    "docs/diagnostics/multirace_20261106/kyoto_12_snapshot.json": "3e0a1be6b4dc795cebab0907a57568196879e3a2"
   },
   "status_path": "docs/diagnostics/jra_p1_batch14_96_profiles_20261106/status.json",
   "registry_path": "docs/diagnostics/jra_p1_batch14_96_profiles_20261106/feature_rows_148.json",
@@ -35,5 +53,30 @@
   },
   "last_integrity_audit": "2026-11-09",
   "update_policy": "append explicit registry v2 only after real evidence; do not silently overwrite v1",
-  "external_verification": "For a current availability claim, supply GitHub artifact API JSON or SHA-verified portable recovery ZIP. A static past receipt is not current availability proof."
+  "external_verification": "For a current availability claim, supply GitHub artifact API JSON or SHA-verified portable recovery ZIP. A static past receipt is not current availability proof.",
+  "archived_20261107_full_day": {
+    "race_count": 12,
+    "runner_count": 148,
+    "prior_date_count": 396,
+    "source": "JRA_KYOTO_FULL_DAY_ACCEPTANCE_20261106.json",
+    "verified_against_profile_registry": true,
+    "current_github_CI_run": 42567681829
+  },
+  "archived_odds_market": {
+    "official_PC_SP_menu_observed_utc": "2026-11-06T04:05:23Z",
+    "observed_state": "NOT_PUBLISHED_AT_THAT_TIME_ONLY",
+    "historical_final_market_date": "2026-10-31",
+    "historical_quinella_pairs": 120,
+    "historical_bracket_pairs": 36,
+    "prerace_market_verified": false,
+    "prohibit_final_odds_as_live": true
+  },
+  "verified_CI_run_ids": {
+    "resume_evidence_gate": 42566858778,
+    "archived_84_original_reparse": 42565633708,
+    "P6_source_locked": 42567627196,
+    "P3_P6_research_and_no_bet": 42567612106,
+    "P1_12race_market": 42567681829,
+    "read_only_Streamlit": 42567927003
+  }
 }
