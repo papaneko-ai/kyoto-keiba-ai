@@ -1,0 +1,120 @@
+{
+  "schema": "kyoto_p1_148_registry_evidence_reconciliation.v1",
+  "archive_date": "2026-11-07",
+  "generated_as_of": "2026-11-09",
+  "registry_blob_sha": "cbde475c0d5f8a8b29c4b690b620fa80bbf6e785",
+  "summary_blob_sha": "31638a46f48da2d28cb160f9453bad7d56b70de2",
+  "counts": {
+    "total": 148,
+    "with_history": 77,
+    "verified_empty": 19,
+    "unqueried": 52,
+    "valid_prior_rows": 592
+  },
+  "racewise": {
+    "1": {
+      "total": 9,
+      "with_history": 9,
+      "verified_empty": 0,
+      "unqueried": 0,
+      "valid_prior_rows": 14
+    },
+    "2": {
+      "total": 15,
+      "with_history": 15,
+      "verified_empty": 0,
+      "unqueried": 0,
+      "valid_prior_rows": 32
+    },
+    "3": {
+      "total": 13,
+      "with_history": 13,
+      "verified_empty": 0,
+      "unqueried": 0,
+      "valid_prior_rows": 22
+    },
+    "4": {
+      "total": 15,
+      "with_history": 15,
+      "verified_empty": 0,
+      "unqueried": 0,
+      "valid_prior_rows": 22
+    },
+    "5": {
+      "total": 8,
+      "with_history": 0,
+      "verified_empty": 8,
+      "unqueried": 0,
+      "valid_prior_rows": 0
+    },
+    "6": {
+      "total": 11,
+      "with_history": 0,
+      "verified_empty": 11,
+      "unqueried": 0,
+      "valid_prior_rows": 0
+    },
+    "7": {
+      "total": 11,
+      "with_history": 11,
+      "verified_empty": 0,
+      "unqueried": 0,
+      "valid_prior_rows": 156
+    },
+    "8": {
+      "total": 9,
+      "with_history": 9,
+      "verified_empty": 0,
+      "unqueried": 0,
+      "valid_prior_rows": 261
+    },
+    "9": {
+      "total": 10,
+      "with_history": 2,
+      "verified_empty": 0,
+      "unqueried": 8,
+      "valid_prior_rows": 25
+    },
+    "10": {
+      "total": 14,
+      "with_history": 1,
+      "verified_empty": 0,
+      "unqueried": 13,
+      "valid_prior_rows": 8
+    },
+    "11": {
+      "total": 16,
+      "with_history": 1,
+      "verified_empty": 0,
+      "unqueried": 15,
+      "valid_prior_rows": 30
+    },
+    "12": {
+      "total": 17,
+      "with_history": 1,
+      "verified_empty": 0,
+      "unqueried": 16,
+      "valid_prior_rows": 22
+    }
+  },
+  "completed_races_from_registry": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8
+  ],
+  "errors": [],
+  "status": "INDEPENDENT_ROW_RECONCILIATION_CONSISTENT_HISTORICAL_ONLY",
+  "prediction_ready": false,
+  "actual_jra_http_gets": 0,
+  "limitations": [
+    "not a raw HTML replay",
+    "GitHub Actions success not independently confirmed",
+    "historic data not current pre-race feed",
+    "individual source SHA values not reopened against raw original HTML bytes"
+  ]
+}
