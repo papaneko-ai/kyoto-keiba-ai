@@ -1,0 +1,82 @@
+{
+  "schema": "kyoto_p1_existing_20261106_originals_reparse_acceptance.v1",
+  "audited_date": "2026-11-09",
+  "historical_meeting_date": "2026-11-07",
+  "artifact": {
+    "workflow_run_id": 42176719321,
+    "artifact_id": 13482994623,
+    "artifact_name": "kyoto-ai-nov6-2026-final-recovery-code-and-source-originals",
+    "expired_on_audit": false,
+    "expiry_utc": "2027-02-04T06:47:55Z",
+    "outer_archive_sha256": "49d61bff4eca82405d9d63e4244092e0fd2650bec5f899eba4f5ed2679c68863",
+    "nested_source_tar_sha256": "42f64264c0a8a86bf6ff0d41d1d71a1ff36cc07e00b534f813d21ac1f701c634",
+    "source_artifact_groups": 18
+  },
+  "source_snapshot": {
+    "commit_sha": "22bb8d933649bc82734c58ff246c19c4da0032d5",
+    "registry_path": "docs/diagnostics/jra_p1_batch14_96_profiles_20261106/feature_rows_148.json",
+    "registry_blob_sha": "cbde475c0d5f8a8b29c4b690b620fa80bbf6e785",
+    "parser_path": "diagnostics/jra_prior_form_offline.py",
+    "parser_blob_sha": "bd986d15d642dd8388643825941893d3a8c69045",
+    "replay_script_blob_sha": "ced4e1fb02ed0e99362b2e288a929584cc62771a",
+    "test_script_blob_sha": "25a46582c341d9e0b426bb50b34ddc62de8d6064"
+  },
+  "observed": {
+    "archived_html_files": 86,
+    "pc_profile_sha_matches": 84,
+    "profiles_recorded_as_verified": 96,
+    "source_originals_missing": 12,
+    "matched_profiles_with_valid_history": 67,
+    "matched_confirmed_empty_history": 17,
+    "missing_history_profiles": 10,
+    "missing_confirmed_empty_history_profiles": 2,
+    "valid_prior_rows_reparsed": 485,
+    "valid_prior_rows_missing_sources_registry_only": 107,
+    "total_prior_rows_registry": 592,
+    "feature_fields_independently_recomputed_and_equal": 335,
+    "feature_conflicts": 0,
+    "parser_conflicts": 0,
+    "real_jra_http_requests": 0
+  },
+  "missing_12": [
+    "01R-01",
+    "02R-01",
+    "03R-01",
+    "04R-01",
+    "05R-01",
+    "06R-01",
+    "07R-01",
+    "08R-01",
+    "09R-01",
+    "10R-01",
+    "11R-01",
+    "12R-01"
+  ],
+  "test": {
+    "local_real_archive_cases": 4,
+    "passed": 4,
+    "source_and_test_blob_sha_match": true,
+    "official_source_html_checksum_checked": true,
+    "nested_backup_checksums_checked": true,
+    "portable_bundle_retested_in_independent_directory": true,
+    "github_actions_run_result": "NOT_VERIFIED"
+  },
+  "download": {
+    "portable_zip_name": "KYOTO_AI_P1_REAL_ORIGINAL_84_REPLAY_VERIFIED_20261109.zip",
+    "portable_zip_sha256": "7e16c23a595e13574554a7970cfc8ec3c4de652337f0bcbd7934ce1af4c83bd9",
+    "detailed_receipt_sha256": "68b111ff8f7c93976151d2f6b8106dbdeb09757f89c7f599a97acb4ce32323c4"
+  },
+  "conclusion": "84_EXISTING_PC_HTML_SOURCE_BYTES_REPARSED_AND_VERIFIED_12_ORIGINALS_MISSING",
+  "prediction_ready": false,
+  "training_ready": false,
+  "virtual_bets_created": 0,
+  "real_bets_created": 0,
+  "limits": [
+    "Historic 2026-11-07 meeting, not a future start",
+    "Missing original PC HTML 12 of registered 96; 107 prior runs remain registry-only",
+    "Two SP diagnostic HTML files not substitutes for missing original PC hashes",
+    "Previously captured timestamp strings are not independently attested",
+    "JRA automatic collection authorization not established",
+    "Workflow job on newly created CI not confirmed"
+  ]
+}
