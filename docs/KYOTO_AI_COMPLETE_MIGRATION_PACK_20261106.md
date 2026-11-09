@@ -139,3 +139,8 @@ P8 Streamlitによるスマホ/PC向け本番統合、Turso、環境変数、UI�
 ## 2026-11-09 追加更新：P1-FB Stage5の最新123件オフライン検証
 - **最新の工程正本** `docs/KYOTO_AI_20261109_P1_FB_STAGE5_LIVE_DISABLED_PREFLIGHT_MILESTONE_HANDOFF.md` と `docs/diagnostics/jra_p1_fb_stage5_live_disabled_preflight_gate_20261109.json`、CI `42547524417`（123件success）。旧110件合格は履歴。厳格なURL・取得期限・時計注入間隔の安全判定と実通信常時拒否を追加。**本番HTTP実装・通信時刻の実証・公式SP全馬リンク・複数ホスト共有台帳は未完**。
 - 次回はP1-FB Stage5の実通信安全・利用条件と原本証拠から。2026-11-07残52頭を事後に発走前と偽らない。ALG-01～13、EVO-01～08、P1～P8を遵守。
+
+## 2026-11-09最新の移行時必読節目：138件P1-FB Stage5オフライン統合
+- **最優先で読む正本：** `docs/KYOTO_AI_20261109_STAGE5_HTTP_ENVELOPE_138TEST_MIGRATION_HANDOFF.md`、機械可読受入 `docs/diagnostics/jra_p1_fb_stage5_http_envelope_offline_acceptance_20261109.json`。CI `42548704950`で138件成功、JRA GET0。
+- 前回の123件までの安全ゲートを維持し、固定HTTP模擬応答のHTTP200/MIME/容量/リダイレクトなしの検査をグローバル台帳・PC/SP失敗隔離・原本保存へ接続した。**ネットワークHTTP本体は無効で未実証**。
+- ここで新チャットへ移動を推奨。次はP1-FB第5段階の実HTTP安全・公式SPリンクと異ホスト重複防止・利用条件を検証。2026-11-07の未取得52頭を事後取得して発走前と偽らない。ALG-01～13/EVO-01～08/P1～P8を維持。
