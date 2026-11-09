@@ -152,12 +152,12 @@ def settle_fixture(frozen, events):
         refunded.add(pair)
     total=0;hits=0;refunded_stake=0
     for ticket in body["tickets"]:
-        pair=tuple(ticket["pair"]);stake=ticket["stake_yen"]
+        pair=tuple(ticket["pair"]);ticket_stake=ticket["stake_yen"]
         if pair in refunded:
-            total+=stake
-            refunded_stake+=stake
+            total+=ticket_stake
+            refunded_stake+=ticket_stake
         elif pair in paid:
-            total+=(stake//100)*paid[pair]
+            total+=(ticket_stake//100)*paid[pair]
             hits+=1
     return {"status":"FINAL_FIXTURE_ONLY","stake_yen":stake,"payout_yen":total,
             "profit_yen":total-stake,"ticket_hits":hits,
