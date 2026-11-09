@@ -65,3 +65,10 @@ P1は未完了。**新開催日の許容されたデータ取得経路と発走�
 - 最新の「HTML原本保全84頭」と「出馬表全12レース取得148頭」と「詳細プロフィール96頭（原本未復元12頭）」は**異なる範囲を数える**。合算や再取得は禁止。
 - **最新の引継ぎ台帳には現在24件の必須ファイルSHA**を登録。出馬表12本、PC/SPの未発表オッズ・10/31最終オッズ証拠、解析器を含む。GitHub Actionsは実通信を認可するものではない。
 - 新チャットではまずGithub Actions RESTの `/repos/papaneko-ai/kyoto-keiba-ai/actions/runs?branch=jra-html-diagnostic-20261105&per_page=30` に相当する実行履歴を確認し、対象のjob/step/logを辿る。問題を再分析する前に**既存の失敗と修正済みrun**を照合する。
+
+
+## 2026-11-09 P1 dual-market offline integration checkpoint (next larger milestone)
+- Read `docs/KYOTO_AI_20261109_P1_DUAL_MARKET_OFFLINE_INTEGRATED_MILESTONE.md` and `docs/diagnostics/kyoto_ai_p1_dual_offline_integration_checkpoint_20261109.json` before repeating any quinella/bracket coverage work.
+- `diagnostics/jra_p1_intake_bridge.py` now exposes `inspect_bundle_and_dual_snapshot` connecting source-byte/time checks and strict dual market structure; 13 isolated plus 10 integration regression cases were added. This is **not** a JRA-authenticated or prediction-ready path.
+- New push CI must be verified with actual Actions run/job/log. A PR-only workflow API empty response is not evidence of missing push CI. Do not promote checkpoint to PASS without the actual run.
+- Historical 84 original profiles and all former successful Actions are unchanged. Main/Turso/Secrets remain protected.
