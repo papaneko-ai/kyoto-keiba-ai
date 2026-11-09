@@ -83,3 +83,37 @@ def inspect_bundle_and_snapshot(bundle: bytes, snapshot: dict, *, observed_utc: 
             'snapshot_sha256': checked['snapshot_sha256'],
             'prediction_ready': False, 'network_requests': 0,
             'unverified': checked['unverified']}
+
+
+
+def inspect_bundle_and_dual_snapshot(bundle: bytes, snapshot: dict, *, observed_utc: str):
+    """Strict offline dual-market join layered on the established byte/time gate.
+
+    A bracket array and claimed sales states are NOT independent JRA proof.
+    Until distinct official market-origin evidence and cancellation status are
+    authenticated, this path remains research-only and refuses prediction.
+    """
+    from diagnostics.p1_dual_market_offline_audit import (
+        inspect_dual_market, DualMarketRejected,
+    )
+
+    joined = inspect_bundle_and_snapshot(bundle, snapshot, observed_utc=observed_utc)
+    try:
+        market = inspect_dual_market(snapshot, observed_utc=observed_utc)
+    except DualMarketRejected as exc:
+        raise IntakeRejected('dual_market_invalid:' + str(exc)) from exc
+    if market['status'] != 'STRUCTURAL_COMPLETE_ONLY':
+        raise IntakeRejected('dual_market_not_structurally_complete_or_open')
+    return {
+        **joined,
+        'status': 'OFFLINE_DUAL_MARKET_JOIN_ONLY',
+        'dual_market': market,
+        'expected_bracket_pairs': market['expected_bracket_pairs'],
+        'bracket_market_coverage': 'STRUCTURAL_COMPLETE_ONLY',
+        'withdrawals_officially_verified': False,
+        'bracket_original_independently_verified': False,
+        'market_sales_status_officially_verified': False,
+        'prediction_ready': False,
+        'actual_orders_authorized': False,
+        'network_requests': 0,
+    }
