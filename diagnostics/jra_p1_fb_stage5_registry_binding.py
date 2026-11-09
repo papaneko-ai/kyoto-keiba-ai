@@ -42,6 +42,9 @@ def load_roster_horse(*, registry_file, meeting_date, race, number,
     from zoneinfo import ZoneInfo
     if when.astimezone(ZoneInfo("Asia/Tokyo")).date().isoformat()>meeting_date:
         raise ValueError("roster_captured_after_race_day")
+    coverage=row.get("source_coverage",{}).get("horse_profile")
+    if coverage!="NOT_QUERIED" or row.get("profile_source_sha256"):
+        raise ValueError("horse_already_has_source_record")
     pc=trusted_url(row["profile_href"])
     name=row["horse_name"]
     if not isinstance(name,str) or not name.strip():
