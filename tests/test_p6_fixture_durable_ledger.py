@@ -70,6 +70,8 @@ class DurableFixtureJournal(unittest.TestCase):
         self.path.write_bytes(self.path.read_bytes().splitlines(keepends=True)[0])
         # Complete-line truncation is detected only if the last head is anchored externally.
         self.assertNotEqual(read_journal(self.path)['head'],s['head'])
+        with self.assertRaisesRegex(LabRejected,'journal_head_anchor_mismatch'):
+            read_journal(self.path, expected_head=s['head'])
     def test_symlink_rejected(self):
         external=Path(self.dir.name)/'real.txt';external.write_text('x')
         self.path.symlink_to(external)
