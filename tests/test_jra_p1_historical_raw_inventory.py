@@ -47,6 +47,14 @@ class RawInventoryTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "expected_148_historical_rows"):
             audit(self.rows[:-1], self.directory)
 
+    def test_rejects_duplicate_unqueried_identity(self):
+        rows = copy.deepcopy(self.rows)
+        indices = [i for i, row in enumerate(rows) if row["source_coverage"]["horse_profile"] == "NOT_QUERIED"]
+        rows[indices[1]]["race_number"] = rows[indices[0]]["race_number"]
+        rows[indices[1]]["horse_number"] = rows[indices[0]]["horse_number"]
+        with self.assertRaisesRegex(ValueError, "duplicate_registry_identity"):
+            audit(rows, self.directory)
+
     def test_rejects_bad_profile_hash(self):
         rows = copy.deepcopy(self.rows)
         row = next(x for x in rows if x["source_coverage"]["horse_profile"] == "VERIFIED_SOURCE_ROWS")
