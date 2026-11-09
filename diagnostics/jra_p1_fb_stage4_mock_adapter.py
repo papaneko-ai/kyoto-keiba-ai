@@ -30,7 +30,7 @@ def record(path,obj):
     path.write_text(json.dumps(obj,sort_keys=True,ensure_ascii=False,indent=2)+"\n",encoding="utf8")
 
 def run(*,folder,primary,secondary,horse_name,race,number,roster_sha,
-        cutoff=CUTOFF,now,transport,parsers,prior_attempts=(),source_writer=None,receipt_writer=None):
+        cutoff=CUTOFF,now,transport,parsers,prior_attempts=(),source_writer=None,receipt_writer=None,prior_race_cutoff="2026-11-07"):
     """Exactly one primary and, if allowed, one alternate. No built-in URL opener.
 
     A previously created folder forbids a restart. Failure evidence is saved
@@ -106,7 +106,7 @@ def run(*,folder,primary,secondary,horse_name,race,number,roster_sha,
                 or parsed.get("invalid_rows") or
                 parsed.get("source_sha256",digest)!=digest):
                 raise ValueError("parser_identity_or_history_invalid")
-            if any(not isinstance(row,dict) or row.get("date","9999")>="2026-11-07"
+            if any(not isinstance(row,dict) or row.get("date","9999")>=prior_race_cutoff
                    for row in parsed["prior_rows"]):
                 raise ValueError("postcutoff_race_in_prior_rows")
             e["status"]="VALIDATED";e["prior_rows"]=len(parsed["prior_rows"])
