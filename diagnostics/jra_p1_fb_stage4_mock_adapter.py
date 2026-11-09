@@ -30,7 +30,7 @@ def record(path,obj):
     path.write_text(json.dumps(obj,sort_keys=True,ensure_ascii=False,indent=2)+"\n",encoding="utf8")
 
 def run(*,folder,primary,secondary,horse_name,race,number,roster_sha,
-        cutoff=CUTOFF,now,transport,parsers,prior_attempts=(),source_writer=None):
+        cutoff=CUTOFF,now,transport,parsers,prior_attempts=(),source_writer=None,receipt_writer=None):
     """Exactly one primary and, if allowed, one alternate. No built-in URL opener.
 
     A previously created folder forbids a restart. Failure evidence is saved
@@ -66,7 +66,11 @@ def run(*,folder,primary,secondary,horse_name,race,number,roster_sha,
        "actual_network_requests":0,"live_automatic_fallback_authorized":False,
        "training_ready":False,"prediction_ready":False}
     attempts=list(prior_attempts)
-    def commit():record(dest/"receipt.json",info)
+    def commit():
+        if receipt_writer is None:
+            record(dest/"receipt.json",info)
+        else:
+            receipt_writer(dest/"receipt.json",info)
     commit()
     def attempt(source,t):
         index=len(info["attempts"])+1
