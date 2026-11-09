@@ -5,24 +5,27 @@
       "id": "PC_RACECARD",
       "status": "IMPLEMENTED_PARTIAL",
       "code_paths": [
-        "diagnostics/follow_kyoto_all_races.py"
+        "diagnostics/follow_kyoto_all_races.py",
+        "diagnostics/jra_multi_capture_20261106.py",
+        "diagnostics/jra_pc_sp_benchmark.py"
       ],
       "evidence_paths": [
         "docs/diagnostics/JRA_KYOTO_FULL_DAY_ACCEPTANCE_20261106.json"
       ],
-      "remaining": "Complete future racecard integration with current source."
+      "remaining": "Existing parser supports target date parameter; saved-byte PC/SP reconciliation added. Next: actual new-meeting captures and official market integration."
     },
     {
       "id": "SP_RACECARD",
       "status": "IMPLEMENTED_PARTIAL",
       "code_paths": [
         "diagnostics/jra_sp_runner_parity.py",
-        "diagnostics/jra_pc_sp_comparison.py"
+        "diagnostics/jra_pc_sp_comparison.py",
+        "diagnostics/jra_pc_sp_benchmark.py"
       ],
       "evidence_paths": [
         "docs/diagnostics/JRA_KYOTO_FULL_DAY_ACCEPTANCE_20261106.json"
       ],
-      "remaining": "Complete SP fallback using existing parser and parity."
+      "remaining": "Reused SP roster parser and historical five-race benchmark; offline fallback implemented. Next: new-date authentic source observation and full race-day fallback."
     },
     {
       "id": "PC_PROFILE",
