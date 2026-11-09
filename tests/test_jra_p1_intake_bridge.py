@@ -125,5 +125,69 @@ class IntakeTests(unittest.TestCase):
             inspect_bundle_and_snapshot(raw,bad,observed_utc=NOW)
 
 
+    def dual_snapshot(self):
+        s=copy.deepcopy(self.snapshot)
+        s['runners'][0].update(bracket=1,status='ACTIVE')
+        s['runners'][1].update(bracket=2,status='ACTIVE')
+        s['bracket_odds']=[{'first':1,'second':2,'decimal':3.1}]
+        s['market_states']={
+            'quinella':{'sales':'OPEN','observed_utc':'2026-11-13T04:01:00Z'},
+            'bracket':{'sales':'OPEN','observed_utc':'2026-11-13T04:02:00Z'}}
+        return s
+
+    def dual_case(self, modify=None, *, now=NOW):
+        from diagnostics.jra_p1_intake_bridge import inspect_bundle_and_dual_snapshot
+        raw=export_bundle(self.manifest,self.root,observed_utc=NOW)
+        s=self.dual_snapshot()
+        if modify:
+            modify(s)
+        return inspect_bundle_and_dual_snapshot(raw,s,observed_utc=now)
+
+    def test_dual_offline_join_does_not_authorize_prediction(self):
+        x=self.dual_case()
+        self.assertEqual(x['status'],'OFFLINE_DUAL_MARKET_JOIN_ONLY')
+        self.assertEqual(x['expected_bracket_pairs'],1)
+        self.assertFalse(x['bracket_original_independently_verified'])
+        self.assertFalse(x['prediction_ready'])
+        self.assertFalse(x['actual_orders_authorized'])
+        self.assertEqual(x['network_requests'],0)
+
+    def test_dual_missing_bracket_pair_blocked(self):
+        with self.assertRaisesRegex(IntakeRejected,'dual_market_not_structurally_complete'):
+            self.dual_case(lambda s:s.update(bracket_odds=[]))
+
+    def test_dual_duplicate_bracket_pair_rejected(self):
+        with self.assertRaisesRegex(IntakeRejected,'dual_market_invalid:bracket_duplicate_pair'):
+            self.dual_case(lambda s:s['bracket_odds'].append({'first':2,'second':1,'decimal':3.4}))
+
+    def test_dual_sales_suspended_rejected(self):
+        with self.assertRaisesRegex(IntakeRejected,'dual_market_not_structurally_complete'):
+            self.dual_case(lambda s:s['market_states']['bracket'].update(sales='SUSPENDED'))
+
+    def test_dual_false_origin_claim_never_authorized(self):
+        x=self.dual_case(lambda s:s.update(official_origin_claimed=True))
+        self.assertFalse(x['dual_market']['official_source_verified'])
+        self.assertFalse(x['prediction_ready'])
+
+    def test_dual_missing_market_state_rejected(self):
+        with self.assertRaisesRegex(IntakeRejected,'dual_market_invalid:market_states_missing'):
+            self.dual_case(lambda s:s.pop('market_states'))
+
+    def test_dual_wrong_sha_rejected_before_market_check(self):
+        with self.assertRaisesRegex(IntakeRejected,'original_sha_mismatch'):
+            self.dual_case(lambda s:s['sources']['odds'].update(sha256='f'*64))
+
+    def test_dual_expired_cutoff_rejected_before_market_check(self):
+        with self.assertRaisesRegex(IntakeRejected,'cutoff_already_elapsed'):
+            self.dual_case(now='2026-11-14T04:51:00Z')
+
+    def test_dual_withdrawal_with_stale_market_fails_closed(self):
+        with self.assertRaisesRegex(IntakeRejected,'snapshot_structural_blocked|dual_market_invalid'):
+            self.dual_case(lambda s:s['runners'][1].update(status='WITHDRAWN'))
+
+    def test_dual_repeatable_receipt(self):
+        self.assertEqual(self.dual_case(),self.dual_case())
+
+
 
 if __name__=='__main__':unittest.main()
