@@ -54,6 +54,7 @@ jobs:
           python -m unittest discover -s tests -p 'test_p6_fixture_temporal_aggregate.py' -v
           python -m unittest discover -s tests -p 'test_p7_evo_candidate_falsification.py' -v
           python -m unittest discover -s tests -p 'test_p7_guarded_research_rollback.py' -v
+          python -m unittest discover -s tests -p 'test_p7_independent_holdout_research.py' -v
           python -m unittest discover -s tests -p 'test_jra_pc_sp_saved_reconciliation.py' -v
       - name: Calculate objective P1-P8 score with real GitHub CI evidence
         run: |
