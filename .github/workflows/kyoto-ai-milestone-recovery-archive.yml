@@ -7,6 +7,7 @@ on:
       - 'docs/KYOTO_AI_20261110_RG02_DUAL_MARKET_58P3_GRADUATION_MILESTONE.md'
       - 'docs/KYOTO_AI_20261110_RG01_FREEZE_SETTLEMENT_66P7_MILESTONE.md'
       - 'docs/KYOTO_AI_20261110_RG03_TEMPORAL_75PCT_MILESTONE.md'
+      - 'docs/KYOTO_AI_20261110_RG04_EVOLUTION_83P3_MILESTONE.md'
   workflow_dispatch:
 permissions:
   contents: read
@@ -30,14 +31,14 @@ jobs:
             "branch=jra-html-diagnostic-20261105" \
             "commit=$GITHUB_SHA" \
             "research_score_claim=64/100 (subject to same-commit continuity CI)" \
-            "research_graduation_claim=75.0/100 (subject to same-commit continuity CI)" \
+            "research_graduation_claim=83.3/100 (subject to same-commit continuity CI)" \
             "operational_score_claim=0/100 verified lower bound" \
             "separate_historical_original_recovery_artifact=13482994623" \
             "main_turso_secrets_untouched=true" > RECOVERY_MANIFEST.txt
           unzip -t kyoto-ai-branch-source.zip
       - uses: actions/upload-artifact@v4
         with:
-          name: kyoto-ai-rg03-75pct-graduation-source-recovery
+          name: kyoto-ai-rg04-83p3-graduation-source-recovery
           path: /tmp/kyoto-recovery/
           retention-days: 90
           if-no-files-found: error
