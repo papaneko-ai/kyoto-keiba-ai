@@ -36,6 +36,7 @@ jobs:
         run: |
           python -m pip install 'streamlit>=1.37,<2'
           python -m unittest discover -s tests -p 'test_p5_manual_allocation.py' -v
+          python -m unittest discover -s tests -p 'test_p8_mobile_readonly_planner.py' -v
       - name: Reject research-CI inflation of operational completion
         run: |
           python -m unittest discover -s tests -p 'test_kyoto_operational_readiness.py' -v
