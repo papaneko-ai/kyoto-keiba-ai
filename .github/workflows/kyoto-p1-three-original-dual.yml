@@ -12,6 +12,7 @@ on:
       - 'tests/test_p1_three_original_dual_intake.py'
       - 'tests/test_p1_three_original_content_binding.py'
       - 'diagnostics/jra_odds_matrix_parser.py'
+      - 'diagnostics/p1_three_original_content_cli.py'
       - 'tests/test_p1_dual_market_offline_audit.py'
 permissions:
   contents: read
