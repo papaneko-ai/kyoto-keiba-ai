@@ -5,7 +5,8 @@ after the independently confirmed freeze cutoff, or against unofficial hosts.
 Every HTTP response has a separate timestamp, byte count, and SHA-256.
 """
 from __future__ import annotations
-from datetime import datetime,timezone,timedelta
+from datetime import date
+from zoneinfo import ZoneInfotime,timezone,timedelta
 from pathlib import Path
 from hashlib import sha256
 from http.cookiejar import CookieJar
@@ -118,6 +119,10 @@ def capture(out,*,channel,verified_start_utc,active_runners,now_utc=None,opener=
     spec=(race_spec or DEFAULT_RACE_SPEC).validate()
     folder=Path(out);folder.mkdir(parents=True,exist_ok=True)
     start=aware_utc(verified_start_utc)
+    if start.astimezone(ZoneInfo('Asia/Tokyo')).date().strftime('%Y%m%d')!=spec.race_day:
+        raise SourceChainError('verified_start_day_does_not_match_race_spec')
+    if not 2<=len(active_runners)<=18 or len({x[0] for x in active_runners})!=len(active_runners):
+        raise SourceChainError('independent_active_roster_required')
     now=aware_utc(now_utc) if now_utc else datetime.now(timezone.utc)
     result={"schema_version":"jra_one_shot_market_capture.v1","race_id":spec.race_id,
         "channel":channel,"started_at_utc":now.isoformat(),
