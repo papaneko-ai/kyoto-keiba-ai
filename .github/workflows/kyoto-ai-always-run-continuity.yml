@@ -40,6 +40,7 @@ jobs:
         run: |
           python -m unittest discover -s tests -p 'test_p1_three_original_dual_intake.py' -v
           python -m unittest discover -s tests -p 'test_p1_three_original_content_binding.py' -v
+          python -m unittest discover -s tests -p 'test_p1_operator_original_handoff.py' -v
           python -m unittest discover -s tests -p 'test_jra_one_shot_market_capture.py' -v
           python -m unittest discover -s tests -p 'test_p2_three_way_discovery.py' -v
           python -m unittest discover -s tests -p 'test_p3_research_calibration.py' -v
