@@ -70,7 +70,8 @@ class MarketTemporalSourceAcceptance(unittest.TestCase):
         self.assertEqual(r["observed_price_drifts"],{"odds":"0","bracket_odds":"0"})
         self.assertEqual(r["network_requests"],0)
     def test_price_change_verified_from_new_original_and_blocked_on_large_drift(self):
-        old=self.current();prior=copy.deepcopy(self.fx.snapshot)
+        old=export_bundle(self.fx.manifest,self.fx.root,observed_utc="2026-11-13T04:59:00Z")
+        prior=copy.deepcopy(self.fx.snapshot)
         # A second independently captured immutable original is needed.
         self.fx.set_original(1,market_html("馬連オッズ","umaren",["1 2 9.9"]))
         self.fx.snapshot["odds"][0]["decimal"]=9.9
