@@ -37,6 +37,27 @@ class HandoffTests(unittest.TestCase):
         self.assertFalse(r['prediction_ready'])
         self.assertEqual(r['network_requests'],0)
     def test_deterministic(self): self.assertEqual(self.bundle(),self.bundle())
+    def test_zip_metadata_fixed_for_every_member(self):
+        one=self.bundle()
+        with zipfile.ZipFile(io.BytesIO(one)) as z:
+            for info in z.infolist():
+                self.assertEqual(info.date_time,(1980,1,1,0,0,0))
+                self.assertEqual((info.external_attr >> 16)&0o777,0o600)
+        self.assertEqual(hashlib.sha256(one).hexdigest(),
+                         hashlib.sha256(self.bundle()).hexdigest())
+    def test_read_old_valid_archive_with_variable_zip_dates(self):
+        source=self.bundle()
+        with zipfile.ZipFile(io.BytesIO(source)) as z:
+            members={name:z.read(name) for name in z.namelist()}
+        output=io.BytesIO()
+        with zipfile.ZipFile(output,'w',compression=zipfile.ZIP_STORED) as z:
+            for name,content in members.items():
+                info=zipfile.ZipInfo(name,date_time=(2026,11,10,15,30,2))
+                info.compress_type=zipfile.ZIP_STORED
+                z.writestr(info,content)
+        old=output.getvalue()
+        self.assertNotEqual(source,old)
+        self.assertEqual(import_bundle(old,observed_utc=NOW)['source_count'],1)
     def test_modified_raw(self):
         b=self.repack(self.bundle(),lambda x:x.__setitem__('originals/source_01.html',b'tampered'))
         with self.assertRaises(EvidenceRejected):import_bundle(b,observed_utc=NOW)
