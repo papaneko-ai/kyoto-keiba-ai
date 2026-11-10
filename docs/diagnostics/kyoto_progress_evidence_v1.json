@@ -180,6 +180,19 @@
       "kind": "HISTORICAL_OR_RESEARCH_SCOPE_ONLY"
     },
     {
+      "id": "P7-01",
+      "run_id": 42757592297,
+      "job_id": 129635465960,
+      "head_sha": "e6e908e3eef00ac6ea8b749bdee3a9d1fedb5a27",
+      "workflow_name": "Kyoto AI objective progress and continuity gate",
+      "source_paths": [
+        "diagnostics/p7_approved_evo_capability_screen.py",
+        "tests/test_p7_approved_evo_capability_screen.py",
+        "docs/diagnostics/kyoto_ai_evolution_requirements_manifest_20261106.json"
+      ],
+      "kind": "HISTORICAL_OR_RESEARCH_SCOPE_ONLY"
+    },
+    {
       "id": "P7-03",
       "run_id": 42738620357,
       "job_id": 129573890885,
