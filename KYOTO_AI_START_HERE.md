@@ -157,3 +157,6 @@ P1は未完了。**新開催日の許容されたデータ取得経路と発走�
 
 ## 2026-11-10 最新節目：P8-02スマホ統合診断・予算UI、研究工程56点
 - 正本 docs/KYOTO_AI_20261110_P8_MOBILE_INTEGRATION_56PCT_MILESTONE.md。diagnostics/p8_mobile_readonly_planner_app.py は保存済み実148頭・プロフィール確認96頭の履歴表示と、馬連/枠連・予算・候補・比率の手動操作を1画面に統合。AppTest実操作で検証。P8-02固定3点のみ追加合格。研究工程53→56点、18/32合格、14未達。採点CI run 42756125698/job 129630826914/SHA b6f7ba1ee160897764f75a1d2dfe0cb0d99f989b success。独立検証済み実用能力下限0/100。実予想・発走前価格・仮想精算・公開環境は未接続。次は実開催の合法的な原本・時刻証拠と実モデル連携。
+
+## 2026-11-10 最新節目：P4-04下振れ・市場歪み検証、研究工程58点
+- 正本 docs/KYOTO_AI_20261110_P4_DOWNSIDE_RISK_58PCT_MILESTONE.md。diagnostics/p4_research_market_risk.py と tests/test_p4_research_market_risk.py を追加し、全組合せ価格検証、確率誤差・オッズ下落ストレス、歪み指標、名目プラスから下振れマイナスの検出を常時CIで実証。P4-04固定2点のみ追加合格。研究工程56→58点、19/32合格、13未達。採点CI run 42756626458/job 129632399020/SHA 845cec39fc1d5f6a3c196715fa3502cf166321b3 success。独立検証済み実用能力0/100は不変。ライブ予測・実発走前オッズ・実市場検証ではない。
