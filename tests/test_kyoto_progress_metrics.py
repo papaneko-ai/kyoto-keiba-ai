@@ -1,7 +1,10 @@
 """Deterministic and destructive acceptance tests for the progress scorer."""
 import copy
 import unittest
-from diagnostics.kyoto_progress_metrics import ProgressError, WEIGHTS, verify_rubric, measure
+import tempfile
+import json
+from pathlib import Path
+from diagnostics.kyoto_progress_metrics import ProgressError, WEIGHTS, verify_rubric, measure, persistent_baseline
 
 
 def fake_rubric():
@@ -109,6 +112,26 @@ class ProgressMetricsTests(unittest.TestCase):
         second = measure(r, e, lambda _: True)
         self.assertEqual(first, second)
         self.assertEqual((r, e), snapshots)
+
+
+    def test_permanent_baseline_valid_and_tamper_rejected(self):
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d)
+            target = root / "docs/diagnostics/kyoto_progress_baseline_20261110.json"
+            target.parent.mkdir(parents=True)
+            baseline = {"schema": "kyoto_progress_result.v1",
+                        "scope_id": "KYOTO_P1_P8_FIXED_20261110",
+                        "score_percent": 31,
+                        "rubric_sha256": "b836ae69a22427b185545f569f9c6dc90923293277c02c7d58681321e40bc7bf",
+                        "passed_ids": ["P1-01", "P1-02", "P2-01", "P3-01",
+                                       "P4-01", "P5-01", "P6-01", "P8-01"],
+                        "ci_run_id": "42730742998"}
+            target.write_text(json.dumps(baseline), encoding="utf-8")
+            self.assertEqual(persistent_baseline(root)["score_percent"], 31)
+            baseline["score_percent"] = 45
+            target.write_text(json.dumps(baseline), encoding="utf-8")
+            with self.assertRaisesRegex(ProgressError, "tampered"):
+                persistent_baseline(root)
 
 
 if __name__ == "__main__":
