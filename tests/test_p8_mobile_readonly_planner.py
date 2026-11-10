@@ -21,7 +21,7 @@ class MobileIntegrationTests(unittest.TestCase):
   self.assertEqual(app.radio[0].value,"枠連")
   self.assertEqual(len(app.slider),6)
   self.assertEqual(len(app.button),0)
-  self.assertTrue(any("15,000円" in str(x.value) for x in app.json))
+  self.assertEqual(app.number_input[0].value,15000)
  def test_no_network_or_actual_bet_imports(self):
   content=APP.read_text(encoding="utf-8")
   for forbidden in ("requests.get","urllib.request","st.button(","Turso","submit_order","place_bet"):
