@@ -9,6 +9,7 @@ import io
 import json
 import zipfile
 from datetime import timedelta
+from decimal import Decimal, InvalidOperation
 from diagnostics.jra_p1_future_evidence import instant
 from diagnostics.jra_p1_offline_handoff import import_bundle
 from diagnostics.jra_p1_snapshot_gate import evaluate
@@ -20,7 +21,7 @@ class ThreeOriginalRejected(ValueError):
 
 
 def inspect_three_original_dual_intake(bundle: bytes, snapshot: dict, *, observed_utc: str,
-                                       racecard_channel=None):
+                                       racecard_channel=None, verify_market_originals=False):
     try:
         imported = import_bundle(bundle, observed_utc=observed_utc)
         with zipfile.ZipFile(io.BytesIO(bundle)) as archive:
@@ -125,6 +126,54 @@ def inspect_three_original_dual_intake(bundle: bytes, snapshot: dict, *, observe
             "original_sha256": hashlib.sha256(original).hexdigest(),
         }
 
+    # Strict research-only 3-original content binding. Reuse the existing
+    # JRA odds matrix parser; do not trust caller-supplied snapshot prices.
+    market_receipts = None
+    if verify_market_originals:
+        if roster_receipt is None:
+            raise ThreeOriginalRejected("strict_markets_require_original_roster")
+        from diagnostics.jra_odds_matrix_parser import parse_matrix, OddsMatrixError
+        market_receipts = {}
+        market_inputs = (
+            ("pre_race_odds", "quinella", "odds", "odds"),
+            ("bracket_odds", "bracket_quinella", "bracket_odds", "bracket_odds"),
+        )
+        for kind, market_name, snapshot_key, receipt_key in market_inputs:
+            source = next(x for x in sources if x["kind"] == kind)
+            try:
+                with zipfile.ZipFile(io.BytesIO(bundle)) as archive:
+                    original = archive.read(source["path"])
+                parsed = parse_matrix(original, market_name,
+                                      expected_runners=len(snapshot["runners"])
+                                      if market_name == "quinella" else None)
+            except (OddsMatrixError, ValueError, KeyError, TypeError, zipfile.BadZipFile) as exc:
+                raise ThreeOriginalRejected(receipt_key + "_original_parse_failed") from exc
+            if parsed["historical_final_detected"]:
+                raise ThreeOriginalRejected(receipt_key + "_historical_final_forbidden")
+            if market_name == "bracket_quinella":
+                active_frames = {x["bracket"] for x in snapshot["runners"]
+                                 if x["status"] == "ACTIVE"}
+                if parsed["matrix_dimension"] != max(active_frames):
+                    raise ThreeOriginalRejected("bracket_matrix_dimension_mismatch")
+            try:
+                expected = {
+                    (min(row["first"], row["second"]),
+                     max(row["first"], row["second"])): Decimal(str(row["decimal"]))
+                    for row in snapshot[snapshot_key]
+                }
+                actual = {tuple(row["pair"]): Decimal(row["odds"])
+                          for row in parsed["pairs"]}
+            except (InvalidOperation, ValueError, TypeError, KeyError) as exc:
+                raise ThreeOriginalRejected(receipt_key + "_snapshot_prices_invalid") from exc
+            if expected != actual:
+                raise ThreeOriginalRejected(receipt_key + "_original_prices_disagree")
+            market_receipts[receipt_key] = {
+                "verified_against_original_bytes": True,
+                "source_sha256": parsed["source_sha256"],
+                "pair_count": parsed["pair_count"],
+                "historical_final_detected": False,
+            }
+
     raw = json.dumps(snapshot, sort_keys=True, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
     return {
         "schema": "kyoto_p1_three_original_offline_intake.v1",
@@ -147,5 +196,7 @@ def inspect_three_original_dual_intake(bundle: bytes, snapshot: dict, *, observe
         "actual_orders_authorized": False,
         "racecard_roster_original_verified": roster_receipt is not None,
         "racecard_roster_receipt": roster_receipt,
+        "market_prices_original_verified": market_receipts is not None,
+        "market_original_receipts": market_receipts,
         "network_requests": 0
     }
