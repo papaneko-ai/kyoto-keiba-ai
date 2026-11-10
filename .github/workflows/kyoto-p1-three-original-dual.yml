@@ -10,6 +10,8 @@ on:
       - 'diagnostics/p1_dual_market_offline_audit.py'
       - 'diagnostics/p1_three_original_dual_intake.py'
       - 'tests/test_p1_three_original_dual_intake.py'
+      - 'tests/test_p1_three_original_content_binding.py'
+      - 'diagnostics/jra_odds_matrix_parser.py'
       - 'tests/test_p1_dual_market_offline_audit.py'
 permissions:
   contents: read
@@ -32,6 +34,7 @@ jobs:
       - name: Check independent three originals, tamper, stale market and fail closed
         run: |
           python -m unittest discover -s tests -p 'test_p1_three_original_dual_intake.py' -v
+          python -m unittest discover -s tests -p 'test_p1_three_original_content_binding.py' -v
           python -m unittest discover -s tests -p 'test_p1_dual_market_offline_audit.py' -v
       - name: Retain the older two-original backward-compatible gate
         run: |
