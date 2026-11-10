@@ -104,3 +104,9 @@ P1は未完了。**新開催日の許容されたデータ取得経路と発走�
 - `.github/workflows/kyoto-ai-always-run-continuity.yml` に既存再開ゲートと進捗採点を一体化。進捗実測の成功run/job/logと `kyoto-ai-progress-report` Artifactの存在を毎回照合する。アプリの予測精度や実稼働を示す数値ではない。
 
 - 2026-11-10進捗計測の永続基準：`docs/diagnostics/kyoto_progress_baseline_20261110.json`。GitHub Actionsの90日Artifactが失効しても、実測31％（run `42730742998`）を起点として差分比較できる。採点器の `persistent_baseline()` は旧45％への改ざんを拒否する。以後、終了時はrun/job/logと今回/前回/差分/未達を必ず確認。
+
+## 2026-11-10 P1実HTML原本→構造化名簿の照合
+- 続行記録：docs/KYOTO_AI_20261110_P1_REAL_RACECARD_ROSTER_BINDING_MILESTONE.md。
+- 既存3原本受入に racecard_channel=PC/SP の厳密モードを追加し、保存済みHTMLの実内容とsnapshotの馬番・枠番・馬名を既存解析器で照合。従来の構造チェックは互換維持し、予測認可は行わない。
+- 受入run 42732185562 と再開・進捗run 42732185888 は同一SHA 19c334280ecc5ff88868a57299e5300e56016a75 でsuccess。初期の構文/依存関係CI失敗は修復済み。進捗31%、差分0。
+- 次は実オッズHTML原本と構造化価格の内容照合、新開催日許容取得経路。合成テスト数の増加を完成率に加点しない。
