@@ -20,6 +20,8 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
+      - name: Install existing PC/SP parser dependency
+        run: python -m pip install 'beautifulsoup4>=4.12,<5'
       - name: Validate existing feature inventory and change intent
         run: python -m diagnostics.kyoto_development_preflight --root .
       - name: Regression tests for historical source and duplicates
