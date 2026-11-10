@@ -42,6 +42,7 @@ jobs:
           assert score['source_commit']==os.environ['GITHUB_SHA']
           assert score['score_percent']==sum(p['earned'] for p in score['phases'].values())
           assert score['total_points']==100 and score['score_percent']<=100
+          print('KYOTO_FIXED_RUBRIC_SHA256='+score['rubric_sha256'])
           print('CONTINUITY_AND_PROGRESS_PASS_AT_SHA='+os.environ['GITHUB_SHA'])
           PY
       - uses: actions/upload-artifact@v4
