@@ -88,5 +88,52 @@ class StrictThreeOriginalContentTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             self.inspect()
 
+    def test_sp_original_roster_and_both_markets(self):
+        raw = ('''<html><table>
+        <tr><td class="uban">1</td><td class="wban">1</td>
+        <td><a href="/JRADB/accessU.html?CNAME=a">A</a></td></tr>
+        <tr><td class="uban">2</td><td class="wban">2</td>
+        <td><a href="/JRADB/accessU.html?CNAME=b">B</a></td></tr>
+        </table></html>''').encode('cp932')
+        self.set_original(0,raw)
+        bundle=export_bundle(self.manifest,self.root,observed_utc=NOW)
+        result=inspect_three_original_dual_intake(
+            bundle,self.snapshot,observed_utc=NOW,
+            racecard_channel='SP',verify_market_originals=True)
+        self.assertTrue(result['market_prices_original_verified'])
+        self.assertEqual(result['racecard_roster_receipt']['channel'],'SP')
+
+    def test_cli_writes_immutable_receipt_and_rejects_second_write(self):
+        import json
+        from diagnostics.p1_three_original_content_cli import main
+        bundle=self.root/'three-originals.zip'
+        bundle.write_bytes(export_bundle(self.manifest,self.root,observed_utc=NOW))
+        snapshot=self.root/'snapshot.json'
+        snapshot.write_text(json.dumps(self.snapshot),encoding='utf8')
+        receipt=self.root/'result.json'
+        args=['--bundle',str(bundle),'--snapshot',str(snapshot),
+              '--observed-utc',NOW,'--channel','PC','--out',str(receipt)]
+        result=main(args)
+        self.assertTrue(receipt.exists())
+        self.assertFalse(result['prediction_ready'])
+        with self.assertRaisesRegex(ValueError,'immutable_receipt_already_exists'):
+            main(args)
+
+    def test_cli_tampered_snapshot_does_not_write_receipt(self):
+        import json
+        from diagnostics.p1_three_original_content_cli import main
+        bundle=self.root/'three-originals.zip'
+        bundle.write_bytes(export_bundle(self.manifest,self.root,observed_utc=NOW))
+        snapshot=self.root/'snapshot.json'
+        altered=copy.deepcopy(self.snapshot)
+        altered['odds'][0]['decimal']=10.0
+        snapshot.write_text(json.dumps(altered),encoding='utf8')
+        receipt=self.root/'blocked.json'
+        with self.assertRaisesRegex(ThreeOriginalRejected,'odds_original_prices_disagree'):
+            main(['--bundle',str(bundle),'--snapshot',str(snapshot),
+                  '--observed-utc',NOW,'--channel','PC','--out',str(receipt)])
+        self.assertFalse(receipt.exists())
+
+
 if __name__=='__main__':
     unittest.main()
