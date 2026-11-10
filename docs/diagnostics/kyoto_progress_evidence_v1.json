@@ -197,6 +197,19 @@
       "kind": "HISTORICAL_OR_RESEARCH_SCOPE_ONLY"
     },
     {
+      "id": "P5-02",
+      "run_id": 42767741903,
+      "job_id": 129668117181,
+      "head_sha": "d107a9a5162c066c8eca3c7a73234dd4cbf810f5",
+      "workflow_name": "Kyoto AI objective progress and continuity gate",
+      "source_paths": [
+        "diagnostics/p5_source_bound_race_ranking_lab.py",
+        "diagnostics/p4_source_bound_model_ev_research.py",
+        "tests/test_p5_source_bound_race_ranking_lab.py"
+      ],
+      "kind": "HISTORICAL_OR_RESEARCH_SCOPE_ONLY"
+    },
+    {
       "id": "P5-04",
       "run_id": 42755410973,
       "job_id": 129628530896,
