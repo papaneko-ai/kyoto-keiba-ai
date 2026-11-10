@@ -1,5 +1,5 @@
 import unittest
-from diagnostics.p7_approved_evo_capability_screen import screen_capabilities,CapabilityRejected,EXPECTED,REQUIRED
+from diagnostics.p7_approved_evo_capability_screen import screen_capabilities,falsify_research_candidates,CapabilityRejected,EXPECTED,REQUIRED
 
 class ApprovedEvolutionTests(unittest.TestCase):
  def test_all_eight_approved_capabilities_not_hyp_features(self):
@@ -24,4 +24,15 @@ class ApprovedEvolutionTests(unittest.TestCase):
   with self.assertRaises(CapabilityRejected):screen_capabilities({"HYP-01":{}})
   with self.assertRaises(CapabilityRejected):screen_capabilities({"EVO-01":{"unapproved":1}})
   with self.assertRaises(CapabilityRejected):screen_capabilities({"EVO-08":{"surprise_metric":None}})
+ def test_falsification_all_eight_and_no_auto_promotion(self):
+  base={eid:{k:0 for k in REQUIRED[eid]} for eid in EXPECTED}
+  r=falsify_research_candidates(base)
+  self.assertEqual(len(r["results"]),8)
+  self.assertTrue(all(x["verdict"]=="REFUTED_RESEARCH_CANDIDATE" for x in r["results"]))
+  self.assertTrue(all(x["deployable"] is False for x in r["results"]))
+  self.assertFalse(r["certified"])
+  self.assertFalse(r["auto_promote"])
+  self.assertEqual(falsify_research_candidates({})["results"][0]["verdict"],"INSUFFICIENT_EVIDENCE")
+  base["EVO-02"]["candidate_loss"]=float("nan")
+  with self.assertRaises(CapabilityRejected):falsify_research_candidates(base)
 if __name__=="__main__":unittest.main()
