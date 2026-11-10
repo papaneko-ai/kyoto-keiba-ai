@@ -14,6 +14,7 @@ from pathlib import Path
 RUBRIC = "docs/diagnostics/kyoto_research_graduation_rubric_v1.json"
 INTEGRATION = "docs/diagnostics/kyoto_research_graduation_integration_claims_v1.json"
 AREAS = ("RG-01", "RG-02", "RG-03", "RG-04", "RG-05", "RG-06")
+EXPECTED_COMPONENTS = (("P3-01","P6-01"), ("P4-01","P5-01"), ("P3-03","P3-04"), ("P7-02","P7-03"), ("P1-02","P4-04"), ("P8-01","P7-04"))
 
 class GraduationRejected(ValueError):
     pass
@@ -31,14 +32,14 @@ def evaluate(rubric, verified_progress, integrations, *, accepted_integration_pr
     areas = rubric.get("areas")
     if type(areas) is not list or tuple(a.get("id") for a in areas) != AREAS:
         raise GraduationRejected("six_fixed_areas_changed")
-    for area in areas:
+    for index, area in enumerate(areas):
         if set(area) != {"id","title","component","integration"}:
             raise GraduationRejected("area_schema_invalid")
         c, g = area["component"], area["integration"]
         if (set(c) != {"id","title","requires_progress_ids"} or
                 set(g) != {"id","title"} or c["id"] != area["id"]+"A" or
                 g["id"] != area["id"]+"B" or type(c["requires_progress_ids"]) is not list
-                or len(c["requires_progress_ids"]) != 2 or
+                or tuple(c["requires_progress_ids"]) != EXPECTED_COMPONENTS[index] or
                 any(type(v) is not str for v in c["requires_progress_ids"])):
             raise GraduationRejected("criterion_mutation_detected")
     if (type(verified_progress) is not dict or
@@ -52,6 +53,8 @@ def evaluate(rubric, verified_progress, integrations, *, accepted_integration_pr
     if type(claims) is not list:
         raise GraduationRejected("integration_claims_must_be_list")
     valid_integrated = {a["integration"]["id"] for a in areas}
+    if any(type(c) is not dict for c in claims):
+        raise GraduationRejected("integration_claim_invalid")
     if len({c.get("id") for c in claims}) != len(claims) or any(
             type(c) is not dict or set(c) != {"id","proof_run_id","proof_job_id",
                     "proof_head_sha","source_paths","acceptance_test"} or
@@ -102,7 +105,7 @@ def main(argv=None):
     if claims.get("claims"):
         raise GraduationRejected("independent_integration_proof_verifier_not_yet_enabled")
     result=evaluate(rubric,progress,claims)
-    Path(args.out).write_bytes(canonical(result)+b"\\n")
+    Path(args.out).write_bytes(canonical(result)+bytes([10]))
     print("KYOTO_RESEARCH_GRADUATION="+str(result["graduation_percent"])+"%")
     print("KYOTO_RESEARCH_GRADUATION_CONDITIONS="+str(result["graduation_passed_conditions"])+"/12")
     print("KYOTO_RESEARCH_GRADUATION_INTEGRATED="+str(result["integration_passed"])+"/6")
