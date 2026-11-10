@@ -4,6 +4,7 @@ Real mobile-friendly Streamlit controls. Does not read or invent race/odds/model
 data, place orders, persist user selections, or generate recommendations.
 """
 import streamlit as st
+from diagnostics.p5_manual_allocation import allocate
 
 st.set_page_config(page_title="京都競馬AI｜予算操作",page_icon="🏇",layout="centered")
 st.title("京都競馬AI｜予算・買い目の操作")
@@ -19,19 +20,7 @@ weights=[]
 for i in range(races):
  weights.append(st.slider(f"第{i+1}候補の配分比率（相対値）",min_value=0,max_value=100,
                           value=max(10,100//races),key=f"ratio_{i}"))
-total=sum(weights)
-if total==0 or budget==0:
- allocations=[0]*races
-else:
- # Allocate in 100-yen increments, never exceed budget or create fake tickets.
- units=budget//100
- numerators=[units*w for w in weights]
- base=[v//total for v in numerators]
- left=units-sum(base)
- # Largest remainder with deterministic candidate-order tie breaking.
- order=sorted(range(races),key=lambda i:(-(numerators[i]%total),i))
- for i in order[:left]:base[i]+=1
- allocations=[v*100 for v in base]
+allocations=allocate(int(budget),weights)
 st.subheader("入力内容の確認")
 st.write({"選択":market,"候補レース数":races,"1レースの最大買い目数":picks,
           "予算上限":f"{budget:,}円","配分合計":f"{sum(allocations):,}円",
