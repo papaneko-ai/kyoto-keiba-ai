@@ -13,6 +13,9 @@ from urllib.request import Request,build_opener,HTTPCookieProcessor
 from urllib.parse import urlsplit,urlencode
 from bs4 import BeautifulSoup
 import argparse,json,re
+from dataclasses import dataclass
+from datetime import date
+from urllib.parse import parse_qs
 
 from diagnostics.jra_official_market_navigation import find_market_links,MarketNavigationError
 from diagnostics.jra_market_source_chain import audit_source_originals,SourceChainError
@@ -28,6 +31,52 @@ SP_RACECARD_URL="https://sp.jra.jp/JRADB/accessD.html?CNAME=sw01dde0108202605011
 MOBILE_UA="Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 Version/17.0 Mobile/15E148 Safari/604.1"
 ACTION=re.compile(r"doAction\s*\(\s*['\"](/JRADB/accessO\.html)['\"]\s*,\s*['\"]([^'\"]+)['\"]")
 LIMIT=1_500_000
+
+@dataclass(frozen=True)
+class ObservedRaceSpec:
+    """User-supplied, independently observed official navigation, never guessed."""
+    race_day: str
+    race_number: int
+    race_id: str
+    venue: str
+    pc_racecard_url: str
+    sp_racecard_url: str
+    normal_sales_open_utc: str
+
+    def validate(self):
+        try:
+            d=date.fromisoformat(self.race_day[:4]+"-"+self.race_day[4:6]+"-"+self.race_day[6:])
+            if d.strftime("%Y%m%d")!=self.race_day:raise ValueError("date")
+            if type(self.race_number) is not int or not 1<=self.race_number<=12:
+                raise ValueError("race")
+            if self.venue!="京都" or not re.fullmatch(r"[A-Za-z0-9_-]{8,80}",self.race_id):
+                raise ValueError("race_identity")
+            if d.strftime("%Y-%m-%d") not in self.race_id or not re.search(
+                    fr"(?:^|[_-]){self.race_number}R(?:$|[_-])",self.race_id):
+                raise ValueError("race_key_not_bound")
+            from diagnostics.jra_market_integrity_gate import normal_sales_open
+            opening=normal_sales_open(d)
+            if opening is None or aware_utc(self.normal_sales_open_utc)!=opening:
+                raise ValueError("sales_time_not_independently_validated")
+            for channel,url in (("PC",self.pc_racecard_url),("SP",self.sp_racecard_url)):
+                u=urlsplit(url)
+                host="jra.jp" if channel=="PC" else "sp.jra.jp"
+                q=parse_qs(u.query,strict_parsing=True)
+                if (u.scheme!="https" or u.hostname!=host or u.port is not None
+                        or u.username is not None or u.password is not None
+                        or u.path!="/JRADB/accessD.html" or u.fragment
+                        or set(q)!={"CNAME"} or len(q["CNAME"])!=1
+                        or not re.fullmatch(r"[ps]w[A-Za-z0-9]+/[A-Za-z0-9]+",q["CNAME"][0])
+                        or not q["CNAME"][0].startswith("pw" if channel=="PC" else "sw")):
+                    raise ValueError("unverified_official_racecard_url")
+        except (ValueError,TypeError,OverflowError) as exc:
+            raise SourceChainError("race_spec_unverified:"+str(exc)) from exc
+        return self
+
+
+DEFAULT_RACE_SPEC=ObservedRaceSpec(RACE_DAY,RACE_NUMBER,RACE_ID,VENUE,
+    PC_RACECARD_URL,SP_RACECARD_URL,NORMAL_SALES_OPEN_UTC)
+
 
 def exact_odds_action(raw,channel):
     soup=BeautifulSoup(raw.decode("cp932",errors="replace"),"html.parser")
@@ -63,17 +112,19 @@ def http_fetch(opener,channel,path,*,cname=None,referer=None):
     return {"raw":data,"sha256":sha256(data).hexdigest(),"bytes":len(data),
             "captured_at_utc":received_at,"http_status":status,"method":method}
 
-def capture(out,*,channel,verified_start_utc,active_runners,now_utc=None,opener=None):
+def capture(out,*,channel,verified_start_utc,active_runners,now_utc=None,opener=None,
+            race_spec=None,authorized_live_http=False):
+    spec=(race_spec or DEFAULT_RACE_SPEC).validate()
     folder=Path(out);folder.mkdir(parents=True,exist_ok=True)
     start=aware_utc(verified_start_utc)
     now=aware_utc(now_utc) if now_utc else datetime.now(timezone.utc)
-    result={"schema_version":"jra_one_shot_market_capture.v1","race_id":RACE_ID,
+    result={"schema_version":"jra_one_shot_market_capture.v1","race_id":spec.race_id,
         "channel":channel,"started_at_utc":now.isoformat(),
         "verified_start_utc":start.isoformat(),"state":"STARTED",
         "request_receipts":[],"pre_race_prices_accepted":False,
         "prediction_ready":False,"training_ready":False}
     if channel not in ("PC","SP"):raise SourceChainError("invalid_channel")
-    if now<aware_utc(NORMAL_SALES_OPEN_UTC):
+    if now<aware_utc(spec.normal_sales_open_utc):
         result["state"]="WAIT_FOR_OFFICIAL_SALES"
         (folder/"receipt.json").write_text(json.dumps(result,ensure_ascii=False,indent=2)+"\n",encoding="utf8")
         return result
@@ -81,8 +132,13 @@ def capture(out,*,channel,verified_start_utc,active_runners,now_utc=None,opener=
         result["state"]="CUTOFF_PASSED_NO_HTTP"
         (folder/"receipt.json").write_text(json.dumps(result,ensure_ascii=False,indent=2)+"\n",encoding="utf8")
         return result
-    if opener is None:opener=build_opener(HTTPCookieProcessor(CookieJar()))
-    source=PC_RACECARD_URL if channel=="PC" else SP_RACECARD_URL
+    if opener is None:
+        if not authorized_live_http:
+            result["state"]="LIVE_HTTP_NOT_AUTHORIZED"
+            (folder/"receipt.json").write_text(json.dumps(result,ensure_ascii=False,indent=2)+"\\n",encoding="utf8")
+            return result
+        opener=build_opener(HTTPCookieProcessor(CookieJar()))
+    source=spec.pc_racecard_url if channel=="PC" else spec.sp_racecard_url
     host="jra.jp" if channel=="PC" else "sp.jra.jp"
     try:
         racecard=http_fetch(opener,channel,source)
@@ -100,8 +156,8 @@ def capture(out,*,channel,verified_start_utc,active_runners,now_utc=None,opener=
         if "最終オッズ" in text:
             result["state"]="REJECT_FINAL_ODDS"
             return result
-        try:markets=find_market_links(menu["raw"],expected_race_day=RACE_DAY,
-                expected_race_number=RACE_NUMBER,expected_host=host)
+        try:markets=find_market_links(menu["raw"],expected_race_day=spec.race_day,
+                expected_race_number=spec.race_number,expected_host=host)
         except MarketNavigationError:
             # The current page may be a meeting-selection index. Do not
             # invent subsequent endpoints; require observed navigation.
@@ -121,7 +177,7 @@ def capture(out,*,channel,verified_start_utc,active_runners,now_utc=None,opener=
             (folder/f"{market}_original.html").write_bytes(page["raw"])
             result["request_receipts"].append({"step":market,**{k:v for k,v in page.items() if k!="raw"}})
         chain=audit_source_originals(menu["raw"],market_originals,urls,
-          race_key=RACE_ID,race_day=RACE_DAY,venue=VENUE,race_number=RACE_NUMBER,
+          race_key=spec.race_id,race_day=spec.race_day,venue=spec.venue,race_number=spec.race_number,
           channel=channel,captured_at_utc=menu["captured_at_utc"],
           verified_start_utc=start.isoformat(),active_runners=active_runners,
           market_captured_at_utc=times,
