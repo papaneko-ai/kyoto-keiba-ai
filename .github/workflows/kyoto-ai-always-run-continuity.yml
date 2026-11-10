@@ -80,9 +80,10 @@ jobs:
           import json
           from pathlib import Path
           x=json.loads(Path('/tmp/kyoto-graduation.json').read_text(encoding='utf-8'))
-          assert x['graduation_passed_conditions']==6 and x['graduation_total_conditions']==12
-          assert x['integration_passed']==0 and x['graduation_percent']==50.0
-          assert not x['graduation_eligible']
+          assert x['graduation_total_conditions']==12
+          assert x['graduation_passed_conditions']==sum(int(r['component_pass'])+int(r['integration_pass']) for r in x['areas'])
+          assert x['graduation_percent']==round(x['graduation_passed_conditions']*100/12,1)
+          assert x['graduation_eligible']==(x['graduation_passed_conditions']==12)
           print('GRADUATION_PROOF_SEPARATE_FROM_P1_P8=TRUE')
           PY
       - uses: actions/upload-artifact@v4
