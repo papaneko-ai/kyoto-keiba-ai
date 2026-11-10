@@ -25,6 +25,19 @@
         "tests/test_rg02_dual_market_integrated_lab.py"
       ],
       "acceptance_test": "test_rg02_dual_market_integrated_lab.py"
+    },
+    {
+      "id": "RG-03B",
+      "proof_run_id": 42761253148,
+      "proof_job_id": 129647192818,
+      "proof_head_sha": "2d4ce146e2a32fa3ae6d7b91c5032aa000af2984",
+      "source_paths": [
+        "diagnostics/rg03_temporal_journal_walkforward_lab.py",
+        "diagnostics/p3_research_calibration.py",
+        "diagnostics/p6_fixture_durable_ledger.py",
+        "tests/test_rg03_temporal_journal_walkforward_lab.py"
+      ],
+      "acceptance_test": "test_rg03_temporal_journal_walkforward_lab.py"
     }
   ]
 }
