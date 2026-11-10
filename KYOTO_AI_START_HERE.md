@@ -180,3 +180,13 @@ P1は未完了。**新開催日の許容されたデータ取得経路と発走�
 - User requires **simultaneous transition development**, not completion of every research fixture before attempting real-world data hookups. For every RG-01..06, `diagnostics/kyoto_research_to_live_bridge.py` maps the research acceptance to existing concrete module paths and externally validated operational gates. The machine report `kyoto-ai-research-to-live-crosswalk` distinguishes known code, research integration, and independently verified real JRA functionality. Zero independently verified real-race capability remains zero rather than a false claim.
 - The continuous CI tests both metrics and uploads `kyoto-ai-research-graduation-report` and `kyoto-ai-research-to-live-crosswalk` as distinct artifacts. Validate the actual latest run/job/SHA and logs before calling either measured.
 - Do not amend prior 64-point measurements, treat research graduation 50% as equivalent to application completion, or allow live HTTP without independent authorization. Complete the RG integration gaps by connecting the **existing** P1 original intake and P3–P7 research pipeline safely under CI, then obtain real authorized sources and true official prerace market proof.
+
+
+## 2026-11-10 現行最新節目：P1-04研究開発79％、研究卒業100％
+- **必ずこの項目を過去の64％/50％記録より優先**して継続する。過去の節目記録はその時点の履歴であり削除しない。
+- 現行の固定32条件研究・開発工程認定は **79/100（24/32合格、8条件未達）**。前回73/100より固定P1-04配点+6。固定基準 `docs/diagnostics/kyoto_progress_rubric_v1.json` は変更していない。
+- 別の研究段階卒業条件は **100.0％（12/12、研究統合6/6）**。前回100％から変化なし。
+- **独立検証済みの実競馬接続0/6、独立実用能力の検証下限0/100**。LAB研究の受入を「新開催日のJRA公式発走前データを取得できた」「勝率や回収率を実証した」と言い換えない。
+- 最新の節目記録 `docs/KYOTO_AI_20261110_P1_ATOMIC_THREE_ORIGINALS_79PCT_MILESTONE.md` を全文確認。P1-04では `diagnostics/p1_atomic_dual_market_handoff.py` を実装、既存P1三原本検査を再利用し、出馬表・馬連・枠連を一つの決定論的ZIPに格納してSHA256再読込検証する。模擬・保存済み原本による15件のCI成功 run `42765350116` job `129660437249` SHA `bb9340d03e22a06523d5de4984d2b593efc5b0f9`。固定採点成功 run `42765494129` job `129660916673` SHA `8d6ce190d459c28c4176a8d55128f5ca5edabb61`。
+- 研究卒業100％時点の実装をゼロから作り直さず、許諾・真正性の独立確認されたJRA実開催の発走前データとオッズ、発売・取消状態・観測時刻証拠を既存P1→P3/P4/P5/P6/P7/P8へ入力する。本番実績の証拠不足時はfail closed。
+- main・Turso・Secrets・旧公開アプリ・実購入機能は無断変更しない。再開時に最新GitHub HEAD/Actions/保存済み原本/復旧ブランチを実照合し、最新CIの成功なしに得点を更新しない。
