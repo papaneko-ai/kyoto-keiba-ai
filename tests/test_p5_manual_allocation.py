@@ -1,4 +1,5 @@
 import unittest
+from pathlib import Path
 from diagnostics.p5_manual_allocation import allocate
 
 class AllocationTests(unittest.TestCase):
@@ -19,7 +20,7 @@ class AllocationTests(unittest.TestCase):
    with self.assertRaises(ValueError):allocate(b,w)
  def test_streamlit_app_controls_and_no_wager(self):
   from streamlit.testing.v1 import AppTest
-  app=AppTest.from_file("diagnostics/p5_manual_allocation_app.py",default_timeout=30).run()
+  app=AppTest.from_file(str(Path(__file__).resolve().parents[1]/"diagnostics/p5_manual_allocation_app.py"),default_timeout=30).run()
   self.assertFalse(app.exception)
   self.assertEqual(len(app.radio),1)
   self.assertEqual(app.radio[0].value,"馬連")
