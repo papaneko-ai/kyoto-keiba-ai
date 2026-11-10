@@ -127,12 +127,13 @@ class ThreeOriginalIntakeTests(unittest.TestCase):
 
 
     def test_strict_pc_racecard_matches_original_runner_roster(self):
-        raw = (b'<html><body>2026\x94N11\x8c\x8e14\x93\xfa 1\x83\x8c\x81[\x83X'
-               b'<table><tr><th class="horse"></th><th class="num"></th><th class="waku"></th></tr>'
-               b'<tr><td class="horse"><a href="/JRADB/accessU.html?CNAME=a">A</a></td>'
-               b'<td class="num">1</td><td class="waku"><img alt="\x98g1"></td></tr>'
-               b'<tr><td class="horse"><a href="/JRADB/accessU.html?CNAME=b">B</a></td>'
-               b'<td class="num">2</td><td class="waku"><img alt="\x98g2"></td></tr></table></body></html>')
+        raw = ('''<html><body>2026年11月14日 1レース
+        <table><tr><th class="horse"></th><th class="num"></th><th class="waku"></th></tr>
+        <tr><td class="horse"><a href="/JRADB/accessU.html?CNAME=a">A</a></td>
+        <td class="num">1</td><td class="waku"><img alt="枠1"></td></tr>
+        <tr><td class="horse"><a href="/JRADB/accessU.html?CNAME=b">B</a></td>
+        <td class="num">2</td><td class="waku"><img alt="枠2"></td></tr>
+        </table></body></html>''').encode('cp932')
         (self.root/'race.html').write_bytes(raw)
         sha=hashlib.sha256(raw).hexdigest()
         self.manifest['sources'][0]['sha256']=sha
