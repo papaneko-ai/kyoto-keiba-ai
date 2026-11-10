@@ -21,7 +21,7 @@ class TemporalFixtureTests(unittest.TestCase):
   if payout is not None or preliminary:
    event={"scenario_id":f"LAB-AGG-{i}","source_kind":"FIXTURE","version":1,
           "state":"RESULT_PRELIMINARY" if preliminary else "PAYOUT_FINAL",
-          "payout_per_100":{"1-2":payout} if payout is not None else {},
+          "payout_per_100":({"1-3":0} if payout==0 else {"1-2":payout}) if payout is not None else {},
           "refunded_pairs":[]}
    state=append_record(path,"RESULT_EVENT",event,expected_head=state["head"])
   return {"path":str(path),"expected_head":state["head"]}
