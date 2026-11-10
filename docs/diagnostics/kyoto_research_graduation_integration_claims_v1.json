@@ -38,6 +38,20 @@
         "tests/test_rg03_temporal_journal_walkforward_lab.py"
       ],
       "acceptance_test": "test_rg03_temporal_journal_walkforward_lab.py"
+    },
+    {
+      "id": "RG-04B",
+      "proof_run_id": 42761826020,
+      "proof_job_id": 129649066402,
+      "proof_head_sha": "8f2e852816df1f512ff5934f0d94190463379cc3",
+      "source_paths": [
+        "diagnostics/rg04_integrated_evolution_cycle_lab.py",
+        "diagnostics/p7_evo_candidate_falsification.py",
+        "diagnostics/p7_independent_research_certification.py",
+        "diagnostics/p7_guarded_research_rollback.py",
+        "tests/test_rg04_integrated_evolution_cycle_lab.py"
+      ],
+      "acceptance_test": "test_rg04_integrated_evolution_cycle_lab.py"
     }
   ]
 }
