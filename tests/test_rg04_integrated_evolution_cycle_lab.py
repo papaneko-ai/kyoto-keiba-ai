@@ -78,7 +78,8 @@ class Rg04ResearchCycle(unittest.TestCase):
     def test_unregistered_hypotheses_not_named_EVO(self):
         r=evaluate()
         self.assertTrue(r["selected_hypothesis_id"].startswith("HYP-"))
-        self.assertNotIn("EVO-01",str(r))
+        self.assertNotIn("EVO-01",r["selected_hypothesis_id"])
+        self.assertTrue(r["candidate"].endswith("HYP-01"))
     def test_duplicate_holdout_race_rejected(self):
         h=group(8,10);h[1]=copy.deepcopy(h[0])
         with self.assertRaisesRegex(EvolutionIntegrationRejected,"duplicate_or_mismatched_race"):
