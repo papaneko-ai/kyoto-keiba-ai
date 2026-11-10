@@ -116,3 +116,8 @@ P1は未完了。**新開催日の許容されたデータ取得経路と発走�
 - 既存の3原本SHA/時刻ゲート、PC/SP名簿解析器、馬連/枠連行列解析器を統合し、保存済みHTML原本と構造化snapshotの名簿・両市場価格を照合。厳密モード verify_market_originals=True と racecard_channel=PC/SP。偽価格、最終オッズ、欠損、名簿不一致を拒否。
 - 操作入口：python -m diagnostics.p1_three_original_content_cli --bundle evidence.zip --snapshot snapshot.json --observed-utc <UTC時刻> --channel PC --out strict_receipt.json。失敗時は証跡不作成、上書き禁止。新開催日の公式自動取得・実オッズ・取消・許諾は未実証、予測不許可。
 - 同一SHA a1f3cd587c47b763001fcb91186a5bfdb0962a5e に対し3原本CI run 42734038859、継続/採点CI run 42734038640 がともにsuccess。客観完成率31%、前回比0、未合格24基準。次は実開催の公式取得と公式レース・時刻・発売状態の独立認証。
+
+## 2026-11-10 広域節目：新開催日の観測済み公式URL・日付指定と実HTTP許諾ゲート
+- 記録 docs/KYOTO_AI_20261110_P1_FUTURE_RACE_CONFIG_AND_AUTHORIZATION_GATE_MILESTONE.md。既存 diagnostics/jra_one_shot_market_capture.py に ObservedRaceSpec と --race-spec-json を追加。PC/SP URLの観測済みCNAME・日付・JST発走日・発売開始UTCを検証し、旧開催日トークン使い回しを拒否。
+- 実ネットワークは既定で LIVE_HTTP_NOT_AUTHORIZED、HTTP要求0。スタブによる将来日動作、未発表・偽ホスト・重複馬・日付違いの破壊試験をCIに追加。**JRA実サイトへの新規取得、利用許諾、取消、実発走前価格は未達**。P1-03/04未合格、固定完成率31%据置。
+- 次は許諾の一次根拠と実際に観測された新開催日PC/SP URL・発走時刻・取消情報を確保してから、既存3原本厳密内容照合へ接続する。未承認のJRA自動通信を開始しない。
