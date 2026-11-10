@@ -3,7 +3,7 @@ import copy
 import hashlib
 import unittest
 from pathlib import Path
-from tests.test_p1_three_original_dual_intake import ThreeOriginalIntakeTests, NOW
+from test_p1_three_original_dual_intake import ThreeOriginalIntakeTests, NOW
 from diagnostics.jra_p1_offline_handoff import export_bundle
 from diagnostics.p1_three_original_dual_intake import (
     inspect_three_original_dual_intake, ThreeOriginalRejected)
