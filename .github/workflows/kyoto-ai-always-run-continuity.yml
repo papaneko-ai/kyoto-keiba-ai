@@ -57,6 +57,7 @@ jobs:
           python -m unittest discover -s tests -p 'test_p7_independent_holdout_research.py' -v
           python -m unittest discover -s tests -p 'test_p7_independent_research_certification.py' -v
           python -m unittest discover -s tests -p 'test_rg02_dual_market_integrated_lab.py' -v
+          python -m unittest discover -s tests -p 'test_rg01_prediction_freeze_settlement_lab.py' -v
           python -m unittest discover -s tests -p 'test_jra_pc_sp_saved_reconciliation.py' -v
       - name: Calculate objective P1-P8 score with real GitHub CI evidence
         run: |
