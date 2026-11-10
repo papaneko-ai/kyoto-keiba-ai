@@ -70,7 +70,7 @@ class StrictThreeOriginalContentTests(unittest.TestCase):
             self.inspect()
 
     def test_missing_market_matrix_rejected(self):
-        self.set_original(2,b'<html><title>枠連オッズ</title></html>')
+        self.set_original(2,'<html><title>枠連オッズ</title></html>'.encode('cp932'))
         with self.assertRaisesRegex(ThreeOriginalRejected,'bracket_odds_original_parse_failed'):
             self.inspect()
 
