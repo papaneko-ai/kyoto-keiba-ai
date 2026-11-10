@@ -130,6 +130,30 @@
       "kind": "HISTORICAL_OR_RESEARCH_SCOPE_ONLY"
     },
     {
+      "id": "P7-03",
+      "run_id": 42738620357,
+      "job_id": 129573890885,
+      "head_sha": "1ee9334c08953ddf0c7614d2a7511fed9244e507",
+      "workflow_name": "Kyoto AI objective progress and continuity gate",
+      "source_paths": [
+        "diagnostics/p7_guarded_research_rollback.py",
+        "tests/test_p7_guarded_research_rollback.py"
+      ],
+      "kind": "HISTORICAL_OR_RESEARCH_SCOPE_ONLY"
+    },
+    {
+      "id": "P7-04",
+      "run_id": 42738620357,
+      "job_id": 129573890885,
+      "head_sha": "1ee9334c08953ddf0c7614d2a7511fed9244e507",
+      "workflow_name": "Kyoto AI objective progress and continuity gate",
+      "source_paths": [
+        "diagnostics/p7_guarded_research_rollback.py",
+        "tests/test_p7_guarded_research_rollback.py"
+      ],
+      "kind": "HISTORICAL_OR_RESEARCH_SCOPE_ONLY"
+    },
+    {
       "id": "P8-01",
       "run_id": 42567945287,
       "job_id": 128998496139,
