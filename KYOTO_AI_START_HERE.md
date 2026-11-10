@@ -163,3 +163,12 @@ P1は未完了。**新開催日の許容されたデータ取得経路と発走�
 
 ## 2026-11-10 最新節目：P7-01正式EVO-01..08候補・反証、研究工程61点／移行推奨
 - 正本 docs/KYOTO_AI_20261110_COMPLETE_MIGRATION_PACK_61PCT.md。diagnostics/p7_approved_evo_capability_screen.py は正式EVO-01..08をHYP-01..08と区別して8機能の研究候補生成・反証を実装。tests/test_p7_approved_evo_capability_screen.py を常時CI。受入run 42757592297/job 129635465960/SHA e6e908e3eef00ac6ea8b749bdee3a9d1fedb5a27 success。採点run 42757698770/job 129635808906/SHA 18cf965aa361825b57a9c9e1eead8a359e339c89 success。P7-01固定3点のみ追加、研究工程58→61点（20/32合格・12未達）。実用能力独立検証下限0/100。進化の実績・独立認定・自動昇格は未実装。次は移行パック実読後、許諾済み実開催発走前データと実モデル・仮想投資の連結を優先。
+
+
+## 2026-11-10 P7-02 research-only 64-point milestone (latest)
+- Latest verified fixed-scope research score: **64/100**, **21 of 32** accepted and **11 pending**; prior 61/100, delta **+3**. The unchanged rubric is `docs/diagnostics/kyoto_progress_rubric_v1.json`.
+- GitHub Actions verified: run `42758669822`, job `129638928419`, SHA `2f63f29da63920dce961ab77bf5ee6c08541875d`, conclusion success; output: `KYOTO_PROGRESS_VERIFIED=64%`, `KYOTO_PROGRESS_DELTA=3`, `KYOTO_PROGRESS_REMAINING=11`.
+- P7-02 is a LAB-only separate evaluator over preregistered chronological fixtures: `diagnostics/p7_independent_holdout_research.py` plus `diagnostics/p7_independent_research_certification.py`; it independently checks Brier and a multiplicity-corrected exact sign test. Synthetic results cannot establish external JRA origin, true independent attestation, or deployed model improvement.
+- Operational readiness externally verified lower bound remains **0/100**. Do not call any actual model independently certified, or claim automated promotion, genuine live odds, or operational paper trading.
+- Recovery milestone and source ZIP are tracked by `docs/KYOTO_AI_20261110_P7_INDEPENDENT_RESEARCH_64PCT_MILESTONE.md` and workflow `.github/workflows/kyoto-ai-milestone-recovery-archive.yml`. Check that archive CI actually succeeds before relying on the ZIP.
+- Next hard gate remains **P1-03/P1-04**: independently authorized new-meeting official PC/SP racecards, published prerace quinella/bracket originals, UTC, sale/withdrawal proof. Do not issue JRA HTTP without permission, or replace historical closing odds with prerace values.
