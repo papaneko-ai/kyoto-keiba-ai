@@ -9,6 +9,7 @@ import argparse
 import hashlib
 import json
 import os
+import sys
 from pathlib import Path
 
 RUBRIC = "docs/diagnostics/kyoto_research_graduation_rubric_v1.json"
@@ -87,6 +88,61 @@ def evaluate(rubric, verified_progress, integrations, *, accepted_integration_pr
          "areas":rows}
     return out
 
+def independently_verify_integration_claims(root, claims):
+    """Authenticate historical push CI evidence, then rerun tests at current HEAD.
+
+    Only RG-02B is recognized in this release. No generic acceptance of
+    arbitrarily named features or self-declared success JSON.
+    """
+    from diagnostics.kyoto_progress_metrics import gh, run, REPO, BRANCH
+    root=Path(root).resolve()
+    expected={
+        "RG-02B": (
+            "diagnostics/rg02_dual_market_integrated_lab.py",
+            "diagnostics/p3_p6_research_no_bet.py",
+            "tests/test_rg02_dual_market_integrated_lab.py"
+        )
+    }
+    confirmed=set()
+    for claim in claims:
+        key=claim["id"]
+        if key not in expected:
+            raise GraduationRejected("unregistered_integration_criterion:"+key)
+        if claim["source_paths"]!=list(expected[key]) or claim["acceptance_test"]!="test_rg02_dual_market_integrated_lab.py":
+            raise GraduationRejected("source_or_test_proof_mismatch")
+        rid,jid,sha=claim["proof_run_id"],claim["proof_job_id"],claim["proof_head_sha"]
+        if (type(rid) is not int or type(jid) is not int or
+                type(sha) is not str or len(sha)!=40 or
+                any(c not in "0123456789abcdef" for c in sha)):
+            raise GraduationRejected("invalid_run_job_or_sha")
+        record=gh(f"repos/{REPO}/actions/runs/{rid}")
+        if (record.get("id")!=rid or record.get("head_sha")!=sha or
+                record.get("head_branch")!=BRANCH or record.get("event")!="push" or
+                record.get("name")!="Kyoto AI objective progress and continuity gate" or
+                record.get("status")!="completed" or record.get("conclusion")!="success" or
+                record.get("repository",{}).get("full_name")!=REPO):
+            raise GraduationRejected("integration_run_not_independently_verified")
+        job=gh(f"repos/{REPO}/actions/jobs/{jid}")
+        if (job.get("id")!=jid or job.get("run_id")!=rid or
+                job.get("status")!="completed" or job.get("conclusion")!="success" or
+                not any(step.get("name")=="Reuse existing three-original intake and PC/SP parser regressions"
+                        and step.get("conclusion")=="success" for step in job.get("steps",[]))):
+            raise GraduationRejected("integration_job_not_verified")
+        run("git","merge-base","--is-ancestor",sha,"HEAD",cwd=root)
+        wf=run("git","show",sha+":.github/workflows/kyoto-ai-always-run-continuity.yml",cwd=root)
+        if "python -m unittest discover -s tests -p 'test_rg02_dual_market_integrated_lab.py' -v" not in wf:
+            raise GraduationRejected("proof_SHA_workflow_lacked_integration_tests")
+        for path in claim["source_paths"]:
+            if not (root/path).is_file():
+                raise GraduationRejected("proof_source_missing")
+            run("git","cat-file","-e",sha+":"+path,cwd=root)
+        # At HEAD the full integration tests must still pass, detecting regressions.
+        run(sys.executable,"-m","unittest","discover","-s","tests",
+            "-p","test_rg02_dual_market_integrated_lab.py","-v",cwd=root)
+        confirmed.add(key)
+    return confirmed
+
+
 def main(argv=None):
     p=argparse.ArgumentParser()
     p.add_argument("--root",default=".")
@@ -100,11 +156,8 @@ def main(argv=None):
         raise GraduationRejected("progress_must_be_verified_on_current_SHA")
     rubric=read(root/RUBRIC)
     claims=read(root/INTEGRATION)
-    # Deliberately fail closed: integration proofs require independent checking.
-    # No integration claims are currently accepted by this metric.
-    if claims.get("claims"):
-        raise GraduationRejected("independent_integration_proof_verifier_not_yet_enabled")
-    result=evaluate(rubric,progress,claims)
+    accepted=independently_verify_integration_claims(root,claims.get("claims",[]))
+    result=evaluate(rubric,progress,claims,accepted_integration_proofs=accepted)
     Path(args.out).write_bytes(canonical(result)+bytes([10]))
     print("KYOTO_RESEARCH_GRADUATION="+str(result["graduation_percent"])+"%")
     print("KYOTO_RESEARCH_GRADUATION_CONDITIONS="+str(result["graduation_passed_conditions"])+"/12")
