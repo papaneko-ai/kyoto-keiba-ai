@@ -48,6 +48,18 @@
       "kind": "HISTORICAL_OR_RESEARCH_SCOPE_ONLY"
     },
     {
+      "id": "P3-03",
+      "run_id": 42735986162,
+      "job_id": 129565218535,
+      "head_sha": "65eac2a795f2c8551d1cf7b52efb4124a24ea100",
+      "workflow_name": "Kyoto AI objective progress and continuity gate",
+      "source_paths": [
+        "diagnostics/p3_research_calibration.py",
+        "tests/test_p3_research_calibration.py"
+      ],
+      "kind": "HISTORICAL_OR_RESEARCH_SCOPE_ONLY"
+    },
+    {
       "id": "P4-01",
       "run_id": 42567612106,
       "job_id": 128997481146,
