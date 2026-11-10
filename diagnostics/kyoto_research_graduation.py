@@ -120,13 +120,21 @@ def independently_verify_integration_claims(root, claims):
             "diagnostics/p7_independent_research_certification.py",
             "diagnostics/p7_guarded_research_rollback.py",
             "tests/test_rg04_integrated_evolution_cycle_lab.py"
+        ),
+        "RG-05B": (
+            "diagnostics/rg05_original_market_safe_pipeline_lab.py",
+            "diagnostics/p1_three_original_dual_intake.py",
+            "diagnostics/p4_research_market_risk.py",
+            "diagnostics/rg01_prediction_freeze_settlement_lab.py",
+            "tests/test_rg05_original_market_safe_pipeline_lab.py"
         )
     }
     tests={
         "RG-01B":"test_rg01_prediction_freeze_settlement_lab.py",
         "RG-02B":"test_rg02_dual_market_integrated_lab.py",
         "RG-03B":"test_rg03_temporal_journal_walkforward_lab.py",
-        "RG-04B":"test_rg04_integrated_evolution_cycle_lab.py"
+        "RG-04B":"test_rg04_integrated_evolution_cycle_lab.py",
+        "RG-05B":"test_rg05_original_market_safe_pipeline_lab.py"
     }
     confirmed=set()
     for claim in claims:
