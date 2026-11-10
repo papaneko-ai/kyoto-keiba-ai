@@ -6,7 +6,8 @@ import tempfile
 import unittest
 import zipfile
 from pathlib import Path
-from test_p1_three_original_content_binding import StrictThreeOriginalContentTests,NOW
+from test_p1_three_original_content_binding import StrictThreeOriginalContentTests
+NOW='2026-11-13T04:05:00Z'
 from diagnostics.p1_atomic_dual_market_handoff import (
   package_prerace_market_capture,verify_prerace_handoff_archive,
   save_immutable_archive,MarketHandoffRejected
@@ -68,7 +69,7 @@ class AtomicThreeMarketTests(unittest.TestCase):
   self.assertFalse(a["receipt"]["prediction_ready"])
  def test_historical_final_is_not_prerace_market(self):
   a=self.captures()
-  a["pre_race_odds"]["raw"]+=b" final "
+  a["pre_race_odds"]["raw"]=a["pre_race_odds"]["raw"].replace(b"<body>",b"<body>"+ "最終オッズ".encode("cp932"))
   with self.assertRaises(MarketHandoffRejected):self.make(raw_sources=a)
  def test_expired_market_capture_rejected(self):
   a=self.captures();a["bracket_odds"]["captured_utc"]="2026-11-13T03:00:00Z"
