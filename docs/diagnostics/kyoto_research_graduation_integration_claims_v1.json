@@ -66,6 +66,21 @@
         "tests/test_rg05_original_market_safe_pipeline_lab.py"
       ],
       "acceptance_test": "test_rg05_original_market_safe_pipeline_lab.py"
+    },
+    {
+      "id": "RG-06B",
+      "proof_run_id": 42763420457,
+      "proof_job_id": 129654211172,
+      "proof_head_sha": "20d53eb84cb46588dcde1b4e75d70e5b7287bfa2",
+      "source_paths": [
+        "diagnostics/rg06_repeatable_mobile_e2e_lab.py",
+        "diagnostics/p8_mobile_readonly_planner_app.py",
+        "diagnostics/rg02_dual_market_integrated_lab.py",
+        "diagnostics/rg01_prediction_freeze_settlement_lab.py",
+        "tests/test_rg06_repeatable_mobile_e2e_lab.py",
+        "tests/rg06_mobile_browser_check.py"
+      ],
+      "acceptance_test": "test_rg06_repeatable_mobile_e2e_lab.py"
     }
   ]
 }
