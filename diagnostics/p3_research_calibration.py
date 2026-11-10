@@ -115,3 +115,42 @@ def calibrate_holdout(races,*,train_count):
         "improved_log_loss":adjusted["log_loss"]<raw["log_loss"],
         "prediction_ready":False,"real_money_authorized":False,
     }
+
+
+def walk_forward_overfit_audit(races,*,min_train=3):
+    """Expanding-window prequential audit: each future race scored once.
+
+    A fold fits its shrinkage using strictly earlier races; the held-out
+    outcome is used only for scoring. Never promote on a favorable average
+    without separately verified real, previously unseen racing evidence.
+    """
+    parsed=validate_races(races)
+    if type(min_train) is not int or min_train<2 or min_train>=len(parsed):
+        raise CalibrationRejected("invalid_walk_forward_min_train")
+    folds=[]
+    for i in range(min_train,len(parsed)):
+        # No fold can train on the outcome it is scoring.
+        result=calibrate_holdout(races[:i+1],train_count=i)
+        if len(result["holdout_race_ids"])!=1:
+            raise CalibrationRejected("walk_forward_holdout_must_be_one_race")
+        folds.append({
+            "race_id":result["holdout_race_ids"][0],
+            "trained_through_utc":result["train_last_utc"],
+            "tested_at_utc":result["holdout_first_utc"],
+            "shrinkage":result["selected_uniform_shrinkage"],
+            "raw":result["uncalibrated_holdout"],
+            "calibrated":result["calibrated_holdout"],
+        })
+    def average(key,metric):
+        return math.fsum(x[key][metric] for x in folds)/len(folds)
+    raw={"brier":average("raw","brier"),"log_loss":average("raw","log_loss")}
+    adjusted={"brier":average("calibrated","brier"),"log_loss":average("calibrated","log_loss")}
+    return {
+        "schema":"kyoto_p3_research_walk_forward.v1",
+        "status":"RESEARCH_WALK_FORWARD_AUDITED_NOT_DEPLOYED",
+        "folds":folds,
+        "baseline":raw,"candidate":adjusted,
+        "overfit_warning":(adjusted["brier"]>=raw["brier"] or
+                           adjusted["log_loss"]>=raw["log_loss"]),
+        "auto_promote":False,"prediction_ready":False,
+    }
