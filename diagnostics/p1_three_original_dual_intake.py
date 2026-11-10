@@ -19,7 +19,8 @@ class ThreeOriginalRejected(ValueError):
     pass
 
 
-def inspect_three_original_dual_intake(bundle: bytes, snapshot: dict, *, observed_utc: str,\n                                       racecard_channel=None):
+def inspect_three_original_dual_intake(bundle: bytes, snapshot: dict, *, observed_utc: str,
+                                       racecard_channel=None):
     try:
         imported = import_bundle(bundle, observed_utc=observed_utc)
         with zipfile.ZipFile(io.BytesIO(bundle)) as archive:
@@ -144,4 +145,7 @@ def inspect_three_original_dual_intake(bundle: bytes, snapshot: dict, *, observe
         "prerace_market_authorized": False,
         "prediction_ready": False,
         "actual_orders_authorized": False,
-        "racecard_roster_original_verified": roster_receipt is not None,\n        "racecard_roster_receipt": roster_receipt,\n        "network_requests": 0\n    }
+        "racecard_roster_original_verified": roster_receipt is not None,
+        "racecard_roster_receipt": roster_receipt,
+        "network_requests": 0
+    }
