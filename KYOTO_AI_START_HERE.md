@@ -160,3 +160,6 @@ P1は未完了。**新開催日の許容されたデータ取得経路と発走�
 
 ## 2026-11-10 最新節目：P4-04下振れ・市場歪み検証、研究工程58点
 - 正本 docs/KYOTO_AI_20261110_P4_DOWNSIDE_RISK_58PCT_MILESTONE.md。diagnostics/p4_research_market_risk.py と tests/test_p4_research_market_risk.py を追加し、全組合せ価格検証、確率誤差・オッズ下落ストレス、歪み指標、名目プラスから下振れマイナスの検出を常時CIで実証。P4-04固定2点のみ追加合格。研究工程56→58点、19/32合格、13未達。採点CI run 42756626458/job 129632399020/SHA 845cec39fc1d5f6a3c196715fa3502cf166321b3 success。独立検証済み実用能力0/100は不変。ライブ予測・実発走前オッズ・実市場検証ではない。
+
+## 2026-11-10 最新節目：P7-01正式EVO-01..08候補・反証、研究工程61点／移行推奨
+- 正本 docs/KYOTO_AI_20261110_COMPLETE_MIGRATION_PACK_61PCT.md。diagnostics/p7_approved_evo_capability_screen.py は正式EVO-01..08をHYP-01..08と区別して8機能の研究候補生成・反証を実装。tests/test_p7_approved_evo_capability_screen.py を常時CI。受入run 42757592297/job 129635465960/SHA e6e908e3eef00ac6ea8b749bdee3a9d1fedb5a27 success。採点run 42757698770/job 129635808906/SHA 18cf965aa361825b57a9c9e1eead8a359e339c89 success。P7-01固定3点のみ追加、研究工程58→61点（20/32合格・12未達）。実用能力独立検証下限0/100。進化の実績・独立認定・自動昇格は未実装。次は移行パック実読後、許諾済み実開催発走前データと実モデル・仮想投資の連結を優先。
