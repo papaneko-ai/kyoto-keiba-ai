@@ -1,0 +1,20 @@
+{
+  "schema": "kyoto_progress_result.v1",
+  "scope_id": "KYOTO_P1_P8_FIXED_20261110",
+  "rubric_sha256": "b836ae69a22427b185545f569f9c6dc90923293277c02c7d58681321e40bc7bf",
+  "score_percent": 31,
+  "passed_ids": [
+    "P1-01",
+    "P1-02",
+    "P2-01",
+    "P3-01",
+    "P4-01",
+    "P5-01",
+    "P6-01",
+    "P8-01"
+  ],
+  "source_commit": "7449fea43086bd39e270eb97a694c0dbcdc0e8ed",
+  "ci_run_id": "42730742998",
+  "proof_kind": "FIRST_OBJECTIVE_BASELINE_CI_VERIFIED",
+  "note": "Permanent baseline fallback if expiring Actions artifacts are absent. Historic 45 percent was an estimate, not an observed predecessor."
+}
