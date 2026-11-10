@@ -161,8 +161,11 @@ def inspect_three_original_dual_intake(bundle: bytes, snapshot: dict, *, observe
                      max(row["first"], row["second"])): Decimal(str(row["decimal"]))
                     for row in snapshot[snapshot_key]
                 }
+                # Bracket matrix includes same-frame/unavailable pairs; only
+                # pairs feasible from two distinct ACTIVE horses enter snapshot.
                 actual = {tuple(row["pair"]): Decimal(row["odds"])
-                          for row in parsed["pairs"]}
+                          for row in parsed["pairs"]
+                          if market_name == "quinella" or tuple(row["pair"]) in expected}
             except (InvalidOperation, ValueError, TypeError, KeyError) as exc:
                 raise ThreeOriginalRejected(receipt_key + "_snapshot_prices_invalid") from exc
             if expected != actual:
