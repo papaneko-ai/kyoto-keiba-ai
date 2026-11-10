@@ -72,6 +72,25 @@ jobs:
           print('KYOTO_FIXED_RUBRIC_SHA256='+score['rubric_sha256'])
           print('CONTINUITY_AND_PROGRESS_PASS_AT_SHA='+os.environ['GITHUB_SHA'])
           PY
+      - name: Measure separately fixed research-graduation prerequisites
+        run: |
+          python -m unittest discover -s tests -p 'test_kyoto_research_graduation.py' -v
+          python -m diagnostics.kyoto_research_graduation --root . --progress /tmp/kyoto-progress.json --out /tmp/kyoto-graduation.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          x=json.loads(Path('/tmp/kyoto-graduation.json').read_text(encoding='utf-8'))
+          assert x['graduation_passed_conditions']==6 and x['graduation_total_conditions']==12
+          assert x['integration_passed']==0 and x['graduation_percent']==50.0
+          assert not x['graduation_eligible']
+          print('GRADUATION_PROOF_SEPARATE_FROM_P1_P8=TRUE')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: kyoto-ai-research-graduation-report
+          path: /tmp/kyoto-graduation.json
+          if-no-files-found: error
+          retention-days: 90
       - uses: actions/upload-artifact@v4
         with:
           name: kyoto-ai-operational-readiness-report
