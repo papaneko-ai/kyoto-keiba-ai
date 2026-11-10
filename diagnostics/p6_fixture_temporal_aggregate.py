@@ -97,3 +97,63 @@ def aggregate_fixture_journals(records):
             "chronological_history":history,
             "actual_purchase":False,"official_results_verified":False,
             "prediction_ready":False}
+
+
+def aggregate_model_version_cohorts(records):
+    """P6-04: aggregate independently anchored fixture journals by model version.
+
+    This is a DESCRIPTIVE unpaired time-series breakdown; versions may have
+    different races/periods. No superiority/adoption claim or real return.
+    All anchors are validated by aggregate_fixture_journals *before* grouping.
+    A corrected final settlement supersedes the earlier payout via read_journal.
+    """
+    import hashlib
+    import json
+    base=aggregate_fixture_journals(records)
+    versions={}
+    for record in records:
+        current=read_journal(record["path"],expected_head=record["expected_head"])
+        frozen=current["entries"][0]["payload"]["record"]["frozen"]
+        version=frozen["model_version"]
+        if type(version) is not str or not version:
+            raise LabRejected("model_version_invalid")
+        versions.setdefault(version,[]).append(record)
+    groups={}
+    for version in sorted(versions):
+        a=aggregate_fixture_journals(versions[version])
+        groups[version]={
+            "total_scenarios":a["total_scenarios"],
+            "settled_scenarios":a["settled_scenarios"],
+            "unsettled_scenarios":a["unsettled_scenarios"],
+            "stake_yen":a["stake_yen"],
+            "payout_yen":a["payout_yen"],
+            "profit_yen":a["profit_yen"],
+            "roi_percent":a["roi_percent"],
+            "race_hit_rate_percent":a["race_hit_rate_percent"],
+            "max_drawdown_yen":a["max_drawdown_yen"],
+            "first_half":a["first_half"],
+            "second_half":a["second_half"],
+            "chronological_history":a["chronological_history"]
+        }
+    # No cross-model ranking: unequal race samples are not a paired holdout.
+    output={
+        "schema":"kyoto_p6_fixture_model_cohorts.v1",
+        "scope":"LAB_ONLY_UNPAIRED_DESCRIPTIVE_NOT_MODEL_SELECTION",
+        "total_scenarios":base["total_scenarios"],
+        "settled_scenarios":base["settled_scenarios"],
+        "unsettled_scenarios":base["unsettled_scenarios"],
+        "total_stake_yen":base["stake_yen"],
+        "total_payout_yen":base["payout_yen"],
+        "total_profit_yen":base["profit_yen"],
+        "overall_roi_percent":base["roi_percent"],
+        "max_drawdown_yen":base["max_drawdown_yen"],
+        "model_version_cohorts":groups,
+        "unpaired_comparison_may_be_biased":True,
+        "model_adoption_authorized":False,
+        "official_result_verified":False,
+        "real_racing_performance_verified":False,
+        "actual_purchase":False
+    }
+    digest=hashlib.sha256(json.dumps(output,ensure_ascii=False,sort_keys=True,
+        separators=(",",":"),allow_nan=False).encode()).hexdigest()
+    return {**output,"receipt_sha256":digest}
