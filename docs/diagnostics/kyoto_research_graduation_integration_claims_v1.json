@@ -52,6 +52,20 @@
         "tests/test_rg04_integrated_evolution_cycle_lab.py"
       ],
       "acceptance_test": "test_rg04_integrated_evolution_cycle_lab.py"
+    },
+    {
+      "id": "RG-05B",
+      "proof_run_id": 42762265925,
+      "proof_job_id": 129650502031,
+      "proof_head_sha": "343c66fb8dc5cb7d7a5f0e6220cad6c5616f4005",
+      "source_paths": [
+        "diagnostics/rg05_original_market_safe_pipeline_lab.py",
+        "diagnostics/p1_three_original_dual_intake.py",
+        "diagnostics/p4_research_market_risk.py",
+        "diagnostics/rg01_prediction_freeze_settlement_lab.py",
+        "tests/test_rg05_original_market_safe_pipeline_lab.py"
+      ],
+      "acceptance_test": "test_rg05_original_market_safe_pipeline_lab.py"
     }
   ]
 }
