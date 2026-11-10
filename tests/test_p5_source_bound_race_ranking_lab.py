@@ -76,8 +76,10 @@ class SourceBoundRankingTests(unittest.TestCase):
   with self.assertRaisesRegex(RankingRejected,"budget_ceiling_invalid"):
    rank_lab_research_races([self.report()],daily_budget_yen=-100)
  def test_nonfinite_ev_rejected(self):
-  c=self.report(edge=float("nan"))
-  # JSON canonical validation cannot serialize NaN and must refuse the sample.
+  c=self.report()
+  # Corrupt a previously valid source-bound receipt. The canonical
+  # digest check must refuse non-finite values before any ranking.
+  c["markets"]["QUINELLA"]["research_model_expected_net"][0]["stressed_net_lower"]=float("nan")
   with self.assertRaises(ValueError):
    self.rank([c])
  def test_wrong_market_coverage_rejected(self):
