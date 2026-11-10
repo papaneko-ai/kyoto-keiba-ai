@@ -1,0 +1,107 @@
+{
+  "schema": "kyoto_research_graduation_rubric.v1",
+  "version": "2026-11-10",
+  "criterion_count": 12,
+  "score_rule": "12 equally weighted binary conditions; displayed percent rounded to one decimal; graduation requires 12/12; integration conditions require independent CI proof",
+  "areas": [
+    {
+      "id": "RG-01",
+      "title": "予測・仮想投資・精算の連続処理",
+      "component": {
+        "id": "RG-01A",
+        "title": "研究用予測と仮想記録の個別検証",
+        "requires_progress_ids": [
+          "P3-01",
+          "P6-01"
+        ]
+      },
+      "integration": {
+        "id": "RG-01B",
+        "title": "予測→凍結→公式結果相当のLAB精算を一回の連続実行で検証"
+      }
+    },
+    {
+      "id": "RG-02",
+      "title": "馬連・枠連の確率・期待値・予算",
+      "component": {
+        "id": "RG-02A",
+        "title": "期待値と予算上限制御の研究用個別検証",
+        "requires_progress_ids": [
+          "P4-01",
+          "P5-01"
+        ]
+      },
+      "integration": {
+        "id": "RG-02B",
+        "title": "両券種の全組合せ→EV→買い目→予算の一体整合を検証"
+      }
+    },
+    {
+      "id": "RG-03",
+      "title": "未来情報遮断・未使用時系列",
+      "component": {
+        "id": "RG-03A",
+        "title": "時系列分割・較正の個別検証",
+        "requires_progress_ids": [
+          "P3-03",
+          "P3-04"
+        ]
+      },
+      "integration": {
+        "id": "RG-03B",
+        "title": "一体経路で未来漏洩・結果先取り・途中再起動を破壊検証"
+      }
+    },
+    {
+      "id": "RG-04",
+      "title": "自己進化・独立判定・悪化時復帰",
+      "component": {
+        "id": "RG-04A",
+        "title": "独立LAB評価・研究用ロールバックの個別検証",
+        "requires_progress_ids": [
+          "P7-02",
+          "P7-03"
+        ]
+      },
+      "integration": {
+        "id": "RG-04B",
+        "title": "同一レースで候補生成→隔離評価→拒否/復帰を再現"
+      }
+    },
+    {
+      "id": "RG-05",
+      "title": "欠損・異常・安全停止",
+      "component": {
+        "id": "RG-05A",
+        "title": "市場リスク検証と原本受入の個別検証",
+        "requires_progress_ids": [
+          "P1-02",
+          "P4-04"
+        ]
+      },
+      "integration": {
+        "id": "RG-05B",
+        "title": "欠損/不正価格/取消/原本不一致で経路全体をfail closed"
+      }
+    },
+    {
+      "id": "RG-06",
+      "title": "CI再現性・スマホ画面での動作",
+      "component": {
+        "id": "RG-06A",
+        "title": "診断画面と継続監査の既存検証",
+        "requires_progress_ids": [
+          "P8-01",
+          "P7-04"
+        ]
+      },
+      "integration": {
+        "id": "RG-06B",
+        "title": "同一原本・同一構成のE2Eを再実行し決定論性とスマホ操作を実証"
+      }
+    }
+  ],
+  "scope": "RESEARCH_LAB_ONLY",
+  "graduate_requires": "all_12_passed",
+  "not_equivalent_to": "P1-P8_FIXED_PROGRESS_OR_OPERATIONAL_READINESS"
+}
