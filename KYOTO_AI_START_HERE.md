@@ -150,3 +150,7 @@ P1は未完了。**新開催日の許容されたデータ取得経路と発走�
 ## 2026-11-10 P1実装節目：許諾済み3原本オフライン操作者受渡し
 - 正本 docs/KYOTO_AI_20261110_P1_OPERATOR_OFFLINE_HANDOFF_IMPLEMENTATION_MILESTONE.md。diagnostics/p1_operator_original_handoff.py を実装。操作者提供ZIP＋snapshotを既存3原本厳密パーサで再検査し、原本SHA・馬数・馬連/枠連組数・未認証条件を明示する上書き不可の受渡しレシートを作る。ネットワーク要求0、改ざん価格・最終オッズ・二重書込み拒否。tests/test_p1_operator_original_handoff.py を常時CIに追加。受入run 42742772341/job 129587629372/SHA 9949843e5ab0cbdb173ea6012278c3f0826af884 success。
 - **新規実装が進んだ節目だが、実JRA発走前原本の取得は未実証。研究認定52/100、独立検証済み実用能力下限0/100のまま。** 研究用テストだけで実用点を上げない。次は許諾済み実原本と公式出典・時刻・発売・取消の独立証明。
+
+## 2026-11-10 最新実装節目：P5-04馬連枠連・手動資金配分UI、研究工程53点
+- 正本 docs/KYOTO_AI_20261110_P5_MANUAL_UI_53PCT_MILESTONE.md。diagnostics/p5_manual_allocation_app.py と diagnostics/p5_manual_allocation.py を追加。独立Streamlit画面で馬連/枠連切替、予算上限、レース数・買い目数・比率の手動操作。100円単位の予算配分を実装しAppTestで操作検証。購入・架空予測・実レース連携はなし。
+- P5-04（固定1点）のみCI証拠 run 42755410973/job 129628530896/SHA 5cd8d0298c6ad1bcb57410d684f1e7242bb26f9c で追加合格。採点run 42755514707/job 129628863154/SHA db20b0456d86c4ad2ce41e41afa53f8a97206948 success：研究工程52→53点（+1）、17/32合格、15未達。独立検証済み実用能力下限0/100のまま。旧AppTestパス失敗は修正済み。新開催日発走前実市場がない限り実用点を上げない。
