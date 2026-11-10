@@ -127,6 +127,14 @@ def independently_verify_integration_claims(root, claims):
             "diagnostics/p4_research_market_risk.py",
             "diagnostics/rg01_prediction_freeze_settlement_lab.py",
             "tests/test_rg05_original_market_safe_pipeline_lab.py"
+        ),
+        "RG-06B": (
+            "diagnostics/rg06_repeatable_mobile_e2e_lab.py",
+            "diagnostics/p8_mobile_readonly_planner_app.py",
+            "diagnostics/rg02_dual_market_integrated_lab.py",
+            "diagnostics/rg01_prediction_freeze_settlement_lab.py",
+            "tests/test_rg06_repeatable_mobile_e2e_lab.py",
+            "tests/rg06_mobile_browser_check.py"
         )
     }
     tests={
@@ -134,7 +142,8 @@ def independently_verify_integration_claims(root, claims):
         "RG-02B":"test_rg02_dual_market_integrated_lab.py",
         "RG-03B":"test_rg03_temporal_journal_walkforward_lab.py",
         "RG-04B":"test_rg04_integrated_evolution_cycle_lab.py",
-        "RG-05B":"test_rg05_original_market_safe_pipeline_lab.py"
+        "RG-05B":"test_rg05_original_market_safe_pipeline_lab.py",
+        "RG-06B":"test_rg06_repeatable_mobile_e2e_lab.py"
     }
     confirmed=set()
     for claim in claims:
@@ -161,10 +170,16 @@ def independently_verify_integration_claims(root, claims):
                 not any(step.get("name")=="Reuse existing three-original intake and PC/SP parser regressions"
                         and step.get("conclusion")=="success" for step in job.get("steps",[]))):
             raise GraduationRejected("integration_job_not_verified")
+        if key=="RG-06B" and not any(
+                step.get("name")=="RG06 responsive mobile-width Chromium control acceptance"
+                and step.get("conclusion")=="success" for step in job.get("steps",[])):
+            raise GraduationRejected("RG06_mobile_browser_acceptance_missing")
         run("git","merge-base","--is-ancestor",sha,"HEAD",cwd=root)
         wf=run("git","show",sha+":.github/workflows/kyoto-ai-always-run-continuity.yml",cwd=root)
         if "python -m unittest discover -s tests -p '"+tests[key]+"' -v" not in wf:
             raise GraduationRejected("proof_SHA_workflow_lacked_integration_tests")
+        if key=="RG-06B" and "python tests/rg06_mobile_browser_check.py" not in wf:
+            raise GraduationRejected("proof_SHA_lacked_mobile_browser_test")
         for path in claim["source_paths"]:
             if not (root/path).is_file():
                 raise GraduationRejected("proof_source_missing")
