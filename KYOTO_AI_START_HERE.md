@@ -95,3 +95,10 @@ P1は未完了。**新開催日の許容されたデータ取得経路と発走�
 - Both channels already matched frozen real 2026-11-07 racecards in a historical five-race benchmark. Initial 11R SP 0-row failure was repaired; use `JRA_SP_RUNNER_PARITY_FIXED_20261106.json` not the old broken parity record.
 - Current GitHub Actions run `42575107672`, job `129020946710`: 13+8=21 tests PASS on the source-refactor workflow at commit `9512b6b096364467e7fb671d97387654c9e3477c`. Later commits require same-commit continuity CI revalidation.
 - This was no JRA GET; live PC/SP retrieval, fresh official prerace quinella/bracket quotes and official scratch feeds are still not integrated. No predictions or real tickets authorized.
+
+
+## 2026-11-10 客観的進捗率（初回実測31％）
+- 正本 `docs/KYOTO_AI_PROGRESS_MEASUREMENT_POLICY_20261110.md`、固定32条件 `docs/diagnostics/kyoto_progress_rubric_v1.json`、成功CI根拠 `docs/diagnostics/kyoto_progress_evidence_v1.json`、減少理由台帳 `docs/diagnostics/kyoto_progress_regressions_v1.json` を読む。
+- `diagnostics/kyoto_progress_metrics.py` は GitHub run/job/HEAD祖先/既存ファイルを実検証し、証拠に紐づく合格条件のみ採点。2026-11-10初回 GitHub Actions run `42730742998`、HEAD `7449fea43086bd39e270eb97a694c0dbcdc0e8ed` で31/100点・8/32件合格、未達24件。P1 12/25、P2 3/10、P3 4/15、P4 3/10、P5 2/5、P6 4/15、P7 0/10、P8 3/10。
+- 従来の45％は主観的見積もりであり、31％との差を実装後退と見なさない。次回から同一32条件・同一100点配点で比較する。減少時は実装回帰または以前の合格誤判定について証拠・復旧条件を必須とする。
+- `.github/workflows/kyoto-ai-always-run-continuity.yml` に既存再開ゲートと進捗採点を一体化。進捗実測の成功run/job/logと `kyoto-ai-progress-report` Artifactの存在を毎回照合する。アプリの予測精度や実稼働を示す数値ではない。
