@@ -40,10 +40,16 @@ def export_bundle(evidence, root, *, observed_utc):
                'transport': 'offline_file_transfer_only'}
     buffer = io.BytesIO()
     with zipfile.ZipFile(buffer, 'w', compression=zipfile.ZIP_STORED) as archive:
-        archive.writestr('manifest.json', _canonical(manifest))
-        archive.writestr('receipt.json', _canonical(receipt))
-        for name, raw in originals:
-            archive.writestr(name, raw)
+        # Fixed ZIP metadata: a source handoff is a content-addressed artifact,
+        # not a timestamped build product. Otherwise 2s DOS time ticks alter
+        # raw SHA and invalidate independent replay across runs.
+        members = [('manifest.json', _canonical(manifest)),
+                   ('receipt.json', _canonical(receipt)), *originals]
+        for name, raw in members:
+            info = zipfile.ZipInfo(name, date_time=(1980, 1, 1, 0, 0, 0))
+            info.compress_type = zipfile.ZIP_STORED
+            info.external_attr = 0o600 << 16
+            archive.writestr(info, raw)
     data = buffer.getvalue()
     if len(data) > MAX_BUNDLE_BYTES:
         raise EvidenceRejected('bundle_too_large')
