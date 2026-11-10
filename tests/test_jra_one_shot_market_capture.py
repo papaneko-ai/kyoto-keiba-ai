@@ -3,7 +3,7 @@ import unittest,tempfile
 from datetime import datetime,timezone
 from diagnostics.jra_one_shot_market_capture import (
   capture,exact_odds_action,http_fetch,SourceChainError,
-  PC_RACECARD_URL,SP_RACECARD_URL
+  PC_RACECARD_URL,SP_RACECARD_URL,ObservedRaceSpec
 )
 HTML=(b"<html><title>Odds</title></html>")
 class RefusalOpener:
@@ -78,4 +78,54 @@ class OneShotTests(unittest.TestCase):
    r=capture(d,channel="PC",verified_start_utc="2026-11-07T06:45:00Z",
       active_runners=((1,1),(2,2)),now_utc="2026-11-06T10:00:00Z",opener=stub)
    self.assertTrue(all(x["captured_at_utc"] for x in r["request_receipts"]))
+
+class FutureRaceCaptureTests(unittest.TestCase):
+ def spec(self, **changes):
+  from diagnostics.jra_one_shot_market_capture import DEFAULT_RACE_SPEC
+  from dataclasses import replace
+  return replace(DEFAULT_RACE_SPEC,**changes)
+
+ def test_future_day_needs_verified_sales_time(self):
+  with self.assertRaises(SourceChainError):
+   self.spec(race_day="20261114",race_id="2026-11-14_KYOTO_11R").validate()
+
+ def test_valid_future_day_blocks_http_without_authorization(self):
+  with tempfile.TemporaryDirectory() as d:
+   r=capture(d,channel="PC",verified_start_utc="2026-11-14T06:45:00Z",
+     active_runners=((1,1),(2,2)),now_utc="2026-11-13T10:00:00Z",
+     race_spec=self.spec(race_day="20261114",race_id="2026-11-14_KYOTO_11R",
+                        normal_sales_open_utc="2026-11-13T09:30:00Z"))
+   self.assertEqual(r["state"],"LIVE_HTTP_NOT_AUTHORIZED")
+   self.assertEqual(r["request_receipts"],[])
+   self.assertFalse(r["prediction_ready"])
+
+ def test_future_day_uses_supplied_official_navigation_with_stub(self):
+  url="https://jra.jp/JRADB/accessD.html?CNAME=pw01dde0108202605011120261114%2F13"
+  stub=StubOpener([(html(LINK),url),
+       (html("今週のオッズは未発表です"),"https://jra.jp/JRADB/accessO.html")])
+  with tempfile.TemporaryDirectory() as d:
+   r=capture(d,channel="PC",verified_start_utc="2026-11-14T06:45:00Z",
+     active_runners=((1,1),(2,2)),now_utc="2026-11-13T10:00:00Z",opener=stub,
+     race_spec=self.spec(race_day="20261114",race_id="2026-11-14_KYOTO_11R",
+       normal_sales_open_utc="2026-11-13T09:30:00Z",pc_racecard_url=url))
+   self.assertEqual(r["state"],"OFFICIAL_NOT_PUBLISHED")
+   self.assertEqual(r["race_id"],"2026-11-14_KYOTO_11R")
+   self.assertEqual(len(stub.requests),2)
+
+ def test_unofficial_future_url_blocked_before_http(self):
+  with tempfile.TemporaryDirectory() as d:
+   with self.assertRaises(SourceChainError):
+    capture(d,channel="PC",verified_start_utc="2026-11-14T06:45:00Z",
+      active_runners=((1,1),(2,2)),now_utc="2026-11-13T10:00:00Z",
+      opener=RefusalOpener(),race_spec=self.spec(
+        pc_racecard_url="https://jra.jp.evil.example/JRADB/accessD.html?CNAME=pw1%2F13"))
+
+ def test_missing_future_navigation_token_blocked(self):
+  with self.assertRaises(SourceChainError):
+   self.spec(pc_racecard_url="https://jra.jp/JRADB/accessD.html").validate()
+
+ def test_wrong_race_key_blocked(self):
+  with self.assertRaises(SourceChainError):
+   self.spec(race_id="2026-11-07_KYOTO_10R").validate()
+
 if __name__=="__main__":unittest.main()
