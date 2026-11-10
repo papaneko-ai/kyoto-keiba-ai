@@ -32,6 +32,10 @@ jobs:
           python -m diagnostics.kyoto_resume_gate --root . --artifact-json /tmp/kyoto_recovery_metadata.json --out /tmp/kyoto_resume.json
       - name: Test progress scorer and destructive regressions
         run: python -m unittest discover -s tests -p 'test_kyoto_progress_metrics.py' -v
+      - name: Reject research-CI inflation of operational completion
+        run: |
+          python -m unittest discover -s tests -p 'test_kyoto_operational_readiness.py' -v
+          python -m diagnostics.kyoto_operational_readiness --out /tmp/kyoto-operational.json
       - name: Reuse existing three-original intake and PC/SP parser regressions
         run: |
           python -m unittest discover -s tests -p 'test_p1_three_original_dual_intake.py' -v
@@ -58,6 +62,12 @@ jobs:
           print('KYOTO_FIXED_RUBRIC_SHA256='+score['rubric_sha256'])
           print('CONTINUITY_AND_PROGRESS_PASS_AT_SHA='+os.environ['GITHUB_SHA'])
           PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: kyoto-ai-operational-readiness-report
+          path: /tmp/kyoto-operational.json
+          if-no-files-found: error
+          retention-days: 90
       - uses: actions/upload-artifact@v4
         with:
           name: kyoto-ai-progress-report
