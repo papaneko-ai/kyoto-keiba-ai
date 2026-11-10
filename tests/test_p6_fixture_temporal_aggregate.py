@@ -3,7 +3,7 @@ import unittest
 from pathlib import Path
 from diagnostics.p6_fixture_durable_ledger import append_record,LabRejected
 from diagnostics.p6_virtual_settlement_fixture_lab import freeze_fixture
-from diagnostics.p6_fixture_temporal_aggregate import aggregate_fixture_journals
+from diagnostics.p6_fixture_temporal_aggregate import aggregate_fixture_journals, aggregate_model_version_cohorts
 
 
 class TemporalFixtureTests(unittest.TestCase):
@@ -77,6 +77,75 @@ class TemporalFixtureTests(unittest.TestCase):
  def test_empty_rejected(self):
   with self.assertRaisesRegex(LabRejected,"aggregate_nonempty_journal_list_required"):
    aggregate_fixture_journals([])
+
+class ModelCohortReceiptTests(TemporalFixtureTests):
+ def test_model_cohort_replay_is_input_order_independent(self):
+  a=self.record(1,payout=500)
+  b=self.record(2,payout=0)
+  c=self.record(3,preliminary=True)
+  r=aggregate_model_version_cohorts([c,a,b])
+  self.assertEqual(r,aggregate_model_version_cohorts([b,c,a]))
+  self.assertEqual(r["total_scenarios"],3)
+  self.assertEqual(r["settled_scenarios"],2)
+  self.assertEqual(r["total_profit_yen"],600)
+  self.assertTrue(r["unpaired_comparison_may_be_biased"])
+  self.assertFalse(r["model_adoption_authorized"])
+  self.assertFalse(r["official_result_verified"])
+  self.assertFalse(r["actual_purchase"])
+ def test_versions_are_separate_and_unsettled_do_not_inflate_roi(self):
+  a=self.record(1,payout=500)
+  b=self.record(2,payout=0)
+  c=self.record(3,preliminary=True)
+  # Construct a separate version using the source of truth, not by
+  # rewriting an existing hash-chained journal.
+  from diagnostics.p6_virtual_settlement_fixture_lab import freeze_fixture
+  from diagnostics.p6_fixture_durable_ledger import append_record
+  path=self.root/"different.jsonl"
+  record=freeze_fixture(scenario_id="LAB-DIFFERENT-V2",ticket_type="QUINELLA",
+      frozen_utc="2026-11-08T04:00:00Z",cutoff_utc="2026-11-08T05:00:00Z",
+      model_version="lab-v2",source_sha256="b"*64,
+      tickets=[{"pair":[1,2],"stake_yen":200,"probability":0.3,"odds":4.2}])
+  d=append_record(path,"FROZEN",record,expected_head="0"*64)
+  k=aggregate_model_version_cohorts([a,b,c,{"path":str(path),"expected_head":d["head"]}])
+  self.assertEqual(set(k["model_version_cohorts"]),{"lab-v1","lab-v2"})
+  self.assertEqual(k["model_version_cohorts"]["lab-v1"]["settled_scenarios"],2)
+  self.assertEqual(k["model_version_cohorts"]["lab-v2"]["settled_scenarios"],0)
+  self.assertIsNone(k["model_version_cohorts"]["lab-v2"]["roi_percent"])
+ def test_correction_replaces_not_double_counts(self):
+  a=self.record(1,payout=500)
+  from diagnostics.p6_fixture_durable_ledger import append_record
+  correction={"scenario_id":"LAB-AGG-1","source_kind":"FIXTURE",
+     "version":2,"state":"PAYOUT_FINAL","payout_per_100":{"1-3":0},
+     "refunded_pairs":[]}
+  new=append_record(a["path"],"RESULT_EVENT",correction,expected_head=a["expected_head"])
+  amended={"path":a["path"],"expected_head":new["head"]}
+  corrected=aggregate_model_version_cohorts([amended])
+  self.assertEqual(corrected["total_payout_yen"],0)
+  self.assertEqual(corrected["total_profit_yen"],-200)
+  self.assertEqual(corrected["model_version_cohorts"]["lab-v1"]["profit_yen"],-200)
+ def test_old_head_after_correction_refused(self):
+  a=self.record(1,payout=500)
+  from diagnostics.p6_fixture_durable_ledger import append_record
+  append_record(a["path"],"RESULT_EVENT",
+      {"scenario_id":"LAB-AGG-1","source_kind":"FIXTURE",
+       "version":2,"state":"PAYOUT_FINAL","payout_per_100":{},
+       "refunded_pairs":[]},expected_head=a["expected_head"])
+  with self.assertRaisesRegex(LabRejected,"journal_head_anchor_mismatch"):
+   aggregate_model_version_cohorts([a])
+ def test_duplicate_scenario_blocks_cohort_comparison(self):
+  a=self.record(1,payout=500)
+  with self.assertRaises(LabRejected):
+   aggregate_model_version_cohorts([a,a])
+ def test_bad_head_refuses_all_reports(self):
+  a=self.record(1,payout=500)
+  with self.assertRaisesRegex(LabRejected,"journal_head_anchor_mismatch"):
+   aggregate_model_version_cohorts([{"path":a["path"],"expected_head":"0"*64}])
+ def test_no_unsettled_as_observed_profit(self):
+  a=self.record(1,preliminary=True)
+  k=aggregate_model_version_cohorts([a])
+  self.assertIsNone(k["overall_roi_percent"])
+  self.assertIsNone(k["model_version_cohorts"]["lab-v1"]["roi_percent"])
+  self.assertEqual(k["total_profit_yen"],0)
 
 if __name__=="__main__":
  unittest.main()
