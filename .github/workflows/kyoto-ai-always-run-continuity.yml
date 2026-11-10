@@ -30,7 +30,7 @@ jobs:
           python -m diagnostics.kyoto_resume_gate --root . --artifact-json /tmp/kyoto_recovery_metadata.json --out /tmp/kyoto_resume.json
       - name: Test progress scorer and destructive regressions
         run: python -m unittest discover -s tests -p 'test_kyoto_progress_metrics.py' -v
-      - name: Calculate objective P1-P8 score with real GitHub CI evidence
+      - name: Reuse existing three-original intake and PC/SP parser regressions\n        run: |\n          python -m unittest discover -s tests -p 'test_p1_three_original_dual_intake.py' -v\n          python -m unittest discover -s tests -p 'test_jra_pc_sp_saved_reconciliation.py' -v\n      - name: Calculate objective P1-P8 score with real GitHub CI evidence
         run: |
           python -m diagnostics.kyoto_progress_metrics --root . --out /tmp/kyoto-progress.json
           python - <<'PY'
