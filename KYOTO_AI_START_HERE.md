@@ -121,3 +121,8 @@ P1は未完了。**新開催日の許容されたデータ取得経路と発走�
 - 記録 docs/KYOTO_AI_20261110_P1_FUTURE_RACE_CONFIG_AND_AUTHORIZATION_GATE_MILESTONE.md。既存 diagnostics/jra_one_shot_market_capture.py に ObservedRaceSpec と --race-spec-json を追加。PC/SP URLの観測済みCNAME・日付・JST発走日・発売開始UTCを検証し、旧開催日トークン使い回しを拒否。
 - 実ネットワークは既定で LIVE_HTTP_NOT_AUTHORIZED、HTTP要求0。スタブによる将来日動作、未発表・偽ホスト・重複馬・日付違いの破壊試験をCIに追加。**JRA実サイトへの新規取得、利用許諾、取消、実発走前価格は未達**。P1-03/04未合格、固定完成率31%据置。
 - 次は許諾の一次根拠と実際に観測された新開催日PC/SP URL・発走時刻・取消情報を確保してから、既存3原本厳密内容照合へ接続する。未承認のJRA自動通信を開始しない。
+
+## 2026-11-10 広域節目：実測進捗+7点、P3研究用較正・時系列外挿
+- 詳細 docs/KYOTO_AI_20261110_P3_CALIBRATION_WALK_FORWARD_MEASURED_GAIN_MILESTONE.md。既存32条件を変更せずP3-03（Brier/対数損失・研究用較正）4点とP3-04（未使用時系列・拡大型ウォークフォワード）3点を実CI合格で追加。31%→38%（+7ポイント）、8→10条件、未合格24→22。
+- P3-03 run 42735986162/job 129565218535/SHA 65eac2a795f2c8551d1cf7b52efb4124a24ea100、P3-04 run 42736095173/job 129565586203/SHA c1845fcbdf2c1f6cc67ab713d9e0c7a3dacdff47、ともにsuccess。証拠は docs/diagnostics/kyoto_progress_evidence_v1.json。新しい継続CIで再採点すること。
+- 合成研究用レースでの確率較正と漏洩拒否・過学習警告であり、実予想精度改善や新開催日JRA取得成功を示さない。P1-03/04等の未達は維持。main/Turso/Secrets/実購入履歴は不変更。
