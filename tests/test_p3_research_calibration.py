@@ -3,7 +3,7 @@ import copy
 import math
 import unittest
 from diagnostics.p3_research_calibration import (
-    calibrate_holdout,CalibrationRejected,shrink_distribution,scores)
+    calibrate_holdout,walk_forward_overfit_audit,CalibrationRejected,shrink_distribution,scores)
 
 
 def fixtures():
@@ -34,6 +34,32 @@ class CalibrationTests(unittest.TestCase):
         for k in ("brier","log_loss"):
             self.assertTrue(math.isfinite(result["calibrated_holdout"][k]))
         self.assertEqual(result,calibrate_holdout(fixtures(),train_count=4))
+
+    def test_walk_forward_held_out_race_only_once(self):
+        result=walk_forward_overfit_audit(fixtures(),min_train=3)
+        self.assertEqual(result["status"],"RESEARCH_WALK_FORWARD_AUDITED_NOT_DEPLOYED")
+        self.assertEqual(len(result["folds"]),5)
+        self.assertEqual([x["race_id"] for x in result["folds"]],
+                         ["SYNTHETIC_R"+str(i) for i in range(4,9)])
+        self.assertFalse(result["auto_promote"])
+        self.assertFalse(result["prediction_ready"])
+        self.assertEqual(result,walk_forward_overfit_audit(fixtures(),min_train=3))
+        for fold in result["folds"]:
+            self.assertLess(fold["trained_through_utc"],fold["tested_at_utc"])
+
+    def test_walk_forward_future_labels_do_not_change_past_fold(self):
+        rows=fixtures()
+        before=walk_forward_overfit_audit(rows,min_train=3)
+        rows[-1]["winning_pair"]=[1,3]
+        after=walk_forward_overfit_audit(rows,min_train=3)
+        self.assertEqual(before["folds"][:-1],after["folds"][:-1])
+
+    def test_walk_forward_refuses_empty_or_unfrozen(self):
+        with self.assertRaisesRegex(CalibrationRejected,"invalid_walk_forward_min_train"):
+            walk_forward_overfit_audit(fixtures(),min_train=8)
+        rows=fixtures();rows[5]["pre_result_frozen"]=False
+        with self.assertRaisesRegex(CalibrationRejected,"pre_result_prediction_receipt_required"):
+            walk_forward_overfit_audit(rows,min_train=3)
 
     def test_brier_and_log_loss_exact(self):
         b,l=scores({(1,2):0.8,(1,3):0.2},(1,2))
