@@ -234,6 +234,21 @@
       "kind": "HISTORICAL_OR_RESEARCH_SCOPE_ONLY"
     },
     {
+      "id": "P6-02",
+      "run_id": 42768428949,
+      "job_id": 129670303904,
+      "head_sha": "a32b1435e09561f9e578f62affbd3c957dd3d055",
+      "workflow_name": "Kyoto AI objective progress and continuity gate",
+      "source_paths": [
+        "diagnostics/p6_source_bound_ranked_freeze_lab.py",
+        "diagnostics/p5_source_bound_race_ranking_lab.py",
+        "diagnostics/p4_source_bound_model_ev_research.py",
+        "diagnostics/p6_fixture_durable_ledger.py",
+        "tests/test_p6_source_bound_ranked_freeze_lab.py"
+      ],
+      "kind": "HISTORICAL_OR_RESEARCH_SCOPE_ONLY"
+    },
+    {
       "id": "P6-04",
       "run_id": 42736915479,
       "job_id": 129568266862,
