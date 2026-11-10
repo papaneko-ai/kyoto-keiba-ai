@@ -110,3 +110,9 @@ P1は未完了。**新開催日の許容されたデータ取得経路と発走�
 - 既存3原本受入に racecard_channel=PC/SP の厳密モードを追加し、保存済みHTMLの実内容とsnapshotの馬番・枠番・馬名を既存解析器で照合。従来の構造チェックは互換維持し、予測認可は行わない。
 - 受入run 42732185562 と再開・進捗run 42732185888 は同一SHA 19c334280ecc5ff88868a57299e5300e56016a75 でsuccess。初期の構文/依存関係CI失敗は修復済み。進捗31%、差分0。
 - 次は実オッズHTML原本と構造化価格の内容照合、新開催日許容取得経路。合成テスト数の増加を完成率に加点しない。
+
+## 2026-11-10 広域節目：3原本の出走馬・馬連・枠連実内容照合
+- 記録：docs/KYOTO_AI_20261110_P1_THREE_ORIGINAL_CONTENT_END_TO_END_MILESTONE.md。
+- 既存の3原本SHA/時刻ゲート、PC/SP名簿解析器、馬連/枠連行列解析器を統合し、保存済みHTML原本と構造化snapshotの名簿・両市場価格を照合。厳密モード verify_market_originals=True と racecard_channel=PC/SP。偽価格、最終オッズ、欠損、名簿不一致を拒否。
+- 操作入口：python -m diagnostics.p1_three_original_content_cli --bundle evidence.zip --snapshot snapshot.json --observed-utc <UTC時刻> --channel PC --out strict_receipt.json。失敗時は証跡不作成、上書き禁止。新開催日の公式自動取得・実オッズ・取消・許諾は未実証、予測不許可。
+- 同一SHA a1f3cd587c47b763001fcb91186a5bfdb0962a5e に対し3原本CI run 42734038859、継続/採点CI run 42734038640 がともにsuccess。客観完成率31%、前回比0、未合格24基準。次は実開催の公式取得と公式レース・時刻・発売状態の独立認証。
