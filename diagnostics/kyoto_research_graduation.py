@@ -97,18 +97,28 @@ def independently_verify_integration_claims(root, claims):
     from diagnostics.kyoto_progress_metrics import gh, run, REPO, BRANCH
     root=Path(root).resolve()
     expected={
+        "RG-01B": (
+            "diagnostics/rg01_prediction_freeze_settlement_lab.py",
+            "diagnostics/p6_fixture_durable_ledger.py",
+            "diagnostics/p6_virtual_settlement_fixture_lab.py",
+            "tests/test_rg01_prediction_freeze_settlement_lab.py"
+        ),
         "RG-02B": (
             "diagnostics/rg02_dual_market_integrated_lab.py",
             "diagnostics/p3_p6_research_no_bet.py",
             "tests/test_rg02_dual_market_integrated_lab.py"
         )
     }
+    tests={
+        "RG-01B":"test_rg01_prediction_freeze_settlement_lab.py",
+        "RG-02B":"test_rg02_dual_market_integrated_lab.py"
+    }
     confirmed=set()
     for claim in claims:
         key=claim["id"]
         if key not in expected:
             raise GraduationRejected("unregistered_integration_criterion:"+key)
-        if claim["source_paths"]!=list(expected[key]) or claim["acceptance_test"]!="test_rg02_dual_market_integrated_lab.py":
+        if claim["source_paths"]!=list(expected[key]) or claim["acceptance_test"]!=tests[key]:
             raise GraduationRejected("source_or_test_proof_mismatch")
         rid,jid,sha=claim["proof_run_id"],claim["proof_job_id"],claim["proof_head_sha"]
         if (type(rid) is not int or type(jid) is not int or
@@ -130,7 +140,7 @@ def independently_verify_integration_claims(root, claims):
             raise GraduationRejected("integration_job_not_verified")
         run("git","merge-base","--is-ancestor",sha,"HEAD",cwd=root)
         wf=run("git","show",sha+":.github/workflows/kyoto-ai-always-run-continuity.yml",cwd=root)
-        if "python -m unittest discover -s tests -p 'test_rg02_dual_market_integrated_lab.py' -v" not in wf:
+        if "python -m unittest discover -s tests -p '"+tests[key]+"' -v" not in wf:
             raise GraduationRejected("proof_SHA_workflow_lacked_integration_tests")
         for path in claim["source_paths"]:
             if not (root/path).is_file():
@@ -138,7 +148,7 @@ def independently_verify_integration_claims(root, claims):
             run("git","cat-file","-e",sha+":"+path,cwd=root)
         # At HEAD the full integration tests must still pass, detecting regressions.
         run(sys.executable,"-m","unittest","discover","-s","tests",
-            "-p","test_rg02_dual_market_integrated_lab.py","-v",cwd=root)
+            "-p",tests[key],"-v",cwd=root)
         confirmed.add(key)
     return confirmed
 
