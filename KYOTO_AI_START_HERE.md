@@ -154,3 +154,6 @@ P1は未完了。**新開催日の許容されたデータ取得経路と発走�
 ## 2026-11-10 最新実装節目：P5-04馬連枠連・手動資金配分UI、研究工程53点
 - 正本 docs/KYOTO_AI_20261110_P5_MANUAL_UI_53PCT_MILESTONE.md。diagnostics/p5_manual_allocation_app.py と diagnostics/p5_manual_allocation.py を追加。独立Streamlit画面で馬連/枠連切替、予算上限、レース数・買い目数・比率の手動操作。100円単位の予算配分を実装しAppTestで操作検証。購入・架空予測・実レース連携はなし。
 - P5-04（固定1点）のみCI証拠 run 42755410973/job 129628530896/SHA 5cd8d0298c6ad1bcb57410d684f1e7242bb26f9c で追加合格。採点run 42755514707/job 129628863154/SHA db20b0456d86c4ad2ce41e41afa53f8a97206948 success：研究工程52→53点（+1）、17/32合格、15未達。独立検証済み実用能力下限0/100のまま。旧AppTestパス失敗は修正済み。新開催日発走前実市場がない限り実用点を上げない。
+
+## 2026-11-10 最新節目：P8-02スマホ統合診断・予算UI、研究工程56点
+- 正本 docs/KYOTO_AI_20261110_P8_MOBILE_INTEGRATION_56PCT_MILESTONE.md。diagnostics/p8_mobile_readonly_planner_app.py は保存済み実148頭・プロフィール確認96頭の履歴表示と、馬連/枠連・予算・候補・比率の手動操作を1画面に統合。AppTest実操作で検証。P8-02固定3点のみ追加合格。研究工程53→56点、18/32合格、14未達。採点CI run 42756125698/job 129630826914/SHA b6f7ba1ee160897764f75a1d2dfe0cb0d99f989b success。独立検証済み実用能力下限0/100。実予想・発走前価格・仮想精算・公開環境は未接続。次は実開催の合法的な原本・時刻証拠と実モデル連携。
