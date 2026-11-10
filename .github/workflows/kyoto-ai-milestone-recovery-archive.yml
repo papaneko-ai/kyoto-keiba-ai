@@ -1,0 +1,39 @@
+name: Kyoto AI research milestone recovery archive
+on:
+  push:
+    branches: [jra-html-diagnostic-20261105]
+    paths:
+      - 'docs/KYOTO_AI_20261110_P7_INDEPENDENT_RESEARCH_64PCT_MILESTONE.md'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  zip-git-archive:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Create exact development-commit recovery ZIP and checksum
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/kyoto-recovery
+          git archive --format=zip --output=/tmp/kyoto-recovery/kyoto-ai-branch-source.zip HEAD
+          cd /tmp/kyoto-recovery
+          sha256sum kyoto-ai-branch-source.zip > SHA256SUMS.txt
+          printf '%s\n' "repo=papaneko-ai/kyoto-keiba-ai" \
+            "branch=jra-html-diagnostic-20261105" \
+            "commit=$GITHUB_SHA" \
+            "research_score_claim=64/100 (subject to same-commit continuity CI)" \
+            "operational_score_claim=0/100 verified lower bound" \
+            "separate_historical_original_recovery_artifact=13482994623" \
+            "main_turso_secrets_untouched=true" > RECOVERY_MANIFEST.txt
+          unzip -t kyoto-ai-branch-source.zip
+      - uses: actions/upload-artifact@v4
+        with:
+          name: kyoto-ai-p7-64pct-source-recovery
+          path: /tmp/kyoto-recovery/
+          retention-days: 90
+          if-no-files-found: error
