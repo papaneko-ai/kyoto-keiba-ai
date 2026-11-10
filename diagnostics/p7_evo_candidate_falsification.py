@@ -1,6 +1,6 @@
-"""P7 research-only EVO-01..08 candidate generation and falsification.
+"""P7 research-only HYP-01..08 *feature hypotheses* and falsification.
 
-All observations are synthetic or separately attested historical; this module
+These HYP identifiers are NOT the approved EVO-01..08 capability IDs.\nAll observations are synthetic or separately attested historical; this module
 never reads JRA or promotes a model. Candidate scoring is fixed before labels.
 """
 from __future__ import annotations
@@ -11,14 +11,14 @@ import json
 class EvolutionRejected(ValueError): pass
 
 EVO_RULES={
- "EVO-01":("recent_form",0.5),
- "EVO-02":("speed_index",0.5),
- "EVO-03":("jockey_index",0.5),
- "EVO-04":("draw_advantage",0.5),
- "EVO-05":("track_fit",0.5),
- "EVO-06":("pace_fit",0.5),
- "EVO-07":("training_index",0.5),
- "EVO-08":("value_signal",0.5),
+ "HYP-01":("recent_form",0.5),
+ "HYP-02":("speed_index",0.5),
+ "HYP-03":("jockey_index",0.5),
+ "HYP-04":("draw_advantage",0.5),
+ "HYP-05":("track_fit",0.5),
+ "HYP-06":("pace_fit",0.5),
+ "HYP-07":("training_index",0.5),
+ "HYP-08":("value_signal",0.5),
 }
 def _canonical(v):
  return json.dumps(v,ensure_ascii=False,sort_keys=True,separators=(",",":"),allow_nan=False).encode()
@@ -94,7 +94,7 @@ def discover_and_refute(races,*,train_count):
                  "training":a,"unseen_holdout":b,
                  "verdict":"REFUTED_OR_INSUFFICIENT" if refuted else "SURVIVED_SYNTHETIC_HOLDOUT_ONLY",
                  "deployable":False})
- return {"schema":"kyoto_p7_evo_eight_falsification.v1",
+ return {"schema":"kyoto_p7_hypothesis_eight_falsification.v1",
          "status":"RESEARCH_CANDIDATES_NOT_APPROVED",
          "candidate_ids":list(EVO_RULES),"candidate_count":len(result),
          "train_race_ids":[r["race_id"] for r in training],
