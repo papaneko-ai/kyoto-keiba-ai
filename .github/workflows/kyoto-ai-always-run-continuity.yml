@@ -32,6 +32,10 @@ jobs:
           python -m diagnostics.kyoto_resume_gate --root . --artifact-json /tmp/kyoto_recovery_metadata.json --out /tmp/kyoto_resume.json
       - name: Test progress scorer and destructive regressions
         run: python -m unittest discover -s tests -p 'test_kyoto_progress_metrics.py' -v
+      - name: Verify real manual market and ratio Streamlit controls
+        run: |
+          python -m pip install 'streamlit>=1.37,<2'
+          python -m unittest discover -s tests -p 'test_p5_manual_allocation.py' -v
       - name: Reject research-CI inflation of operational completion
         run: |
           python -m unittest discover -s tests -p 'test_kyoto_operational_readiness.py' -v
