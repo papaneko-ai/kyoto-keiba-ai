@@ -1,5 +1,13 @@
 {
   "schema": "kyoto_progress_regressions.v1",
   "scope_id": "KYOTO_P1_P8_FIXED_20261110",
-  "incidents": []
+  "incidents": [
+    {
+      "criterion_id": "P7-01",
+      "reason": "PREVIOUS_ACCEPTANCE_ERROR",
+      "description": "2026-11-10 44% report misidentified eight synthetic feature hypotheses as the agreed EVO-01..08 cross-phase capabilities; source module has been renamed HYP-01..08 and its P7-01 evidence claim revoked.",
+      "evidence_url": "https://github.com/papaneko-ai/kyoto-keiba-ai/blob/jra-html-diagnostic-20261105/docs/diagnostics/kyoto_ai_evolution_requirements_manifest_20261106.json",
+      "recovery_condition": "Implement and independently test the actual approved EVO-01..08 capabilities from the frozen requirements manifest with CI run/job/SHA proof; never award P7-01 for merely eight feature hypotheses."
+    }
+  ]
 }
