@@ -130,6 +130,19 @@
       "kind": "HISTORICAL_OR_RESEARCH_SCOPE_ONLY"
     },
     {
+      "id": "P5-04",
+      "run_id": 42755410973,
+      "job_id": 129628530896,
+      "head_sha": "5cd8d0298c6ad1bcb57410d684f1e7242bb26f9c",
+      "workflow_name": "Kyoto AI objective progress and continuity gate",
+      "source_paths": [
+        "diagnostics/p5_manual_allocation_app.py",
+        "diagnostics/p5_manual_allocation.py",
+        "tests/test_p5_manual_allocation.py"
+      ],
+      "kind": "HISTORICAL_OR_RESEARCH_SCOPE_ONLY"
+    },
+    {
       "id": "P6-01",
       "run_id": 42567612106,
       "job_id": 128997481146,
