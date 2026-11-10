@@ -67,7 +67,8 @@ class ObservedRaceSpec:
                         or u.path!="/JRADB/accessD.html" or u.fragment
                         or set(q)!={"CNAME"} or len(q["CNAME"])!=1
                         or not re.fullmatch(r"[ps]w[A-Za-z0-9]+/[A-Za-z0-9]+",q["CNAME"][0])
-                        or not q["CNAME"][0].startswith("pw" if channel=="PC" else "sw")):
+                        or not q["CNAME"][0].startswith("pw" if channel=="PC" else "sw")
+                        or self.race_day not in q["CNAME"][0]):
                     raise ValueError("unverified_official_racecard_url")
         except (ValueError,TypeError,OverflowError) as exc:
             raise SourceChainError("race_spec_unverified:"+str(exc)) from exc
