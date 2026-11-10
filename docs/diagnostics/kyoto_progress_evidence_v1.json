@@ -200,6 +200,19 @@
         "diagnostics/p1_readonly_monitor_app.py"
       ],
       "kind": "HISTORICAL_OR_RESEARCH_SCOPE_ONLY"
+    },
+    {
+      "id": "P8-02",
+      "run_id": 42756040357,
+      "job_id": 129630546706,
+      "head_sha": "17d835cebbd4fa7a2150f6de10838e35b557c499",
+      "workflow_name": "Kyoto AI objective progress and continuity gate",
+      "source_paths": [
+        "diagnostics/p8_mobile_readonly_planner_app.py",
+        "diagnostics/p5_manual_allocation.py",
+        "tests/test_p8_mobile_readonly_planner.py"
+      ],
+      "kind": "HISTORICAL_OR_RESEARCH_SCOPE_ONLY"
     }
   ]
 }
