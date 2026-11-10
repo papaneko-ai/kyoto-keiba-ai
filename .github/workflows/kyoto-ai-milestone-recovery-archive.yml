@@ -12,6 +12,7 @@ on:
       - 'docs/KYOTO_AI_20261110_RG06_RESEARCH_GRADUATION_100PCT_MILESTONE.md'
       - 'docs/KYOTO_AI_20261110_P4_TEMPORAL_66PCT_MILESTONE.md'
       - 'docs/KYOTO_AI_20261110_P1_PCSP_FALLBACK_73PCT_MILESTONE.md'
+      - 'docs/KYOTO_AI_20261110_P1_ATOMIC_THREE_ORIGINALS_79PCT_MILESTONE.md'
   workflow_dispatch:
 permissions:
   contents: read
@@ -34,7 +35,7 @@ jobs:
           printf '%s\n' "repo=papaneko-ai/kyoto-keiba-ai" \
             "branch=jra-html-diagnostic-20261105" \
             "commit=$GITHUB_SHA" \
-            "research_score_claim=73/100 (subject to same-commit continuity CI)" \
+            "research_score_claim=79/100 (subject to same-commit continuity CI)" \
             "research_graduation_claim=100.0/100 (subject to same-commit continuity CI)" \
             "operational_score_claim=0/100 verified lower bound" \
             "separate_historical_original_recovery_artifact=13482994623" \
@@ -42,7 +43,7 @@ jobs:
           unzip -t kyoto-ai-branch-source.zip
       - uses: actions/upload-artifact@v4
         with:
-          name: kyoto-ai-p1-73pct-pcsp-fallback-recovery
+          name: kyoto-ai-p1-79pct-atomic-three-originals-recovery
           path: /tmp/kyoto-recovery/
           retention-days: 90
           if-no-files-found: error
