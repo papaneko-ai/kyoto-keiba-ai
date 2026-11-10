@@ -37,6 +37,42 @@
       "kind": "HISTORICAL_OR_RESEARCH_SCOPE_ONLY"
     },
     {
+      "id": "P2-02",
+      "run_id": 42739797521,
+      "job_id": 129577746960,
+      "head_sha": "5e2b7c1015f230f426e501f8f45434169225580c",
+      "workflow_name": "Kyoto AI objective progress and continuity gate",
+      "source_paths": [
+        "diagnostics/p2_three_way_discovery.py",
+        "tests/test_p2_three_way_discovery.py"
+      ],
+      "kind": "HISTORICAL_OR_RESEARCH_SCOPE_ONLY"
+    },
+    {
+      "id": "P2-03",
+      "run_id": 42739797521,
+      "job_id": 129577746960,
+      "head_sha": "5e2b7c1015f230f426e501f8f45434169225580c",
+      "workflow_name": "Kyoto AI objective progress and continuity gate",
+      "source_paths": [
+        "diagnostics/p2_three_way_discovery.py",
+        "tests/test_p2_three_way_discovery.py"
+      ],
+      "kind": "HISTORICAL_OR_RESEARCH_SCOPE_ONLY"
+    },
+    {
+      "id": "P2-04",
+      "run_id": 42739797521,
+      "job_id": 129577746960,
+      "head_sha": "5e2b7c1015f230f426e501f8f45434169225580c",
+      "workflow_name": "Kyoto AI objective progress and continuity gate",
+      "source_paths": [
+        "diagnostics/p2_three_way_discovery.py",
+        "tests/test_p2_three_way_discovery.py"
+      ],
+      "kind": "HISTORICAL_OR_RESEARCH_SCOPE_ONLY"
+    },
+    {
       "id": "P3-01",
       "run_id": 42567612106,
       "job_id": 128997481146,
