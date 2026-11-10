@@ -126,5 +126,54 @@ class ThreeOriginalIntakeTests(unittest.TestCase):
         self.assertEqual(self.run_intake(),self.run_intake())
 
 
+    def test_strict_pc_racecard_matches_original_runner_roster(self):
+        raw = (b'<html><body>2026\x94N11\x8c\x8e14\x93\xfa 1\x83\x8c\x81[\x83X'
+               b'<table><tr><th class="horse"></th><th class="num"></th><th class="waku"></th></tr>'
+               b'<tr><td class="horse"><a href="/JRADB/accessU.html?CNAME=a">A</a></td>'
+               b'<td class="num">1</td><td class="waku"><img alt="\x98g1"></td></tr>'
+               b'<tr><td class="horse"><a href="/JRADB/accessU.html?CNAME=b">B</a></td>'
+               b'<td class="num">2</td><td class="waku"><img alt="\x98g2"></td></tr></table></body></html>')
+        (self.root/'race.html').write_bytes(raw)
+        sha=hashlib.sha256(raw).hexdigest()
+        self.manifest['sources'][0]['sha256']=sha
+        self.snapshot['sources']['racecard']['sha256']=sha
+        bundle=export_bundle(self.manifest,self.root,observed_utc=NOW)
+        r=inspect_three_original_dual_intake(bundle,self.snapshot,observed_utc=NOW,
+                                             racecard_channel="PC")
+        self.assertTrue(r['racecard_roster_original_verified'])
+        self.assertEqual(r['racecard_roster_receipt']['runner_count'],2)
+        self.assertFalse(r['prediction_ready'])
+        tampered=copy.deepcopy(self.snapshot)
+        tampered['runners'][1]['name']='INVENTED'
+        with self.assertRaisesRegex(ThreeOriginalRejected,'roster_disagrees'):
+            inspect_three_original_dual_intake(bundle,tampered,observed_utc=NOW,
+                                               racecard_channel="PC")
+
+    def test_strict_sp_fallback_parser_and_invalid_channel(self):
+        raw = (b'<html><table>'
+               b'<tr><td class="uban">1</td><td class="wban">1</td>'
+               b'<td><a href="/JRADB/accessU.html?CNAME=a">A</a></td></tr>'
+               b'<tr><td class="uban">2</td><td class="wban">2</td>'
+               b'<td><a href="/JRADB/accessU.html?CNAME=b">B</a></td></tr>'
+               b'</table></html>')
+        (self.root/'race.html').write_bytes(raw)
+        sha=hashlib.sha256(raw).hexdigest()
+        self.manifest['sources'][0]['sha256']=sha
+        self.snapshot['sources']['racecard']['sha256']=sha
+        bundle=export_bundle(self.manifest,self.root,observed_utc=NOW)
+        r=inspect_three_original_dual_intake(bundle,self.snapshot,observed_utc=NOW,
+                                             racecard_channel="SP")
+        self.assertEqual(r['racecard_roster_receipt']['channel'],"SP")
+        with self.assertRaisesRegex(ThreeOriginalRejected,'racecard_channel_invalid'):
+            inspect_three_original_dual_intake(bundle,self.snapshot,observed_utc=NOW,
+                                               racecard_channel="FAKE")
+
+    def test_strict_rejects_unparseable_racecard_original(self):
+        bundle=export_bundle(self.manifest,self.root,observed_utc=NOW)
+        with self.assertRaisesRegex(ThreeOriginalRejected,'racecard_original_parse_failed'):
+            inspect_three_original_dual_intake(bundle,self.snapshot,observed_utc=NOW,
+                                               racecard_channel="PC")
+
+
 if __name__ == '__main__':
     unittest.main()
