@@ -10,6 +10,7 @@ from datetime import datetime, timezone
 from hashlib import sha256
 from decimal import Decimal, InvalidOperation
 import json
+import math
 from diagnostics.p1_operator_original_handoff import assess_originals
 
 class TemporalMarketRejected(ValueError):pass
@@ -65,6 +66,7 @@ def audit_temporal_markets(*, current_bundle,current_snapshot,current_observed_u
                            takeout_policy_bytes=None):
     if (type(max_age_seconds) is not int or not 1<=max_age_seconds<=3600 or
         type(max_declared_odds_drift) not in (float,int) or
+        not math.isfinite(max_declared_odds_drift) or
         not 0<=max_declared_odds_drift<1):
         raise TemporalMarketRejected("invalid_freshness_or_drift_limit")
     if not isinstance(current_bundle,bytes) or not isinstance(current_snapshot,dict):
