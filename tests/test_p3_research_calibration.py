@@ -48,7 +48,7 @@ class CalibrationTests(unittest.TestCase):
             row["winning_pair"]=[1,2] if row["winning_pair"]==[1,3] else [1,3]
         changed=calibrate_holdout(rows,train_count=4)
         self.assertEqual(base["selected_uniform_shrinkage"],changed["selected_uniform_shrinkage"])
-        self.assertNotEqual(base["calibrated_holdout"],changed["calibrated_holdout"])
+        self.assertNotEqual(base["uncalibrated_holdout"],changed["uncalibrated_holdout"])
 
     def test_training_labels_change_alpha(self):
         rows=fixtures()
