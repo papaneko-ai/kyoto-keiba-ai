@@ -10,6 +10,7 @@ on:
       - 'docs/KYOTO_AI_20261110_RG04_EVOLUTION_83P3_MILESTONE.md'
       - 'docs/KYOTO_AI_20261110_RG05_SAFETY_91P7_MILESTONE.md'
       - 'docs/KYOTO_AI_20261110_RG06_RESEARCH_GRADUATION_100PCT_MILESTONE.md'
+      - 'docs/KYOTO_AI_20261110_P4_TEMPORAL_66PCT_MILESTONE.md'
   workflow_dispatch:
 permissions:
   contents: read
@@ -32,7 +33,7 @@ jobs:
           printf '%s\n' "repo=papaneko-ai/kyoto-keiba-ai" \
             "branch=jra-html-diagnostic-20261105" \
             "commit=$GITHUB_SHA" \
-            "research_score_claim=64/100 (subject to same-commit continuity CI)" \
+            "research_score_claim=66/100 (subject to same-commit continuity CI)" \
             "research_graduation_claim=100.0/100 (subject to same-commit continuity CI)" \
             "operational_score_claim=0/100 verified lower bound" \
             "separate_historical_original_recovery_artifact=13482994623" \
@@ -40,7 +41,7 @@ jobs:
           unzip -t kyoto-ai-branch-source.zip
       - uses: actions/upload-artifact@v4
         with:
-          name: kyoto-ai-rg06-100pct-graduation-source-recovery
+          name: kyoto-ai-p4-66pct-temporal-source-recovery
           path: /tmp/kyoto-recovery/
           retention-days: 90
           if-no-files-found: error
