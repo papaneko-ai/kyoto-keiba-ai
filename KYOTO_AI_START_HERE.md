@@ -126,3 +126,7 @@ P1は未完了。**新開催日の許容されたデータ取得経路と発走�
 - 詳細 docs/KYOTO_AI_20261110_P3_CALIBRATION_WALK_FORWARD_MEASURED_GAIN_MILESTONE.md。既存32条件を変更せずP3-03（Brier/対数損失・研究用較正）4点とP3-04（未使用時系列・拡大型ウォークフォワード）3点を実CI合格で追加。31%→38%（+7ポイント）、8→10条件、未合格24→22。
 - P3-03 run 42735986162/job 129565218535/SHA 65eac2a795f2c8551d1cf7b52efb4124a24ea100、P3-04 run 42736095173/job 129565586203/SHA c1845fcbdf2c1f6cc67ab713d9e0c7a3dacdff47、ともにsuccess。証拠は docs/diagnostics/kyoto_progress_evidence_v1.json。新しい継続CIで再採点すること。
 - 合成研究用レースでの確率較正と漏洩拒否・過学習警告であり、実予想精度改善や新開催日JRA取得成功を示さない。P1-03/04等の未達は維持。main/Turso/Secrets/実購入履歴は不変更。
+
+## 2026-11-10 広域節目：P6-04仮想成績と時系列比較で実測41%
+- 詳細 docs/KYOTO_AI_20261110_P6_TEMPORAL_VIRTUAL_AGGREGATE_41PCT_MILESTONE.md。P6-04（3点）をrun 42736915479/job 129568266862/SHA e877c8f4cd4dd2bd484fa38e70f34495861e0af0のCI成功で合格。再採点run 42737006536/job 129568565880/SHA 2fd65a8b559dee574731ebc34a23f17c3aaba2d2で41%、前回比+3、未合格21。
+- 既存のSHA鎖台帳を外部末尾SHAで検証し、仮想収支・回収率・的中率・最大ドローダウン・前半後半比較を決定論的集計。未確定除外、訂正二重計上防止、破壊試験をCIで検証。研究用LABデータのみで、JRA実結果自動採点や実投資の実績ではない。
