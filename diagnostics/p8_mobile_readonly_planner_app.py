@@ -8,6 +8,7 @@ from pathlib import Path
 import streamlit as st
 from diagnostics.p1_monitor_viewmodel import summarize,StatusInvalid
 from diagnostics.p5_manual_allocation import allocate
+from diagnostics.rg06_repeatable_mobile_e2e_lab import repeatable_research_e2e, ReproducibilityRejected
 
 ROOT=Path(__file__).resolve().parents[1]
 STATUS=ROOT/"docs/diagnostics/jra_p1_batch14_96_profiles_20261106/status.json"
@@ -40,5 +41,21 @@ st.write({"券種":market,"買い目数上限":pick_count,"配分計":f"{sum(amo
           "未配分":f"{int(budget)-sum(amounts):,}円"})
 for i,amount in enumerate(amounts):
  st.write(f"候補{i+1}：{amount:,}円")
+st.subheader("研究用E2E再現性診断")
+st.caption("仮想モデル・模擬オッズ・模擬払戻による独立した2回の再実行です。保存済み過去の確認記録の原本SHAを紐付けますが、実競馬予測や仮想投資の実開催実績ではありません。")
+try:
+ audit=repeatable_research_e2e(
+  budget_yen=int(budget),
+  ticket_type="QUINELLA" if market=="馬連" else "BRACKET",
+  historical_status_bytes=STATUS.read_bytes())
+ st.success("研究用の同一入力・同一結果：2回一致")
+ st.write({"研究用券種":market,
+           "研究用E2E再現":f"{audit['independent_replays']}回一致",
+           "研究用配分額":f"{audit['fixture_market_spent_yen']:,}円",
+           "実開催データ検証":"未実施"})
+ st.caption("研究E2E SHA256："+audit["receipt_sha256"])
+except (OSError,ValueError,KeyError,TypeError,ReproducibilityRejected):
+ st.error("研究用E2Eの再現検証に失敗したため、検証結果の表示を停止します。")
+ st.stop()
 st.warning("未接続：実際のレース選定、発走前価格、モデル、仮想投資、払戻精算。")
 st.caption("読み取り専用・外部通信なし・購入ボタンなし・本番アプリ変更なし")
