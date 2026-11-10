@@ -109,9 +109,15 @@ def package_prerace_market_capture(*,raw_sources,snapshot,observed_utc,channel):
     }
     buf=io.BytesIO()
     with zipfile.ZipFile(buf,"w",compression=zipfile.ZIP_STORED) as out:
-        out.writestr("source_bundle.zip",original_bundle)
-        out.writestr("snapshot.json",_canon(snapshot))
-        out.writestr("handoff_receipt.json",_canon(result))
+        # Fixed ZIP member metadata: identical inputs must yield identical
+        # archive bytes regardless of wall clock or CI runner.
+        for name, value in (("source_bundle.zip",original_bundle),
+                            ("snapshot.json",_canon(snapshot)),
+                            ("handoff_receipt.json",_canon(result))):
+            info=zipfile.ZipInfo(name,date_time=(1980,1,1,0,0,0))
+            info.compress_type=zipfile.ZIP_STORED
+            info.external_attr=0o600 << 16
+            out.writestr(info,value)
     return {"archive_bytes":buf.getvalue(),"receipt":result}
 
 def verify_prerace_handoff_archive(data,*,expected_sha256,observed_utc,channel):
