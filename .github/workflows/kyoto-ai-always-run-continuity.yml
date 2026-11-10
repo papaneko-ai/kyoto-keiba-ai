@@ -38,6 +38,7 @@ jobs:
           python -m unittest discover -s tests -p 'test_p1_three_original_content_binding.py' -v
           python -m unittest discover -s tests -p 'test_jra_one_shot_market_capture.py' -v
           python -m unittest discover -s tests -p 'test_p3_research_calibration.py' -v
+          python -m unittest discover -s tests -p 'test_p6_fixture_temporal_aggregate.py' -v
           python -m unittest discover -s tests -p 'test_jra_pc_sp_saved_reconciliation.py' -v
       - name: Calculate objective P1-P8 score with real GitHub CI evidence
         run: |
