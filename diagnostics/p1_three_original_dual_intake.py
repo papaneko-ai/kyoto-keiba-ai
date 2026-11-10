@@ -19,7 +19,7 @@ class ThreeOriginalRejected(ValueError):
     pass
 
 
-def inspect_three_original_dual_intake(bundle: bytes, snapshot: dict, *, observed_utc: str):
+def inspect_three_original_dual_intake(bundle: bytes, snapshot: dict, *, observed_utc: str,\n                                       racecard_channel=None):
     try:
         imported = import_bundle(bundle, observed_utc=observed_utc)
         with zipfile.ZipFile(io.BytesIO(bundle)) as archive:
@@ -96,6 +96,34 @@ def inspect_three_original_dual_intake(bundle: bytes, snapshot: dict, *, observe
     if market["status"] != "STRUCTURAL_COMPLETE_ONLY":
         raise ThreeOriginalRejected("dual_market_incomplete_or_not_open")
 
+    # Explicit strict mode reuses the existing real PC/SP racecard parsers.
+    # The original three-source check only compared claimed hashes; it did
+    # NOT prove that the structured runners came from those source bytes.
+    # Legacy callers remain structural-only, with no readiness authorization.
+    roster_receipt = None
+    if racecard_channel is not None:
+        if racecard_channel not in ("PC", "SP"):
+            raise ThreeOriginalRejected("racecard_channel_invalid")
+        from diagnostics.jra_pc_sp_benchmark import pc_rows, sp_rows
+        racecard_source = next(x for x in sources if x["kind"] == "racecard")
+        try:
+            with zipfile.ZipFile(io.BytesIO(bundle)) as archive:
+                original = archive.read(racecard_source["path"])
+            parsed = (pc_rows(original, snapshot["race"], meeting_date=snapshot["meeting_date"])
+                      if racecard_channel == "PC" else sp_rows(original))
+        except (ValueError, TypeError, KeyError, zipfile.BadZipFile) as exc:
+            raise ThreeOriginalRejected("racecard_original_parse_failed") from exc
+        expected = tuple((row["number"], row["bracket"], row["name"])
+                         for row in snapshot["runners"])
+        if len(parsed) != len(expected) or parsed != expected:
+            raise ThreeOriginalRejected("racecard_original_roster_disagrees_with_snapshot")
+        roster_receipt = {
+            "channel": racecard_channel,
+            "verified_against_original_bytes": True,
+            "runner_count": len(parsed),
+            "original_sha256": hashlib.sha256(original).hexdigest(),
+        }
+
     raw = json.dumps(snapshot, sort_keys=True, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
     return {
         "schema": "kyoto_p1_three_original_offline_intake.v1",
@@ -116,5 +144,4 @@ def inspect_three_original_dual_intake(bundle: bytes, snapshot: dict, *, observe
         "prerace_market_authorized": False,
         "prediction_ready": False,
         "actual_orders_authorized": False,
-        "network_requests": 0
-    }
+        "racecard_roster_original_verified": roster_receipt is not None,\n        "racecard_roster_receipt": roster_receipt,\n        "network_requests": 0\n    }
