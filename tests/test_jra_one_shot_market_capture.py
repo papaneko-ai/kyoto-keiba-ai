@@ -128,6 +128,22 @@ class FutureRaceCaptureTests(unittest.TestCase):
   with self.assertRaises(SourceChainError):
    self.spec(pc_racecard_url="https://jra.jp/JRADB/accessD.html").validate()
 
+ def test_wrong_jst_start_day_rejected_without_http(self):
+  with tempfile.TemporaryDirectory() as d:
+   with self.assertRaisesRegex(SourceChainError,'verified_start_day_does_not_match_race_spec'):
+    capture(d,channel="PC",verified_start_utc="2026-11-15T06:45:00Z",
+      active_runners=((1,1),(2,2)),now_utc="2026-11-13T10:00:00Z",
+      opener=RefusalOpener(),race_spec=self.spec(race_day="20261114",
+        race_id="2026-11-14_KYOTO_11R",
+        normal_sales_open_utc="2026-11-13T09:30:00Z"))
+
+ def test_duplicate_active_horse_rejected_without_http(self):
+  with tempfile.TemporaryDirectory() as d:
+   with self.assertRaisesRegex(SourceChainError,'independent_active_roster_required'):
+    capture(d,channel="PC",verified_start_utc="2026-11-07T06:45:00Z",
+      active_runners=((1,1),(1,2)),now_utc="2026-11-06T10:00:00Z",
+      opener=RefusalOpener())
+
  def test_wrong_race_key_blocked(self):
   with self.assertRaises(SourceChainError):
    self.spec(race_id="2026-11-07_KYOTO_10R").validate()
