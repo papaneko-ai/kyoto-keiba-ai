@@ -199,8 +199,12 @@ if __name__=="__main__":
     p.add_argument("--channel",choices=["PC","SP"],default="PC")
     p.add_argument("--verified-start-utc",required=True)
     p.add_argument("--active-roster-json",required=True)
+    p.add_argument("--race-spec-json",help="Independently observed official navigation and race identity; no HTTP authorization")
     args=p.parse_args()
     roster=json.loads(Path(args.active_roster_json).read_text(encoding="utf8"))
     rows=tuple((int(r["horse_number"]),int(r["frame_number"])) for r in roster["runners"])
+    spec=(ObservedRaceSpec(**json.loads(Path(args.race_spec_json).read_text(encoding="utf8"))).validate()
+          if args.race_spec_json else DEFAULT_RACE_SPEC)
     print(json.dumps(capture(args.out,channel=args.channel,
-       verified_start_utc=args.verified_start_utc,active_runners=rows),ensure_ascii=False,indent=2))
+       verified_start_utc=args.verified_start_utc,active_runners=rows,
+       race_spec=spec),ensure_ascii=False,indent=2))
