@@ -178,7 +178,25 @@ def measure(rubric, evidence, verifier, previous=None, incident_register=None):
     return result
 
 
-def previous_artifact(current_run):
+def persistent_baseline(root):
+    """Permanent, evidence-verified first measurement; not a new 45% estimate."""
+    path = Path(root) / "docs/diagnostics/kyoto_progress_baseline_20261110.json"
+    if not path.is_file():
+        raise ProgressError("permanent objective baseline missing")
+    baseline = load(path)
+    if (baseline.get("schema") != "kyoto_progress_result.v1"
+            or baseline.get("scope_id") != "KYOTO_P1_P8_FIXED_20261110"
+            or baseline.get("score_percent") != 31
+            or baseline.get("rubric_sha256") != "b836ae69a22427b185545f569f9c6dc90923293277c02c7d58681321e40bc7bf"
+            or baseline.get("passed_ids") != ["P1-01", "P1-02", "P2-01", "P3-01",
+                                               "P4-01", "P5-01", "P6-01", "P8-01"]
+            or str(baseline.get("ci_run_id")) != "42730742998"):
+        raise ProgressError("permanent objective baseline tampered")
+    return baseline
+
+
+def previous_artifact(current_run, root):
+
     records = gh(f"repos/{REPO}/actions/artifacts?name={ARTIFACT}&per_page=50")
     items = sorted(records.get("artifacts", []),
                    key=lambda x: x.get("created_at", ""), reverse=True)
@@ -196,7 +214,7 @@ def previous_artifact(current_run):
         if not report.is_file():
             raise ProgressError("prior artifact exists but progress report is absent")
         return load(report)
-    return None
+    return persistent_baseline(root)
 
 
 def main(argv=None):
@@ -210,7 +228,7 @@ def main(argv=None):
     rubric = load(root / RUBRIC_PATH)
     evidence = load(root / EVIDENCE_PATH)
     incidents = load(root / INCIDENTS_PATH)
-    prior = previous_artifact(os.environ.get("GITHUB_RUN_ID", ""))
+    prior = previous_artifact(os.environ.get("GITHUB_RUN_ID", ""), root)
     result = measure(rubric, evidence, live_verifier(root), prior, incidents)
     result["source_commit"] = run("git", "rev-parse", "HEAD", cwd=root).strip()
     result["ci_run_id"] = os.environ.get("GITHUB_RUN_ID")
