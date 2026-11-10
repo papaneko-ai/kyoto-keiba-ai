@@ -1,4 +1,17 @@
 {
   "schema": "kyoto_research_graduation_integration_claims.v1",
-  "claims": []
+  "claims": [
+    {
+      "id": "RG-02B",
+      "proof_run_id": 42760352203,
+      "proof_job_id": 129644325047,
+      "proof_head_sha": "702f069cbdfe04bc71af90d115eb19295c5b6d7c",
+      "source_paths": [
+        "diagnostics/rg02_dual_market_integrated_lab.py",
+        "diagnostics/p3_p6_research_no_bet.py",
+        "tests/test_rg02_dual_market_integrated_lab.py"
+      ],
+      "acceptance_test": "test_rg02_dual_market_integrated_lab.py"
+    }
+  ]
 }
