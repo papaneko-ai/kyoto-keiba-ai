@@ -86,6 +86,24 @@ jobs:
           assert x['graduation_eligible']==(x['graduation_passed_conditions']==12)
           print('GRADUATION_PROOF_SEPARATE_FROM_P1_P8=TRUE')
           PY
+      - name: Independently account for research to live transition
+        run: |
+          python -m unittest discover -s tests -p 'test_kyoto_research_to_live_bridge.py' -v
+          python -m diagnostics.kyoto_research_to_live_bridge --root . --graduation /tmp/kyoto-graduation.json --operational /tmp/kyoto-operational.json --out /tmp/kyoto-live-crosswalk.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          x=json.loads(Path('/tmp/kyoto-live-crosswalk.json').read_text(encoding='utf8'))
+          assert x['total_areas']==6 and not x['real_purchase_authorized']
+          assert x['operational_verified_points']==0
+          assert x['research_to_live_verified_areas']==0
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: kyoto-ai-research-to-live-crosswalk
+          path: /tmp/kyoto-live-crosswalk.json
+          if-no-files-found: error
+          retention-days: 90
       - uses: actions/upload-artifact@v4
         with:
           name: kyoto-ai-research-graduation-report
