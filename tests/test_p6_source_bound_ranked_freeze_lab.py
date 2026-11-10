@@ -20,7 +20,7 @@ class RankedPreResultFreezeTests(unittest.TestCase):
   self.input=self.fx.args()
   self.p4=compare_source_market_to_frozen_model(**self.input)
   self.ranking=rank_lab_research_races([self.p4],daily_budget_yen=1000)
-  self.when="2026-11-13T04:07:00Z"
+  self.when="2026-11-13T05:02:00Z"
  def freeze(self,**kw):
   args={"day_inputs":[self.input],"ranking":self.ranking,
         "destination":self.root/"study","commit_utc":self.when}
