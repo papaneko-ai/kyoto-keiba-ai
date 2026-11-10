@@ -80,9 +80,13 @@ class OneShotTests(unittest.TestCase):
    self.assertTrue(all(x["captured_at_utc"] for x in r["request_receipts"]))
 
 class FutureRaceCaptureTests(unittest.TestCase):
+ FUTURE_PC='https://jra.jp/JRADB/accessD.html?CNAME=pw01dde0108202605011120261114%2F13'
+ FUTURE_SP='https://sp.jra.jp/JRADB/accessD.html?CNAME=sw01dde0108202605011120261114%2FA0'
  def spec(self, **changes):
   from diagnostics.jra_one_shot_market_capture import DEFAULT_RACE_SPEC
   from dataclasses import replace
+  changes.setdefault('pc_racecard_url',self.FUTURE_PC if changes.get('race_day')=='20261114' else DEFAULT_RACE_SPEC.pc_racecard_url)
+  changes.setdefault('sp_racecard_url',self.FUTURE_SP if changes.get('race_day')=='20261114' else DEFAULT_RACE_SPEC.sp_racecard_url)
   return replace(DEFAULT_RACE_SPEC,**changes)
 
  def test_future_day_needs_verified_sales_time(self):
