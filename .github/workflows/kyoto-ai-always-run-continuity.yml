@@ -61,7 +61,13 @@ jobs:
           python -m unittest discover -s tests -p 'test_rg03_temporal_journal_walkforward_lab.py' -v
           python -m unittest discover -s tests -p 'test_rg04_integrated_evolution_cycle_lab.py' -v
           python -m unittest discover -s tests -p 'test_rg05_original_market_safe_pipeline_lab.py' -v
+          python -m unittest discover -s tests -p 'test_rg06_repeatable_mobile_e2e_lab.py' -v
           python -m unittest discover -s tests -p 'test_jra_pc_sp_saved_reconciliation.py' -v
+      - name: RG06 responsive mobile-width Chromium control acceptance
+        run: |
+          python -m pip install 'playwright>=1.55,<2'
+          python -m playwright install chromium
+          python tests/rg06_mobile_browser_check.py
       - name: Calculate objective P1-P8 score with real GitHub CI evidence
         run: |
           python -m diagnostics.kyoto_progress_metrics --root . --out /tmp/kyoto-progress.json
