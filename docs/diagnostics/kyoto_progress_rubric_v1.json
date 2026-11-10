@@ -1,0 +1,241 @@
+{
+  "schema": "kyoto_progress_fixed_scope.v1",
+  "scope_id": "KYOTO_P1_P8_FIXED_20261110",
+  "weights": {
+    "P1": 25,
+    "P2": 10,
+    "P3": 15,
+    "P4": 10,
+    "P5": 5,
+    "P6": 15,
+    "P7": 10,
+    "P8": 10
+  },
+  "criteria": [
+    {
+      "id": "P1-01",
+      "phase": "P1",
+      "points": 6,
+      "title": "既存実12R出馬表148頭の同定・時点照合",
+      "acceptance": "本項目の機能を指定範囲の実データまたは研究用テストで実証しGitHub Actionsのrun/job/SHAで再現可能にする。研究用は実用済みと混同しない。"
+    },
+    {
+      "id": "P1-02",
+      "phase": "P1",
+      "points": 6,
+      "title": "復旧実HTML原本84頭のSHA・485過去走再解析",
+      "acceptance": "本項目の機能を指定範囲の実データまたは研究用テストで実証しGitHub Actionsのrun/job/SHAで再現可能にする。研究用は実用済みと混同しない。"
+    },
+    {
+      "id": "P1-03",
+      "phase": "P1",
+      "points": 7,
+      "title": "許容された新開催日のPC/SP自動取得と切替",
+      "acceptance": "本項目の機能を指定範囲の実データまたは研究用テストで実証しGitHub Actionsのrun/job/SHAで再現可能にする。研究用は実用済みと混同しない。"
+    },
+    {
+      "id": "P1-04",
+      "phase": "P1",
+      "points": 6,
+      "title": "当日実発走前馬連枠連・取消・発売時刻原本",
+      "acceptance": "本項目の機能を指定範囲の実データまたは研究用テストで実証しGitHub Actionsのrun/job/SHAで再現可能にする。研究用は実用済みと混同しない。"
+    },
+    {
+      "id": "P2-01",
+      "phase": "P2",
+      "points": 3,
+      "title": "実148頭の履歴特徴量と欠損理由整備",
+      "acceptance": "本項目の機能を指定範囲の実データまたは研究用テストで実証しGitHub Actionsのrun/job/SHAで再現可能にする。研究用は実用済みと混同しない。"
+    },
+    {
+      "id": "P2-02",
+      "phase": "P2",
+      "points": 3,
+      "title": "事後ラベル分離と時系列学習・検証",
+      "acceptance": "本項目の機能を指定範囲の実データまたは研究用テストで実証しGitHub Actionsのrun/job/SHAで再現可能にする。研究用は実用済みと混同しない。"
+    },
+    {
+      "id": "P2-03",
+      "phase": "P2",
+      "points": 2,
+      "title": "勝ち馬条件・交互作用発見と反証",
+      "acceptance": "本項目の機能を指定範囲の実データまたは研究用テストで実証しGitHub Actionsのrun/job/SHAで再現可能にする。研究用は実用済みと混同しない。"
+    },
+    {
+      "id": "P2-04",
+      "phase": "P2",
+      "points": 2,
+      "title": "未使用時系列で特徴価値と漏洩防止検証",
+      "acceptance": "本項目の機能を指定範囲の実データまたは研究用テストで実証しGitHub Actionsのrun/job/SHAで再現可能にする。研究用は実用済みと混同しない。"
+    },
+    {
+      "id": "P3-01",
+      "phase": "P3",
+      "points": 4,
+      "title": "研究用馬連・枠連確率の数理整合",
+      "acceptance": "本項目の機能を指定範囲の実データまたは研究用テストで実証しGitHub Actionsのrun/job/SHAで再現可能にする。研究用は実用済みと混同しない。"
+    },
+    {
+      "id": "P3-02",
+      "phase": "P3",
+      "points": 4,
+      "title": "実データで市場とモデルの同条件比較",
+      "acceptance": "本項目の機能を指定範囲の実データまたは研究用テストで実証しGitHub Actionsのrun/job/SHAで再現可能にする。研究用は実用済みと混同しない。"
+    },
+    {
+      "id": "P3-03",
+      "phase": "P3",
+      "points": 4,
+      "title": "確率較正とBrier・対数損失",
+      "acceptance": "本項目の機能を指定範囲の実データまたは研究用テストで実証しGitHub Actionsのrun/job/SHAで再現可能にする。研究用は実用済みと混同しない。"
+    },
+    {
+      "id": "P3-04",
+      "phase": "P3",
+      "points": 3,
+      "title": "未使用時系列で精度と過学習検証",
+      "acceptance": "本項目の機能を指定範囲の実データまたは研究用テストで実証しGitHub Actionsのrun/job/SHAで再現可能にする。研究用は実用済みと混同しない。"
+    },
+    {
+      "id": "P4-01",
+      "phase": "P4",
+      "points": 3,
+      "title": "研究用全組合せ期待値・欠落遮断",
+      "acceptance": "本項目の機能を指定範囲の実データまたは研究用テストで実証しGitHub Actionsのrun/job/SHAで再現可能にする。研究用は実用済みと混同しない。"
+    },
+    {
+      "id": "P4-02",
+      "phase": "P4",
+      "points": 3,
+      "title": "実発走前オッズと採用予測の期待値統合",
+      "acceptance": "本項目の機能を指定範囲の実データまたは研究用テストで実証しGitHub Actionsのrun/job/SHAで再現可能にする。研究用は実用済みと混同しない。"
+    },
+    {
+      "id": "P4-03",
+      "phase": "P4",
+      "points": 2,
+      "title": "価格鮮度・取消・控除率・変動管理",
+      "acceptance": "本項目の機能を指定範囲の実データまたは研究用テストで実証しGitHub Actionsのrun/job/SHAで再現可能にする。研究用は実用済みと混同しない。"
+    },
+    {
+      "id": "P4-04",
+      "phase": "P4",
+      "points": 2,
+      "title": "下振れ不確実性と市場歪みの検証",
+      "acceptance": "本項目の機能を指定範囲の実データまたは研究用テストで実証しGitHub Actionsのrun/job/SHAで再現可能にする。研究用は実用済みと混同しない。"
+    },
+    {
+      "id": "P5-01",
+      "phase": "P5",
+      "points": 2,
+      "title": "研究用予算上限・最大4R3点・見送り",
+      "acceptance": "本項目の機能を指定範囲の実データまたは研究用テストで実証しGitHub Actionsのrun/job/SHAで再現可能にする。研究用は実用済みと混同しない。"
+    },
+    {
+      "id": "P5-02",
+      "phase": "P5",
+      "points": 1,
+      "title": "実レース順位と原則2〜3R・2点",
+      "acceptance": "本項目の機能を指定範囲の実データまたは研究用テストで実証しGitHub Actionsのrun/job/SHAで再現可能にする。研究用は実用済みと混同しない。"
+    },
+    {
+      "id": "P5-03",
+      "phase": "P5",
+      "points": 1,
+      "title": "実モデルによるリスク付き資金最適化",
+      "acceptance": "本項目の機能を指定範囲の実データまたは研究用テストで実証しGitHub Actionsのrun/job/SHAで再現可能にする。研究用は実用済みと混同しない。"
+    },
+    {
+      "id": "P5-04",
+      "phase": "P5",
+      "points": 1,
+      "title": "馬連枠連選択・手動比率調整UI",
+      "acceptance": "本項目の機能を指定範囲の実データまたは研究用テストで実証しGitHub Actionsのrun/job/SHAで再現可能にする。研究用は実用済みと混同しない。"
+    },
+    {
+      "id": "P6-01",
+      "phase": "P6",
+      "points": 4,
+      "title": "LAB用凍結・訂正・返還・永続リプレイ",
+      "acceptance": "本項目の機能を指定範囲の実データまたは研究用テストで実証しGitHub Actionsのrun/job/SHAで再現可能にする。研究用は実用済みと混同しない。"
+    },
+    {
+      "id": "P6-02",
+      "phase": "P6",
+      "points": 4,
+      "title": "実開催の発走前予測・仮想投資事前固定",
+      "acceptance": "本項目の機能を指定範囲の実データまたは研究用テストで実証しGitHub Actionsのrun/job/SHAで再現可能にする。研究用は実用済みと混同しない。"
+    },
+    {
+      "id": "P6-03",
+      "phase": "P6",
+      "points": 4,
+      "title": "公式結果・確定払戻の自動採点",
+      "acceptance": "本項目の機能を指定範囲の実データまたは研究用テストで実証しGitHub Actionsのrun/job/SHAで再現可能にする。研究用は実用済みと混同しない。"
+    },
+    {
+      "id": "P6-04",
+      "phase": "P6",
+      "points": 3,
+      "title": "仮想成績と時系列比較の自動集計",
+      "acceptance": "本項目の機能を指定範囲の実データまたは研究用テストで実証しGitHub Actionsのrun/job/SHAで再現可能にする。研究用は実用済みと混同しない。"
+    },
+    {
+      "id": "P7-01",
+      "phase": "P7",
+      "points": 3,
+      "title": "EVO-01〜08候補生成・反証",
+      "acceptance": "本項目の機能を指定範囲の実データまたは研究用テストで実証しGitHub Actionsのrun/job/SHAで再現可能にする。研究用は実用済みと混同しない。"
+    },
+    {
+      "id": "P7-02",
+      "phase": "P7",
+      "points": 3,
+      "title": "未使用時系列での独立進化認定",
+      "acceptance": "本項目の機能を指定範囲の実データまたは研究用テストで実証しGitHub Actionsのrun/job/SHAで再現可能にする。研究用は実用済みと混同しない。"
+    },
+    {
+      "id": "P7-03",
+      "phase": "P7",
+      "points": 2,
+      "title": "性能悪化時の自動巻き戻し・代替",
+      "acceptance": "本項目の機能を指定範囲の実データまたは研究用テストで実証しGitHub Actionsのrun/job/SHAで再現可能にする。研究用は実用済みと混同しない。"
+    },
+    {
+      "id": "P7-04",
+      "phase": "P7",
+      "points": 2,
+      "title": "新旧同条件の進化性能継続監査",
+      "acceptance": "本項目の機能を指定範囲の実データまたは研究用テストで実証しGitHub Actionsのrun/job/SHAで再現可能にする。研究用は実用済みと混同しない。"
+    },
+    {
+      "id": "P8-01",
+      "phase": "P8",
+      "points": 3,
+      "title": "読取専用Streamlit診断アプリAppTest",
+      "acceptance": "本項目の機能を指定範囲の実データまたは研究用テストで実証しGitHub Actionsのrun/job/SHAで再現可能にする。研究用は実用済みと混同しない。"
+    },
+    {
+      "id": "P8-02",
+      "phase": "P8",
+      "points": 3,
+      "title": "新スマホ実用画面と予算・買い目操作",
+      "acceptance": "本項目の機能を指定範囲の実データまたは研究用テストで実証しGitHub Actionsのrun/job/SHAで再現可能にする。研究用は実用済みと混同しない。"
+    },
+    {
+      "id": "P8-03",
+      "phase": "P8",
+      "points": 2,
+      "title": "実開催データ・予測・仮想精算連携",
+      "acceptance": "本項目の機能を指定範囲の実データまたは研究用テストで実証しGitHub Actionsのrun/job/SHAで再現可能にする。研究用は実用済みと混同しない。"
+    },
+    {
+      "id": "P8-04",
+      "phase": "P8",
+      "points": 2,
+      "title": "公開環境の動作・復元・費用検証",
+      "acceptance": "本項目の機能を指定範囲の実データまたは研究用テストで実証しGitHub Actionsのrun/job/SHAで再現可能にする。研究用は実用済みと混同しない。"
+    }
+  ],
+  "old_45_percent": "subjective_estimate_not_comparable"
+}

@@ -1,0 +1,95 @@
+{
+  "schema": "kyoto_progress_proof_claims.v1",
+  "scope_id": "KYOTO_P1_P8_FIXED_20261110",
+  "claims": [
+    {
+      "id": "P1-01",
+      "run_id": 42567681829,
+      "job_id": 128997694220,
+      "head_sha": "035f31c53da9ef2b96c90fd98ac6476da322e070",
+      "workflow_name": "Kyoto P1 archived full-day racecard and market handoff",
+      "source_paths": [
+        "diagnostics/p1_historical_day_handoff.py",
+        "docs/diagnostics/JRA_KYOTO_FULL_DAY_ACCEPTANCE_20261106.json"
+      ],
+      "kind": "HISTORICAL_OR_RESEARCH_SCOPE_ONLY"
+    },
+    {
+      "id": "P1-02",
+      "run_id": 42565633708,
+      "job_id": 128991418029,
+      "head_sha": "0e0bfb15564a1e7444a68e6b5f6d0e3f91b4be6f",
+      "workflow_name": "Kyoto P1 verified saved originals 84 horse replay",
+      "source_paths": [
+        "diagnostics/jra_p1_eod_raw_replay.py"
+      ],
+      "kind": "HISTORICAL_OR_RESEARCH_SCOPE_ONLY"
+    },
+    {
+      "id": "P2-01",
+      "run_id": 42567945287,
+      "job_id": 128998496139,
+      "head_sha": "c098265bfa55bf0d9760a6f3d3227ac1bece70cc",
+      "workflow_name": "Kyoto P1 read-only Streamlit monitor acceptance",
+      "source_paths": [
+        "docs/diagnostics/p2_historical_feature_matrix_20261107_148.csv"
+      ],
+      "kind": "HISTORICAL_OR_RESEARCH_SCOPE_ONLY"
+    },
+    {
+      "id": "P3-01",
+      "run_id": 42567612106,
+      "job_id": 128997481146,
+      "head_sha": "2f62a0b6dc85af113f822d6539d9e27332a9741a",
+      "workflow_name": "Kyoto P3-P6 research mechanics and no-bet acceptance",
+      "source_paths": [
+        "diagnostics/p3_p6_research_no_bet.py"
+      ],
+      "kind": "HISTORICAL_OR_RESEARCH_SCOPE_ONLY"
+    },
+    {
+      "id": "P4-01",
+      "run_id": 42567612106,
+      "job_id": 128997481146,
+      "head_sha": "2f62a0b6dc85af113f822d6539d9e27332a9741a",
+      "workflow_name": "Kyoto P3-P6 research mechanics and no-bet acceptance",
+      "source_paths": [
+        "diagnostics/p3_p6_research_no_bet.py"
+      ],
+      "kind": "HISTORICAL_OR_RESEARCH_SCOPE_ONLY"
+    },
+    {
+      "id": "P5-01",
+      "run_id": 42567612106,
+      "job_id": 128997481146,
+      "head_sha": "2f62a0b6dc85af113f822d6539d9e27332a9741a",
+      "workflow_name": "Kyoto P3-P6 research mechanics and no-bet acceptance",
+      "source_paths": [
+        "diagnostics/p3_p6_research_no_bet.py"
+      ],
+      "kind": "HISTORICAL_OR_RESEARCH_SCOPE_ONLY"
+    },
+    {
+      "id": "P6-01",
+      "run_id": 42567612106,
+      "job_id": 128997481146,
+      "head_sha": "2f62a0b6dc85af113f822d6539d9e27332a9741a",
+      "workflow_name": "Kyoto P3-P6 research mechanics and no-bet acceptance",
+      "source_paths": [
+        "diagnostics/p6_fixture_durable_ledger.py"
+      ],
+      "kind": "HISTORICAL_OR_RESEARCH_SCOPE_ONLY"
+    },
+    {
+      "id": "P8-01",
+      "run_id": 42567945287,
+      "job_id": 128998496139,
+      "head_sha": "c098265bfa55bf0d9760a6f3d3227ac1bece70cc",
+      "workflow_name": "Kyoto P1 read-only Streamlit monitor acceptance",
+      "source_paths": [
+        "diagnostics/p1_readonly_monitor_app.py"
+      ],
+      "kind": "HISTORICAL_OR_RESEARCH_SCOPE_ONLY"
+    }
+  ]
+}
