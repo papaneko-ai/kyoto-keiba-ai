@@ -1,0 +1,82 @@
+{
+  "schema": "kyoto_p8_cloud_workspace_ui_evidence.v1",
+  "observed_local_date": "2026-11-11",
+  "account_workspace": "papaneko-ai",
+  "image_storage": "user_conversation_only_do_not_publish_raw_screenshots",
+  "scope": "user_supplied_2026_11_11_screenshots_hashes_and_visible_claims_only",
+  "app_identity": {
+    "repository": "papaneko-ai/kyoto-keiba-ai",
+    "branch": "jra-html-diagnostic-20261105",
+    "entrypoint": "diagnostics/p8_uploaded_archive_shadow_app.py",
+    "url": "https://kyoto-keiba-ai-5opazxhrw7xwh4imfemey6.streamlit.app",
+    "python_version": "3.11"
+  },
+  "screenshots": [
+    {
+      "id": "937",
+      "sha256": "bad4ff418210b552415153d262974ee001c41138698c3a234ca6d523ad104535",
+      "observed": "workspace app list; research shadow is first row; main app separate"
+    },
+    {
+      "id": "938",
+      "sha256": "680faf25f453b63dcf4b8984b29ae2be37161f016c2abfd358cc45718fb4ad11",
+      "observed": "shadow app action menu includes Reboot and Settings; no click on Reboot recorded in this image"
+    },
+    {
+      "id": "939",
+      "sha256": "9b8bf05506779146a4350016f8de04d33d682062ace0262e9e71d86af3c9080c",
+      "observed": "shadow App settings General: public URL and Python 3.11; no billing item"
+    },
+    {
+      "id": "940",
+      "sha256": "17c104944e912352ccb1a0cb48d2c850ad5d2c186e0aaabe5cc7caa2af504792",
+      "observed": "workspace drop-down includes Settings and sign out; no billing menu"
+    },
+    {
+      "id": "941",
+      "sha256": "8b44d6b658df4767d832ccb760a55eae0b192803e43b37a793346fc7968c3e78",
+      "observed": "Workspace settings Linked accounts; no billing menu visible"
+    },
+    {
+      "id": "942",
+      "sha256": "a06e9101bb7436cc9999963aeb21321e80ef97cfafaf1840a850400cd0db3480",
+      "observed": "Workspace settings Limits: Resources per app 2.7 GBs, Private apps 1, Public apps Unlimited; not account billing"
+    },
+    {
+      "id": "943",
+      "sha256": "22e41d8d3c3450d15fda8b7ba4f3ce1cfe7f98e49ff60c90dfd94634749e87cf",
+      "observed": "Workspace settings Support: documentation, forums, support, legal; no billing page"
+    }
+  ],
+  "independent_remote_proof": {
+    "run_id": 42956087042,
+    "run_head_sha": "ee23ec2e243ea2094cd192ca39f351452c59e50f",
+    "result": "success",
+    "public_shadow_only": true
+  },
+  "official_sources": [
+    {
+      "url": "https://docs.streamlit.io/deploy/streamlit-community-cloud",
+      "finding": "Community Cloud create, deploy, manage apps all for free"
+    },
+    {
+      "url": "https://docs.streamlit.io/deploy/streamlit-community-cloud/manage-your-app/reboot-your-app",
+      "finding": "workspace Reboot requires confirmation; user operation is distinct from remote browser pass"
+    },
+    {
+      "url": "https://docs.streamlit.io/deploy/streamlit-community-cloud/manage-your-app",
+      "finding": "workspace app management and settings; no user-specific billing evidence from docs"
+    }
+  ],
+  "interpretation": {
+    "public_research_app_identity_verified": true,
+    "workspace_limits_visible": true,
+    "official_free_service_policy_verified": true,
+    "user_billing_transaction_history_independently_verified": false,
+    "cloud_reboot_event_independently_attested_in_current_screen_set": false,
+    "existing_prior_reboot_user_screen_claim": true,
+    "p8_04_award_authorized": false,
+    "research_score_remains": 98,
+    "no_production_or_secrets_modified": true
+  }
+}
