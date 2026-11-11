@@ -1,5 +1,9 @@
-name: Kyoto P8 external shadow deployment identity acceptance (manual, no changes)
+name: Kyoto P8 external shadow deployment identity acceptance (readonly)
 on:
+  push:
+    branches: [jra-html-diagnostic-20261105]
+    paths:
+      - '.github/workflows/kyoto-ai-p8-remote-release-verification.yml'
   workflow_dispatch:
     inputs:
       app_url:
@@ -14,7 +18,7 @@ jobs:
     timeout-minutes: 8
     env:
       PYTHONPATH: .
-      APP_URL: ${{ inputs.app_url }}
+      APP_URL: ${{ inputs.app_url || 'https://kyoto-keiba-ai-5opazxhrw7xwh4imfemey6.streamlit.app' }}
       SOURCE_SHA: ${{ github.sha }}
     steps:
       - uses: actions/checkout@v4
