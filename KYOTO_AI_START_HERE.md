@@ -276,3 +276,13 @@ P1は未完了。**新開催日の許容されたデータ取得経路と発走�
 - CI初回の未来時刻例外捕捉の問題を根治し、13件および全体CI success run `42934841261` / job `130242221876` / SHA `46ebbcd44b71990ae6f4ef9808f79b964b2a9519`。固定進捗94％、研究卒業100％、実開催0/6、実用0/100のログを確認した。
 - 完全節目・引継ぎ `docs/KYOTO_AI_20261111_P3_SAME_SOURCE_COMPARISON_94PCT_ENGINEERING_MILESTONE.md`。同一HEADの継続CI・復旧ZIPと専用ブランチの成功をGitHubで確認してから節目確定とする。
 - 次工程は独立証拠のある新開催日発走前JRA公式出馬表と馬連/枠連オッズ、発売・取消・UTC、モデル特徴量の凍結を受け、**多頭数の実市場で**比較と予測・仮想投資・公式払戻へ接続する。もう一つのP8-04は公開Cloudでの実測が必要。main/Secrets/Turso/旧公開アプリ/実購入は無断変更禁止。
+
+
+## 2026-11-11 最新の絶対条件：「次の大きな節目」は固定研究開発点の実測増加のみ
+- **ユーザーの確定指示：今後変更を指示されるまで、直前の確定節目94％を超えることだけを「次の大きな節目」の達成条件とする。** 94％のままのコード追加・テスト成功・復旧完了を「大きな節目へ到達」と書かない。P3-02／P8-04の合格証拠と同一SHAの固定採点で **95％以上** になった場合だけ到達と報告する。その次の大きな節目は新たに確定した率を上回った場合とする。
+- **進捗報告の固定UIは「大きな％と緑の横棒」＋「管理指標／前回／今回／増減」の4列5行比較表**。最終確認7行2列等の形式へ戻さない。
+- 固定基準 `docs/diagnostics/kyoto_progress_rubric_v1.json` の書換えや架空のCI/実用証拠を用いた加点は禁止。研究卒業100％（12/12）、実開催接続0/6、実用下限0/100は独立に維持。
+- 94％からのP8-04公開実証を進めるため、既存Cloud診断URL `https://kyoto-ai-cloud-probe.streamlit.app` をGitHub Actionsから一回外部観測：run `42936843953` job `130248909540` はCI成功だがHTTPSの両エンドポイントが `HTTPError`、外部稼働未確認。旧診断と新P8シャドーアプリを混同しない。
+- **新P8シャドーアプリを独立公開する準備**：`diagnostics/requirements.txt`、`diagnostics/p8_cloud_source_identity.py`、画面SHA表示、`diagnostics/p8_cloud_release_gate.py`、`.github/workflows/kyoto-ai-p8-remote-release-verification.yml`、`tests/test_p8_cloud_release_gate.py`。公式Cloudへの新アプリ登録、管理者Reboot、費用プランの認証は未実施。別途実測前にP8-04の2点を加点しない。
+- 正本 `docs/KYOTO_AI_20261111_P8_CLOUD_PREP_94PCT_NOT_MILESTONE.md` にGitHub branch／アプリ入口／Cloudの必要な操作／残る証拠を詳細記録。**本文書と復旧ZIPは未達の作業引継ぎであり、研究開発点増加の達成ではない**。次回再開時は本書、最新GitHub HEAD、原本Artifact、CI、復旧ZIPを同一SHAで照合し、既にある診断・P3比較処理を再実装しない。
+- main/旧app.py/Turso/Secrets/実購入機能は無断変更せず、スマホ優先・追加費用原則0円・ALG01～13/EVO01～08/P1～P8を保持する。
