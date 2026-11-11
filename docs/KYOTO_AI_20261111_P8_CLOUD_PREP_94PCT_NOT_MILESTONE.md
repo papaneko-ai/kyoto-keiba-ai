@@ -50,3 +50,13 @@ Cloudに新アプリが存在して正確なURLを確認できたら、GitHub Ac
 - 本文末尾の7行2列の形式に戻さず、ユーザー指定の**緑の％進捗バー＋4列5行表**を固定。列は「管理指標／前回／今回／増減」、行は「研究・開発工程認定率」「固定32項目の合格数」「研究段階卒業達成率」「実開催接続の独立検証」「実用能力の独立検証下限」。
 - 同一率の間は「次の大きな節目に到達」と言わない。認定率の増加と復旧・全体CIの成功を、同じHEADにおいて確認して初めて達成。
 - P3-02はこれまでの `diagnostics/p3_same_cutoff_market_model_bridge.py` を再利用し、実開催で真正な発走前出馬表/馬連枠連全オッズ、時点固定した実モデルを取得できるまで追加得点を認定しない。
+
+
+## 2026-11-11 実装09追補：公開済みP8シャドーと外部ブラウザ描画失敗（98％維持）
+- 別Streamlit Community Cloudアプリ `https://kyoto-keiba-ai-5opazxhrw7xwh4imfemey6.streamlit.app` を実際に配備。利用者提供スクリーンショットにより研究用画面とGit commit `3ac9e19f4e099e69c40ba093be811a16a1760a27` の表示、管理画面からのReboot後の画面復帰を確認。ただしこのスクリーンショットはGitHub CIによる独立Cloud管理操作の証明ではない。
+- 初回Cloud起動は `ModuleNotFoundError: No module named 'diagnostics'`。原因はサブディレクトリエントリポイントからのパッケージ import path。不変のrepository rootを起動ファイルの `sys.path` に追加し、同原因の回帰テストを追加。修正CI run `42947946289` success。
+- GitHub Actions手動 `workflow_dispatch` はdefault branch `main` にワークフローがないためユーザーのActions画面で Not found。mainを変更せず、開発ブランチのpushトリガーと固定公開URLで読み取り専用の検証を開始できるようにした。
+- 外部ブラウザ検証 run `42948883556` failure：研究画面の見出しが55秒以内に表示されず。失敗の原因不明状態を解消するため、公開ページのHTTP/本文/ブラウザイベント/WebSocket/失敗スクリーンショットの診断を追加。run `42949494887` failure、証拠Artifact `13823614726`：HTTP 200・ページtitleあり・body空。
+- run `42949696674` failure：HTTP 200、ページtitleあり、本文空、`data-testid=stApp`要素0、ブラウザconsoleの403/404リソースエラーあり、Streamlit `/~/+/_stcore/stream` へのWebSocket生成あり。**外部GitHub runnerからStreamlitフロントエンドの動作はまだ独立検証できていない**。ソースSHAや安全ゲートを緩めて合格とすることは禁止。具体的403/404リソースの応答先とWebSocket通信失敗の切分けを次の研究課題とする。
+- 利用者提供のStreamlit Workspace Limits画面は1 app 2.7 GB・private app 1・public apps unlimitedを確認できるが、実請求金額0円の領収/請求記録ではない。無料運用については課金実績の独立証拠を引き続き必要とする。
+- **研究開発認定率98/100（31/32）を維持。残るP8-04の2点は未認定。実開催接続0/6・独立実用能力下限0/100も不変。** 既存main/Secrets/Turso/実購入/旧公開アプリには変更なし。
