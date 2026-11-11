@@ -1,0 +1,224 @@
+{
+  "schema": "kyoto_final_completion_criteria.v1",
+  "date": "2026-11-11",
+  "scope_id": "KYOTO_REAL_OPERATION_FINAL_V1",
+  "relation_to_existing": "Separate from fixed research 32/32, research graduation 12/12, live-source 0/6, and independently verified operational lower bound 0/100. Do not overwrite or redefine those.",
+  "point_rule": "Each mandatory condition worth 5 points only after independent evidence gate; 20*5=100. Partial credit forbidden. A functional test pass does not imply live acceptance.",
+  "current_status": "NOT_SCORED_NO_FINAL_EVIDENCE",
+  "verified_lower_bound": 0,
+  "maximum": 100,
+  "completion_condition": "Score 100/100 AND each F01-F20 PASS AND independent live-source 6/6 AND all atomic agreements mapped A or B with C=0 AND integrated live E2E PASS AND safety incidents 0. Partial scores never imply deployment authorization.",
+  "evidence_per_gate": [
+    "source_sha256",
+    "code_commit_sha",
+    "ci_run_id",
+    "ci_job_id",
+    "test_name_and_outcome",
+    "input_origin_and_utc",
+    "negative_or_destructive_test",
+    "acceptance_reviewer_receipt"
+  ],
+  "criteria": [
+    {
+      "id": "F01",
+      "title": "全合意要件の網羅",
+      "phase": "P1-P8",
+      "points": 5,
+      "acceptance": "14正式文書657行を原子要件に分解し、追加チャット固有要件も確認。全原子要件にA=実証済みまたはB=担当P工程・実装内容・受入条件・証拠を割当て、C=0。差分承認管理を検査",
+      "evidence": "原子要件台帳・出典ハッシュ・A/B/Cレシート",
+      "mandatory": true,
+      "initial_status": "UNVERIFIED"
+    },
+    {
+      "id": "F02",
+      "title": "データ取得の適法性・出所・時点",
+      "phase": "P1",
+      "points": 5,
+      "acceptance": "JRA PC/SPおよび補助経路の利用条件を確認し、原本・取得UTC・レースID・ハッシュを保持。利用不可・禁止・不明なら自動取得を拒否",
+      "evidence": "出所台帳・原本・許可判断・異常系CI",
+      "mandatory": true,
+      "initial_status": "UNVERIFIED"
+    },
+    {
+      "id": "F03",
+      "title": "実開催出馬表・必須特徴の完全性",
+      "phase": "P1/P2",
+      "points": 5,
+      "acceptance": "対象開催の全レース/全頭・取消/除外/新馬/障害等を正確に同定。取得不能は理由と欠損扱いを明示し、未来情報を排除",
+      "evidence": "全頭照合表・原本SHA・前時点特徴行列・欠損テスト",
+      "mandatory": true,
+      "initial_status": "UNVERIFIED"
+    },
+    {
+      "id": "F04",
+      "title": "発走前の馬連・枠連市場取得",
+      "phase": "P1",
+      "points": 5,
+      "acceptance": "発走前の実馬連/枠連発売価格と取得時刻、停止、取消、同枠条件を原本から固定。事後最終オッズへの置換を拒否",
+      "evidence": "前時点マーケット原本・時刻証拠・欠損拒否CI",
+      "mandatory": true,
+      "initial_status": "UNVERIFIED"
+    },
+    {
+      "id": "F05",
+      "title": "勝利条件・適性・交互作用発見",
+      "phase": "P2",
+      "points": 5,
+      "acceptance": "勝馬・連対・敗退を分離して条件発見、京都適性・脚質・距離・馬場を評価。未使用期間で反証し無効仮説を不採用",
+      "evidence": "特徴発見レシート・反証試験・時系列分割",
+      "mandatory": true,
+      "initial_status": "UNVERIFIED"
+    },
+    {
+      "id": "F06",
+      "title": "複数確率モデル比較",
+      "phase": "P3",
+      "points": 5,
+      "acceptance": "単純基準、市場、Harville、PL、Bolton–Chapman型、Benter型、ML混合を同じ事前カットオフ・同じ期間で比較。候補は不採用でも比較結果を保存",
+      "evidence": "モデル版・データSHA・公平比較表・再現CI",
+      "mandatory": true,
+      "initial_status": "UNVERIFIED"
+    },
+    {
+      "id": "F07",
+      "title": "馬連・枠連確率整合",
+      "phase": "P3",
+      "points": 5,
+      "acceptance": "連対順序付き確率から組合せを算出し、枠連同枠・取消・除外・発売停止・合計確率をテスト",
+      "evidence": "確率和/券種対応テスト・各例外の実行記録",
+      "mandatory": true,
+      "initial_status": "UNVERIFIED"
+    },
+    {
+      "id": "F08",
+      "title": "確率較正・未使用時系列検証",
+      "phase": "P3",
+      "points": 5,
+      "acceptance": "Brier・log-loss・較正・券種/人気帯の母数を事前定義して算定。学習/検証/封印テストを分離し事後漏洩を拒否",
+      "evidence": "固定データ分割・較正結果・漏洩破壊テスト",
+      "mandatory": true,
+      "initial_status": "UNVERIFIED"
+    },
+    {
+      "id": "F09",
+      "title": "実オッズに対する期待値演算",
+      "phase": "P4",
+      "points": 5,
+      "acceptance": "同時点の価格と確率を使用し馬連・枠連全有効組合せのEV/期待回収を計算。価格欠落は推奨停止",
+      "evidence": "時点一致EVレシート・価格欠落停止テスト",
+      "mandatory": true,
+      "initial_status": "UNVERIFIED"
+    },
+    {
+      "id": "F10",
+      "title": "市場鮮度と損失リスク制御",
+      "phase": "P4/P5",
+      "points": 5,
+      "acceptance": "取得遅延、控除率、オッズ変動、推定誤差、相関/最大損失を評価し、閾値不達なら予算縮小または見送り",
+      "evidence": "リスク計算結果・鮮度/取消注入テスト",
+      "mandatory": true,
+      "initial_status": "UNVERIFIED"
+    },
+    {
+      "id": "F11",
+      "title": "推奨レースの選択と説明",
+      "phase": "P5",
+      "points": 5,
+      "acceptance": "原則2-3R最大4Rを順位付けし、期待値/信頼度/鮮度の根拠を表示。全見送り・手動選択にも対応",
+      "evidence": "同一原本から順位再現・上限/見送りテスト",
+      "mandatory": true,
+      "initial_status": "UNVERIFIED"
+    },
+    {
+      "id": "F12",
+      "title": "券種・買い目・金額の最適化",
+      "phase": "P5",
+      "points": 5,
+      "acceptance": "馬連/枠連選択、原則2点最大3点、日次予算は上限・使い切り不要、100円単位、手動比率と投資集中を検証",
+      "evidence": "予算境界/切替/手動調整・過大投資拒否テスト",
+      "mandatory": true,
+      "initial_status": "UNVERIFIED"
+    },
+    {
+      "id": "F13",
+      "title": "事前予測・モデルの証跡凍結",
+      "phase": "P6",
+      "points": 5,
+      "acceptance": "発走前に原本SHA/UTC/モデル版/確率/順位/買い目/オッズ/金額を固定。事後改ざん・先読み・二重確定を拒否",
+      "evidence": "追記型凍結台帳・ハッシュチェーン/破壊試験",
+      "mandatory": true,
+      "initial_status": "UNVERIFIED"
+    },
+    {
+      "id": "F14",
+      "title": "ペーパートレード・過去再現",
+      "phase": "P6",
+      "points": 5,
+      "acceptance": "過去レースの時点再現と開催日の事前登録型仮想投資を動作させ、購入/不購入を記録し実馬券と厳格分離",
+      "evidence": "事前記録と再生ログ・時点境界・実購入分離試験",
+      "mandatory": true,
+      "initial_status": "UNVERIFIED"
+    },
+    {
+      "id": "F15",
+      "title": "公式結果と払戻の自動照合",
+      "phase": "P6",
+      "points": 5,
+      "acceptance": "速報→公式結果確定→公式払戻確定→訂正、的中組番・100円払戻・返還・取消を正常処理し、未確定を0円としない",
+      "evidence": "公式原本・状態遷移/訂正/返還テスト",
+      "mandatory": true,
+      "initial_status": "UNVERIFIED"
+    },
+    {
+      "id": "F16",
+      "title": "仮想成績・リスクの自動集計",
+      "phase": "P6",
+      "points": 5,
+      "acceptance": "的中買い目率/レース率/損益/回収率/最大ドローダウン/券種別・モデル別比較を重複なく集計",
+      "evidence": "永続集計・再実行同一性・二重計上拒否",
+      "mandatory": true,
+      "initial_status": "UNVERIFIED"
+    },
+    {
+      "id": "F17",
+      "title": "EVO-01〜08機能群の連動",
+      "phase": "P2/P6/P7",
+      "points": 5,
+      "acceptance": "情報価値、弱点発見、影のAI、反実仮想、ドリフト、候補生成、独立認定、意外性発見の8機能を接続し、研究fixtureと実開催を区別",
+      "evidence": "EVO8件の各機能合否・統合呼出しと異常系ログ",
+      "mandatory": true,
+      "initial_status": "UNVERIFIED"
+    },
+    {
+      "id": "F18",
+      "title": "進化認定・安全採否・復帰",
+      "phase": "P7",
+      "points": 5,
+      "acceptance": "新旧/基準モデルを未使用期間・同母集団で独立評価。改善不明は不採用維持。改善採用後のドリフト監視とロールバックを検証",
+      "evidence": "独立評価レシート・採否/復帰・無承認自己改変拒否",
+      "mandatory": true,
+      "initial_status": "UNVERIFIED"
+    },
+    {
+      "id": "F19",
+      "title": "新規スマホアプリ実使用",
+      "phase": "P8",
+      "points": 5,
+      "acceptance": "スマホから開催日/券種/日次予算/手動調整/レース順位/買い目/鮮度/仮想収支/進化履歴を操作し、欠損時停止。旧公開アプリの設計流用を禁止",
+      "evidence": "スマホ操作E2Eと画面記録・初心者操作・欠損UI試験",
+      "mandatory": true,
+      "initial_status": "UNVERIFIED"
+    },
+    {
+      "id": "F20",
+      "title": "運用・復旧・全工程通し検証",
+      "phase": "P8/最終",
+      "points": 5,
+      "acceptance": "隔離環境で取得→予測→EV→資金配分→事前凍結→結果確定→仮想成績→進化判断→スマホ表示を通し実行。バックアップ復元・再起動・失敗時の安全停止と無料枠を確認",
+      "evidence": "同一コミットActions run/job/SHA・通しログ・復元証跡・無秘密漏洩",
+      "mandatory": true,
+      "initial_status": "UNVERIFIED"
+    }
+  ],
+  "no_regression_policy": "Keep frozen v1, retain prior signed data, report changes with evidence and cause, fork v2 rather than silently changing denominator."
+}
