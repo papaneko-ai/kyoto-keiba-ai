@@ -20,6 +20,7 @@ on:
       - 'docs/KYOTO_AI_20261111_P5_RISK_CONTROL_92PCT_MILESTONE.md'
       - 'docs/KYOTO_AI_20261111_P8_SHADOW_PIPELINE_94PCT_MILESTONE.md'
       - 'docs/KYOTO_AI_20261111_P3_SAME_SOURCE_COMPARISON_94PCT_ENGINEERING_MILESTONE.md'
+      - 'docs/KYOTO_AI_20261111_P8_CLOUD_PREP_94PCT_NOT_MILESTONE.md'
       - 'KYOTO_AI_START_HERE.md'
   workflow_dispatch:
 permissions:
@@ -44,6 +45,7 @@ jobs:
             "branch=jra-html-diagnostic-20261105" \
             "commit=$GITHUB_SHA" \
             "research_score_claim=94/100 (subject to same-commit continuity CI)" \
+            "checkpoint_not_a_new_score_milestone=true" \
             "research_graduation_claim=100.0/100 (subject to same-commit continuity CI)" \
             "operational_score_claim=0/100 verified lower bound" \
             "separate_historical_original_recovery_artifact=13482994623" \
@@ -51,7 +53,7 @@ jobs:
           unzip -t kyoto-ai-branch-source.zip
       - uses: actions/upload-artifact@v4
         with:
-          name: kyoto-ai-p3-94pct-same-source-bridge-recovery
+          name: kyoto-ai-94pct-cloud-deployment-prep-checkpoint
           path: /tmp/kyoto-recovery/
           retention-days: 90
           if-no-files-found: error
