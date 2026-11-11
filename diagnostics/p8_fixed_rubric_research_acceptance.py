@@ -22,8 +22,17 @@ def assess(*,cloud,local,workspace,source_sha,shadow_source,requirements):
     if cloud.get("public_shadow_deployment_git_sha_verified") is not True:
         raise ResearchGateError("independent_public_cloud_deployment_required")
     # The remote browser receipt must carry source_sha, not a prior different app.
-    if cloud.get("source_sha")!=source_sha:
+    if cloud.get("expected_sha")!=source_sha:
         raise ResearchGateError("public_source_sha_mismatch")
+    if (cloud.get("fresh_browser_sessions")!=2 or
+        len(cloud.get("observations",[]))!=2 or
+        any(not (o.get("git_sha_matches") is True and
+                 o.get("mobile_viewport")==390 and
+                 o.get("read_only_missing_input_guard") is True and
+                 o.get("no_betting_control") is True and
+                 o.get("no_jra_browser_requests") is True)
+            for o in cloud.get("observations",[]))):
+        raise ResearchGateError("independent_public_mobile_controls_required")
     if cloud.get("actual_purchase_authorized") is not False:
         raise ResearchGateError("research_only_cloud_required")
     if (local.get("scope")!="GITHUB_RUNNER_LOCAL_ONLY_NOT_PUBLISHED_STREAMLIT_CLOUD"
