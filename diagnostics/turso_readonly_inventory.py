@@ -29,7 +29,7 @@ def validate_url(url):
 
 def validate_token(token):
     if (not isinstance(token,str) or len(token)<16 or
-       re.search(r"\s",token):
+       re.search(r"\s",token)):
         raise ValueError("A nonempty secret token is required")
     return token
 
