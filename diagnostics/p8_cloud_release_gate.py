@@ -48,6 +48,15 @@ def probe_public_shadow_app(*,url,expected_sha,output):
                         return route.continue_()
                     context.route("**/*",route_check)
                     page=context.new_page()
+                    browser_events={"console_errors":[],"page_errors":[],"failed_requests":[],"websockets":[]}
+                    page.on("console",lambda m: browser_events["console_errors"].append(m.text[:250])
+                            if m.type=="error" else None)
+                    page.on("pageerror",lambda e: browser_events["page_errors"].append(str(e)[:250]))
+                    page.on("requestfailed",lambda r: browser_events["failed_requests"].append({
+                        "type":r.resource_type,"origin":urlsplit(r.url).hostname,
+                        "failure":r.failure[:160] if r.failure else None}))
+                    page.on("websocket",lambda ws: browser_events["websockets"].append({
+                        "origin":urlsplit(ws.url).hostname,"path":urlsplit(ws.url).path[:100]}))
                     response=page.goto(target,wait_until="domcontentloaded",timeout=50000)
                     # Do not conceal a remote/cloud failure as a mere missing label.
                     # Record only PUBLIC page diagnostics, never upload contents or secrets.
@@ -69,7 +78,9 @@ def probe_public_shadow_app(*,url,expected_sha,output):
                         print("KYOTO_P8_REMOTE_FAILURE_DIAGNOSTIC="+json.dumps({
                             "cycle":cycle+1,"http_status":status,
                             "page_title":title,"observed_url":current_url,
-                            "public_body_excerpt":public_text
+                            "public_body_excerpt":public_text,
+                            "browser_events":{k:v[:8] for k,v in browser_events.items()},
+                            "streamlit_mount_count":page.locator('[data-testid="stApp"]').count()
                         },ensure_ascii=False),flush=True)
                         raise AssertionError("public_streamlit_research_heading_not_rendered") from exc
                     page.get_by_text("研究・診断専用。公式データの真正性",exact=False).wait_for(timeout=12000)
