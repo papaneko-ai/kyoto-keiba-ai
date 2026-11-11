@@ -1,0 +1,29 @@
+name: Kyoto Turso isolated read-only inventory contract (offline)
+on:
+  push:
+    branches: [jra-html-diagnostic-20261105]
+    paths:
+      - 'diagnostics/turso_readonly_inventory.py'
+      - 'tests/test_turso_readonly_inventory.py'
+      - '.github/workflows/kyoto-ai-turso-readonly-contract.yml'
+permissions:
+  contents: read
+jobs:
+  readonly-contract-offline:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install only HTTP client
+        run: python -m pip install requests
+      - name: Run destructive offline checks with no Turso credentials
+        env:
+          PYTHONPATH: .
+        run: |
+          set -euo pipefail
+          python -m unittest discover -s tests -p 'test_turso_readonly_inventory.py' -v
+          echo KYOTO_TURSO_READONLY_OFFLINE_CONTRACT_PASS=TRUE
+          echo KYOTO_TURSO_LIVE_CREDENTIAL_AND_DATABASE_NOT_INSPECTED=TRUE
