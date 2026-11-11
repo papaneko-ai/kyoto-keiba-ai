@@ -94,6 +94,31 @@ def probe_public_shadow_app(*,url,expected_sha,output):
                             "browser_events":{k:v[:8] for k,v in browser_events.items()},
                             "streamlit_mount_count":page.locator('[data-testid="stApp"]').count()
                         },ensure_ascii=False),flush=True)
+                        # Independent diagnostic only: compare non-mobile browser.
+                        # NEVER convert a desktop result into a mobile PASS.
+                        desktop_diagnostic={"rendered":False}
+                        try:
+                            dc=browser.new_context(viewport={"width":1280,"height":800},
+                                                   is_mobile=False,has_touch=False)
+                            try:
+                                dc.route("**/*",route_check)
+                                dp=dc.new_page()
+                                dr=dp.goto(target,wait_until="domcontentloaded",timeout=25000)
+                                try:
+                                    dp.get_by_text("京都競馬AI｜保存原本の研究用再現").wait_for(timeout=22000)
+                                    desktop_diagnostic["rendered"]=True
+                                except Exception as diagnostic_exc:
+                                    from playwright.sync_api import TimeoutError as PWTimeout
+                                    if not isinstance(diagnostic_exc,PWTimeout):
+                                        raise
+                                desktop_diagnostic["http_status"]=dr.status if dr else None
+                                desktop_diagnostic["app_mount_count"]=dp.locator('[data-testid="stApp"]').count()
+                                desktop_diagnostic["body_characters"]=len(dp.locator("body").inner_text())
+                            finally:
+                                dc.close()
+                        except Exception as diagnostic_exc:
+                            desktop_diagnostic["failure_type"]=type(diagnostic_exc).__name__
+                        print("KYOTO_P8_DESKTOP_CONTROL="+json.dumps(desktop_diagnostic,sort_keys=True),flush=True)
                         raise AssertionError("public_streamlit_research_heading_not_rendered") from exc
                     page.get_by_text("研究・診断専用。公式データの真正性",exact=False).wait_for(timeout=12000)
                     sha_label="起動コードのGitHubコミット: "+expected_sha
