@@ -7,6 +7,8 @@ on:
       - 'diagnostics/p8_public_release_evidence_gate.py'
       - 'tests/test_p8_public_release_evidence_gate.py'
       - 'docs/diagnostics/p8_release_evidence_checkpoint_20261111.json'
+      - 'docs/diagnostics/p8_streamlit_workspace_ui_evidence_20261111.json'
+      - 'tests/test_p8_streamlit_workspace_evidence.py'
 permissions:
   contents: read
 jobs:
@@ -24,6 +26,7 @@ jobs:
         run: |
           set -euo pipefail
           python -m unittest discover -s tests -p 'test_p8_public_release_evidence_gate.py' -v
+          python -m unittest discover -s tests -p 'test_p8_streamlit_workspace_evidence.py' -v
           python -m diagnostics.p8_public_release_evidence_gate \
             --evidence docs/diagnostics/p8_release_evidence_checkpoint_20261111.json \
             --output /tmp/kyoto-p8-release-evidence.json
