@@ -1,0 +1,24 @@
+{
+  "schema": "kyoto_p8_04_release_evidence_input.v1",
+  "head_sha": "9279a268681675d69681979ea3030138e52bb286",
+  "external_cloud": {
+    "sha": "9279a268681675d69681979ea3030138e52bb286",
+    "ci_conclusion": "success",
+    "verified": true,
+    "run_id": 42953012865,
+    "receipt_sha256": "6647fc3bd8fb575f76d62bed8745d21ca3a775ccc7d50a779843dd0eeea1cdeb"
+  },
+  "cloud_reboot": {
+    "operation_confirmed": false,
+    "before_sha": "9279a268681675d69681979ea3030138e52bb286",
+    "after_sha": "9279a268681675d69681979ea3030138e52bb286",
+    "operator_record": "",
+    "independent_record": ""
+  },
+  "cost": {
+    "official_community_free_policy": true,
+    "policy_url": "https://docs.streamlit.io/deploy/streamlit-community-cloud",
+    "account_no_charge_verified": false,
+    "account_evidence": ""
+  }
+}
