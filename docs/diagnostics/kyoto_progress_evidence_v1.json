@@ -363,6 +363,20 @@
         "tests/test_p8_mobile_readonly_planner.py"
       ],
       "kind": "HISTORICAL_OR_RESEARCH_SCOPE_ONLY"
+    },
+    {
+      "id": "P8-03",
+      "run_id": 42932268997,
+      "job_id": 130233685091,
+      "head_sha": "ce5cb399f798dad0247a7adabe43874bc018f41e",
+      "workflow_name": "Kyoto AI objective progress and continuity gate",
+      "source_paths": [
+        "diagnostics/p8_uploaded_archive_replay_lab.py",
+        "diagnostics/p8_uploaded_archive_shadow_app.py",
+        "diagnostics/p1_atomic_dual_market_handoff.py",
+        "tests/test_p8_uploaded_archive_replay_lab.py"
+      ],
+      "kind": "HISTORICAL_OR_RESEARCH_SCOPE_ONLY"
     }
   ]
 }
