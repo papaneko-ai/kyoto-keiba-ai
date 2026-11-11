@@ -13,6 +13,7 @@ import ssl
 import time
 import urllib.error
 import urllib.request
+from urllib.parse import urlsplit
 from pathlib import Path
 
 BASE="https://kyoto-ai-cloud-probe.streamlit.app"
@@ -28,7 +29,7 @@ def check(url):
             return {"http_status":int(response.status),
                     "body_sha256_prefix16":hashlib.sha256(body).hexdigest()[:16],
                     "content_type":response.headers.get("Content-Type","").split(";")[0],
-                    "final_origin_host":urllib.request.urlparse(response.geturl()).hostname,
+                    "final_origin_host":urlsplit(response.geturl()).hostname,
                     "duration_ms":round((time.monotonic()-started)*1000)}
     except (OSError,urllib.error.URLError,TimeoutError) as e:
         return {"http_status":None,"error_type":type(e).__name__,
