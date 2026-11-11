@@ -390,6 +390,22 @@
         "tests/test_p8_uploaded_archive_replay_lab.py"
       ],
       "kind": "HISTORICAL_OR_RESEARCH_SCOPE_ONLY"
+    },
+    {
+      "id": "P8-04",
+      "run_id": 42958913937,
+      "job_id": 130320521973,
+      "head_sha": "3014d56516322c83e7fe3eb98fcc9974d1973903",
+      "workflow_name": "Kyoto P8-04 locked-rubric independent research acceptance",
+      "source_paths": [
+        "diagnostics/p8_fixed_rubric_research_acceptance.py",
+        "diagnostics/p8_cloud_release_gate.py",
+        "tests/p8_local_deployment_restart_check.py",
+        "tests/test_p8_fixed_rubric_research_acceptance.py",
+        "docs/diagnostics/p8_streamlit_workspace_ui_evidence_20261111.json",
+        ".github/workflows/kyoto-ai-p8-original-rubric-research-acceptance.yml"
+      ],
+      "kind": "HISTORICAL_OR_RESEARCH_SCOPE_ONLY"
     }
   ]
 }
