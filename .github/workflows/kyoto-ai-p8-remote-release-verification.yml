@@ -4,6 +4,8 @@ on:
     branches: [jra-html-diagnostic-20261105]
     paths:
       - '.github/workflows/kyoto-ai-p8-remote-release-verification.yml'
+      - 'diagnostics/p8_cloud_release_gate.py'
+      - 'tests/test_p8_cloud_release_gate.py'
   workflow_dispatch:
     inputs:
       app_url:
@@ -53,9 +55,13 @@ jobs:
           assert not x['actual_purchase_authorized']
           print('P8_NEW_PUBLIC_SHADOW_PRESENT_NOT_FULL_RELEASE=TRUE')
           PY
-      - uses: actions/upload-artifact@v4
+      - name: Preserve remote browser evidence even on failure
+        if: always()
+        uses: actions/upload-artifact@v4
         with:
-          name: kyoto-p8-remote-source-matched-not-reboot-billing
-          path: /tmp/kyoto-cloud-p8-shadow-source.json
-          if-no-files-found: error
+          name: kyoto-p8-remote-browser-observation
+          path: |
+            /tmp/kyoto-cloud-p8-shadow-source.json
+            /tmp/kyoto-p8-external-failure-*.png
+          if-no-files-found: warn
           retention-days: 90
