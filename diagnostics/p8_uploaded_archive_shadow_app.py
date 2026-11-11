@@ -5,6 +5,15 @@ Every result stays LAB even when user uploads genuinely captured race data.
 """
 from __future__ import annotations
 import json
+import sys
+from pathlib import Path
+
+# Streamlit Cloud launches this file from diagnostics/, not necessarily the
+# repository root. Make the package imports independent of the working dir.
+_REPO_ROOT = Path(__file__).resolve().parents[1]
+if str(_REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(_REPO_ROOT))
+
 import streamlit as st
 from diagnostics.p8_uploaded_archive_replay_lab import replay_user_supplied_lab_archive
 from diagnostics.p8_cloud_source_identity import source_checkout_sha
