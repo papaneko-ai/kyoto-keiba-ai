@@ -49,7 +49,29 @@ def probe_public_shadow_app(*,url,expected_sha,output):
                     context.route("**/*",route_check)
                     page=context.new_page()
                     response=page.goto(target,wait_until="domcontentloaded",timeout=50000)
-                    page.get_by_text("京都競馬AI｜保存原本の研究用再現").wait_for(timeout=55000)
+                    # Do not conceal a remote/cloud failure as a mere missing label.
+                    # Record only PUBLIC page diagnostics, never upload contents or secrets.
+                    try:
+                        page.get_by_text("京都競馬AI｜保存原本の研究用再現").wait_for(timeout=55000)
+                    except Exception as exc:
+                        from playwright.sync_api import TimeoutError as PlaywrightTimeout
+                        if not isinstance(exc,PlaywrightTimeout):
+                            raise
+                        status = response.status if response is not None else None
+                        title = page.title()[:180]
+                        current_url = page.url[:250]
+                        public_text = page.locator("body").inner_text(timeout=4000)[:600]
+                        try:
+                            page.screenshot(path="/tmp/kyoto-p8-external-failure-%d.png" % (cycle+1),
+                                            full_page=False,timeout=4000)
+                        except Exception:
+                            pass
+                        print("KYOTO_P8_REMOTE_FAILURE_DIAGNOSTIC="+json.dumps({
+                            "cycle":cycle+1,"http_status":status,
+                            "page_title":title,"observed_url":current_url,
+                            "public_body_excerpt":public_text
+                        },ensure_ascii=False),flush=True)
+                        raise AssertionError("public_streamlit_research_heading_not_rendered") from exc
                     page.get_by_text("研究・診断専用。公式データの真正性",exact=False).wait_for(timeout=12000)
                     sha_label="起動コードのGitHubコミット: "+expected_sha
                     if page.get_by_text(sha_label,exact=True).count()!=1:
