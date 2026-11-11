@@ -96,3 +96,11 @@ Cloudに新アプリが存在して正確なURLを確認できたら、GitHub Ac
 - `diagnostics/p8_public_release_evidence_gate.py`、破壊テスト `tests/test_p8_public_release_evidence_gate.py`、`.github/workflows/kyoto-ai-p8-evidence-ledger.yml` を追加。GitHub Actions run `42954188523` **success** は、remote証拠と公式無料ポリシーがあってもcloud reboot独立証拠と個別請求証拠なしに `P8_04_full_release_certified=false` を維持する再現検証。
 - これにより「料金0円」と「アカウント課金履歴0円」を混同する偽陽性を防ぎ、認定証拠が揃った後に差分を最小化できる。ただし真正な再起動ログや利用者アカウントの請求記録を新たに取得したものではない。**研究開発98％・31/32、研究卒業100％、実開催0/6、実用下限0/100で未達保持**。
 - 重要：研究用P8チェックポイントが完了しても、P8-04固定2点は独立証拠の未取得につき加点しない。ユーザーのPCに保存済みZIPは保護、旧main/Turso/Secrets/実購入なし。
+
+
+## 2026-11-11 実装09：Turso既存試験DBの安全な独立確認入口（98％維持）
+- 既存 `streamlit_turso_probe_v3.py` は `kyoto-keiba-ai-test-papaneko-ai.aws-ap-northeast-1.turso.io` に接続先を固定し、利用者明示承認の下で隔離テーブルに書き込む過去診断用コード。旧動作実績を新たな実接続や本番稼働として認定しない。
+- 新規 `diagnostics/turso_readonly_inventory.py` は同じ**テストDB限定**で固定SELECT 1種類のメタデータ取得だけを提供し、URLの別ホスト・パス・パラメータ・認証情報混入を拒否、表名をログ・Artifactへ出力しない。DB/Secrets/Cloud管理権限を勝手に作成・変更せず、トークンがない場合は実通信をしない。
+- `tests/test_turso_readonly_inventory.py` の負例テスト（対象外DB・更新SQL・不正トークン・HTTPエラー・異常テーブル名）を実装。GitHub Actions `.github/workflows/kyoto-ai-turso-readonly-contract.yml` のrun `42956033508`、job `130311236645` は**offline test success**。このCI自体はTurso接続も認証情報の存在確認も実施していない。
+- 接続可能性はGitHub Secrets一覧APIがこの連携で認可されていないため**不明**。ユーザーが明示承認し資格情報をGitHub ActionsのSecretsに安全登録して初めてテストDBの読取専用実確認が可能。趣味用GitHubのみとし、業務用Work・Codexは使わない。
+- 最後のP8-04はTurso接続とは別の証拠（公開研究アプリのCloud再起動・費用）を要する。研究開発認定 **98％（31/32）維持**、研究卒業100％、実開催接続0/6、実用下限0/100。既存main/Secrets/Turso/Streamlit稼働中アプリには変更なし。
