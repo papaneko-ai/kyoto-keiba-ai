@@ -104,3 +104,11 @@ Cloudに新アプリが存在して正確なURLを確認できたら、GitHub Ac
 - `tests/test_turso_readonly_inventory.py` の負例テスト（対象外DB・更新SQL・不正トークン・HTTPエラー・異常テーブル名）を実装。GitHub Actions `.github/workflows/kyoto-ai-turso-readonly-contract.yml` のrun `42956033508`、job `130311236645` は**offline test success**。このCI自体はTurso接続も認証情報の存在確認も実施していない。
 - 接続可能性はGitHub Secrets一覧APIがこの連携で認可されていないため**不明**。ユーザーが明示承認し資格情報をGitHub ActionsのSecretsに安全登録して初めてテストDBの読取専用実確認が可能。趣味用GitHubのみとし、業務用Work・Codexは使わない。
 - 最後のP8-04はTurso接続とは別の証拠（公開研究アプリのCloud再起動・費用）を要する。研究開発認定 **98％（31/32）維持**、研究卒業100％、実開催接続0/6、実用下限0/100。既存main/Secrets/Turso/Streamlit稼働中アプリには変更なし。
+
+
+## 2026-11-11 Streamlit利用者再起動操作・復帰の時系列照合（研究認定98％維持）
+- 利用者がCloud管理画面でP8研究用アプリ `diagnostics/p8_uploaded_archive_shadow_app.py` を選択。日本時間2026-11-11 **13:13**、Reboot確認画面（スクリーンショット944 SHA256 `4a552435a4f0d291d1a5f6d48ed24baeb6a1763fa5f821e3431aee761b6ff5aa`）、続いて確認ダイアログが消えた管理画面（945 SHA256 `4751e40267aa70aa29727c7d7efd7366619014ba06ff0a3c01b3847c266b2cd3`）、日本時間 **13:14** に公開アプリの正常表示（946 SHA256 `6b8e94643091861ab98547e528bd16bc0a3c92d52f5d2e39b75bb3992f23facc`）を利用者提供の実画像で確認。
+- 946の公開アプリ画面には `京都競馬AI｜保存原本の研究用再現`、研究用注意文、ZIP・モデルJSONアップロードUI、起動コミット `056eec53af314dd050e7f6ec122b871db84314e6` が実際に表示され、提供時点のGitHub開発HEADと**完全一致**。再起動後の実公開画面表示はユーザーによる確認済み。
+- スクリーンショット944・945は実行ボタンの押下を動画・Cloud管理APIで証明するものではなく、**Cloud管理者側の再起動イベントの独立署名ログではない**。ユーザーの操作報告と時系列画像の裏付けはあるが、`actual_cloud_instance_reboot_verified` を独立管理ログでTRUEと断定しない。独立GitHub runnerからの画面再検証は別runとして記録。
+- スクリーンショット937〜943のワークスペース・設定・Limits・Support画面と合わせ、Community Cloud無料ポリシー、管理画面に料金項目不在という事実を保持。個別請求額・請求履歴0円の証拠はまだ得ていない。無料サービスの制度と顧客個別の支払実績を混同しない。
+- **画像自体は公開リポジトリへ保存禁止**。SHA256・非機密表示事実だけを記録する。P8-04の最終認定はまだ保留、固定研究開発98％（31/32）、研究卒業100％、実開催独立検証0/6、実用下限0/100。main/Turso/Secrets/旧アプリに変更なし。
