@@ -1,0 +1,43 @@
+name: Kyoto AI existing Cloud endpoint external observation (no deployment)
+on:
+  push:
+    branches: [jra-html-diagnostic-20261105]
+    paths:
+      - 'diagnostics/p8_existing_cloud_readonly_probe.py'
+      - '.github/workflows/kyoto-ai-existing-cloud-observation.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  external-readonly-observation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    env:
+      PYTHONPATH: .
+      KYOTO_PUBLIC_PROBE_OUT: /tmp/kyoto-public-probe.json
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Observe existing Streamlit diagnostic Cloud URL (no JRA HTTP)
+        run: |
+          python -m diagnostics.p8_existing_cloud_readonly_probe
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          receipt=json.loads(Path('/tmp/kyoto-public-probe.json').read_text())
+          assert receipt['scope']=='EXISTING_CLOUD_PROBE_APP_ONLY_NOT_P8_SHADOW'
+          assert not receipt['new_P8_shadow_app_publicly_deployed']
+          assert not receipt['P8_04_release_certified']
+          assert not receipt['cloud_app_restarted_or_restored']
+          assert not receipt['cloud_billing_account_verified']
+          assert receipt['external_jra_http_requests']==0
+          print('EXISTING_CLOUD_OBSERVATION_SAFETY_PASS=TRUE')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: kyoto-ai-existing-cloud-readonly-observation
+          path: /tmp/kyoto-public-probe.json
+          if-no-files-found: error
+          retention-days: 90
