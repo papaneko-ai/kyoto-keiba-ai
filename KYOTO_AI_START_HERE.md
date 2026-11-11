@@ -304,3 +304,9 @@ P1は未完了。**新開催日の許容されたデータ取得経路と発走�
 - Independent source: official `https://docs.streamlit.io/deploy/streamlit-community-cloud` describes Community Cloud as free. This does **not** prove user-specific no-charge billing records. Existing user-observed reboot and later successful browser render are **not** the independently documented current-SHA reboot transaction required by our P8-04 evidence gate.
 - GitHub P8 evidence CI `.github/workflows/kyoto-ai-p8-evidence-ledger.yml` now asserts these distinctions and prevents false 100% claims. Do not repeat general Linked accounts/Limits/Support menus absent a product UI change.
 - The sole research criterion still unawarded remains P8-04 (2 points). The locked score is 98% (31/32), research graduation 12/12, real race verification 0/6 and operational lower bound 0/100. Do NOT relax the rubric or turn a free-policy statement into a fabricated invoice.
+
+
+## 2026-11-11 固定研究開発100％達成・次工程の唯一の基準
+- **最優先必読**：`docs/KYOTO_AI_20261111_FIXED_RESEARCH_100PCT_MILESTONE.md`。固定32項目の原文を変更せず、P8-04の研究用受入を独立CI run `42958913937` / job `130320521973` / SHA `3014d56516322c83e7fe3eb98fcc9974d1973903` で実証し、固定採点run `42959074329` / job `130321028994` / SHA `ae6ec152994c62a060773174e58c1769d1bca716` にて **100％・32/32・残0・前回比+2** を確認。静的旧ログに戻って98％だと判断しない。
+- 研究卒業100％だが、実開催接続0/6、独立実用能力の下限0/100はそのまま。研究用P8-04と運用用 `p8_public_release_evidence_gate.py` は別。個人請求実績0円・Cloud管理イベント独立ログは未検証のまま保持。研究100％を稼働保証・収益保証に流用しない。
+- 次の開発の主軸は実開催前の許諾ある出走馬・馬連枠連市場の真正原本と時点固定→仮想投資→結果精算。研究用フィクスチャの再実装や、既に完了したCloud再起動を繰り返さない。main/Turso/Secrets保護、Work/Codexを趣味に使わない。
