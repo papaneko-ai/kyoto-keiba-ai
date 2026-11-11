@@ -19,6 +19,8 @@ on:
       - 'docs/KYOTO_AI_20261110_P6_FINAL_SETTLEMENT_91PCT_MILESTONE.md'
       - 'docs/KYOTO_AI_20261111_P5_RISK_CONTROL_92PCT_MILESTONE.md'
       - 'docs/KYOTO_AI_20261111_P8_SHADOW_PIPELINE_94PCT_MILESTONE.md'
+      - 'docs/KYOTO_AI_20261111_P3_SAME_SOURCE_COMPARISON_94PCT_ENGINEERING_MILESTONE.md'
+      - 'KYOTO_AI_START_HERE.md'
   workflow_dispatch:
 permissions:
   contents: read
@@ -49,7 +51,7 @@ jobs:
           unzip -t kyoto-ai-branch-source.zip
       - uses: actions/upload-artifact@v4
         with:
-          name: kyoto-ai-p8-94pct-offline-shadow-recovery
+          name: kyoto-ai-p3-94pct-same-source-bridge-recovery
           path: /tmp/kyoto-recovery/
           retention-days: 90
           if-no-files-found: error
