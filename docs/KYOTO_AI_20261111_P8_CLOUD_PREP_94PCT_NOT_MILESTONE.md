@@ -70,3 +70,13 @@ Cloudに新アプリが存在して正確なURLを確認できたら、GitHub Ac
 - 残る独立確認は公開環境での第三者再現可能な画面検証と実際の管理画面上の費用/請求実績である。既存のスクリーンショットによりWorkspace Limits（公開アプリ無制限、1アプリ2.7GB）を確認したが、請求実績0円の認証ではない。
 - 次工程では認可された別の外部ブラウザ経路またはユーザー提供のCloud管理画面/実行証拠の独立照合を検討する。別経路が未提供なら障害記録を保持して待機し、同じ環境で無意味な失敗を繰り返さない。
 - **固定研究・開発認定98/100（31/32）維持。P8-04の2点未達。研究段階卒業12/12、実開催接続0/6、実用下限0/100**。main/Turso/Secrets/旧公開app.py/実購入機能は不変更。
+
+
+## 2026-11-11 実装09決定的修正：Cloud埋め込みframe誤認を是正、独立公開検証PASS（研究98％維持）
+- 以前のGitHub Actions Playwrightは親ページ `/` だけをDOM検査していた。しかしCloudは実アプリを同じホストの `/~/+/` iframe内に配備。診断CI run `42952539558` の `frame_inventory` は親 `/` の `app_mount_count=0,title_marker_count=0`、子 `/~/+/` の `app_mount_count=1,title_marker_count=1` を実測。**原因はCloud画面の停止ではなく、検証コードの検索対象フレーム誤り**。外部Cloud全体の通信不良という過去の推定を撤回する。
+- `diagnostics/p8_cloud_release_gate.py` で同一originかつ `/~/+/` の子フレームを最大20秒探索し、実アプリの見出し、公開ソース40桁SHA、スマホ幅390px、必須入力なし実行無効、原本SHA入力、購入ボタンなし、禁止JRA外部リクエストなし、横方向はみ出しなしを二つの独立ブラウザコンテキストで確認。親ページに検査を戻さず、他ドメインのiframeを受け入れず、コードの機能認定や運用評価の条件も緩めない。
+- 実際の公開URL `https://kyoto-keiba-ai-5opazxhrw7xwh4imfemey6.streamlit.app` で独立外部検証 **run `42952797109` / job `130300799271` / SHA `2b5a84d71750bd7c70e56cb3d7d6f75ad4cdf30b` success**、ログ `KYOTO_P8_NEW_PUBLIC_DEPLOY_SOURCE_VERIFIED=TRUE`。二つの独立セッションの外部検証レシート Artifact `13825921740`、receipt SHA256 `6647fc3bd8fb575f76d62bed8745d21ca3a775ccc7d50a779843dd0eeea1cdeb` を保持。
+- 子フレーム検査を固定する回帰テストを `tests/test_p8_cloud_release_gate.py` に追加し、再び親ページだけを見て誤失敗することや同一ホスト制約を失うことを検出する。
+- ユーザー操作によるStreamlit Cloud管理画面からのReboot後の復帰とソースSHA表示はスクリーンショットで確認済み。ただし外部CIのレシートは **`actual_cloud_instance_reboot_verified=false`、`cloud_billing_and_free_tier_account_verified=false`、`P8_04_full_release_certified=false`** を明示。Workspace Limitsは公開アプリ無制限、2.7GB/アプリ、private app 1 を表示するが、請求実績0円を証明しない。**P8-04の2点はまだ加点禁止**。
+- 今後は本項追記コミット自体でも外部Cloud検証・固定進捗CI・ソースZIP/sha256保存の3系統を同一HEADで照合して引き継ぐ。ユーザー保護契約により main、Turso、Secrets、旧app.py、実購入機能は変更しない。
+- 固定研究・開発工程 **98/100（31/32）**、研究段階卒業 **100％（12/12）**、実開催接続の独立検証 **0/6**、独立実用能力の下限 **0/100**。次の大きな節目は前回98％超（残りP8-04=2点）の認定時だけであり、外部画面PASSのみを100％に言い換えない。
