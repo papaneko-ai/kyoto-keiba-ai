@@ -43,10 +43,12 @@ def compare_two_frozen_models_same_market(*, bundle, snapshot, observed_utc,
         if model.get("source_feature_sha256")!=common_feature_sha256:
             raise PairedMarketRejected("features_differ_between_models")
         try:
-            if not _utc(model["frozen_utc"])<=_utc(observed_utc):
-                raise PairedMarketRejected("model_freeze_after_observation")
+            freeze_time=_utc(model["frozen_utc"])
+            observed_time=_utc(observed_utc)
         except (KeyError,ValueError,TypeError) as exc:
             raise PairedMarketRejected("model_freeze_invalid") from exc
+        if freeze_time>observed_time:
+            raise PairedMarketRejected("model_freeze_after_observation")
     if baseline.get("model_version")==candidate.get("model_version"):
         raise PairedMarketRejected("distinct_model_versions_required")
     if baseline==candidate:
