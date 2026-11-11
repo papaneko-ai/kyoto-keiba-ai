@@ -61,6 +61,12 @@ def probe_public_shadow_app(*,url,expected_sha,output):
                         ws.on("close",lambda : browser_events["websocket_events"].append({"event":"close",**safe}))
                         ws.on("socketerror",lambda err: browser_events["websocket_events"].append({
                             "event":"socketerror","detail":str(err)[:160],**safe}))
+                        # Count frame activity without storing frame payloads, which
+                        # may contain source content or personally sensitive values.
+                        ws.on("framereceived",lambda frame: browser_events["websocket_events"].append({
+                            "event":"frame_received","bytes":len(frame)}) if len(browser_events["websocket_events"]) < 12 else None)
+                        ws.on("framesent",lambda frame: browser_events["websocket_events"].append({
+                            "event":"frame_sent","bytes":len(frame)}) if len(browser_events["websocket_events"]) < 12 else None)
                     page.on("websocket",ws_trace)
                     def http_trace(resp):
                         if resp.status >= 400:
