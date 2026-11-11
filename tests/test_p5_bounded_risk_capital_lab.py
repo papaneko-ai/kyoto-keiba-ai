@@ -39,7 +39,9 @@ class CapitalControlTests(unittest.TestCase):
   tight=self.calc(exposure_fraction=.2,max_race_fraction=.1,max_pair_fraction=.05)
   self.assertLessEqual(tight["research_spent_yen"],wide["research_spent_yen"])
  def test_low_stressed_ev_causes_skip(self):
-  a=self.calc(downside_guard=.99)
+  low=rank_lab_research_races([self.fx.report(1,edge=0.05)],
+                              daily_budget_yen=20000)
+  a=research_capital_control(low,downside_guard=.10)
   self.assertEqual(a["research_spent_yen"],0)
   self.assertEqual(a["selected"],[])
  def test_zero_budget_safely_skips(self):
