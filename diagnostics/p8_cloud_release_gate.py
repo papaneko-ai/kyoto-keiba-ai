@@ -48,15 +48,27 @@ def probe_public_shadow_app(*,url,expected_sha,output):
                         return route.continue_()
                     context.route("**/*",route_check)
                     page=context.new_page()
-                    browser_events={"console_errors":[],"page_errors":[],"failed_requests":[],"websockets":[]}
+                    browser_events={"console_errors":[],"page_errors":[],"failed_requests":[],"bad_http_responses":[],"websockets":[],"websocket_events":[]}
                     page.on("console",lambda m: browser_events["console_errors"].append(m.text[:250])
                             if m.type=="error" else None)
                     page.on("pageerror",lambda e: browser_events["page_errors"].append(str(e)[:250]))
                     page.on("requestfailed",lambda r: browser_events["failed_requests"].append({
                         "type":r.resource_type,"origin":urlsplit(r.url).hostname,
                         "failure":r.failure[:160] if r.failure else None}))
-                    page.on("websocket",lambda ws: browser_events["websockets"].append({
-                        "origin":urlsplit(ws.url).hostname,"path":urlsplit(ws.url).path[:100]}))
+                    def ws_trace(ws):
+                        safe={"origin":urlsplit(ws.url).hostname,"path":urlsplit(ws.url).path[:100]}
+                        browser_events["websockets"].append(safe)
+                        ws.on("close",lambda : browser_events["websocket_events"].append({"event":"close",**safe}))
+                        ws.on("socketerror",lambda err: browser_events["websocket_events"].append({
+                            "event":"socketerror","detail":str(err)[:160],**safe}))
+                    page.on("websocket",ws_trace)
+                    def http_trace(resp):
+                        if resp.status >= 400:
+                            parts=urlsplit(resp.url)
+                            browser_events["bad_http_responses"].append({
+                                "status":resp.status,"origin":parts.hostname,
+                                "path":parts.path[:140],"resource":resp.request.resource_type})
+                    page.on("response",http_trace)
                     response=page.goto(target,wait_until="domcontentloaded",timeout=50000)
                     # Do not conceal a remote/cloud failure as a mere missing label.
                     # Record only PUBLIC page diagnostics, never upload contents or secrets.
