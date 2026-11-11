@@ -237,3 +237,11 @@ P1は未完了。**新開催日の許容されたデータ取得経路と発走�
 - 新規13件と全体CI成功 run `42931361336` job `130230624011` SHA `471a738a00d562c6a62d9cdd79c06031193bd38d`。固定32条件台帳P5-03登録後、全体再採点成功 run `42931579865` job `130231369056` SHA `474dd907b59b8b3f60fef0af40116303fe102ff0`。ログ `KYOTO_PROGRESS_VERIFIED=92%`、`KYOTO_RESEARCH_GRADUATION=100.0%`、`KYOTO_RESEARCH_TO_LIVE_VERIFIED=0/6`、`KYOTO_OPERATIONAL_VERIFIED=0/100`。
 - 残り3条件：P3-02（4点）、P8-03（2点）、P8-04（2点）。数値の増加より真正・許諾あるJRA新開催日の発走前データと実証済みモデル/仮想台帳の接続を優先。過去最終オッズや合成値による実運用成功の偽装禁止。
 - main、Turso、Secrets、公開旧app.py、実購入機能は変更禁止。復旧branchとZIPは別途同一HEADの成功run確認後に記録する。
+
+
+## 2026-11-11 最新節目候補：P8-03 研究用保存原本→予測→仮想精算接続
+- 研究開発固定32条件のP8-03（既定配点2）について、**独立GitHub CI成功による正式再採点値を確認後にのみ進捗更新**。証拠登録前の確定値は92/100、29/32。
+- 新規 `diagnostics/p8_uploaded_archive_replay_lab.py`：保存済みP1三原本ZIPを独立SHA256と内容照合で再確認し、P4研究用モデルEV→P5買い目/予算→P6事前凍結→結果HTMLによる研究用払戻の全経路を再実行。 `diagnostics/p8_uploaded_archive_shadow_app.py` は旧公開app.pyとは独立したスマホ向け診断UI。ZIPと別途記録したSHAを入力させ、独立証拠なしでは真正な公式データとはしない。
+- `tests/test_p8_uploaded_archive_replay_lab.py` は馬連枠連・改変・誤日時・偽公式フラグ・予算ゼロ・研究用結果・Streamlit AppTestを検証。初回CIではZIP末尾に余分なバイトが付いた場合を見逃した。 `diagnostics/p8_uploaded_archive_replay_lab.py` で**3メンバー全体の決定論的正規ZIP復元による完全バイト一致**を追加し、根本原因を遮断。弱いテストによる回避は禁止。
+- 研究卒業基準100.0%（12/12）、独立実開催接続0/6、独立実用能力検証下限0/100を分離し、実開催の予測実績・利益として偽装しない。
+- 最新の固定採点証拠／run/job/SHA／復旧ZIPの確定値は`docs/KYOTO_AI_20261111_P8_SHADOW_PIPELINE_94PCT_MILESTONE.md`とGitHub HEAD/Actionsの同一SHAで検証すること。main、Turso、Secrets、旧公開アプリ、実購入機能を変更しない。
