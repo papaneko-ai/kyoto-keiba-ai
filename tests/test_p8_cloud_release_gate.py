@@ -81,6 +81,20 @@ class CloudShadowProvenanceTests(unittest.TestCase):
         self.assertNotIn("requests.get",app)
         self.assertNotIn("place_bet",app)
 
+    def test_cloud_gate_inspects_same_origin_embedded_app_not_empty_parent(self):
+        # Community Cloud renders the Streamlit UI in the /~/+/ child frame.
+        # Regressing to parent-page checks recreates the documented false failure.
+        root=Path(__file__).resolve().parents[1]
+        src=(root/"diagnostics/p8_cloud_release_gate.py").read_text(encoding="utf-8")
+        self.assertIn('urlsplit(fr.url).hostname==urlsplit(target).hostname',src)
+        self.assertIn('urlsplit(fr.url).path.startswith("/~/+/")',src)
+        self.assertIn('app_frame.get_by_text("京都競馬AI｜保存原本の研究用再現")',src)
+        self.assertIn('app_frame.get_by_text(sha_label,exact=True)',src)
+        self.assertIn('app_frame.get_by_role("button",name="研究用に原本から再現").is_disabled()',src)
+        self.assertIn('app_frame.evaluate("document.documentElement.scrollWidth <= innerWidth + 2")',src)
+        self.assertIn('assert not blocked,"forbidden_jra_browser_call"',src)
+        self.assertIn('raise AssertionError("same_origin_streamlit_app_frame_missing")',src)
+
     def test_remote_receipt_always_excludes_cloud_reboot_billing(self):
         import inspect
         from diagnostics.p8_cloud_release_gate import probe_public_shadow_app
