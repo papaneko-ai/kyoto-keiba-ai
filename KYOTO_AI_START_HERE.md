@@ -286,3 +286,13 @@ P1は未完了。**新開催日の許容されたデータ取得経路と発走�
 - **新P8シャドーアプリを独立公開する準備**：`diagnostics/requirements.txt`、`diagnostics/p8_cloud_source_identity.py`、画面SHA表示、`diagnostics/p8_cloud_release_gate.py`、`.github/workflows/kyoto-ai-p8-remote-release-verification.yml`、`tests/test_p8_cloud_release_gate.py`。公式Cloudへの新アプリ登録、管理者Reboot、費用プランの認証は未実施。別途実測前にP8-04の2点を加点しない。
 - 正本 `docs/KYOTO_AI_20261111_P8_CLOUD_PREP_94PCT_NOT_MILESTONE.md` にGitHub branch／アプリ入口／Cloudの必要な操作／残る証拠を詳細記録。**本文書と復旧ZIPは未達の作業引継ぎであり、研究開発点増加の達成ではない**。次回再開時は本書、最新GitHub HEAD、原本Artifact、CI、復旧ZIPを同一SHAで照合し、既にある診断・P3比較処理を再実装しない。
 - main/旧app.py/Turso/Secrets/実購入機能は無断変更せず、スマホ優先・追加費用原則0円・ALG01～13/EVO01～08/P1～P8を保持する。
+
+
+## 2026-11-11 最新達成節目：固定研究開発98％（P3-02 +4点）／31条件
+- **「次の大きな節目」は、直前の確定率を実際に上回ること**。今回は94％→98％（＋4ポイント）を固定採点GitHub CI成功で検証した。次回の節目は**98％超**であり、同率の実装・修復を節目達成と呼ばない。
+- **固定32項目の合格31/32、研究卒業100.0％（12/12）、独立実開催接続0/6、独立実用能力検証下限0/100。** 未達1項目・2ポイントはP8-04のみ。固定ルーブリック配点や評価項目を変更せず、P3-02の4点を加算。
+- 新規`tests/test_p3_full_16_runner_same_cutoff_research.py` で16頭の研究用3原本、馬連**120**組と枠連**36**組を再生成し、既存P1/P3/P4経路で新旧2モデルの同一原本・締切比較を実施。全156組の期待値・下振れ差分/モデル逆転の符号、価格改変、欠落、未来情報、発売停止、最終オッズの混同を検出。**13件の新規テストを含め全体CI成功** run `42938728752` / job `130255118264` / SHA `16fa5ff7e688a4d12565a9dd252e58a1d9e862c4`。
+- 固定ルーブリックP3-02のacceptanceは**実データまたは研究用テスト**の証拠認定を明記。今回の認定は`kind=HISTORICAL_OR_RESEARCH_SCOPE_ONLY`で台帳 `docs/diagnostics/kyoto_progress_evidence_v1.json` に追加。固定採点成功 run `42938981440` / job `130255950762` / SHA `5d1f457ffc700806a1148b26c86c3b630446ffeb`：`KYOTO_PROGRESS_VERIFIED=98%`、`KYOTO_PROGRESS_DELTA=4`、`KYOTO_PROGRESS_REMAINING=1`、`KYOTO_RESEARCH_GRADUATION=100.0%`、`KYOTO_RESEARCH_TO_LIVE_VERIFIED=0/6`、`KYOTO_OPERATIONAL_VERIFIED=0/100`。
+- **合成16頭と研究モデルの成功は、JRA実開催日公式発走前オッズ、モデル較正、実馬券購入、勝率・回収率の運用実証ではない。** それらを実用能力として誤表示せず、P8-04公開環境実証の残り2点と別の実用移行6領域を次の工程とする。
+- 最新復旧正本 `docs/KYOTO_AI_20261111_P3_FULL_MARKET_RESEARCH_98PCT_MILESTONE.md`。最新HEAD・成功CI・ソースZIP+SHA256+専用バックアップブランチを同一SHAで確認する。以前の94％成果・保存原本Artifact`13482994623`を削除しない。
+- **進捗報告UIは変更禁止**：「研究・開発工程認定率」の大きな％＋緑の横長進捗バー＋前回/増減、その後4列5項目の比較表、今回実装とCI・復旧記録を添える。2列7行の旧様式には戻さない。
