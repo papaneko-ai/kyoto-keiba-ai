@@ -1,0 +1,5 @@
+# Isolated Streamlit Community Cloud dependencies for
+# diagnostics/p8_uploaded_archive_shadow_app.py.
+# Does not modify root requirements.txt / old main/app.py runtime.
+streamlit>=1.37,<2
+beautifulsoup4>=4.12,<5
