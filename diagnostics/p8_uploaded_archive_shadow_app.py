@@ -7,9 +7,11 @@ from __future__ import annotations
 import json
 import streamlit as st
 from diagnostics.p8_uploaded_archive_replay_lab import replay_user_supplied_lab_archive
+from diagnostics.p8_cloud_source_identity import source_checkout_sha
 
 st.set_page_config(page_title="京都競馬AI｜保存原本の研究再現",layout="centered")
 st.title("京都競馬AI｜保存原本の研究用再現")
+st.caption("起動コードのGitHubコミット: "+source_checkout_sha())
 st.warning("研究・診断専用。公式データの真正性、実運用予測、馬券購入は認定しません。")
 st.caption("既存P1保存ZIPとLAB_SYNTHETIC_ONLYのモデルJSONを使い、原本照合→期待値→買い目・予算→発走前凍結→任意の払戻精算を独立再実行します。")
 source=st.file_uploader("既存P1の原本3点一体ZIP",type=["zip"])
