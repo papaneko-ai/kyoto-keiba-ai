@@ -1,0 +1,30 @@
+name: Kyoto safe disposable cache reclaim tests
+on:
+  push:
+    branches: [jra-html-diagnostic-20261105]
+    paths:
+      - 'diagnostics/kyoto_safe_cache_reclaimer.py'
+      - 'tests/test_kyoto_safe_cache_reclaimer.py'
+      - 'diagnostics/kyoto_retention_quota_guard.py'
+      - 'tests/test_kyoto_retention_quota_guard.py'
+      - '.github/workflows/kyoto-ai-safe-cache-reclaim-tests.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  cache-reclaim-offline:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Verify storage and safe cache reclamation unit tests
+        env:
+          PYTHONPATH: .
+        run: |
+          set -euo pipefail
+          python -m unittest -v tests.test_kyoto_safe_cache_reclaimer tests.test_kyoto_retention_quota_guard
+          echo KYOTO_SAFE_CACHE_RECLAIM_OFFLINE_PASS=TRUE
+          echo TURSO_PRODUCTION_NOT_TOUCHED=TRUE
