@@ -98,7 +98,15 @@ def probe_public_shadow_app(*,url,expected_sha,output):
                             "page_title":title,"observed_url":current_url,
                             "public_body_excerpt":public_text,
                             "browser_events":{k:v[:8] for k,v in browser_events.items()},
-                            "streamlit_mount_count":page.locator('[data-testid="stApp"]').count()
+                            "streamlit_mount_count":page.locator('[data-testid="stApp"]').count(),
+                            "frame_inventory":[{
+                                "host":urlsplit(fr.url).hostname,
+                                "path":urlsplit(fr.url).path[:100],
+                                "app_mount_count":fr.locator('[data-testid="stApp"]').count(),
+                                "title_marker_count":fr.get_by_text("京都競馬AI｜保存原本の研究用再現").count()
+                            } for fr in page.frames[:6]],
+                            "document_ready_state":page.evaluate("document.readyState"),
+                            "root_element_count":page.locator("body *").count()
                         },ensure_ascii=False),flush=True)
                         # Independent diagnostic only: compare non-mobile browser.
                         # NEVER convert a desktop result into a mobile PASS.
