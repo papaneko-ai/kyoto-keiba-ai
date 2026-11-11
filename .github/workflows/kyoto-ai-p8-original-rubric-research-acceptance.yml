@@ -1,0 +1,75 @@
+name: Kyoto P8-04 locked-rubric independent research acceptance
+on:
+  push:
+    branches: [jra-html-diagnostic-20261105]
+    paths:
+      - 'diagnostics/p8_fixed_rubric_research_acceptance.py'
+      - 'tests/test_p8_fixed_rubric_research_acceptance.py'
+      - '.github/workflows/kyoto-ai-p8-original-rubric-research-acceptance.yml'
+      - 'docs/diagnostics/p8_streamlit_workspace_ui_evidence_20261111.json'
+permissions:
+  contents: read
+jobs:
+  p8-04-actual-research-acceptance:
+    runs-on: ubuntu-latest
+    timeout-minutes: 11
+    env:
+      PYTHONPATH: .
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install independent browser and offline Streamlit
+        run: |
+          set -euo pipefail
+          python -m pip install -r diagnostics/requirements.txt 'playwright>=1.55,<2'
+          python -m playwright install chromium
+      - name: Destructive tests for research-vs-operation separation
+        run: |
+          python -m unittest discover -s tests -p 'test_p8_fixed_rubric_research_acceptance.py' -v
+      - name: Independently inspect deployed public Streamlit Cloud at exact SHA
+        run: |
+          set -euo pipefail
+          python -m diagnostics.p8_cloud_release_gate \
+            --url https://kyoto-keiba-ai-5opazxhrw7xwh4imfemey6.streamlit.app \
+            --sha "$GITHUB_SHA" --out /tmp/p8-04-remote.json
+      - name: Independent two-process same-port local restart and mobile controls
+        run: |
+          set -euo pipefail
+          KYOTO_P8_04_OUT=/tmp/p8-04-local-restart.json python tests/p8_local_deployment_restart_check.py
+      - name: Compare original fixed acceptance and all three independent proof surfaces
+        run: |
+          set -euo pipefail
+          python -m diagnostics.p8_fixed_rubric_research_acceptance \
+            --cloud /tmp/p8-04-remote.json \
+            --local /tmp/p8-04-local-restart.json \
+            --workspace docs/diagnostics/p8_streamlit_workspace_ui_evidence_20261111.json \
+            --source-sha "$GITHUB_SHA" \
+            --shadow-source diagnostics/p8_uploaded_archive_shadow_app.py \
+            --requirements diagnostics/requirements.txt \
+            --out /tmp/kyoto-p8-04-research-acceptance.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p=json.loads(Path('/tmp/kyoto-p8-04-research-acceptance.json').read_text())
+          assert p['research_P8_04_accepted'] is True
+          assert p['individual_account_zero_billing_independently_verified'] is False
+          assert p['actual_cloud_admin_reboot_log_independently_verified'] is False
+          assert p['operational_JRA_prediction_verified'] is False
+          assert p['real_purchase_authorized'] is False
+          print('KYOTO_P8_04_ORIGINAL_RESEARCH_RUBRIC_PASS=TRUE')
+          PY
+      - name: Preserve independent receipts with clear bounded scope
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: kyoto-p8-04-original-research-rubric-evidence
+          path: |
+            /tmp/p8-04-remote.json
+            /tmp/p8-04-local-restart.json
+            /tmp/kyoto-p8-04-research-acceptance.json
+          if-no-files-found: warn
+          retention-days: 90
