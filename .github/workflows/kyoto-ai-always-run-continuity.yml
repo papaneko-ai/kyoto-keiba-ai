@@ -78,6 +78,27 @@ jobs:
           python -m pip install 'playwright>=1.55,<2'
           python -m playwright install chromium
           python tests/rg06_mobile_browser_check.py
+      - name: P8-04 local shadow deployment and restart acceptance (not public Cloud)
+        run: |
+          KYOTO_P8_04_OUT=/tmp/kyoto-p8-local-deployment-restart.json python tests/p8_local_deployment_restart_check.py
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          receipt=json.loads(Path('/tmp/kyoto-p8-local-deployment-restart.json').read_text())
+          assert receipt['restart_cycles']==2
+          assert receipt['same_controls_on_restart']
+          assert not receipt['actual_public_url_deployed_verified']
+          assert not receipt['actual_cloud_cost_zero_verified']
+          assert not receipt['live_jra_market_verified']
+          assert not receipt['actual_purchase_authorized']
+          print('P8_04_LOCAL_ONLY_CI_GATE_PASS=TRUE')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: kyoto-ai-p8-04-local-deploy-restart-receipt
+          path: /tmp/kyoto-p8-local-deployment-restart.json
+          if-no-files-found: error
+          retention-days: 90
       - name: Calculate objective P1-P8 score with real GitHub CI evidence
         run: |
           python -m diagnostics.kyoto_progress_metrics --root . --out /tmp/kyoto-progress.json
