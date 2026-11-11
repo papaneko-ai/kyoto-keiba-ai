@@ -57,7 +57,7 @@ def main():
     result={**body,"receipt_sha256":hashlib.sha256(raw.encode()).hexdigest()}
     dest=Path(os.environ.get("KYOTO_PUBLIC_PROBE_OUT","/tmp/kyoto-public-probe.json"))
     dest.write_text(json.dumps(result,ensure_ascii=False,indent=2,sort_keys=True)+"\n",encoding="utf8")
-    print("KYOTO_EXISTING_CLOUD_HEALTH_OK="+str(body["existing_deployment_health_confirmed"]).upper())
+    print("KYOTO_EXISTING_CLOUD_PUBLIC_CHECKS="+json.dumps(checks,ensure_ascii=False,sort_keys=True))\n    print("KYOTO_EXISTING_CLOUD_HEALTH_OK="+str(body["existing_deployment_health_confirmed"]).upper())
     print("KYOTO_NEW_P8_SHADOW_PUBLICLY_DEPLOYED=FALSE")
     print("KYOTO_P8_04_PUBLIC_CLOUD_CERTIFIED=FALSE")
     print("KYOTO_EXISTING_CLOUD_RECEIPT_SHA256="+result["receipt_sha256"])
