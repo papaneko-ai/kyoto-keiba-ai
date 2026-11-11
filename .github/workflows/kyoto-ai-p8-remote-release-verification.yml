@@ -6,6 +6,7 @@ on:
       - '.github/workflows/kyoto-ai-p8-remote-release-verification.yml'
       - 'diagnostics/p8_cloud_release_gate.py'
       - 'tests/test_p8_cloud_release_gate.py'
+      - 'docs/KYOTO_AI_20261111_P8_CLOUD_PREP_94PCT_NOT_MILESTONE.md'
   workflow_dispatch:
     inputs:
       app_url:
