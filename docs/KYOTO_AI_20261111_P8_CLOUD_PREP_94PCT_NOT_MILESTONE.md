@@ -89,3 +89,10 @@ Cloudに新アプリが存在して正確なURLを確認できたら、GitHub Ac
 - 新ゲートは3つの証拠（remote成功レシート、操作・復旧の独立記録、個別課金証拠＋公式無料提供）を区別し、一つでも不十分なら `P8_04_full_release_certified=false`。欠損、偽SHA、偽成功、無料サービス＝無条件0円請求の誤推論、操作記録なしの再起動成功偽装をテストする。
 - この検証用ゲートはGitHub上の研究用正本を拡張するのみ。第三者認定や業務用途を意味しない。固定研究認定98/100、研究卒業12/12、実開催接続0/6、実用下限0/100を維持し、main、Turso、Secrets、既存公開アプリ、実購入には一切変更しない。
 - 次の真の加点条件：Cloudの管理者再起動・再起動後同一SHAの独立証拠、個別アカウント費用の独立証拠を取得し、既存の固定ルーブリックを変更せずGitHub Actions同一SHAでP8-04の認定を検証する。それまで98％を100％に書き換えない。
+
+
+## 2026-11-11 実装09追加：独立証拠台帳のCI実行成功（98％維持）
+- `docs/diagnostics/p8_release_evidence_checkpoint_20261111.json` に外部Cloud成功の過去固定SHA `9279a268681675d69681979ea3030138e52bb286`、run `42953012865`、receipt SHA256 `6647fc3bd8fb575f76d62bed8745d21ca3a775ccc7d50a779843dd0eeea1cdeb` を記録。新しいHEADを自動的に過去の検証済みSHAにすり替えない。
+- `diagnostics/p8_public_release_evidence_gate.py`、破壊テスト `tests/test_p8_public_release_evidence_gate.py`、`.github/workflows/kyoto-ai-p8-evidence-ledger.yml` を追加。GitHub Actions run `42954188523` **success** は、remote証拠と公式無料ポリシーがあってもcloud reboot独立証拠と個別請求証拠なしに `P8_04_full_release_certified=false` を維持する再現検証。
+- これにより「料金0円」と「アカウント課金履歴0円」を混同する偽陽性を防ぎ、認定証拠が揃った後に差分を最小化できる。ただし真正な再起動ログや利用者アカウントの請求記録を新たに取得したものではない。**研究開発98％・31/32、研究卒業100％、実開催0/6、実用下限0/100で未達保持**。
+- 重要：研究用P8チェックポイントが完了しても、P8-04固定2点は独立証拠の未取得につき加点しない。ユーザーのPCに保存済みZIPは保護、旧main/Turso/Secrets/実購入なし。
