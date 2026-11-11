@@ -76,10 +76,23 @@ def probe_public_shadow_app(*,url,expected_sha,output):
                                 "path":parts.path[:140],"resource":resp.request.resource_type})
                     page.on("response",http_trace)
                     response=page.goto(target,wait_until="domcontentloaded",timeout=50000)
+                    # Community Cloud embeds the actual Streamlit app in a
+                    # same-origin /~/+/ frame. The parent page is only a shell.
+                    # Inspect the frame instead of weakening the visual checks.
+                    app_frame=None
+                    for _ in range(40):
+                        app_frame=next((fr for fr in page.frames
+                            if urlsplit(fr.url).hostname==urlsplit(target).hostname
+                            and urlsplit(fr.url).path.startswith("/~/+/")),None)
+                        if app_frame is not None:
+                            break
+                        page.wait_for_timeout(500)
+                    if app_frame is None:
+                        raise AssertionError("same_origin_streamlit_app_frame_missing")
                     # Do not conceal a remote/cloud failure as a mere missing label.
                     # Record only PUBLIC page diagnostics, never upload contents or secrets.
                     try:
-                        page.get_by_text("京都競馬AI｜保存原本の研究用再現").wait_for(timeout=55000)
+                        app_frame.get_by_text("京都競馬AI｜保存原本の研究用再現").wait_for(timeout=55000)
                     except Exception as exc:
                         from playwright.sync_api import TimeoutError as PlaywrightTimeout
                         if not isinstance(exc,PlaywrightTimeout):
@@ -87,7 +100,7 @@ def probe_public_shadow_app(*,url,expected_sha,output):
                         status = response.status if response is not None else None
                         title = page.title()[:180]
                         current_url = page.url[:250]
-                        public_text = page.locator("body").inner_text(timeout=4000)[:600]
+                        public_text = app_frame.locator("body").inner_text(timeout=4000)[:600]
                         try:
                             page.screenshot(path="/tmp/kyoto-p8-external-failure-%d.png" % (cycle+1),
                                             full_page=False,timeout=4000)
@@ -134,15 +147,15 @@ def probe_public_shadow_app(*,url,expected_sha,output):
                             desktop_diagnostic["failure_type"]=type(diagnostic_exc).__name__
                         print("KYOTO_P8_DESKTOP_CONTROL="+json.dumps(desktop_diagnostic,sort_keys=True),flush=True)
                         raise AssertionError("public_streamlit_research_heading_not_rendered") from exc
-                    page.get_by_text("研究・診断専用。公式データの真正性",exact=False).wait_for(timeout=12000)
+                    app_frame.get_by_text("研究・診断専用。公式データの真正性",exact=False).wait_for(timeout=12000)
                     sha_label="起動コードのGitHubコミット: "+expected_sha
-                    if page.get_by_text(sha_label,exact=True).count()!=1:
+                    if app_frame.get_by_text(sha_label,exact=True).count()!=1:
                         raise AssertionError("deployed_git_sha_not_equal_to_expected")
                     assert response is not None and response.status==200
-                    assert page.get_by_role("button",name="研究用に原本から再現").is_disabled()
-                    assert page.get_by_text("別途保存された原本ZIPのSHA256",exact=False).count()>0
-                    assert page.locator('button:has-text("購入")').count()==0
-                    assert page.evaluate("document.documentElement.scrollWidth <= innerWidth + 2")
+                    assert app_frame.get_by_role("button",name="研究用に原本から再現").is_disabled()
+                    assert app_frame.get_by_text("別途保存された原本ZIPのSHA256",exact=False).count()>0
+                    assert app_frame.locator('button:has-text("購入")').count()==0
+                    assert app_frame.evaluate("document.documentElement.scrollWidth <= innerWidth + 2")
                     assert not blocked,"forbidden_jra_browser_call"
                     observations.append({
                        "cycle":cycle+1,"http_status":response.status,
