@@ -80,3 +80,12 @@ Cloudに新アプリが存在して正確なURLを確認できたら、GitHub Ac
 - ユーザー操作によるStreamlit Cloud管理画面からのReboot後の復帰とソースSHA表示はスクリーンショットで確認済み。ただし外部CIのレシートは **`actual_cloud_instance_reboot_verified=false`、`cloud_billing_and_free_tier_account_verified=false`、`P8_04_full_release_certified=false`** を明示。Workspace Limitsは公開アプリ無制限、2.7GB/アプリ、private app 1 を表示するが、請求実績0円を証明しない。**P8-04の2点はまだ加点禁止**。
 - 今後は本項追記コミット自体でも外部Cloud検証・固定進捗CI・ソースZIP/sha256保存の3系統を同一HEADで照合して引き継ぐ。ユーザー保護契約により main、Turso、Secrets、旧app.py、実購入機能は変更しない。
 - 固定研究・開発工程 **98/100（31/32）**、研究段階卒業 **100％（12/12）**、実開催接続の独立検証 **0/6**、独立実用能力の下限 **0/100**。次の大きな節目は前回98％超（残りP8-04=2点）の認定時だけであり、外部画面PASSのみを100％に言い換えない。
+
+
+## 2026-11-11 実装09：100％認定直前の証拠分離・偽陽性防止ゲート（98％維持）
+- 最新確定98％（31/32）のP8-04について、公開環境の検証結果とCloud再起動、費用・個別請求を区別する `diagnostics/p8_public_release_evidence_gate.py` および `tests/test_p8_public_release_evidence_gate.py` を追加。外部Cloud検証success（run `42953012865`、HEAD `9279a268681675d69681979ea3030138e52bb286`）だけではP8-04の認定を出さない。
+- 公式Streamlit Community Cloud案内（`https://docs.streamlit.io/deploy/streamlit-community-cloud`）はサービスを **free** と明記。無料サービスの公表価格は独立資料で検証可能。一方で特定ユーザーの個別請求履歴0円は公式案内だけでは認定しない（`account_no_charge_verified=false`）。
+- ユーザー提供のCloud管理UI「Reboot app」選択および再起動後正常画面、ソースコミットの表示は観察済み。しかし外部GitHub Actionsレシートの `actual_cloud_instance_reboot_verified` はfalse。独立に紐付けられた再起動前後の操作・結果証拠を得るまでは `operation_confirmed=false` の保守的状態を保持する。
+- 新ゲートは3つの証拠（remote成功レシート、操作・復旧の独立記録、個別課金証拠＋公式無料提供）を区別し、一つでも不十分なら `P8_04_full_release_certified=false`。欠損、偽SHA、偽成功、無料サービス＝無条件0円請求の誤推論、操作記録なしの再起動成功偽装をテストする。
+- この検証用ゲートはGitHub上の研究用正本を拡張するのみ。第三者認定や業務用途を意味しない。固定研究認定98/100、研究卒業12/12、実開催接続0/6、実用下限0/100を維持し、main、Turso、Secrets、既存公開アプリ、実購入には一切変更しない。
+- 次の真の加点条件：Cloudの管理者再起動・再起動後同一SHAの独立証拠、個別アカウント費用の独立証拠を取得し、既存の固定ルーブリックを変更せずGitHub Actions同一SHAでP8-04の認定を検証する。それまで98％を100％に書き換えない。
