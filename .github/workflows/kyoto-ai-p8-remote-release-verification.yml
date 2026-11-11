@@ -1,0 +1,57 @@
+name: Kyoto P8 external shadow deployment identity acceptance (manual, no changes)
+on:
+  workflow_dispatch:
+    inputs:
+      app_url:
+        description: "Already deployed separate P8 shadow app HTTPS URL (*.streamlit.app)"
+        type: string
+        required: true
+permissions:
+  contents: read
+jobs:
+  external-shadow-verification:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    env:
+      PYTHONPATH: .
+      APP_URL: ${{ inputs.app_url }}
+      SOURCE_SHA: ${{ github.sha }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: jra-html-diagnostic-20261105
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Ensure checked-out SHA is exactly GitHub workflow SHA
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$SOURCE_SHA"
+      - name: Install remote browser verifier only
+        run: |
+          python -m pip install 'playwright>=1.55,<2'
+          python -m playwright install chromium
+      - name: Check public separate Streamlit source identity, no wagers or JRA requests
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m diagnostics.p8_cloud_release_gate --url "$APP_URL" --sha "$SOURCE_SHA" --out /tmp/kyoto-cloud-p8-shadow-source.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          x=json.loads(Path('/tmp/kyoto-cloud-p8-shadow-source.json').read_text())
+          assert x['public_shadow_deployment_git_sha_verified']
+          assert not x['actual_cloud_instance_reboot_verified']
+          assert not x['cloud_billing_and_free_tier_account_verified']
+          assert not x['P8_04_full_release_certified']
+          assert not x['actual_purchase_authorized']
+          print('P8_NEW_PUBLIC_SHADOW_PRESENT_NOT_FULL_RELEASE=TRUE')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: kyoto-p8-remote-source-matched-not-reboot-billing
+          path: /tmp/kyoto-cloud-p8-shadow-source.json
+          if-no-files-found: error
+          retention-days: 90
