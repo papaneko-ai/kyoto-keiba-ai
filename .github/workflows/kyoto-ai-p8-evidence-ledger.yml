@@ -1,0 +1,48 @@
+name: Kyoto P8-04 evidence checkpoint (no unverified promotion)
+on:
+  push:
+    branches: [jra-html-diagnostic-20261105]
+    paths:
+      - '.github/workflows/kyoto-ai-p8-evidence-ledger.yml'
+      - 'diagnostics/p8_public_release_evidence_gate.py'
+      - 'tests/test_p8_public_release_evidence_gate.py'
+      - 'docs/diagnostics/p8_release_evidence_checkpoint_20261111.json'
+permissions:
+  contents: read
+jobs:
+  p8-release-evidence:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Verify evidence contract and destructives
+        env:
+          PYTHONPATH: .
+        run: |
+          set -euo pipefail
+          python -m unittest discover -s tests -p 'test_p8_public_release_evidence_gate.py' -v
+          python -m diagnostics.p8_public_release_evidence_gate \
+            --evidence docs/diagnostics/p8_release_evidence_checkpoint_20261111.json \
+            --output /tmp/kyoto-p8-release-evidence.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          result=json.loads(Path('/tmp/kyoto-p8-release-evidence.json').read_text())
+          assert result['remote_browser_certified']
+          assert result['official_community_free_policy_confirmed']
+          assert not result['independent_reboot_certified']
+          assert not result['account_billing_record_verified']
+          assert not result['P8_04_full_release_certified']
+          assert not result['actual_purchase_authorized']
+          print('KYOTO_P8_04_EVIDENCE_NOT_READY=TRUE')
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: kyoto-p8-04-evidence-pending-reboot-billing
+          path: /tmp/kyoto-p8-release-evidence.json
+          if-no-files-found: error
+          retention-days: 90
