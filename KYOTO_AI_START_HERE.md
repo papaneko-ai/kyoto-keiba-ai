@@ -296,3 +296,11 @@ P1は未完了。**新開催日の許容されたデータ取得経路と発走�
 - **合成16頭と研究モデルの成功は、JRA実開催日公式発走前オッズ、モデル較正、実馬券購入、勝率・回収率の運用実証ではない。** それらを実用能力として誤表示せず、P8-04公開環境実証の残り2点と別の実用移行6領域を次の工程とする。
 - 最新復旧正本 `docs/KYOTO_AI_20261111_P3_FULL_MARKET_RESEARCH_98PCT_MILESTONE.md`。最新HEAD・成功CI・ソースZIP+SHA256+専用バックアップブランチを同一SHAで確認する。以前の94％成果・保存原本Artifact`13482994623`を削除しない。
 - **進捗報告UIは変更禁止**：「研究・開発工程認定率」の大きな％＋緑の横長進捗バー＋前回/増減、その後4列5項目の比較表、今回実装とCI・復旧記録を添える。2列7行の旧様式には戻さない。
+
+
+## 2026-11-11 P8-04 workspace screenshot reconciliation
+- Reuse `docs/diagnostics/p8_streamlit_workspace_ui_evidence_20261111.json` **before requesting screenshots again**. Seven user-supplied screenshots 937–943 have independent SHA256 fingerprints only; their raw pixels (which include account identity) MUST NOT be committed or published to the public repository.
+- Confirmed on Workspace: P8 shadow `diagnostics/p8_uploaded_archive_shadow_app.py` on branch `jra-html-diagnostic-20261105`, URL `kyoto-keiba-ai-5opazxhrw7xwh4imfemey6.streamlit.app`, Python 3.11. Limits show public apps Unlimited, private apps 1, resources per app 2.7GBs. Linked Accounts and Support have no personal billing ledger in observed UI.
+- Independent source: official `https://docs.streamlit.io/deploy/streamlit-community-cloud` describes Community Cloud as free. This does **not** prove user-specific no-charge billing records. Existing user-observed reboot and later successful browser render are **not** the independently documented current-SHA reboot transaction required by our P8-04 evidence gate.
+- GitHub P8 evidence CI `.github/workflows/kyoto-ai-p8-evidence-ledger.yml` now asserts these distinctions and prevents false 100% claims. Do not repeat general Linked accounts/Limits/Support menus absent a product UI change.
+- The sole research criterion still unawarded remains P8-04 (2 points). The locked score is 98% (31/32), research graduation 12/12, real race verification 0/6 and operational lower bound 0/100. Do NOT relax the rubric or turn a free-policy statement into a fabricated invoice.
