@@ -27,6 +27,19 @@ def replay_user_supplied_lab_archive(*, archive_bytes, archive_sha256,
         raise IntegrationReplayRejected("upload_archive_invalid")
     if type(archive_sha256) is not str or hashlib.sha256(archive_bytes).hexdigest()!=archive_sha256:
         raise IntegrationReplayRejected("independent_archive_sha_mismatch")
+    # ZIP readers may silently accept trailing bytes or harmless-looking
+    # duplicate metadata. Rebuild the canonical P1 three-member archive and
+    # compare the *whole byte sequence*, not just its inner member checksums.
+    with zipfile.ZipFile(io.BytesIO(archive_bytes)) as probe:
+        canonical=io.BytesIO()
+        with zipfile.ZipFile(canonical,"w",compression=zipfile.ZIP_STORED) as out:
+            for name in ("source_bundle.zip","snapshot.json","handoff_receipt.json"):
+                info=zipfile.ZipInfo(name,date_time=(1980,1,1,0,0,0))
+                info.compress_type=zipfile.ZIP_STORED
+                info.external_attr=0o600 << 16
+                out.writestr(info,probe.read(name))
+    if canonical.getvalue()!=archive_bytes:
+        raise IntegrationReplayRejected("noncanonical_or_trailing_zip_bytes")
     verify_prerace_handoff_archive(archive_bytes,expected_sha256=archive_sha256,
                                    observed_utc=observed_utc,channel=channel)
     with zipfile.ZipFile(io.BytesIO(archive_bytes)) as z:
