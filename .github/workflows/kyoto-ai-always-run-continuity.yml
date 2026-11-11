@@ -41,6 +41,7 @@ jobs:
           python -m unittest discover -s tests -p 'test_p4_temporal_market_controls.py' -v
           python -m unittest discover -s tests -p 'test_p4_source_bound_model_ev_research.py' -v
           python -m unittest discover -s tests -p 'test_p5_source_bound_race_ranking_lab.py' -v
+          python -m unittest discover -s tests -p 'test_p5_bounded_risk_capital_lab.py' -v
           python -m unittest discover -s tests -p 'test_p6_source_bound_ranked_freeze_lab.py' -v
           python -m unittest discover -s tests -p 'test_p6_final_html_settlement_lab.py' -v
           python -m unittest discover -s tests -p 'test_p1_authorized_pc_sp_fallback.py' -v
