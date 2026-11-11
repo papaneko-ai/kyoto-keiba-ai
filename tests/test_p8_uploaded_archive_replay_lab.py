@@ -90,6 +90,15 @@ class UploadedArchiveLabTests(unittest.TestCase):
   self.assertTrue(len(out.warning)>=1)
   self.assertTrue(out.button[0].disabled)
   self.assertEqual(len(out.file_uploader),3)
+ def test_shadow_app_bootstrap_path_independent_of_cwd(self):
+  # Cloud runs the script from diagnostics/; the project package must still resolve.
+  from pathlib import Path
+  app=Path(__file__).resolve().parents[1]/"diagnostics/p8_uploaded_archive_shadow_app.py"
+  src=app.read_text(encoding="utf-8")
+  self.assertIn("_REPO_ROOT = Path(__file__).resolve().parents[1]",src)
+  self.assertIn("sys.path.insert(0, str(_REPO_ROOT))",src)
+  self.assertLess(src.index("sys.path.insert(0, str(_REPO_ROOT))"),
+                  src.index("from diagnostics.p8_uploaded_archive_replay_lab import"))
  def test_shadow_app_has_no_network_or_order_paths(self):
   from pathlib import Path
   app=Path(__file__).resolve().parents[1]/"diagnostics/p8_uploaded_archive_shadow_app.py"
