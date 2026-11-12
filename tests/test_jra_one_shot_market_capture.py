@@ -688,4 +688,20 @@ class SourceOriginalImmutabilityAndPostProofTests(unittest.TestCase):
       opener=RefusalOpener())
    self.assertEqual((Path(d)/"receipt.json").read_bytes(),before)
 
+class ImmutableTerminalReceiptTests(unittest.TestCase):
+ def test_receipt_is_exclusively_created(self):
+  from pathlib import Path
+  from diagnostics.jra_one_shot_market_capture import persist_receipt_once
+  with tempfile.TemporaryDirectory() as d:
+   persist_receipt_once(Path(d),"receipt.json",{"state":"SAFE_STOP"})
+   with self.assertRaisesRegex(SourceChainError,"source_receipt_already_exists"):
+    persist_receipt_once(Path(d),"receipt.json",{"state":"SOURCE_FROZEN"})
+   self.assertEqual(__import__("json").loads((Path(d)/"receipt.json").read_text())["state"],"SAFE_STOP")
+ def test_reject_nan_in_evidence_receipt(self):
+  from pathlib import Path
+  from diagnostics.jra_one_shot_market_capture import persist_receipt_once
+  with tempfile.TemporaryDirectory() as d:
+   with self.assertRaises(ValueError):
+    persist_receipt_once(Path(d),"receipt.json",{"unsafe":float("nan")})
+
 if __name__=="__main__":unittest.main()
