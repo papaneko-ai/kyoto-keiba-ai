@@ -358,11 +358,11 @@ class ObservedOddsMenuTraversalTests(unittest.TestCase):
   with self.assertRaisesRegex(SourceChainError,"link_missing"):
    self.next_action(self.observed("SP"),"PC",0)
  def test_other_race_label_not_selected(self):
-  raw=self.observed("PC","race").replace("11レース","10レース")
+  raw=self.observed("PC","race").replace("11レース".encode("cp932"),"10レース".encode("cp932"))
   with self.assertRaisesRegex(SourceChainError,"link_missing"):
    self.next_action(raw,"PC",1)
  def test_final_odds_not_used_as_navigation(self):
-  raw=self.observed("PC").replace("京都 ", "最終オッズ 京都 ",1)
+  raw=self.observed("PC").replace("京都 ".encode("cp932"),"最終オッズ 京都 ".encode("cp932"),1)
   with self.assertRaisesRegex(SourceChainError,"market_navigation_not_live"):
    self.next_action(raw,"PC",0)
  def test_unsupported_third_link_refused(self):
