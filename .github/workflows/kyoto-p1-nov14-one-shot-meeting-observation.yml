@@ -1,11 +1,10 @@
 name: Kyoto Nov14 one bounded official JRA meeting navigation observation
 on:
+  workflow_dispatch:
   push:
     branches: [jra-html-diagnostic-20261105]
     paths:
-      - diagnostics/kyoto_p1_nov14_official_one_shot_nav.py
-      - tests/test_kyoto_p1_nov14_official_one_shot_nav.py
-      - .github/workflows/kyoto-p1-nov14-one-shot-meeting-observation.yml
+      - diagnostics/nov14_one_off_explicit_activation.txt
 permissions:
   contents: read
 jobs:
