@@ -1,0 +1,110 @@
+{
+  "schema": "kyoto_20261112_eight_feature_family_96_profile_handoff.v1",
+  "source_day": "2026-11-07",
+  "purpose": "Reuse existing 96-profile registry and 148-runner P2 matrix to audit all predictive data families without duplicating parsers or falsely declaring current racing data",
+  "existing_assets_reused": [
+    "diagnostics/p1_registry_reconcile.py::reconcile",
+    "diagnostics/p2_historical_feature_matrix.py::materialize",
+    "diagnostics/jra_feature_coverage_148.py::FIELDS",
+    "docs/diagnostics/jra_p1_batch14_96_profiles_20261106/feature_rows_148.json",
+    "docs/diagnostics/jra_p1_batch14_96_profiles_20261106/status.json",
+    "docs/diagnostics/p2_historical_feature_matrix_20261107_148.csv",
+    "diagnostics/p1_readonly_monitor_app.py"
+  ],
+  "historical_data": {
+    "races": 12,
+    "runners": 148,
+    "profiles_verified": 96,
+    "valid_prior_finishes": 592,
+    "performance_profiles": 77,
+    "verified_no_history": 19,
+    "unqueried": 52,
+    "historical_html_replayed": 84,
+    "historical_html_not_recovered": 12,
+    "archive_reference": "docs/diagnostics/kyoto_ai_resume_evidence_registry_v1.json",
+    "archive_artifact_id": 13482994623,
+    "archive_artifact_expired": false,
+    "archive_artifact_verified_by": "GitHub Actions artifacts for Run 42176719321",
+    "archive_artifact_digest": "sha256:49d61bff4eca82405d9d63e4244092e0fd2650bec5f899eba4f5ed2679c68863"
+  },
+  "family_coverage_for_archived_day": {
+    "racecard": {
+      "available": 148,
+      "missing": 0
+    },
+    "horse_profile": {
+      "available": 96,
+      "missing": 52,
+      "with_history": 77,
+      "verified_empty": 19
+    },
+    "race_conditions": {
+      "available": 0,
+      "missing": 148
+    },
+    "jockey_trainer": {
+      "available": 0,
+      "missing": 148
+    },
+    "track_weather": {
+      "available": 0,
+      "missing": 148
+    },
+    "market_odds": {
+      "available": 0,
+      "missing": 148
+    },
+    "training_workouts": {
+      "available": 0,
+      "missing": 148
+    },
+    "payout_result": {
+      "not_applicable_before_race": 148
+    }
+  },
+  "ci": {
+    "feature_matrix": {
+      "run_id": 43158092995,
+      "conclusion": "SUCCESS",
+      "tests": 31,
+      "url": "https://github.com/papaneko-ai/kyoto-keiba-ai/actions/runs/43158092995"
+    },
+    "read_only_monitor": {
+      "run_id": 43158130150,
+      "conclusion": "SUCCESS",
+      "tests": 87,
+      "streamlit_apptest": true,
+      "local_health": true,
+      "url": "https://github.com/papaneko-ai/kyoto-keiba-ai/actions/runs/43158130150"
+    }
+  },
+  "changes": [
+    "Existing p2_historical_feature_matrix.py builds 8-family evidence handoff from full 96-profile archive with full 148 runner identity and SHA cross-checks",
+    "Existing archive-only P1 monitor displays all eight families with zero-fill forbidden for missing profile history",
+    "New malicious source/identity/future result and missingness regression tests"
+  ],
+  "fixed_acceptance": {
+    "research": "32/32",
+    "graduation": "12/12",
+    "major_function_families": "21/21",
+    "real_live": "0/6",
+    "operational": "0/100",
+    "final_20": "35/100",
+    "f03_accepted": false,
+    "f04_accepted": false
+  },
+  "invariants": {
+    "new_jra_http_requests": 0,
+    "actual_wagers": false,
+    "main_modified": false,
+    "production_turso_modified": false,
+    "live_model_ready": false
+  },
+  "unverified_necessary_next": [
+    "2026-11-14 individually observed official PC/SP current racecard and source original",
+    "Current race jockey and trainer features with correct historical cutoff and original provenance",
+    "Workout, going, weather, moisture, cushion values and any official publication point before race",
+    "Current starter withdrawals/late scratched and true published quinella and bracket quinella odds",
+    "Independent current-source audited complete P1 to predictive model input with no future leaks"
+  ]
+}
