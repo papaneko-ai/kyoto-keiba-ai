@@ -8,6 +8,7 @@ source collection, real wagering or autocode mutation.
 from __future__ import annotations
 import hashlib,json,math
 from pathlib import Path
+from diagnostics.kyoto_f17_executable_lab_streams import execute_streams
 from diagnostics.p7_approved_evo_capability_screen import (
     falsify_research_candidates,EXPECTED
 )
@@ -25,7 +26,7 @@ def numeric(x):
 def integrate(packet,*,f18_witness,rubric_bytes):
     ck(type(packet) is dict and set(packet)=={
         "schema","scope","plan_lock_sha256","race_cutoffs",
-        "evo_inputs","policy","source_sha256"},"packet_schema")
+        "evo_inputs","research_streams","policy","source_sha256"},"packet_schema")
     ck(packet["schema"]=="kyoto_F17_eight_capabilities_lab_input.v1"
        and packet["scope"]=="LAB_SYNTHETIC_ONLY","source_scope")
     ck(dig({k:v for k,v in packet.items() if k!="source_sha256"})==packet["source_sha256"],
@@ -60,6 +61,30 @@ def integrate(packet,*,f18_witness,rubric_bytes):
     source_cutoffs=packet["race_cutoffs"]
     ck(type(source_cutoffs) is list and source_cutoffs==[
          r["race_id"] for r in f18_witness["holdout"]],"F18_same_holdout_mismatch")
+    # Every reported EVO metric MUST be computed from original LAB rows.
+    streams=execute_streams(packet["research_streams"],source_cutoffs)
+    def same(a,b):
+        ck(type(a) in (int,float) and type(b) in (int,float)
+           and math.isclose(float(a),float(b),abs_tol=1e-10,rel_tol=0),
+           "evo_metric_does_not_match_executed_raw_stream")
+    src=streams["top_source"]
+    same(src["cost"],inputs["EVO-01"]["source_cost"])
+    same(src["value"],inputs["EVO-01"]["value_gain"])
+    same(src["coverage"],inputs["EVO-01"]["source_coverage"])
+    weakness=streams["top_weakness"]
+    ck(weakness["category"]==inputs["EVO-02"]["failure_category"],
+       "wrong_weakness_from_raw_losses")
+    same(weakness["baseline_loss"],inputs["EVO-02"]["baseline_loss"])
+    same(weakness["candidate_loss"],inputs["EVO-02"]["candidate_loss"])
+    same(streams["computed_portfolio_drawdown"],inputs["EVO-04"]["drawdown"])
+    same(streams["drift_observations"][0],inputs["EVO-05"]["baseline_drift"])
+    same(streams["drift_observations"][-1],inputs["EVO-05"]["current_drift"])
+    ck(len(streams["executed_lab_experiment_ids"])==
+       inputs["EVO-06"]["experiment_count"],"executed_experiment_count_differs")
+    same(streams["spent_lab_budget"],inputs["EVO-06"]["research_budget"])
+    same(streams["surprise_mean_error"],inputs["EVO-08"]["surprise_metric"])
+    ck(len(streams["surprise_counterexample_ids"])==
+       inputs["EVO-08"]["counterexamples"],"surprise_counterexample_mismatch")
     proposals=falsify_research_candidates(inputs)
     ck([r["id"] for r in proposals["results"]]==list(EXPECTED),"screen_order_changed")
     ck(all(r["verdict"]=="NOT_REFUTED_RESEARCH_ONLY" for r in proposals["results"]),
@@ -131,7 +156,9 @@ def integrate(packet,*,f18_witness,rubric_bytes):
        "EVO-06":{"status":"LAB_CONSTRAINED_RESEARCH_PROPOSAL",
                  "max_experiments":count_experiments,
                  "research_budget":float(six["research_budget"]),
-                 "experiments_run":0},
+                 "experiments_run":len(streams["executed_lab_experiment_ids"]),
+                 "experiments_executed_in_sandbox":streams["executed_lab_experiment_ids"],
+                 "no_external_research_job_executed":True},
        "EVO-07":{"status":"LAB_F18_AUDIT_BOUND",
                  "plan_sha256":packet["plan_lock_sha256"],
                  "original_F18_decision_sha256":decision["receipt_sha256"],
@@ -147,6 +174,8 @@ def integrate(packet,*,f18_witness,rubric_bytes):
             "lab_input_sha256":packet["source_sha256"],
             "F18_audit_sha256":decision["receipt_sha256"],
             "EVO_results":values,"evaluated_capabilities":8,
+            "executed_raw_stream_sha256":dig(packet["research_streams"]),
+            "executed_raw_stream_results":streams,
             "capability_tested_integration":True,
             "real_JRA_EVO_certification":False,"models_deployed":False,
             "external_collection_performed":False,"real_bets_authorized":False,
