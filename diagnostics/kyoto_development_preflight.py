@@ -61,6 +61,8 @@ def verify(root, inventory, *, intent=None):
             raise PreflightBlocked("feature_sources_missing:" + key)
         if state != "DESIGNED_NOT_IMPLEMENTED" and not paths:
             raise PreflightBlocked("existing_code_not_named:" + key)
+        if state == "DESIGNED_NOT_IMPLEMENTED" and paths:
+            raise PreflightBlocked("designed_status_has_existing_code:" + key)
         for path in paths + evidence:
             _locked_file(root, path)
         if not isinstance(row.get("remaining"), str) or not row["remaining"].strip():
@@ -74,9 +76,13 @@ def verify(root, inventory, *, intent=None):
         changes = intent.get("changes")
         if not isinstance(changes, list) or not changes:
             raise PreflightBlocked("intent_changes_missing")
+        change_ids=set()
         for item in changes:
             if not isinstance(item, dict) or item.get("feature_id") not in found:
                 raise PreflightBlocked("intent_feature_not_registered")
+            if item["feature_id"] in change_ids:
+                raise PreflightBlocked("duplicate_intent_feature:" + item["feature_id"])
+            change_ids.add(item["feature_id"])
             action = item.get("action")
             if action not in ("REUSE", "REPAIR", "INTEGRATE", "NEW"):
                 raise PreflightBlocked("intent_action_invalid")
