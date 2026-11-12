@@ -85,6 +85,54 @@ DEFAULT_RACE_SPEC=ObservedRaceSpec(RACE_DAY,RACE_NUMBER,RACE_ID,VENUE,
     PC_RACECARD_URL,SP_RACECARD_URL,NORMAL_SALES_OPEN_UTC)
 
 
+def verified_roster_from_snapshot(snapshot, spec, *, race_start_utc):
+    """Bind the racecard roster to the SAME observed meeting and start time.
+
+    Previous manual workflow accepted any JSON named 'roster', including
+    2026-11-07 evidence paired with 2026-11-14 odds. That must never happen.
+    This is a consistency test, not authentication of the source original.
+    """
+    if not isinstance(snapshot,dict):
+        raise SourceChainError("racecard_snapshot_dictionary_required")
+    start=aware_utc(race_start_utc)
+    if start.astimezone(ZoneInfo("Asia/Tokyo")).date().strftime("%Y%m%d")!=spec.race_day:
+        raise SourceChainError("race_start_date_mismatch")
+    expected_date=f"{spec.race_day[:4]}-{spec.race_day[4:6]}-{spec.race_day[6:]}"
+    if (snapshot.get("race_date")!=expected_date
+        or snapshot.get("race_number")!=spec.race_number
+        or snapshot.get("venue") not in ("KYOTO","京都")
+        or snapshot.get("source_url") not in (spec.pc_racecard_url,spec.sp_racecard_url)):
+        raise SourceChainError("roster_meeting_race_source_mismatch")
+    raw_sha=snapshot.get("source_sha256")
+    raw_size=snapshot.get("source_bytes")
+    if (type(raw_sha) is not str or not re.fullmatch(r"[0-9a-f]{64}",raw_sha)
+        or type(raw_size) is not int or raw_size<1):
+        raise SourceChainError("roster_original_provenance_missing")
+    captured=snapshot.get("fetched_at_utc",snapshot.get("captured_at_utc"))
+    if captured is None or aware_utc(captured)>=start:
+        raise SourceChainError("roster_capture_not_before_start")
+    runners=snapshot.get("runners")
+    if (type(runners) is not list or not 2<=len(runners)<=18):
+        raise SourceChainError("numbered_runner_roster_required")
+    expected_numbers=list(range(1,len(runners)+1))
+    numbers=[];output=[];names=set()
+    for runner in runners:
+        if not isinstance(runner,dict):
+            raise SourceChainError("roster_runner_invalid")
+        number=runner.get("horse_number");frame=runner.get("frame_number")
+        name=runner.get("horse_name")
+        if (type(number) is not int or type(frame) is not int
+                or not 1<=frame<=8 or type(name) is not str or not name.strip()
+                or name in names):
+            raise SourceChainError("roster_horse_frame_or_name_invalid")
+        if runner.get("status") in ("SCRATCHED","CANCELLED","WITHDRAWN","除外","取消"):
+            raise SourceChainError("roster_withdrawal_needs_current_independent_proof")
+        numbers.append(number);names.add(name);output.append((number,frame))
+    if numbers!=expected_numbers:
+        raise SourceChainError("roster_number_sequence_invalid")
+    return tuple(output)
+
+
 def exact_odds_action(raw,channel):
     soup=BeautifulSoup(raw.decode("cp932",errors="replace"),"html.parser")
     values=set()
@@ -387,10 +435,10 @@ if __name__=="__main__":
         p.error("--channel AUTO requires --hybrid")
     if args.authorized_live_http and not args.race_spec_json:
         p.error('--authorized-live-http requires independently observed --race-spec-json')
-    roster=json.loads(Path(args.active_roster_json).read_text(encoding="utf8"))
-    rows=tuple((int(r["horse_number"]),int(r["frame_number"])) for r in roster["runners"])
     spec=(ObservedRaceSpec(**json.loads(Path(args.race_spec_json).read_text(encoding="utf8"))).validate()
           if args.race_spec_json else DEFAULT_RACE_SPEC)
+    roster=json.loads(Path(args.active_roster_json).read_text(encoding="utf8"))
+    rows=verified_roster_from_snapshot(roster,spec,race_start_utc=args.verified_start_utc)
     runner=capture_hybrid if args.hybrid else capture
     options=dict(verified_start_utc=args.verified_start_utc,active_runners=rows,
                  race_spec=spec,authorized_live_http=args.authorized_live_http)
