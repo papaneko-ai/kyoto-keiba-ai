@@ -1,5 +1,8 @@
 """One-off upcoming JRA meeting discovery safeguards, no actual network in tests."""
 import tempfile,unittest
+from datetime import datetime,timezone
+AFTER_PUBLICATION=lambda:datetime(2026,11,12,8,0,tzinfo=timezone.utc)
+BEFORE_PUBLICATION=lambda:datetime(2026,11,12,2,34,tzinfo=timezone.utc)
 from diagnostics.kyoto_p1_nov14_official_one_shot_nav import (
     SOURCE,strict_link_from_official,inspect_once,DiscoveryRejected,LIMIT
 )
@@ -59,7 +62,7 @@ class Nov14NavigationTests(unittest.TestCase):
  def test_one_request_only_and_original_sha(self):
     opener=StubOpener(StubReply(html(GOOD)))
     with tempfile.TemporaryDirectory() as d:
-        r=inspect_once(d,opener=opener)
+        r=inspect_once(d,opener=opener,clock=AFTER_PUBLICATION)
         self.assertEqual(opener.calls,1)
         self.assertEqual(r["status"],"OFFICIAL_NOV14_KYOTO_MEETING_LINK_OBSERVED")
         self.assertFalse(r["current_prerace_market_verified"])
@@ -67,18 +70,37 @@ class Nov14NavigationTests(unittest.TestCase):
  def test_redirect_rejected_without_pretending_success(self):
     opener=StubOpener(StubReply(html(GOOD),"https://evil.invalid/"))
     with tempfile.TemporaryDirectory() as d:
-        r=inspect_once(d,opener=opener)
+        r=inspect_once(d,opener=opener,clock=AFTER_PUBLICATION)
         self.assertEqual(r["status"],"FAILED_CLOSED")
         self.assertFalse(r["current_meeting_racecards_verified"])
  def test_bad_html_shape_blocked(self):
     opener=StubOpener(StubReply(b""))
     with tempfile.TemporaryDirectory() as d:
-        r=inspect_once(d,opener=opener)
+        r=inspect_once(d,opener=opener,clock=AFTER_PUBLICATION)
         self.assertEqual(r["status"],"FAILED_CLOSED")
+ def test_prepublication_never_connects(self):
+    opener=StubOpener(StubReply(html(GOOD)))
+    with tempfile.TemporaryDirectory() as d:
+        r=inspect_once(d,opener=opener,clock=BEFORE_PUBLICATION)
+        self.assertEqual(r["status"],"WAIT_FOR_JRA_OFFICIAL_PUBLICATION_NO_HTTP")
+        self.assertEqual(r["attempted_GET"],0)
+        self.assertEqual(opener.calls,0)
+ def test_after_publication_without_authorization_no_http(self):
+    with tempfile.TemporaryDirectory() as d:
+        r=inspect_once(d,clock=AFTER_PUBLICATION)
+        self.assertEqual(r["status"],"LIVE_HTTP_NOT_EXPLICITLY_AUTHORIZED")
+        self.assertEqual(r["attempted_GET"],0)
+ def test_stale_meeting_discovery_never_connects(self):
+    opener=StubOpener(StubReply(html(GOOD)))
+    with tempfile.TemporaryDirectory() as d:
+        r=inspect_once(d,opener=opener,
+             clock=lambda:datetime(2026,11,14,1,0,tzinfo=timezone.utc))
+        self.assertEqual(r["status"],"STALE_MEETING_DISCOVERY_NO_HTTP")
+        self.assertEqual(opener.calls,0)
  def test_no_bet_or_prediction_claim(self):
     opener=StubOpener(StubReply(html(GOOD)))
     with tempfile.TemporaryDirectory() as d:
-        r=inspect_once(d,opener=opener)
+        r=inspect_once(d,opener=opener,clock=AFTER_PUBLICATION)
         self.assertFalse(r["paper_trade_authorized"])
         self.assertFalse(r["current_meeting_racecards_verified"])
 if __name__=="__main__":unittest.main()
