@@ -8,7 +8,7 @@ from pathlib import Path
 import streamlit as st
 from diagnostics.p1_monitor_viewmodel import summarize, StatusInvalid
 from diagnostics.p1_registry_reconcile import reconcile, RegistryConflict
-from diagnostics.p2_historical_feature_matrix import materialize, render_csv, build_receipt
+from diagnostics.p2_historical_feature_matrix import materialize, render_csv, build_receipt, audit_latest_family_coverage
 from diagnostics.p3_p6_research_no_bet import historical_no_bet_receipt
 from diagnostics.p1_historical_day_handoff import evaluate as evaluate_archived_day, DayHandoffRejected
 
@@ -33,6 +33,7 @@ try:
     matrix_rows = materialize(status, rows)
     matrix_bytes = render_csv(matrix_rows)
     matrix_receipt = build_receipt(matrix_rows, matrix_bytes)
+    eight_family_audit = audit_latest_family_coverage(status, rows, matrix_rows)
     day_evidence = evaluate_archived_day(ROOT / 'docs/diagnostics')
 except (StatusInvalid, RegistryConflict, DayHandoffRejected, KeyError, TypeError, ValueError, OSError):
     st.error("保存された検証記録に矛盾があります。表示を停止します。")
@@ -75,6 +76,25 @@ with st.expander("特徴量の取得率・欠損状況", expanded=False):
               "プロフィール未取得": actual["counts"]["unqueried"],
               "履歴なしを確認済み": actual["counts"]["verified_empty"],
               "予測・学習への投入": "不可"})
+st.subheader("予測に必要な8分野のデータ取得状況")
+st.caption("2026年11月7日・保存済み148頭の情報を、最新96頭のプロフィール記録に合わせて再集計。未収集の調教・騎手統計・馬場情報などを取得済みとは表示しません。")
+with st.expander("8分野の項目別取得状況・不足項目", expanded=False):
+    labels={
+        "racecard":"出馬表・枠順",
+        "horse_profile":"過去走・馬のプロフィール",
+        "race_conditions":"当日のレース条件",
+        "jockey_trainer":"騎手・調教師の集計成績",
+        "track_weather":"馬場状態・天候・含水率",
+        "market_odds":"発走前の馬連・枠連オッズ",
+        "training_workouts":"調教・追い切り",
+        "payout_result":"事後の公式結果・払戻（予測入力禁止）",
+    }
+    for family, values in eight_family_audit["family_coverage"].items():
+        if family=="payout_result":
+            st.write(f"{labels[family]}：予測前の対象外（{values['not_applicable']}頭）")
+        else:
+            st.write(f"{labels[family]}：根拠付き {values['available']}/{total}頭、未取得 {values['missing']}頭")
+    st.warning("過去走96頭の取得実績は別開催日の情報であり、次回開催の全特徴が揃った意味ではありません。未取得をゼロ点とみなしません。")
 st.download_button(
     "148頭の履歴特徴量CSVを保存",
     data=matrix_bytes,
