@@ -1,0 +1,76 @@
+name: Kyoto F07 second-independent Fractions acceptance certification
+on:
+  push:
+    branches: [jra-html-diagnostic-20261105]
+    paths:
+      - .github/workflows/kyoto-f07-second-independent-certification.yml
+      - diagnostics/kyoto_f07_independent_fraction_auditor.py
+      - tests/test_kyoto_f07_independent_fraction_auditor.py
+permissions:
+  contents: read
+  actions: read
+jobs:
+  independent-witness-certification:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Verify independent rational auditor's own destructive unit tests
+        env:
+          PYTHONPATH: .
+        run: |
+          set -euo pipefail
+          python -m unittest -v tests.test_kyoto_f07_independent_fraction_auditor
+      - name: Independently verify original CI run success and fetch its actual F07 evidence
+        env:
+          GH_TOKEN: \${{ github.token }}
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json,os,urllib.request
+          base='https://api.github.com/repos/papaneko-ai/kyoto-keiba-ai'
+          req=urllib.request.Request(base+'/actions/runs/43132839820',
+              headers={'Authorization':'Bearer '+os.environ['GH_TOKEN'],
+                       'Accept':'application/vnd.github+json'})
+          with urllib.request.urlopen(req,timeout=20) as f: r=json.load(f)
+          assert r['conclusion']=='success' and r['status']=='completed', 'F07_SOURCE_RUN_NOT_SUCCESS'
+          assert r['head_sha']=='1f002d8572a16aa60f269f8f8bad3859165582e7'
+          print('F07_FIRST_INDEPENDENT_GITHUB_CI_SUCCESS_AT_EXACT_HEAD=TRUE')
+          PY
+          curl --fail --location --silent --show-error --retry 0 --max-time 30 \
+            -H "Authorization: Bearer \${GH_TOKEN}" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/papaneko-ai/kyoto-keiba-ai/actions/artifacts/13905124378/zip" \
+            -o first_independent_witness.zip
+      - name: Independent complete arithmetic cross-validation against original CI bytes
+        env:
+          PYTHONPATH: .
+        run: |
+          python - <<'PY'
+          import json,zipfile,hashlib
+          from pathlib import Path
+          from diagnostics.kyoto_f07_independent_fraction_auditor import audit
+          with zipfile.ZipFile('first_independent_witness.zip') as z:
+              assert z.namelist()==['F07_math_witness.json'],z.namelist()
+              witness=json.loads(z.read('F07_math_witness.json'))
+          rubric=Path('docs/diagnostics/kyoto_final_completion_criteria_v1.json').read_bytes()
+          record=audit(witness,rubric)
+          record['second_independent_ci_run_id']=int(__import__('os').environ['GITHUB_RUN_ID'])
+          record['second_independent_ci_head_sha']=__import__('os').environ['GITHUB_SHA']
+          record['first_witness_zip_sha256']=hashlib.sha256(Path('first_independent_witness.zip').read_bytes()).hexdigest()
+          out=Path('f07_independent_certification')
+          out.mkdir()
+          (out/'F07_second_independent_acceptance.json').write_text(
+               json.dumps(record,ensure_ascii=False,sort_keys=True,indent=2)+'\n')
+          print('F07_FIXED_5_POINT_MATH_GATE_SECOND_INDEPENDENT_AUDIT_PASS=TRUE')
+          print('F07_LIVE_SOURCE_VERIFIED=FALSE')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: kyoto-F07-second-independent-5point-math-acceptance
+          path: f07_independent_certification/
+          retention-days: 7
+          if-no-files-found: error
