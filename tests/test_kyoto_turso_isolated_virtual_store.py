@@ -195,6 +195,20 @@ class TursoIsolatedVirtualTests(unittest.TestCase):
             names={x[0] for x in conn.execute("SELECT name FROM sqlite_master WHERE type='table'")}
         self.assertEqual(names,{"__kyoto_ai_p6_lab_v1_events"})
 
+    def test_db_trigger_rejects_event_update(self):
+        self.a.append_freeze_lab(frozen())
+        with sqlite3.connect(self.transport.db) as conn:
+            with self.assertRaises(sqlite3.IntegrityError):
+                conn.execute("UPDATE __kyoto_ai_p6_lab_v1_events SET payload='{}'")
+        self.assertEqual(len(self.b.read_race_lab(frozen()["race_id"])["events"]),1)
+
+    def test_db_trigger_rejects_event_delete(self):
+        self.a.append_freeze_lab(frozen())
+        with sqlite3.connect(self.transport.db) as conn:
+            with self.assertRaises(sqlite3.IntegrityError):
+                conn.execute("DELETE FROM __kyoto_ai_p6_lab_v1_events")
+        self.assertEqual(len(self.b.read_race_lab(frozen()["race_id"])["events"]),1)
+
     def test_parameterized_sql_not_embedded_payload(self):
         p=frozen();p["model_version"]="x'); DROP TABLE production; --"
         self.a.append_freeze_lab(p)
