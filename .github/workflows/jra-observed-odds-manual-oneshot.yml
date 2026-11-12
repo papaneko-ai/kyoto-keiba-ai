@@ -1,0 +1,81 @@
+name: JRA observed PC-SP prereace odds one-shot (manual diagnostic only)
+on:
+  workflow_dispatch:
+    inputs:
+      confirmation:
+        description: 'Type ONE-SHOT-READ-ONLY after checking actual JRA page and usage conditions'
+        required: true
+        default: 'NO'
+      channel:
+        description: 'Independently observed official channel'
+        required: true
+        type: choice
+        options: [PC, SP]
+      spec_path:
+        description: 'Previously verified race identity + observed PC/SP official URLs (inside docs/diagnostics/)'
+        required: true
+      roster_path:
+        description: 'Current official numbered roster snapshot (inside docs/diagnostics/)'
+        required: true
+      verified_start_utc:
+        description: 'Race official start time UTC, e.g. 2026-11-14T06:45:00Z (verify first)'
+        required: true
+permissions:
+  contents: read
+concurrency:
+  group: kyoto-official-odds-observed-manual-one-shot
+  cancel-in-progress: false
+jobs:
+  verified-one-shot:
+    if: github.event.inputs.confirmation == 'ONE-SHOT-READ-ONLY'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      PYTHONPATH: .
+      OBSERVED_SPEC: ${{ inputs.spec_path }}
+      OBSERVED_ROSTER: ${{ inputs.roster_path }}
+      OBSERVED_START: ${{ inputs.verified_start_utc }}
+      OBSERVED_CHANNEL: ${{ inputs.channel }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Offline evidence gates before any network
+        run: |
+          python - <<'PY'
+          import os,re
+          from pathlib import Path
+          from diagnostics.jra_one_shot_market_capture import ObservedRaceSpec
+          import json
+          for key in ("OBSERVED_SPEC","OBSERVED_ROSTER"):
+              value=os.environ[key]
+              if not re.fullmatch(r"docs/diagnostics/[A-Za-z0-9_./-]+\\.json",value) or ".." in value.split("/"):
+                  raise SystemExit("VERIFIED_REPOSITORY_EVIDENCE_PATH_REQUIRED")
+              if not Path(value).is_file():
+                  raise SystemExit("EVIDENCE_FILE_NOT_FOUND")
+          spec=ObservedRaceSpec(**json.loads(Path(os.environ["OBSERVED_SPEC"]).read_text(encoding="utf8"))).validate()
+          if not re.fullmatch(r"20\\d{2}-\\d\\d-\\d\\dT\\d\\d:\\d\\d:\\d\\dZ",os.environ["OBSERVED_START"]):
+              raise SystemExit("VERIFIED_START_UTC_REQUIRED")
+          print("OFFLINE_SOURCE_SPEC_VALIDATED_FOR_DIAGNOSTIC_ONLY")
+          print("NO_JRA_REQUESTS_SO_FAR=TRUE")
+          PY
+      - name: Install the existing source parser
+        run: python -m pip install 'beautifulsoup4>=4.12,<5'
+      - name: One-shot JRA original-market diagnostic (never submit wagers)
+        run: |
+          python diagnostics/jra_one_shot_market_capture.py \\
+            --channel "$OBSERVED_CHANNEL" \\
+            --verified-start-utc "$OBSERVED_START" \\
+            --active-roster-json "$OBSERVED_ROSTER" \\
+            --race-spec-json "$OBSERVED_SPEC" \\
+            --authorized-live-http \\
+            --out jra_odds_observed_one_shot
+      - name: Preserve originals and a source-only receipt
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: jra-observed-prerace-odds-${{ github.run_id }}
+          path: jra_odds_observed_one_shot/
+          retention-days: 3
+          if-no-files-found: warn
