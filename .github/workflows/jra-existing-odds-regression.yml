@@ -1,0 +1,32 @@
+name: JRA existing odds capturer regression (no HTTP)
+on:
+  push:
+    branches: [jra-html-diagnostic-20261105]
+    paths:
+      - diagnostics/jra_one_shot_market_capture.py
+      - tests/test_jra_one_shot_market_capture.py
+      - .github/workflows/jra-observed-odds-manual-oneshot.yml
+      - .github/workflows/jra-existing-odds-regression.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  offline-only:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      PYTHONPATH: .
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install existing parser
+        run: python -m pip install 'beautifulsoup4>=4.12,<5'
+      - name: Existing live-odds navigation and cutoff regression
+        run: python -m unittest -v tests.test_jra_one_shot_market_capture
+      - name: Explicitly prohibit live source certification from offline CI
+        run: |
+          echo "REAL_JRA_PRERACE_ODDS=NOT_VERIFIED"
+          echo "FIXED_F04_ACCEPTANCE=NOT_VERIFIED"
+          echo "REAL_HTTP_REQUESTS_IN_THIS_WORKFLOW=0"
