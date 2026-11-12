@@ -277,12 +277,15 @@
       "code_paths": [
         "diagnostics/jra_one_shot_market_capture.py",
         "diagnostics/jra_official_market_navigation.py",
-        "diagnostics/p1_atomic_dual_market_handoff.py"
+        "diagnostics/p1_atomic_dual_market_handoff.py",
+        "diagnostics/kyoto_p1_nov14_official_one_shot_nav.py"
       ],
       "evidence_paths": [
-        "docs/diagnostics/kyoto_20261112_canonical_pc_sp_reuse_99test_checkpoint.json"
+        "docs/diagnostics/kyoto_20261112_canonical_pc_sp_reuse_99test_checkpoint.json",
+        ".github/workflows/kyoto-p1-nov14-one-shot-meeting-observation.yml",
+        ".github/workflows/jra-observed-odds-manual-oneshot.yml"
       ],
-      "remaining": "Observed-only bounded capture can now hand its saved PC/SP request+original receipts to canonical atomic three-original P1 validator and replayable immutable ZIP without re-parsing duplicated logic. Still no independently proved actual published before-race JRA markets, permissions, sales/scratches or model clearance; live F04 stays UNVERIFIED.",
+      "remaining": "Use independently observed official JRA homepage links. PC-only route is allowed when only PC official CNAME is known; no SP URL guessing. PC/SP hybrid requires both URLs. Optional verified three-original snapshot triggers canonical immutable handoff after capture, otherwise retain source-only originals. Nov14 one-shot meeting HTML and original capture artifacts retained 30 days, but no successful future-race actual live two-market freeze or global multi-host dedupe is claimed.",
       "canonical_entrypoint": {
         "path": "diagnostics/jra_one_shot_market_capture.py",
         "symbol": "capture_hybrid"
