@@ -420,7 +420,8 @@ def capture(out,*,channel,verified_start_utc,active_runners,now_utc=None,opener=
     return result
 def capture_hybrid(out, *, primary_channel, verified_start_utc, active_runners,
                    race_spec, authorized_live_http=False, now_utc=None,
-                   openers=None, capture_fn=None, expected_named_runners=None):
+                   openers=None, capture_fn=None, expected_named_runners=None,
+                   independent_crosscheck=False):
     """Use the existing official PC/SP capturer; try other source once on error.
 
     Source-only diagnostic: never allows wagers, prediction promotion or
@@ -452,6 +453,8 @@ def capture_hybrid(out, *, primary_channel, verified_start_utc, active_runners,
         raise SourceChainError("invalid_primary_channel")
     if type(authorized_live_http) is not bool:
         raise SourceChainError("explicit_boolean_authorization_required")
+    if type(independent_crosscheck) is not bool:
+        raise SourceChainError("crosscheck_boolean_required")
     if openers is not None and (type(openers) is not dict or
                                 set(openers) - {"PC", "SP"}):
         raise SourceChainError("invalid_channel_openers")
@@ -498,18 +501,29 @@ def capture_hybrid(out, *, primary_channel, verified_start_utc, active_runners,
                       "OFFICIAL_MENU_NEEDS_RACE_NAVIGATION",
                       "MARKETS_FAILED_VALIDATION"}
     selected=primary_channel if first["accepted"] else None
+    other="SP" if primary_channel=="PC" else "PC"
     if not selected and first["state"] in fallback_allowed:
-        other="SP" if primary_channel=="PC" else "PC"
         second=one(other)
         outcomes.append(second)
         if second["accepted"]:
             selected=other
+    elif selected and independent_crosscheck:
+        # Explicit diagnostic only. Each channel preserves separate originals,
+        # individual UTC times and its own validated roster/market receipts.
+        # Different-time market prices must NEVER be merged or called parity.
+        outcomes.append(one(other))
+    dual_captured=(len(outcomes)==2 and all(x["accepted"] for x in outcomes))
     receipt=dict(schema="jra_pc_sp_one_shot_failover.v1",
                  race_id=spec.race_id, primary_channel=primary_channel,
                  route_basis=route_basis,
                  selected_channel=selected, attempts=outcomes,
-                 state=("SOURCE_ONLY_PRIMARY" if selected==primary_channel else
-                        "SOURCE_ONLY_FALLBACK" if selected else "SAFE_STOP"),
+                 independent_crosscheck_requested=independent_crosscheck,
+                 dual_independent_source_originals=dual_captured,
+                 cross_time_odds_comparison_authorized=False,
+                 market_value_parity_verified=False,
+                 state=("DUAL_SOURCES_CAPTURED_PRICE_PARITY_UNVERIFIED" if dual_captured
+                        else "SOURCE_ONLY_PRIMARY" if selected==primary_channel
+                        else "SOURCE_ONLY_FALLBACK" if selected else "SAFE_STOP"),
                  prediction_ready=False, training_ready=False,
                  paper_trade_authorized=False,
                  actual_wager_authorized=False)
@@ -522,6 +536,7 @@ if __name__=="__main__":
     p.add_argument("--out",required=True)
     p.add_argument("--channel",choices=["PC","SP","AUTO"],default="PC")
     p.add_argument("--hybrid",action="store_true",help="One conditional cross-channel fallback")
+    p.add_argument("--independent-crosscheck",action="store_true",help="Explicitly capture other official channel for independent original evidence; no price-time merge")
     p.add_argument("--verified-start-utc",required=True)
     p.add_argument("--active-roster-json",required=True)
     p.add_argument("--race-spec-json",help="Independently observed official navigation and race identity; no HTTP authorization")
@@ -530,6 +545,8 @@ if __name__=="__main__":
     args=p.parse_args()
     if args.channel=="AUTO" and not args.hybrid:
         p.error("--channel AUTO requires --hybrid")
+    if args.independent_crosscheck and not args.hybrid:
+        p.error("--independent-crosscheck requires --hybrid")
     if args.authorized_live_http and not args.race_spec_json:
         p.error('--authorized-live-http requires independently observed --race-spec-json')
     spec=(ObservedRaceSpec(**json.loads(Path(args.race_spec_json).read_text(encoding="utf8"))).validate()
@@ -541,5 +558,7 @@ if __name__=="__main__":
     options=dict(verified_start_utc=args.verified_start_utc,active_runners=rows,
                  expected_named_runners=named_rows,
                  race_spec=spec,authorized_live_http=args.authorized_live_http)
+    if args.hybrid:
+        options["independent_crosscheck"]=args.independent_crosscheck
     options["primary_channel" if args.hybrid else "channel"]=args.channel
     print(json.dumps(runner(args.out,**options),ensure_ascii=False,indent=2))
