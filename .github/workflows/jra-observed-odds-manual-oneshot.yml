@@ -112,7 +112,7 @@ jobs:
           if not snapshot:
               print("P1_THREE_ORIGINAL_HANDOFF=SKIPPED_NO_INDEPENDENT_SNAPSHOT")
               sys.exit(0)
-          if (not re.fullmatch(r"docs/diagnostics/[A-Za-z0-9_./-]+\\.json",snapshot)
+          if (not re.fullmatch(r"docs/diagnostics/[A-Za-z0-9_./-]+\.json",snapshot)
                   or ".." in snapshot.split("/")):
               raise SystemExit("INVALID_THREE_ORIGINAL_SNAPSHOT_PATH")
           if not Path(snapshot).is_file():
