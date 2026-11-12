@@ -1,0 +1,31 @@
+name: Kyoto P8 new mobile historical real roster headless AppTest
+on:
+  push:
+    branches: [jra-html-diagnostic-20261105]
+    paths:
+      - diagnostics/kyoto_new_mobile_paper_ui.py
+      - diagnostics/kyoto_p1_saved_real_prerace_roster_reaudit.py
+      - tests/test_kyoto_new_mobile_real_saved_roster_apptest.py
+      - .github/workflows/kyoto-p8-mobile-saved-real-roster-apptest.yml
+permissions:
+  contents: read
+jobs:
+  historical-readonly-mobile:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install headless Streamlit UI test dependency
+        run: python -m pip install 'streamlit>=1.40,<2'
+      - name: Real saved 12R 148 source integrity and new mobile UI headless tests
+        env:
+          PYTHONPATH: .
+        run: |
+          set -euo pipefail
+          python -m unittest -v tests.test_kyoto_p1_saved_real_prerace_roster_reaudit tests.test_kyoto_new_mobile_real_saved_roster_apptest
+          echo REAL_HISTORICAL_ROSTER_IN_NEW_MOBILE_HEADLESS_PREVIEW=PASS
+          echo REAL_JRA_LIVE_MOBILE_E2E=NOT_PROVEN
+          echo NO_FORECAST_OR_REAL_BETS_PUBLISHED=TRUE
