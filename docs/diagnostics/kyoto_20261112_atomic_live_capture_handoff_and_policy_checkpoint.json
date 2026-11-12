@@ -19,15 +19,25 @@
     "Existing P1 atomic package, all original-price and horse-number/frames/name tests and complete bracket market tests reused",
     "Offline CLI accepts capture folder, independently supplied snapshot, observed UTC and writes immutable, verified, replayable ZIP",
     "Strictly separates source-content-verified from official authorized/live-market/real paper trade eligibility",
-    "Registered atomic intake as pre-existing P1_LIVE_MARKET_OBSERVATION reuse asset"
+    "Registered atomic intake as pre-existing P1_LIVE_MARKET_OBSERVATION reuse asset",
+    "Bridge verifies SHA of observed menu HTML and delegates exact PC/SP race date and market CNAME tokens to existing jra_official_market_navigation.find_market_links(); rejects redirect or forged action independent of stored request body SHA."
   ],
   "verification": {
-    "run_id": 43160448211,
+    "run_id": 43160989002,
+    "job_id": 130991849604,
     "status": "SUCCESS",
     "workflow": "Kyoto P1 three original dual-market offline integrity",
-    "test_count": "17+28+13+47+26+8=139 expected; verify current run log before claiming aggregate",
-    "run_uri": "https://github.com/papaneko-ai/kyoto-keiba-ai/actions/runs/43160448211",
-    "latest_source_code_SHA_tested": "bd21e42baac76d3ee8629da9d380741c0cdfef4d",
+    "test_counts_by_module": [
+      17,
+      28,
+      13,
+      50,
+      26,
+      8
+    ],
+    "total_tests": 142,
+    "source_commit": "743cd0532bf15289d469e29bd51d8e3cbe7192fa",
+    "run_uri": "https://github.com/papaneko-ai/kyoto-keiba-ai/actions/runs/43160989002",
     "offline_only": true
   },
   "official_public_policy_checked": {
@@ -55,7 +65,7 @@
     "F04": "UNVERIFIED",
     "points_awarded": 0
   },
-  "next_dependency": "Independent current official source URL and legal access decision, real published before-start PC/SP racecard and both market originals with authenticated market sales/withdrawal/cutoff, full 8-family feature provenance, external independent verifier acceptance.",
+  "next_dependency": "F02: independently establish allowed official automated access and source authenticity; F03: full actual same-meeting verified racer/feature/scratch data; F04: officially published same-race prerace quinella and bracket originals with authenticated UTC/market phase; no F01-F04 added until independent acceptance.",
   "protected": [
     "main",
     "Turso production",
