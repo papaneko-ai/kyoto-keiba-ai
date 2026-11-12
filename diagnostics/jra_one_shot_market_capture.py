@@ -117,8 +117,9 @@ def http_fetch(opener,channel,path,*,cname=None,referer=None):
         ct=response.headers.get("Content-Type","")
         final=urlsplit(response.geturl())
     received_at=datetime.now(timezone.utc).isoformat()
-    if status!=200 or not 0<len(data)<=LIMIT or "html" not in ct.lower() or final.scheme!="https" or final.hostname!=host or final.path!=u.path
-            or final.query!=u.query or final.fragment or final.port is not None:
+    if (status!=200 or not 0<len(data)<=LIMIT or "html" not in ct.lower()
+        or final.scheme!="https" or final.hostname!=host or final.path!=u.path
+        or final.query!=u.query or final.fragment or final.port is not None):
         raise SourceChainError("official_http_response_invalid")
     return {"raw":data,"sha256":sha256(data).hexdigest(),"bytes":len(data),
             "captured_at_utc":received_at,"http_status":status,"method":method}
