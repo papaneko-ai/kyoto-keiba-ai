@@ -403,7 +403,16 @@ def capture(out,*,channel,verified_start_utc,active_runners,now_utc=None,opener=
                       authorized_live_http is True and channel=="PC" and
                       isinstance(broken,HTTPError) and broken.code in (404,410))
             if not eligible:
+                if isinstance(broken,HTTPError) and broken.code in (404,410):
+                    result["link_repair"]={"state":"BROKEN_NOT_REPAIRED",
+                                           "original_http_status":broken.code}
+                    result["operator_alert"]={"severity":"ERROR",
+                        "code":"JRA_RACECARD_LINK_BROKEN",
+                        "message":"JRA公式出馬表リンク切れ。自動切替を行わず取得停止しました。"}
                 raise
+            result["operator_alert"]={"severity":"WARNING",
+                "code":"JRA_RACECARD_LINK_BROKEN_REPAIR_ATTEMPT",
+                "message":"JRA公式出馬表リンク切れを検知。公式リンクを検証付きで再探索しています。"}
             from diagnostics.jra_official_link_repair import repair_pc_racecard
             def verified_fetch(url):
                 if datetime.now(timezone.utc)>=start-timedelta(minutes=10):
@@ -427,8 +436,14 @@ def capture(out,*,channel,verified_start_utc,active_runners,now_utc=None,opener=
                 result["link_repair"]={
                     "state":"FAILED_CLOSED", "original_http_status":broken.code,
                     "error":type(repair_error).__name__+":"+str(repair_error)[:160]}
+                result["operator_alert"]={"severity":"ERROR",
+                    "code":"JRA_LINK_REPAIR_FAILED",
+                    "message":"公式リンクの自動修復に失敗。未検証URLへ切り替えず安全停止しました。"}
                 raise SourceChainError("official_link_repair_failed") from repair_error
             result["link_repair"]=repair_receipt
+            result["operator_alert"]={"severity":"INFO",
+                "code":"JRA_LINK_REPAIRED_VERIFIED",
+                "message":"JRA公式リンクを再発見し出馬表を照合しました。修復証拠を記録しました。"}
             source=spec.pc_racecard_url
         persist_original_once(folder,"official_racecard.html",racecard["raw"],racecard)
         result["request_receipts"].append({"step":"racecard",**{k:v for k,v in racecard.items() if k!="raw"}})
