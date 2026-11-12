@@ -1,0 +1,27 @@
+name: Kyoto Nov14 official publication NO-HTTP bounded acceptance
+on:
+  push:
+    branches: [jra-html-diagnostic-20261105]
+    paths:
+      - diagnostics/kyoto_p1_nov14_official_one_shot_nav.py
+      - tests/test_kyoto_p1_nov14_official_one_shot_nav.py
+      - .github/workflows/kyoto-p1-nov14-publication-offline-gate.yml
+permissions:
+  contents: read
+jobs:
+  publication-safety-offline:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Strict 17 publication and no networking safety tests
+        env:
+          PYTHONPATH: .
+        run: |
+          set -euo pipefail
+          python -m unittest -v tests.test_kyoto_p1_nov14_official_one_shot_nav
+          echo JRA_EXTERNAL_HTTP_ATTEMPTED=FALSE
+          echo NO_AUTO_RETRY_BEFORE_OFFICIAL_PUBLICATION=TRUE
