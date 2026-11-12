@@ -151,6 +151,87 @@ def verify_prerace_handoff_archive(data,*,expected_sha256,observed_utc,channel):
             "official_origin_authenticated":False,"prediction_ready":False,
             "actual_purchase_authorized":False}
 
+def package_saved_observed_market_capture(*,capture_directory,snapshot,observed_utc):
+    """Connect existing SOURCE_FROZEN capture receipts to the EXISTING P1 gate.
+
+    Not a second parser. Verify saved request URLs, method, observed POST
+    actions, response hashes and three matching source times, then delegate
+    all three-original content checks to package_prerace_market_capture.
+    An absent or unverified source cannot become a model input.
+    """
+    from urllib.parse import urlsplit, urlencode
+    root=Path(capture_directory)
+    if not root.is_dir() or root.is_symlink():
+        raise MarketHandoffRejected("capture_folder_missing_or_symlink")
+    try:
+        saved=json.loads((root/"receipt.json").read_text(encoding="utf-8"))
+    except (OSError, ValueError) as exc:
+        raise MarketHandoffRejected("original_capture_receipt_missing") from exc
+    if saved.get("state")!="SOURCE_FROZEN" or saved.get("pre_race_prices_accepted") is not True:
+        raise MarketHandoffRejected("original_capture_not_frozen")
+    channel=saved.get("channel")
+    if channel not in ("PC","SP") or type(snapshot) is not dict:
+        raise MarketHandoffRejected("capture_channel_or_snapshot_invalid")
+    if (type(snapshot.get("race")) is not int or
+        saved.get("race_id")!=f"{snapshot.get('meeting_date')}_KYOTO_{snapshot['race']:02d}R"):
+        raise MarketHandoffRejected("capture_snapshot_race_identity_conflict")
+    request_receipts=saved.get("request_receipts")
+    if not isinstance(request_receipts,list):
+        raise MarketHandoffRejected("request_chain_missing")
+    mapping={
+        "racecard":("racecard","official_racecard.html"),
+        "pre_race_odds":("quinella","quinella_original.html"),
+        "bracket_odds":("bracket_quinella","bracket_quinella_original.html"),
+    }
+    selected={}
+    for kind,(step,filename) in mapping.items():
+        matches=[x for x in request_receipts
+                 if isinstance(x,dict) and x.get("step")==step]
+        if len(matches)!=1:
+            raise MarketHandoffRejected("original_request_step_missing_or_duplicate:"+step)
+        item=matches[0]
+        path=root/filename
+        if path.is_symlink() or not path.is_file():
+            raise MarketHandoffRejected("original_source_file_missing_or_symlink:"+step)
+        raw=path.read_bytes()
+        if (type(item.get("sha256")) is not str
+            or hashlib.sha256(raw).hexdigest()!=item["sha256"]
+            or item.get("bytes")!=len(raw) or not raw):
+            raise MarketHandoffRejected("capture_receipt_original_hash_conflict:"+step)
+        expected_method="GET" if kind=="racecard" else "POST"
+        if item.get("method")!=expected_method:
+            raise MarketHandoffRejected("request_method_unverified:"+step)
+        source_url=item.get("requested_url")
+        response_url=item.get("response_url")
+        if (type(source_url) is not str or source_url!=response_url):
+            raise MarketHandoffRejected("redirect_or_missing_url_receipt:"+step)
+        u=urlsplit(source_url)
+        if (u.scheme!="https" or u.hostname!=("jra.jp" if channel=="PC" else "sp.jra.jp")
+            or u.port is not None or u.username or u.password or u.fragment or
+            u.path!=("/JRADB/accessD.html" if kind=="racecard" else "/JRADB/accessO.html")):
+            raise MarketHandoffRejected("capture_source_wrong_channel:"+step)
+        if kind!="racecard":
+            token=item.get("observed_action_token")
+            if type(token) is not str or not re.fullmatch(
+                    ("pw" if channel=="PC" else "sw")+r"[A-Za-z0-9]+/[A-Za-z0-9]+",token):
+                raise MarketHandoffRejected("source_action_token_missing:"+step)
+            wire=urlencode({"cname":token}).encode("ascii")
+            if (item.get("post_body_sha256")!=hashlib.sha256(wire).hexdigest()
+                or item.get("post_body_size")!=len(wire)):
+                raise MarketHandoffRejected("source_wire_request_mismatch:"+step)
+        elif item.get("observed_action_token") is not None:
+            raise MarketHandoffRejected("get_action_token_conflict")
+        selected[kind]={"raw":raw,"captured_utc":item["captured_at_utc"],
+                        "observed_url":source_url}
+    packed=package_prerace_market_capture(
+        raw_sources=selected,snapshot=snapshot,observed_utc=observed_utc,channel=channel)
+    packed["receipt"]["capture_receipt_sha256"]=hashlib.sha256(
+        (root/"receipt.json").read_bytes()).hexdigest()
+    # Repackage the deterministic archive so the handoff is immutable and its
+    # immutable receipt is consistent; receipt used for audit is external only.
+    return packed
+
+
 def save_immutable_archive(path,data):
     path=Path(path)
     if path.is_symlink() or not path.parent.is_dir():
