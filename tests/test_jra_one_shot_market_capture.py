@@ -730,4 +730,49 @@ class OfficialOneShotWorkflowHandoffContractTests(unittest.TestCase):
   self.assertIn("contents: read",workflow)
   self.assertNotIn("wager",workflow.lower().replace("never submit wagers",""))
 
+class PCOnlyPreviouslyAgreedRouteTests(unittest.TestCase):
+ def spec(self,pc=None):
+  from diagnostics.jra_one_shot_market_capture import ObservedRaceSpec
+  return ObservedRaceSpec("20261114",11,"2026-11-14_KYOTO_11R","京都",
+       pc or "https://jra.jp/JRADB/accessD.html?CNAME=pw01dde0108202605011120261114%2F13",
+       "", "2026-11-13T09:30:00Z")
+ def test_single_observed_pc_link_can_be_used_without_sp_guess(self):
+  spec=self.spec().validate(require_channels=("PC",))
+  self.assertEqual(spec.sp_racecard_url,"")
+  stub=StubOpener([(html(LINK),spec.pc_racecard_url),
+                   (html("オッズは未発表"),"https://jra.jp/JRADB/accessO.html")])
+  with tempfile.TemporaryDirectory() as d:
+   result=capture(d,channel="PC",race_spec=spec,
+      verified_start_utc="2026-11-14T06:45:00Z",
+      active_runners=((1,1),(2,2)),opener=stub,
+      now_utc="2026-11-13T10:00:00Z")
+   self.assertEqual(result["state"],"OFFICIAL_NOT_PUBLISHED")
+   self.assertEqual(len(stub.requests),2)
+   self.assertFalse(result["pre_race_prices_accepted"])
+ def test_hybrid_forbids_missing_sp_url_and_no_request(self):
+  from diagnostics.jra_one_shot_market_capture import capture_hybrid
+  with tempfile.TemporaryDirectory() as d:
+   with self.assertRaisesRegex(SourceChainError,"required_observed_racecard_url_missing"):
+    capture_hybrid(d,primary_channel="PC",race_spec=self.spec(),
+     verified_start_utc="2026-11-14T06:45:00Z",
+     active_runners=((1,1),(2,2)))
+ def test_single_sp_without_pc_remains_possible_if_sp_is_officially_observed(self):
+  from dataclasses import replace
+  sp="https://sp.jra.jp/JRADB/accessD.html?CNAME=sw01dde0108202605011120261114%2FA0"
+  obj=replace(self.spec(),pc_racecard_url="",sp_racecard_url=sp)
+  self.assertEqual(obj.validate(require_channels=("SP",)).sp_racecard_url,sp)
+  with self.assertRaisesRegex(SourceChainError,"required_observed_racecard_url_missing"):
+   obj.validate()
+ def test_unauthorized_pc_origin_not_accepted_as_optional_or_required(self):
+  with self.assertRaisesRegex(SourceChainError,"unverified_official_racecard_url"):
+   self.spec("https://jra.jp.evil.invalid/JRADB/accessD.html?CNAME=pw01dde0108202605011120261114%2F13").validate(require_channels=("PC",))
+ def test_no_empty_required_channels(self):
+  with self.assertRaisesRegex(SourceChainError,"invalid_required_channels"):
+   self.spec().validate(require_channels=())
+ def test_manual_workflow_respects_pc_only_preflight(self):
+  from pathlib import Path
+  src=Path(".github/workflows/jra-observed-odds-manual-oneshot.yml").read_text(encoding="utf8")
+  self.assertIn('channels=("PC","SP") if os.environ["HYBRID"]=="true" else (os.environ["OBSERVED_CHANNEL"],)',src)
+  self.assertEqual(src.count("validate(require_channels=channels)"),2)
+
 if __name__=="__main__":unittest.main()
