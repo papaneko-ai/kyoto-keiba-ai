@@ -25,7 +25,7 @@ jobs:
           curl --fail --location --silent --show-error --retry 0 --max-time 35 \
             -H "Authorization: Bearer ${GH_TOKEN}" \
             -H "Accept: application/vnd.github+json" \
-            "https://api.github.com/repos/papaneko-ai/kyoto-keiba-ai/actions/artifacts/13912941740/zip" \
+            "https://api.github.com/repos/papaneko-ai/kyoto-keiba-ai/actions/artifacts/13911709766/zip" \
             -o F17_original_witness.zip
           python - <<'PY'
           import zipfile
@@ -34,7 +34,7 @@ jobs:
               assert z.namelist()==["eight_evo_lab_original.json"],z.namelist()
               Path("eight_evo_lab_original.json").write_bytes(z.read("eight_evo_lab_original.json"))
           PY
-      - name: Independently recompute all eight EVO outputs and reject six corruptions
+      - name: Independently recompute all eight EVO outputs and reject eight corruptions
         env:
           PYTHONPATH: .
         run: |
@@ -73,7 +73,15 @@ jobs:
           fake=copy.deepcopy(w);fake["ci_run_id"]="other"
           block("origin_run_changed",fake)
           block("rubric_change",w,rubric+b" ")
-          assert rejected==6
+          fake=copy.deepcopy(w)
+          fake["packet"]["research_streams"]["portfolios"][0]["net_returns_per_unit"][1]=-.8
+          fake["packet"]["source_sha256"]=dig({k:v for k,v in fake["packet"].items() if k!="source_sha256"})
+          block("raw_counterfactual_silent_rehash",fake)
+          fake=copy.deepcopy(w)
+          fake["packet"]["research_streams"]["experiments"][0]["lab_gain"]=0
+          fake["packet"]["source_sha256"]=dig({k:v for k,v in fake["packet"].items() if k!="source_sha256"})
+          block("raw_research_experiment_rehash",fake)
+          assert rejected==8
           result["independent_ci_run_id"]=int(os.environ["GITHUB_RUN_ID"])
           result["independent_ci_head"]=os.environ["GITHUB_SHA"]
           result["destructive_forgery_cases_rejected"]=rejected
