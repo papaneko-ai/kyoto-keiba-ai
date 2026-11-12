@@ -1,0 +1,38 @@
+name: Kyoto P1 P4 prereace market offline safety checks
+on:
+  push:
+    branches: [jra-html-diagnostic-20261105]
+    paths:
+      - diagnostics/kyoto_prerace_market_guard.py
+      - tests/test_kyoto_prerace_market_guard.py
+      - .github/workflows/kyoto-prerace-market-guard.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verify-offline-only:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Check no HTTP source acquisition in guard
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path("diagnostics/kyoto_prerace_market_guard.py").read_text()
+          assert "requests" not in p and "urllib.request" not in p
+          assert "approved_for_real_purchase" in p and "False" in p
+          print("OFFLINE_ONLY_NO_REAL_PURCHASE=PASS")
+          PY
+      - name: Validate prereace grids and reject invalid provenance, time, prices, missing combinations
+        env:
+          PYTHONPATH: .
+        run: python -m unittest -v tests/test_kyoto_prerace_market_guard.py
+      - name: Scope of result
+        run: |
+          echo 'OFFLINE_MARKET_CLAIM_VALIDATION_ONLY=PASS'
+          echo 'REAL_JRA_PRE_RACE_ODDS_PROVEN=FALSE'
+          echo 'FIXED_F04_LIVE_ACCEPTANCE=NOT_PROVEN'
