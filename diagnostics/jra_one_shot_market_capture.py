@@ -441,6 +441,16 @@ def capture(out,*,channel,verified_start_utc,active_runners,now_utc=None,opener=
                     "message":"公式リンクの自動修復に失敗。未検証URLへ切り替えず安全停止しました。"}
                 raise SourceChainError("official_link_repair_failed") from repair_error
             result["link_repair"]=repair_receipt
+            # Preserve a *separate*, immutable verified candidate spec for
+            # the next manual diagnostic; never rewrite approved source files
+            # or silently promote links to the production configuration.
+            from dataclasses import asdict
+            persist_receipt_once(folder,"verified_repaired_race_spec.json",{
+                "schema":"jra_verified_repaired_race_spec.v1",
+                "race_spec":asdict(spec),
+                "repair_receipt":repair_receipt,
+                "promotion_state":"SOURCE_ONLY_NOT_PRODUCTION",
+            })
             result["operator_alert"]={"severity":"INFO",
                 "code":"JRA_LINK_REPAIRED_VERIFIED",
                 "message":"JRA公式リンクを再発見し出馬表を照合しました。修復証拠を記録しました。"}
