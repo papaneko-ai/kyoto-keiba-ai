@@ -4,6 +4,8 @@ on:
     branches: [jra-html-diagnostic-20261105]
     paths:
       - diagnostics/jra_one_shot_market_capture.py
+      - diagnostics/jra_p1_failover_offline.py
+      - tests/test_jra_p1_failover_offline.py
       - tests/test_jra_one_shot_market_capture.py
       - .github/workflows/jra-observed-odds-manual-oneshot.yml
       - .github/workflows/jra-existing-odds-regression.yml
@@ -25,6 +27,8 @@ jobs:
         run: python -m pip install 'beautifulsoup4>=4.12,<5'
       - name: Existing live-odds navigation and cutoff regression
         run: python -m unittest -v tests.test_jra_one_shot_market_capture
+      - name: Reuse existing P1-FB controls, complementary sources and conflict tests
+        run: python -m unittest -v tests.test_jra_p1_failover_offline
       - name: Explicitly prohibit live source certification from offline CI
         run: |
           echo "REAL_JRA_PRERACE_ODDS=NOT_VERIFIED"
