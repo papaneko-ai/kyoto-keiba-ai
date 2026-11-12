@@ -1,5 +1,6 @@
 """Fail-closed reuse inventory gate. It is a CI check, not branch protection."""
 import argparse
+import ast
 import json
 import re
 import sys
@@ -65,6 +66,22 @@ def verify(root, inventory, *, intent=None):
             raise PreflightBlocked("designed_status_has_existing_code:" + key)
         for path in paths + evidence:
             _locked_file(root, path)
+        entry = row.get("canonical_entrypoint")
+        if entry is not None:
+            if (not isinstance(entry, dict) or set(entry) != {"path", "symbol"}
+                    or entry.get("path") not in paths
+                    or not isinstance(entry.get("symbol"), str)
+                    or not re.fullmatch("[a-zA-Z_][a-zA-Z0-9_]*", entry["symbol"])):
+                raise PreflightBlocked("canonical_entrypoint_invalid:" + key)
+            original = root / entry["path"]
+            try:
+                parsed = ast.parse(original.read_text(encoding="utf-8"))
+            except (OSError, SyntaxError, UnicodeError) as exc:
+                raise PreflightBlocked("canonical_entrypoint_source_unreadable:" + key) from exc
+            names = {node.name for node in parsed.body
+                     if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef))}
+            if entry["symbol"] not in names:
+                raise PreflightBlocked("canonical_entrypoint_missing:" + key)
         if not isinstance(row.get("remaining"), str) or not row["remaining"].strip():
             raise PreflightBlocked("missing_remaining_work:" + key)
         found[key] = row
