@@ -130,8 +130,12 @@ def freeze_ranked_research_day(*,day_inputs, ranking, destination,
             tickets.append({"pair":list(pair),"stake_yen":ticket["stake_yen"],
               "probability":probs[pair],"odds":float(prices[pair])})
         scenario=f"LAB-P5-P6-{key[0].replace('-','')}-R{key[1]:02d}"
-        source_hash=digest({"p4":c["comparison_sha256"],"p5":ranking["ranking_sha256"],
-                            "original":c["source_bundle_sha256"],"model":c["model_sha256"]})
+        source_basis={"p4":c["comparison_sha256"],"p5":ranking["ranking_sha256"],
+                      "original":c["source_bundle_sha256"],"model":c["model_sha256"]}
+        if capital_sha is not None:
+            source_basis["capital_receipt_sha256"]=capital_sha
+            source_basis["capital_policy_sha256"]=digest(capital_policy)
+        source_hash=digest(source_basis)
         frozen=freeze_fixture(scenario_id=scenario,ticket_type=ranking["ticket_type"],
               cutoff_utc=snap["prediction_cutoff_utc"],frozen_utc=commit_utc,
               model_version=m["model_version"],source_sha256=source_hash,tickets=tickets)
