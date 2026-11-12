@@ -308,4 +308,17 @@ class MeasuredSourceRouterIntegrationTests(unittest.TestCase):
       race_spec=DEFAULT_RACE_SPEC,capture_fn=stub)
   self.assertEqual(calls,["PC"])
   self.assertEqual(result["route_basis"]["selection"],"EXPLICIT")
+class ReceiptPersistenceRegressionTests(unittest.TestCase):
+ def test_no_permission_receipt_is_valid_json_and_keeps_stop_reason(self):
+  from pathlib import Path
+  import json
+  with tempfile.TemporaryDirectory() as folder:
+   result=capture(folder,channel="PC",
+      verified_start_utc="2026-11-07T06:45:00Z",
+      active_runners=((1,1),(2,2)),
+      now_utc="2026-11-06T10:00:00Z")
+   saved=json.loads((Path(folder)/"receipt.json").read_text(encoding="utf8"))
+   self.assertEqual(saved,result)
+   self.assertEqual(saved["state"],"LIVE_HTTP_NOT_AUTHORIZED")
+   self.assertFalse(saved["pre_race_prices_accepted"])
 if __name__=="__main__":unittest.main()
