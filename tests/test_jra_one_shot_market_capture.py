@@ -148,4 +148,39 @@ class FutureRaceCaptureTests(unittest.TestCase):
   with self.assertRaises(SourceChainError):
    self.spec(race_id="2026-11-07_KYOTO_10R").validate()
 
+class DiagnosticCliAndRedirectTests(unittest.TestCase):
+ def test_diagnostic_cli_flag_is_wired_to_capture(self):
+  from pathlib import Path
+  source=Path("diagnostics/jra_one_shot_market_capture.py").read_text(encoding="utf8")
+  self.assertIn("authorized_live_http=args.authorized_live_http",source)
+  self.assertIn("if args.authorized_live_http and not args.race_spec_json:",source)
+  self.assertIn("opener=build_opener(NoRedirect(),HTTPCookieProcessor(CookieJar()))",source)
+
+ def test_redirected_same_host_different_url_refused(self):
+  stub=StubOpener([(HTML,"https://jra.jp/JRADB/accessD.html?CNAME=UNEXPECTED")])
+  with self.assertRaisesRegex(SourceChainError,"official_http_response_invalid"):
+   http_fetch(stub,"PC",PC_RACECARD_URL)
+
+ def test_redirected_pc_to_www_refused(self):
+  stub=StubOpener([(HTML,"https://www.jra.go.jp/JRADB/accessD.html")])
+  with self.assertRaisesRegex(SourceChainError,"official_http_response_invalid"):
+   http_fetch(stub,"PC",PC_RACECARD_URL)
+
+ def test_redirected_post_outside_target_refused(self):
+  stub=StubOpener([(HTML,"https://jra.jp/JRADB/accessO.html?unexpected=1")])
+  with self.assertRaisesRegex(SourceChainError,"official_http_response_invalid"):
+   http_fetch(stub,"PC","https://jra.jp/JRADB/accessO.html",cname="pw01/AB")
+
+ def test_explicit_unverified_origin_refused_without_request(self):
+  stub=StubOpener([])
+  with self.assertRaisesRegex(SourceChainError,"invalid_target_origin"):
+   http_fetch(stub,"PC","https://jra.jp.evil.invalid/JRADB/accessD.html")
+  self.assertEqual(stub.requests,[])
+
+ def test_http_post_with_query_refused(self):
+  stub=StubOpener([])
+  with self.assertRaisesRegex(SourceChainError,"invalid_target_origin"):
+   http_fetch(stub,"PC","https://jra.jp/JRADB/accessO.html?a=1",cname="pw01/AB")
+  self.assertEqual(stub.requests,[])
+
 if __name__=="__main__":unittest.main()
