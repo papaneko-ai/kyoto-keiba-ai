@@ -10,6 +10,10 @@ on:
         description: 'Use existing PC/SP one-fallback if primary has source failure'
         type: boolean
         default: true
+      independent_crosscheck:
+        description: 'Explicitly observe both independent channels; no cross-time market price merging'
+        type: boolean
+        default: false
       channel:
         description: 'AUTO uses already-verified SP candidate benchmark; SP/PC override'
         required: true
@@ -42,6 +46,7 @@ jobs:
       OBSERVED_START: ${{ inputs.verified_start_utc }}
       OBSERVED_CHANNEL: ${{ inputs.channel }}
       HYBRID: ${{ inputs.hybrid }}
+      CROSSCHECK: ${{ inputs.independent_crosscheck }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -71,8 +76,11 @@ jobs:
       - name: One-shot JRA original-market diagnostic (never submit wagers)
         run: |
           if [ "$HYBRID" = "true" ]; then
+            CROSSCHECK_ARG=""
+            if [ "$CROSSCHECK" = "true" ]; then CROSSCHECK_ARG="--independent-crosscheck"; fi
             python diagnostics/jra_one_shot_market_capture.py \
               --hybrid \
+              ${CROSSCHECK_ARG:+$CROSSCHECK_ARG} \
               --channel "$OBSERVED_CHANNEL" \
               --verified-start-utc "$OBSERVED_START" \
               --active-roster-json "$OBSERVED_ROSTER" \
