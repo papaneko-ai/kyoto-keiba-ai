@@ -4,6 +4,8 @@ on:
     branches: [jra-html-diagnostic-20261105]
     paths:
       - '.github/workflows/kyoto-f07-independent-pair-gate.yml'
+      - 'tests/test_kyoto_f07_offline_pair_acceptance.py'
+      - 'diagnostics/kyoto_f07_offline_pair_acceptance.py'
 permissions:
   contents: read
 jobs:
