@@ -1,0 +1,48 @@
+{
+  "schema": "kyoto_f11_second_independent_certification.v1",
+  "gate": "F11",
+  "acceptance": "PASS_OFFLINE_SOURCE_BOUND_RANKING_EXPLANATION_AND_F12_HANDOFF_ONLY",
+  "accepted_points": 5,
+  "fixed_criteria_sha256": "92bae5c1d61d6ac00a5380dd8d5e08beb59f96c898b03c05a3c8bf8721ced632",
+  "first_ci": {
+    "run_id": 43135357123,
+    "job_id": 130909277086,
+    "head_sha": "76b9fe33e4ce29959e6f3f39b0d1136127a46003",
+    "conclusion": "success",
+    "total_tests": 60,
+    "artifact_id": 13906453657
+  },
+  "second_ci": {
+    "run_id": 43135478932,
+    "job_id": 130909674983,
+    "head_sha": "d5d1215e1ada441e9a9ef0122c14b36e472c8e52",
+    "conclusion": "success",
+    "artifact_id": 13907411522,
+    "malicious_variants_rejected": 6
+  },
+  "source_scope": "SYNTHETIC_P4_ORIGINAL_BYTES_AND_UNCALIBRATED_MODELS",
+  "validated": [
+    "P4 receipt hash integrity",
+    "ranking 3 of 4 races",
+    "conservative EV order",
+    "confidence and freshness explanations",
+    "4 race maximum",
+    "no-selection case",
+    "manual F12 source-bound handoff",
+    "budget 10000 yen and exposure 3500 yen, 6500 yen unused",
+    "stale quote refusal",
+    "tampered ranking rejection",
+    "altered provenance rejection",
+    "false live status rejection"
+  ],
+  "verified_live_jra_prerace_source": false,
+  "verified_live_paper_trade": false,
+  "verified_calibrated_confidence": false,
+  "live_completed_6_gate": "0/6",
+  "operational_independent_lower_bound": "0/100",
+  "rubric_unchanged": true,
+  "final_score_before": 10,
+  "final_score_after": 15,
+  "final_score_delta": 5,
+  "other_newly_accepted_gates": []
+}
