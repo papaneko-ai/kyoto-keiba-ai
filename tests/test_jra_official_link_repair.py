@@ -79,7 +79,7 @@ class OfflineRepairTests(unittest.TestCase):
 
     def test_original_link_still_offered_refused(self):
         a,b,c=sources()
-        b=b.replace(NEW.encode(),OLD.encode())
+        b=b.replace(NEW.replace("https://jra.jp","").encode(),OLD.replace("https://jra.jp","").encode())
         # CNAME tokens appear encoded in the HTML bytes as %2F.
         with self.assertRaises(LinkRepairRejected):
             self.perform(a,b,c)
@@ -122,10 +122,16 @@ class OfflineRepairTests(unittest.TestCase):
                 raise HTTPError(OFFICIAL_ENTRY,404,"Not Found",None,None)
         with TemporaryDirectory() as directory:
             opener=Broken()
+            future=replace(DEFAULT_RACE_SPEC,race_day="20261114",
+                race_id="2026-11-14_KYOTO_11R",
+                pc_racecard_url="https://jra.jp/JRADB/accessD.html?CNAME=pw01race1120261114%2F11",
+                sp_racecard_url="",
+                normal_sales_open_utc="2026-11-13T09:30:00Z")
             result=capture(directory,channel="PC",
-                verified_start_utc="2026-11-07T06:45:00Z",
+                verified_start_utc="2026-11-14T06:45:00Z",
                 active_runners=((1,1),(2,2)),
-                now_utc="2026-11-06T10:00:00Z",opener=opener,
+                now_utc="2026-11-13T10:00:00Z",opener=opener,
+                race_spec=future,
                 authorized_live_http=True,auto_repair_broken_pc_link=True)
             self.assertEqual(opener.calls,2)
             self.assertEqual(result["state"],"CAPTURE_BLOCKED")
