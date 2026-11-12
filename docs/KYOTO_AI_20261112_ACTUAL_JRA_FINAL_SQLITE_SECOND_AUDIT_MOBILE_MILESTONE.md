@@ -72,3 +72,12 @@ F03・F04：2026-11-07の真正な発走前出馬表12R/148頭取得は既存実
 5. 公開旧`app.py`のコード・設計を使わない新スマホアプリの実機E2E。新画面の過去資料表示は開発用プレビューで、F19は未合格。
 
 **保護**：作業は `jra-html-diagnostic-20261105` のみ。GitHub `main`、公開Streamlit、Turso本番・Secrets、実馬券注文は変更なし。過去の原本・既成功試験を無意味に繰り返さない。
+
+## 2026-11-12追加：JRA公式出馬表・オッズ公開時刻を根拠にした早過ぎる通信の根本対策
+- JRA公式FAQ「出馬表の発表日時の詳細」 https://jra.jp/faq/pop02/2_2.html によれば、通常、木曜日16時過ぎに番号なし、レース前日の10時過ぎに馬番・枠番付き出馬表を公開する。重賞や同週GIによる前倒し例外があり、正本の確認が必要。
+- JRA公式2026年発売時間 https://www.jra.go.jp/dento/direct/instructions/hatsubai.html ：土曜日の通常ネット発売開始は**金曜日18時30分JST**。発売開始時刻になっても馬連/枠連オッズの実数原本の存在を無条件に推定しない。
+- 11/12の初回一回限りの試行 Run `43142384975` は **02:34 UTC = 11:34 JST**、公式の通常の木曜16時出馬表公開時刻より早い。 `FAILED_CLOSED` の詳細通信原因は不明のまま保持し、未公開を確定したものとは断定しない。
+- `diagnostics/kyoto_p1_nov14_official_one_shot_nav.py` へ、少なくとも木曜16:15 JST（UTC 07:15）までは `WAIT_FOR_JRA_OFFICIAL_PUBLICATION_NO_HTTP` で**HTTP 0件**、対象期間終了後は `STALE_MEETING_DISCOVERY_NO_HTTP`、明示されたHTTP権限がない場合は `LIVE_HTTP_NOT_EXPLICITLY_AUTHORIZED` として**HTTP 0件**にする時刻・安全認可ゲートを追加。出典の時刻保証を伴わない発走前価格の推測はしない。
+- `.github/workflows/kyoto-p1-nov14-one-shot-meeting-observation.yml` は**コード変更によって実通信を繰り返さない**設定に修正。次の実通信は明示された単発起動または専用アクティベーションのみに限る（これ自体は自動購入とは無関係）。
+- `tests/test_kyoto_p1_nov14_official_one_shot_nav.py` は17件へ拡張。JRAへの新しい実通信なしの [Run 43142890299](https://github.com/papaneko-ai/kyoto-keiba-ai/actions/runs/43142890299) `SUCCESS`、job `130933829416`。公開前、明示権限なし、期限後のどの場合も通信0件。前の失敗Runから原因と繰り返し防止の仕様を切り出した。
+- JRAへの実通信成功や11月14日の当日馬連/枠連オッズ証拠を主張しない。最終完成認定25/100、実用能力0/100、実開催独立0/6を維持。
