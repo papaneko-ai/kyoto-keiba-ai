@@ -267,4 +267,45 @@ class ExistingHybridOddsTests(unittest.TestCase):
   self.assertFalse(r["paper_trade_authorized"])
   self.assertFalse(r["actual_wager_authorized"])
   self.assertFalse(r["prediction_ready"])
+class MeasuredSourceRouterIntegrationTests(unittest.TestCase):
+ def test_auto_uses_previously_certified_sp_candidate(self):
+  from diagnostics.jra_one_shot_market_capture import capture_hybrid,DEFAULT_RACE_SPEC
+  calls=[]
+  def stub(out,**kw):
+   calls.append(kw["channel"])
+   return {"channel":kw["channel"],"race_id":DEFAULT_RACE_SPEC.race_id,
+           "state":"SOURCE_FROZEN","pre_race_prices_accepted":True}
+  with tempfile.TemporaryDirectory() as folder:
+   result=capture_hybrid(folder,primary_channel="AUTO",
+     verified_start_utc="2026-11-07T06:45:00Z",active_runners=((1,1),(2,2)),
+     race_spec=DEFAULT_RACE_SPEC,capture_fn=stub)
+  self.assertEqual(calls,["SP"])
+  self.assertEqual(result["primary_channel"],"SP")
+  self.assertEqual(result["route_basis"]["selection"],"HISTORICAL_MEASURED_CANDIDATE_ONLY")
+  self.assertEqual(result["route_basis"]["sp_bytes_reduction_pct"],35.4)
+  self.assertEqual(result["route_basis"]["sp_end_to_end_gain_pct"],17.4)
+  self.assertFalse(result["prediction_ready"])
+ def test_compromised_historical_benchmark_does_not_select_route(self):
+  from diagnostics.jra_one_shot_market_capture import capture_hybrid,DEFAULT_RACE_SPEC
+  from unittest.mock import patch
+  with patch("diagnostics.jra_benchmark_acceptance.audit_report",
+             side_effect=ValueError("forged_sample")):
+   with tempfile.TemporaryDirectory() as folder:
+    with self.assertRaisesRegex(SourceChainError,"historical_route_evidence_unverified"):
+     capture_hybrid(folder,primary_channel="AUTO",
+       verified_start_utc="2026-11-07T06:45:00Z",
+       active_runners=((1,1),(2,2)),race_spec=DEFAULT_RACE_SPEC)
+ def test_manual_pc_override_remains_supported(self):
+  from diagnostics.jra_one_shot_market_capture import capture_hybrid,DEFAULT_RACE_SPEC
+  calls=[]
+  def stub(out,**kw):
+   calls.append(kw["channel"])
+   return {"channel":kw["channel"],"race_id":DEFAULT_RACE_SPEC.race_id,
+           "state":"SOURCE_FROZEN","pre_race_prices_accepted":True}
+  with tempfile.TemporaryDirectory() as folder:
+   result=capture_hybrid(folder,primary_channel="PC",
+      verified_start_utc="2026-11-07T06:45:00Z",active_runners=((1,1),(2,2)),
+      race_spec=DEFAULT_RACE_SPEC,capture_fn=stub)
+  self.assertEqual(calls,["PC"])
+  self.assertEqual(result["route_basis"]["selection"],"EXPLICIT")
 if __name__=="__main__":unittest.main()
