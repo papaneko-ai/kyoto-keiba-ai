@@ -173,6 +173,31 @@ class F12ToP6FreezeTests(unittest.TestCase):
             self.capture(self.path)
         self.assertFalse((self.fx.root/"settled").exists())
 
+    def test_bracket_market_including_same_bracket_is_source_bound(self):
+        from diagnostics.p4_source_bound_model_ev_research import compare_source_market_to_frozen_model
+        from diagnostics.p5_source_bound_race_ranking_lab import rank_lab_research_races
+        p4=compare_source_market_to_frozen_model(**self.fx.input)
+        ranking=rank_lab_research_races([p4],daily_budget_yen=1000,ticket_type="BRACKET")
+        self.assertTrue(ranking["selected"])
+        candidates=[{"race":row["race"],"priority":row["rank"],
+                     "eligible":True,"ticket_type":"BRACKET",
+                     "tickets":[{"pair":t["pair"],"weight":100} for t in row["tickets"]]}
+                    for row in ranking["selected"]]
+        inputs={**self.inputs,"market":"BRACKET","candidates":candidates}
+        plan=plan_f12(**inputs)
+        frozen=self.freeze(ranking=ranking,f12_inputs=inputs,f12_receipt=plan)
+        self.assertEqual(frozen["ticket_type"],"BRACKET")
+        self.assertEqual(frozen["research_spent_yen"],600)
+        ticket=read_journal(self.path/"race-01.jsonl")["entries"][0]["payload"]["record"]["frozen"]["tickets"][0]
+        self.assertEqual(ticket["stake_yen"],600)
+        self.assertEqual(ticket["pair"],candidates[0]["tickets"][0]["pair"])
+
+    def test_user_selected_unranked_race_rejected_before_write(self):
+        inputs={**self.inputs,"selected_races":[2],"manual_race_amounts":{2:100}}
+        with self.assertRaises(FrozenRankingRejected):
+            self.freeze(f12_inputs=inputs)
+        self.assertFalse(self.path.exists())
+
     def test_determinism_on_new_output_directory(self):
         first=self.freeze()
         other=self.freeze(destination=self.fx.root/"duplicate")
