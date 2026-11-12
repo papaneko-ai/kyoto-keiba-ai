@@ -453,4 +453,32 @@ class VerifiedNumberedRosterHandoffTests(unittest.TestCase):
   with self.assertRaisesRegex(SourceChainError,"roster_withdrawal_needs_current_independent_proof"):
    self.check(r)
 
+class OfficialTwoSecondPacingTests(unittest.TestCase):
+ def test_bounded_sequence_waits_between_requests(self):
+  from diagnostics.jra_one_shot_market_capture import RequestPacer
+  state=[0.0];waits=[]
+  def sleep(delay):
+   waits.append(delay);state[0]+=delay
+  pacer=RequestPacer(clock=lambda:state[0],sleep=sleep)
+  pacer.before_request()
+  pacer.before_request()
+  self.assertEqual(waits,[2.0])
+  state[0]+=2.25
+  pacer.before_request()
+  self.assertEqual(waits,[2.0])
+ def test_gap_shorter_than_two_seconds_is_rejected(self):
+  from diagnostics.jra_one_shot_market_capture import RequestPacer
+  with self.assertRaisesRegex(SourceChainError,"jra_request_gap_under_two_seconds"):
+   RequestPacer(min_gap_seconds=1)
+ def test_pacer_is_used_by_existing_official_http_fetch(self):
+  from diagnostics.jra_one_shot_market_capture import http_fetch,RequestPacer
+  state=[0.0];waits=[]
+  def sleep(delay):
+   waits.append(delay);state[0]+=delay
+  pacer=RequestPacer(clock=lambda:state[0],sleep=sleep)
+  stub=StubOpener([(HTML,PC_RACECARD_URL),(HTML,PC_RACECARD_URL)])
+  http_fetch(stub,"PC",PC_RACECARD_URL,pacer=pacer)
+  http_fetch(stub,"PC",PC_RACECARD_URL,pacer=pacer)
+  self.assertEqual(len(stub.requests),2)
+  self.assertEqual(waits,[2.0])
 if __name__=="__main__":unittest.main()
