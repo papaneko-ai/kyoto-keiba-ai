@@ -46,7 +46,7 @@ class Nov14NavigationTests(unittest.TestCase):
     with self.assertRaises(DiscoveryRejected):
         strict_link_from_official(html(bad))
  def test_nonspecific_action_does_not_count(self):
-    bad='<a onclick="doActionS(\\'/JRADB/accessD.html\\',\\'pw20261114/AA\\')">京都</a>'
+    bad="<a onclick=\"doActionS('/JRADB/accessD.html','pw20261114/AA')\">京都</a>"
     self.assertEqual(strict_link_from_official(html(bad))["observed_links"],[])
  def test_invalid_cname_refused(self):
     bad=GOOD.replace("pw01dde0108202605030720261114%2FAA","someinvalid20261114")
