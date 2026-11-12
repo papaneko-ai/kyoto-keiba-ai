@@ -112,6 +112,58 @@ class OfflineRepairTests(unittest.TestCase):
                 self.assertEqual(result["state"],"CAPTURE_BLOCKED")
                 self.assertEqual(opener.calls,1)
 
+    def test_404_successfully_repairs_then_continues_odds_capture(self):
+        from unittest.mock import patch
+        future=replace(DEFAULT_RACE_SPEC,race_day="20261114",
+            race_id="2026-11-14_KYOTO_11R",
+            pc_racecard_url="https://jra.jp/JRADB/accessD.html?CNAME=pw01old1120261114%2F11",
+            sp_racecard_url="",
+            normal_sales_open_utc="2026-11-13T09:30:00Z")
+        meeting="https://jra.jp/JRADB/accessD.html?CNAME=pw01meet20261114%2FA1"
+        repaired="https://jra.jp/JRADB/accessD.html?CNAME=pw01new1120261114%2F11"
+        a=html('<a href="'+meeting.replace("https://jra.jp","")+'">京都 11月14日</a>')
+        b=html('<a href="'+repaired.replace("https://jra.jp","")+'">京都 11R</a>')
+        raceraw=html("""京都 11R <a href="#" onclick="return doAction('/JRADB/accessO.html','pw15oli00/6D')">オッズ</a>""")
+        menu=html("今週のオッズは未発表です")
+        class Response:
+            status=200
+            headers={"Content-Type":"text/html"}
+            def __init__(self,raw,url):self.raw=raw;self.url=url
+            def __enter__(self):return self
+            def __exit__(self,*args):pass
+            def read(self,n):return self.raw[:n]
+            def geturl(self):return self.url
+        class Opener:
+            def __init__(self):self.calls=[]
+            def open(self,request,timeout=None):
+                self.calls.append(request)
+                if len(self.calls)==1:
+                    raise HTTPError(request.full_url,404,"Not Found",None,None)
+                raw=[a,b,raceraw,menu][len(self.calls)-2]
+                return Response(raw,request.full_url)
+        with TemporaryDirectory() as directory,patch(
+            "diagnostics.jra_one_shot_market_capture.verify_live_racecard_roster",
+            side_effect=lambda raw,channel,spec,*args,**kwargs:{"race_id":spec.race_id,"count":2}):
+            from pathlib import Path
+            import json
+            opener=Opener()
+            result=capture(directory,channel="PC",
+                verified_start_utc="2026-11-14T06:45:00Z",
+                active_runners=((1,1),(2,2)),
+                expected_named_runners=((1,1,"A"),(2,2,"B")),
+                now_utc="2026-11-13T10:00:00Z",
+                opener=opener,race_spec=future,authorized_live_http=True,
+                auto_repair_broken_pc_link=True)
+            self.assertEqual(result["state"],"OFFICIAL_NOT_PUBLISHED")
+            self.assertEqual(result["link_repair"]["new_url"],repaired)
+            self.assertEqual(result["operator_alert"]["code"],"JRA_LINK_REPAIRED_VERIFIED")
+            self.assertEqual(len(opener.calls),5)
+            self.assertTrue((Path(directory)/"repair_selection.html").is_file())
+            self.assertTrue((Path(directory)/"repair_meeting.html").is_file())
+            self.assertTrue((Path(directory)/"repair_candidate_racecard.html").is_file())
+            self.assertTrue((Path(directory)/"receipt.json").is_file())
+            self.assertFalse(result["pre_race_prices_accepted"])
+
     def test_404_attempts_repair_then_blocks_if_unverified(self):
         class Broken:
             def __init__(self):self.calls=0
