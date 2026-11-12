@@ -1,0 +1,70 @@
+{
+  "schema": "kyoto_20261112_pc_single_source_and_original_preservation.v1",
+  "date": "2026-11-12",
+  "accepted_development_method": "JRA official website PC/SP HTML data extraction, preserving observed official navigational links and original bytes. No redesign into an unrelated data provider or old Streamlit app.",
+  "continuity_baseline": "docs/diagnostics/kyoto_20261112_atomic_live_capture_handoff_and_policy_checkpoint.json",
+  "changes": [
+    "Manual diagnostic workflow accepts optional independently verified same-race structured market snapshot; when source-only capture is genuinely frozen, it delegates to the already existing canonical immutable P1 three-original CLI and saves ZIP in the original run artifact",
+    "Official source captures now keep GitHub Actions artifacts for 30 days rather than 3, while noting this is not permanent cold storage",
+    "ObservedRaceSpec supports one requested official channel when hybrid is explicitly disabled; absent SP URL is never guessed or treated as verified",
+    "PC/SP fallback or dual observation still requires two independently observed official URLs; unverified URL and invalid channel fail before network",
+    "Reject empty roster source URL after enabling optional SP address, even if a hash is supplied",
+    "Existing Nov14 one-shot official meeting link discovery preserves SHA-bound original HTML and receipt with exclusive no-overwrite saves, serializes concurrent workflow runs, and retains source Artifact 30 days, without claiming global cross-run deduplication",
+    "Register new PC-first route in the existing twenty-five-feature reuse inventory, not a new feature reimplementation"
+  ],
+  "already_verified_existing_assets": [
+    "diagnostics/kyoto_p1_nov14_official_one_shot_nav.py::strict_link_from_official",
+    "diagnostics/jra_one_shot_market_capture.py::capture",
+    "diagnostics/jra_one_shot_market_capture.py::capture_hybrid",
+    "diagnostics/p1_atomic_dual_market_handoff.py::package_saved_observed_market_capture",
+    "diagnostics/p1_atomic_dual_market_handoff.py::verify_prerace_handoff_archive"
+  ],
+  "ci": {
+    "nov14_offline_publication_safety": {
+      "run_id": 43162157839,
+      "job_id": 130995642514,
+      "result": "success",
+      "tests": 20
+    },
+    "pc_sp_market_capture": {
+      "run_id": 43162288850,
+      "job_id": 130996054996,
+      "result": "success",
+      "tests": {
+        "capture": 92,
+        "existing_failover": 25
+      },
+      "total": 117
+    },
+    "offline_safety": {
+      "run_id": 43162288708,
+      "job_id": 130996054370,
+      "result": "success"
+    },
+    "network_http_calls_for_mentioned_tests": 0
+  },
+  "fixed_metrics": {
+    "research": "32/32",
+    "graduation": "12/12",
+    "major_alg_evo": "21/21",
+    "live_real": "0/6",
+    "operational": "0/100",
+    "final_20_gate": "35/100",
+    "delta_points": 0
+  },
+  "next_real_gate": "During official publication for the next Kyoto meeting, observe official PC race-specific navigation as original HTML without guessed tokens; freeze current same-race roster, then capture both pre-start market originals when available, link to canonical 3-original handoff and verify independent feature completeness. Current proof does not establish F03/F04.",
+  "non_claims": [
+    "No current Nov14 actual presale JRA odds originals newly captured",
+    "No SP actual current racecard URL independently observed",
+    "No authenticated real-market three-original PASS",
+    "No real forward-paper-trade settlement",
+    "No automatic production use",
+    "GitHub artifact retention 30d is NOT a permanent full backup"
+  ],
+  "protected": [
+    "main",
+    "Turso production",
+    "published Streamlit",
+    "live wagers"
+  ]
+}
