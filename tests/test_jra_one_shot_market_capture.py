@@ -704,4 +704,30 @@ class ImmutableTerminalReceiptTests(unittest.TestCase):
    with self.assertRaises(ValueError):
     persist_receipt_once(Path(d),"receipt.json",{"unsafe":float("nan")})
 
+class OfficialOneShotWorkflowHandoffContractTests(unittest.TestCase):
+ def workflow(self):
+  from pathlib import Path
+  return Path(".github/workflows/jra-observed-odds-manual-oneshot.yml").read_text(encoding="utf8")
+ def test_optional_independent_snapshot_is_wired_to_existing_three_original_cli(self):
+  workflow=self.workflow()
+  self.assertIn("snapshot_path:",workflow)
+  self.assertIn("THREE_ORIGINAL_SNAPSHOT:",workflow)
+  self.assertIn("diagnostics.p1_atomic_dual_market_handoff",workflow)
+  self.assertIn("verified_three_originals.zip",workflow)
+  self.assertIn("INDEPENDENT_SNAPSHOT_NOT_SAME_RACE",workflow)
+  self.assertIn("P1_THREE_ORIGINAL_HANDOFF=SKIPPED_NO_INDEPENDENT_SNAPSHOT",workflow)
+  self.assertIn("P1_THREE_ORIGINAL_HANDOFF=OFFLINE_CONTENT_VERIFIED_ONLY",workflow)
+ def test_previous_three_day_archive_loss_is_removed(self):
+  workflow=self.workflow()
+  self.assertIn("retention-days: 30",workflow)
+  self.assertNotIn("retention-days: 3\n",workflow)
+  self.assertIn("if: always()",workflow)
+ def test_manual_only_no_live_wager(self):
+  workflow=self.workflow()
+  self.assertIn("workflow_dispatch:",workflow)
+  self.assertNotIn("schedule:",workflow)
+  self.assertIn("ONE-SHOT-READ-ONLY",workflow)
+  self.assertIn("contents: read",workflow)
+  self.assertNotIn("wager",workflow.lower().replace("never submit wagers",""))
+
 if __name__=="__main__":unittest.main()
