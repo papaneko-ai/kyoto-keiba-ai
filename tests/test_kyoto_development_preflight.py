@@ -74,6 +74,29 @@ class ContinuityGateTests(unittest.TestCase):
         with self.assertRaisesRegex(PreflightBlocked,"duplicate_intent_feature"):
             self.audit()
 
+    def test_canonical_source_function_is_verified_not_just_filename(self):
+        (self.root / "existing.py").write_text("def canonical_feature():\n    return 1\n")
+        self.inventory["features"][0]["canonical_entrypoint"] = {
+            "path": "existing.py", "symbol": "canonical_feature"}
+        self.assertTrue(self.audit()["intent_checked"])
+        (self.root / "existing.py").write_text("def replaced_duplicate():\n    return 1\n")
+        with self.assertRaisesRegex(PreflightBlocked,"canonical_entrypoint_missing"):
+            self.audit()
+
+    def test_canonical_function_invalid_python_blocks_integration(self):
+        (self.root / "existing.py").write_text("def canonical_feature():\n    return 1\n")
+        self.inventory["features"][0]["canonical_entrypoint"] = {
+            "path": "existing.py", "symbol": "canonical_feature"}
+        (self.root / "existing.py").write_text("def canonical_feature(:")
+        with self.assertRaisesRegex(PreflightBlocked,"canonical_entrypoint_source_unreadable"):
+            self.audit()
+
+    def test_canonical_function_must_be_declared_in_own_code_path(self):
+        self.inventory["features"][0]["canonical_entrypoint"] = {
+            "path": "proof.json", "symbol": "canonical_feature"}
+        with self.assertRaisesRegex(PreflightBlocked,"canonical_entrypoint_invalid"):
+            self.audit()
+
     def test_three_runs_deterministic(self):
         a=self.audit()
         for _ in range(3):
