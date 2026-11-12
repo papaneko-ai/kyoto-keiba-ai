@@ -1,0 +1,69 @@
+name: Kyoto F07 independent pair probability fixed-gate evidence
+on:
+  push:
+    branches: [jra-html-diagnostic-20261105]
+    paths:
+      - '.github/workflows/kyoto-f07-independent-pair-gate.yml'
+permissions:
+  contents: read
+jobs:
+  independent-p3-math:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Verify F07 unchanged canonical 20 gate acceptance target and source SHA
+        run: |
+          python - <<'PY'
+          import json,hashlib
+          from pathlib import Path
+          p=Path('docs/diagnostics/kyoto_final_completion_criteria_v1.json')
+          original=json.loads(p.read_text())
+          f07=next(x for x in original['criteria'] if x['id']=='F07')
+          assert original['maximum']==100
+          assert f07['points']==5
+          assert f07['title']=='馬連・枠連確率整合'
+          print('F07_RUBRIC_LOCKED_SHA256='+hashlib.sha256(p.read_bytes()).hexdigest())
+          PY
+      - name: Execute independent exact pair coverage and negative/exception tests
+        env:
+          PYTHONPATH: .
+        run: |
+          set -euo pipefail
+          python -m unittest -v tests.test_kyoto_f07_offline_pair_acceptance
+      - name: Reproducible 16-runner F07 witness (no JRA or payouts)
+        env:
+          PYTHONPATH: .
+        run: |
+          python - <<'PY'
+          import json,hashlib,os
+          from pathlib import Path
+          from diagnostics.kyoto_f07_offline_pair_acceptance import calculate_f07
+          runners=[dict(number=i,frame=(i+1)//2,status='ACTIVE',strength=float(i)) for i in range(1,17)]
+          q=[[i,j] for i in range(1,17) for j in range(i+1,17)]
+          b=[[i,j] for i in range(1,9) for j in range(i,9)]
+          report=calculate_f07(runners=runners,market_status={'QUINELLA':'OPEN','BRACKET':'OPEN'},
+                    quoted_pairs={'QUINELLA':q,'BRACKET':b})
+          assert len(report['quinella'])==120
+          assert len(report['bracket'])==36
+          assert len(report['same_frame_pairs'])==8
+          assert report['active_runners']==list(range(1,17))
+          out=Path('f07_gate_receipt')
+          out.mkdir()
+          report['ci_head_sha']=os.environ['GITHUB_SHA']
+          report['ci_run_id']=os.environ['GITHUB_RUN_ID']
+          report['f07_fixed_acceptance_verified_by']='independent_github_actions_unit_and_exception_tests'
+          report['live_market_source_accepted']=False
+          report['production_deployment_authorized']=False
+          (out/'F07_math_witness.json').write_text(json.dumps(report,ensure_ascii=False,sort_keys=True,indent=2)+'\n')
+          print('F07_EXHAUSTIVE_120_36_8_SAME_FRAME_WITNESS_PASS=TRUE')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: kyoto-F07-offline-independent-math-acceptance
+          path: f07_gate_receipt/
+          retention-days: 7
+          if-no-files-found: error
