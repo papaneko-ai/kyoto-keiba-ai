@@ -1,0 +1,94 @@
+name: Kyoto F18 second independent sealed shadow rollback audit
+on:
+  push:
+    branches: [jra-html-diagnostic-20261105]
+    paths:
+      - diagnostics/kyoto_f18_second_independent_shadow_auditor.py
+      - .github/workflows/kyoto-f18-second-independent-shadow-audit.yml
+permissions:
+  contents: read
+  actions: read
+jobs:
+  independent-shadow-replay:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Fetch previous exact independent-source LAB fixture artifact
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          curl --fail --location --silent --show-error --retry 0 --max-time 35 \
+            -H "Authorization: Bearer ${GH_TOKEN}" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/papaneko-ai/kyoto-keiba-ai/actions/artifacts/13910832192/zip" \
+            -o first_F18_witness.zip
+          python - <<'PY'
+          import zipfile
+          from pathlib import Path
+          with zipfile.ZipFile('first_F18_witness.zip') as z:
+              assert z.namelist()==['F18_source_and_decision.json'],z.namelist()
+              Path('first_F18_source_and_decision.json').write_bytes(z.read('F18_source_and_decision.json'))
+          PY
+      - name: Independent math, sealed plan, chronology, rollback and six destructive attacks
+        env:
+          PYTHONPATH: .
+        run: |
+          python - <<'PY'
+          import json,copy,os
+          from pathlib import Path
+          from diagnostics.kyoto_f18_second_independent_shadow_auditor import (
+             verify,F18IndependentRejected,digest)
+          initial=json.loads(Path('first_F18_source_and_decision.json').read_text())
+          rubric=Path('docs/diagnostics/kyoto_final_completion_criteria_v1.json').read_bytes()
+          attested=verify(initial,rubric)
+          bad_count=0
+          def block(label,payload,rule=rubric):
+              global bad_count
+              try:verify(payload,rule)
+              except F18IndependentRejected:
+                  bad_count+=1
+                  print('F18_ATTACK_REJECTED='+label)
+              else:raise AssertionError('accepted corrupted F18 witness '+label)
+          a=copy.deepcopy(initial)
+          a['decision']['forward_windows'][1]['state_after']='SHADOW_CANDIDATE_UNDER_TEST'
+          a['decision']['forward_windows'][1]['event_sha256']=digest({k:v for k,v in a['decision']['forward_windows'][1].items() if k!='event_sha256'})
+          a['decision']['monitor_chain_head']=a['decision']['forward_windows'][1]['event_sha256']
+          a['decision']['final_state']='SHADOW_CANDIDATE_UNDER_TEST'
+          a['decision']['receipt_sha256']=digest({k:v for k,v in a['decision'].items() if k!='receipt_sha256'})
+          block('rehash_wrong_shadow_rollback',a)
+          a=copy.deepcopy(initial)
+          a['forward_monitoring'][1]['observations'][0]['frozen_utc']=a['holdout'][0]['frozen_utc']
+          block('future_overlap',a)
+          a=copy.deepcopy(initial)
+          a['forward_monitoring'][1]['observations'][0]['source_kind']='ACTUAL_JRA_LIVE'
+          block('source_laundering',a)
+          a=copy.deepcopy(initial)
+          a['decision']['production_model_changed']=True
+          a['decision']['receipt_sha256']=digest({k:v for k,v in a['decision'].items() if k!='receipt_sha256'})
+          block('false_prod_deploy',a)
+          a=copy.deepcopy(initial)
+          a['ci_run_id']='wrong'
+          block('original_ci_provenance',a)
+          block('fixed_rubric_rewrite',initial,rubric+b' ')
+          assert bad_count==6
+          attested['independent_ci_run_id']=int(os.environ['GITHUB_RUN_ID'])
+          attested['independent_ci_sha']=os.environ['GITHUB_SHA']
+          attested['destructive_attacks_rejected']=bad_count
+          out=Path('F18_second_independent_audit')
+          out.mkdir()
+          (out/'independent_shadow_rollback_receipt.json').write_text(
+            json.dumps(attested,ensure_ascii=False,sort_keys=True,indent=2)+'\n')
+          print('F18_INDEPENDENT_30_RACE_TRI_MODEL_ROLLBACK_REPLAY=PASS')
+          print('ACTUAL_JRA_MODEL_EVOLUTION_CERTIFIED=FALSE')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: kyoto-F18-second-independent-shadow-rollback-audit
+          path: F18_second_independent_audit/
+          retention-days: 7
+          if-no-files-found: error
