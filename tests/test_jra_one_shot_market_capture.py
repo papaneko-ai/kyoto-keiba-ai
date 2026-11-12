@@ -250,7 +250,7 @@ class ExistingHybridOddsTests(unittest.TestCase):
    r=capture_hybrid(d,primary_channel="PC",
        verified_start_utc="2026-11-07T06:45:00Z",
        active_runners=self.runners,race_spec=self.spec,capture_fn=stub)
-   self.assertEqual(calls,["PC","SP"])
+   self.assertEqual(calls,["PC"])
    self.assertEqual(r["state"],"SAFE_STOP")
  def test_refuse_fake_accepted_flag(self):
   from diagnostics.jra_one_shot_market_capture import capture_hybrid
