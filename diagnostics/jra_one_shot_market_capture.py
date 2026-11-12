@@ -279,7 +279,8 @@ def http_fetch(opener,channel,path,*,cname=None,referer=None,pacer=None):
     headers={"User-Agent":"Mozilla/5.0" if channel=="PC" else MOBILE_UA,"Accept":"text/html"}
     if referer:headers["Referer"]=referer
     if cname is not None:headers["Content-Type"]="application/x-www-form-urlencoded"
-    request=Request(path,data=None if cname is None else urlencode({"cname":cname}).encode("ascii"),
+    post_body=None if cname is None else urlencode({"cname":cname}).encode("ascii")
+    request=Request(path,data=post_body,
                     headers=headers,method=method)
     if pacer is not None:pacer.before_request()
     with opener.open(request,timeout=20) as response:
@@ -292,13 +293,45 @@ def http_fetch(opener,channel,path,*,cname=None,referer=None,pacer=None):
         or final.query!=u.query or final.fragment or final.port is not None):
         raise SourceChainError("official_http_response_invalid")
     return {"raw":data,"sha256":sha256(data).hexdigest(),"bytes":len(data),
-            "captured_at_utc":received_at,"http_status":status,"method":method}
+            "captured_at_utc":received_at,"http_status":status,"method":method,
+            "requested_url":path,"response_url":response.geturl(),
+            "observed_action_token":cname,
+            "post_body_sha256":sha256(post_body).hexdigest() if post_body is not None else None,
+            "post_body_size":len(post_body) if post_body is not None else 0}
+
+
+def prepare_empty_original_directory(folder):
+    """Reject reusing an existing source or receipt; no HTTP if nonempty."""
+    folder=Path(folder)
+    if folder.is_symlink() or (folder.exists() and not folder.is_dir()):
+        raise SourceChainError("source_output_path_not_a_directory")
+    if folder.exists() and any(folder.iterdir()):
+        raise SourceChainError("source_output_contains_existing_evidence")
+    folder.mkdir(parents=True,exist_ok=True)
+    return folder
+
+
+def persist_original_once(folder, name, original, receipt):
+    """Persist exact response bytes exclusively and verify their disk SHA."""
+    target=folder/name
+    if type(original) is not bytes or not original:
+        raise SourceChainError("source_original_bytes_required")
+    if not isinstance(receipt,dict) or receipt.get("sha256")!=sha256(original).hexdigest():
+        raise SourceChainError("source_original_receipt_hash_disagrees")
+    try:
+        with target.open("xb") as out:
+            out.write(original)
+    except FileExistsError as exc:
+        raise SourceChainError("source_original_already_exists") from exc
+    if sha256(target.read_bytes()).hexdigest()!=receipt["sha256"]:
+        raise SourceChainError("source_written_bytes_digest_conflict")
+    return target
 
 def capture(out,*,channel,verified_start_utc,active_runners,now_utc=None,opener=None,
             race_spec=None,authorized_live_http=False,pacer=None,
             expected_named_runners=None):
     spec=(race_spec or DEFAULT_RACE_SPEC).validate()
-    folder=Path(out);folder.mkdir(parents=True,exist_ok=True)
+    folder=prepare_empty_original_directory(out)
     start=aware_utc(verified_start_utc)
     if start.astimezone(ZoneInfo('Asia/Tokyo')).date().strftime('%Y%m%d')!=spec.race_day:
         raise SourceChainError('verified_start_day_does_not_match_race_spec')
@@ -331,7 +364,7 @@ def capture(out,*,channel,verified_start_utc,active_runners,now_utc=None,opener=
     host="jra.jp" if channel=="PC" else "sp.jra.jp"
     try:
         racecard=http_fetch(opener,channel,source,pacer=pacer)
-        (folder/"official_racecard.html").write_bytes(racecard["raw"])
+        persist_original_once(folder,"official_racecard.html",racecard["raw"],racecard)
         result["request_receipts"].append({"step":"racecard",**{k:v for k,v in racecard.items() if k!="raw"}})
         if authorized_live_http:
             result["current_racecard_roster_proof"]=verify_live_racecard_roster(
@@ -342,7 +375,7 @@ def capture(out,*,channel,verified_start_utc,active_runners,now_utc=None,opener=
         token=exact_odds_action(racecard["raw"],channel)
         menu_url=f"https://{host}/JRADB/accessO.html"
         menu=http_fetch(opener,channel,menu_url,cname=token,referer=source,pacer=pacer)
-        (folder/"official_odds_menu.html").write_bytes(menu["raw"])
+        persist_original_once(folder,"official_odds_menu.html",menu["raw"],menu)
         result["request_receipts"].append({"step":"odds_menu",**{k:v for k,v in menu.items() if k!="raw"}})
         text=BeautifulSoup(menu["raw"].decode("cp932",errors="replace"),"html.parser").get_text(" ",strip=True)
         if "今週のオッズは未発表です" in text or "オッズは未発表" in text:
@@ -377,7 +410,7 @@ def capture(out,*,channel,verified_start_utc,active_runners,now_utc=None,opener=
                 if datetime.now(timezone.utc)>=start-timedelta(minutes=10):
                     raise SourceChainError("cutoff_reached_during_navigation")
                 menu=http_fetch(opener,channel,menu_url,cname=next_token,referer=menu_url,pacer=pacer)
-                (folder/f"official_odds_navigation_{navigation_step+1}.html").write_bytes(menu["raw"])
+                persist_original_once(folder,f"official_odds_navigation_{navigation_step+1}.html",menu["raw"],menu)
                 result["request_receipts"].append({
                     "step":f"odds_navigation_{navigation_step+1}",
                     **{k:v for k,v in menu.items() if k!="raw"}})
@@ -400,7 +433,7 @@ def capture(out,*,channel,verified_start_utc,active_runners,now_utc=None,opener=
             market_originals[market]=page["raw"]
             urls[market]=url
             times[market]=page["captured_at_utc"]
-            (folder/f"{market}_original.html").write_bytes(page["raw"])
+            persist_original_once(folder,f"{market}_original.html",page["raw"],page)
             result["request_receipts"].append({"step":market,**{k:v for k,v in page.items() if k!="raw"}})
         chain=audit_source_originals(menu["raw"],market_originals,urls,
           race_key=spec.race_id,race_day=spec.race_day,venue=spec.venue,race_number=spec.race_number,
