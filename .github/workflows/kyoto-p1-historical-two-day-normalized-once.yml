@@ -1,0 +1,67 @@
+name: Kyoto verified historical two-day 31-runner normalization
+on:
+  push:
+    branches: [jra-html-diagnostic-20261105]
+    paths: ['.github/workflows/kyoto-p1-historical-two-day-normalized-once.yml']
+permissions:
+  contents: read
+  actions: read
+jobs:
+  offline-verified-history-normalization:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install only independent HTML parser for existing JRA source
+        run: python -m pip install beautifulsoup4
+      - name: Run independent offline safety tests
+        env:
+          PYTHONPATH: .
+        run: |
+          set -euo pipefail
+          python -m unittest -v tests.test_jra_historical_two_day_source_capture tests.test_jra_historical_two_day_result_import
+      - name: Obtain already-captured raw official originals from same-repo artifact (NO JRA GET)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          curl --fail --location --silent --show-error --retry 0 --max-time 30 \
+            -H "Authorization: Bearer ${GH_TOKEN}" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/papaneko-ai/kyoto-keiba-ai/actions/artifacts/13904353071/zip" \
+            -o historical_two_days_originals.zip
+          python - <<'PY'
+          import zipfile
+          z=zipfile.ZipFile('historical_two_days_originals.zip')
+          assert len(z.namelist())==6, z.namelist()
+          print('EXISTING_HISTORICAL_SOURCE_ARTIFACT_RECEIVED=TRUE; OFFICIAL_GET=0')
+          PY
+      - name: Independently regenerate two day / 31 runner real outcome CSV
+        env:
+          PYTHONPATH: .
+        run: |
+          set -euo pipefail
+          python -m diagnostics.jra_historical_two_day_result_import \
+            --archive historical_two_days_originals.zip \
+            --out historical_two_days_normalized
+          python - <<'PY'
+          import csv,hashlib,json
+          from pathlib import Path
+          p=Path('historical_two_days_normalized')
+          r=json.loads((p/'receipt.json').read_text())
+          rows=list(csv.DictReader((p/'historical_outcomes.csv').open()))
+          assert r['runner_rows']==31 and r['race_count']==2
+          assert len(rows)==31 and {x['race_date'] for x in rows}=={'2026-10-25','2026-11-08'}
+          assert hashlib.sha256((p/'historical_outcomes.csv').read_bytes()).hexdigest()==r['csv_sha256']
+          assert r['training_ready'] is False and r['paper_trading_ready'] is False
+          print('TWO_NEW_HISTORIC_DATES_31_REAL_RUNNER_OUTCOMES_VERIFIED=TRUE')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: kyoto-real-two-day-31-runners-20261112
+          path: historical_two_days_normalized/
+          retention-days: 3
+          if-no-files-found: error
