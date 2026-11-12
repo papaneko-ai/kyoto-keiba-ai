@@ -1,0 +1,66 @@
+{
+  "schema": "kyoto_20261112_capture_to_canonical_three_original_handoff.v1",
+  "date": "2026-11-12",
+  "issue": "Existing observed JRA market capturer and P1 canonical three-original byte validator were not connected; model lineage could not verify transmitted action token, original bytes and persisted price evidence together.",
+  "reused_existing_functions": [
+    "diagnostics/jra_one_shot_market_capture.py::http_fetch",
+    "diagnostics/jra_one_shot_market_capture.py::capture",
+    "diagnostics/p1_atomic_dual_market_handoff.py::package_prerace_market_capture",
+    "diagnostics/p1_atomic_dual_market_handoff.py::verify_prerace_handoff_archive",
+    "diagnostics/p1_atomic_dual_market_handoff.py::save_immutable_archive",
+    "diagnostics/p1_operator_original_handoff.py::assess_originals",
+    "diagnostics/p1_three_original_dual_intake.py::inspect_three_original_dual_intake",
+    "diagnostics/jra_odds_matrix_parser.py::parse_matrix"
+  ],
+  "implemented": [
+    "New package_saved_observed_market_capture() adapter in existing P1 atomic module, not a second parser",
+    "Original saved JRA GET/POST receipts -> independently SHA-validated three actual HTML original files",
+    "Observed channel, requested and final URL, exact wire POST body digest, action token, individual capture UTC and race identity matched",
+    "Existing P1 atomic package, all original-price and horse-number/frames/name tests and complete bracket market tests reused",
+    "Offline CLI accepts capture folder, independently supplied snapshot, observed UTC and writes immutable, verified, replayable ZIP",
+    "Strictly separates source-content-verified from official authorized/live-market/real paper trade eligibility",
+    "Registered atomic intake as pre-existing P1_LIVE_MARKET_OBSERVATION reuse asset"
+  ],
+  "verification": {
+    "run_id": 43160448211,
+    "status": "SUCCESS",
+    "workflow": "Kyoto P1 three original dual-market offline integrity",
+    "test_count": "17+28+13+47+26+8=139 expected; verify current run log before claiming aggregate",
+    "run_uri": "https://github.com/papaneko-ai/kyoto-keiba-ai/actions/runs/43160448211",
+    "latest_source_code_SHA_tested": "bd21e42baac76d3ee8629da9d380741c0cdfef4d",
+    "offline_only": true
+  },
+  "official_public_policy_checked": {
+    "jra_homepage": "https://www.jra.go.jp/",
+    "jra_use": "https://jra.jp/use/",
+    "pc_sp_official_home_domains": [
+      "www.jra.go.jp",
+      "jra.jp",
+      "sp.jra.jp"
+    ],
+    "automated_fetch_permission_confirmed": false,
+    "independent_jra_data_secondary_use_approval_confirmed": false,
+    "notes": "Official JRA general-use page confirms site domain and copyright/secondary-use caution; no general automated data-fetch permission is inferred; JRA app special server/interface restrictions are not authority for PC/SP website crawling."
+  },
+  "verified_fixed_governance": {
+    "research": "32/32",
+    "graduation": "12/12",
+    "alg_evo": "21/21",
+    "live": "0/6",
+    "operational": "0/100",
+    "final_twenty_gate": "35/100",
+    "F01": "UNVERIFIED",
+    "F02": "UNVERIFIED",
+    "F03": "UNVERIFIED",
+    "F04": "UNVERIFIED",
+    "points_awarded": 0
+  },
+  "next_dependency": "Independent current official source URL and legal access decision, real published before-start PC/SP racecard and both market originals with authenticated market sales/withdrawal/cutoff, full 8-family feature provenance, external independent verifier acceptance.",
+  "protected": [
+    "main",
+    "Turso production",
+    "Streamlit production",
+    "real wagers",
+    "historical original bytes"
+  ]
+}
