@@ -369,4 +369,37 @@ class ObservedOddsMenuTraversalTests(unittest.TestCase):
   with self.assertRaisesRegex(SourceChainError,"unsupported_market_navigation_step"):
    self.next_action(self.observed("PC"),"PC",2)
 
+class BoundedObservedMenuIntegrationTests(unittest.TestCase):
+ def test_two_live_menu_hops_are_saved_without_guessing(self):
+  from unittest.mock import patch
+  from pathlib import Path
+  from datetime import datetime,timezone
+  from diagnostics.jra_one_shot_market_capture import capture,ObservedRaceSpec
+  from diagnostics.jra_one_shot_market_capture import MOBILE_UA
+  spec=ObservedRaceSpec("20261114",11,"2026-11-14_KYOTO_11R","京都",
+   "https://jra.jp/JRADB/accessD.html?CNAME=pw01dde0108202605011120261114%2F13",
+   "https://sp.jra.jp/JRADB/accessD.html?CNAME=sw01dde0108202605011120261114%2FA0",
+   "2026-11-13T09:30:00Z")
+  def menu(label,token):
+   return html("2026年11月14日 京都 "+f"""<a onclick="return doAction('/JRADB/accessO.html','{token}')">{label}</a>""")
+  now=datetime(2026,11,13,10,tzinfo=timezone.utc)
+  pages=[
+   (html(LINK),spec.pc_racecard_url),
+   (menu("京都 11月14日 開催","pw15meeting/AA"),"https://jra.jp/JRADB/accessO.html"),
+   (menu("11レース","pw15race/BB"),"https://jra.jp/JRADB/accessO.html"),
+   (menu("開催済レース一覧","pw15end/CC"),"https://jra.jp/JRADB/accessO.html")
+  ]
+  stub=StubOpener(pages)
+  with tempfile.TemporaryDirectory() as d:
+   with patch("diagnostics.jra_one_shot_market_capture.datetime") as clock:
+    clock.now.return_value=now
+    result=capture(d,channel="PC",verified_start_utc="2026-11-14T06:45:00Z",
+      active_runners=((1,1),(2,2)),now_utc=now.isoformat(),opener=stub,race_spec=spec)
+   self.assertEqual(len(stub.requests),4)
+   self.assertEqual(result["state"],"OFFICIAL_MENU_NEEDS_RACE_NAVIGATION")
+   self.assertEqual([x["step"] for x in result["request_receipts"]],
+     ["racecard","odds_menu","odds_navigation_1","odds_navigation_2"])
+   self.assertEqual((Path(d)/"official_odds_navigation_1.html").read_bytes(),pages[2][0])
+   self.assertEqual((Path(d)/"official_odds_navigation_2.html").read_bytes(),pages[3][0])
+   self.assertFalse(result["pre_race_prices_accepted"])
 if __name__=="__main__":unittest.main()
