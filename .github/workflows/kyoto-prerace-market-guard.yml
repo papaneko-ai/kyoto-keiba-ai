@@ -4,7 +4,9 @@ on:
     branches: [jra-html-diagnostic-20261105]
     paths:
       - diagnostics/kyoto_prerace_market_guard.py
+      - diagnostics/kyoto_prerace_release_gate.py
       - tests/test_kyoto_prerace_market_guard.py
+      - tests/test_kyoto_prerace_release_gate.py
       - .github/workflows/kyoto-prerace-market-guard.yml
   workflow_dispatch:
 permissions:
@@ -31,6 +33,10 @@ jobs:
         env:
           PYTHONPATH: .
         run: python -m unittest -v tests/test_kyoto_prerace_market_guard.py
+      - name: Check safe release stages, explicit permission and race-specific cutoff
+        env:
+          PYTHONPATH: .
+        run: python -m unittest -v tests/test_kyoto_prerace_release_gate.py
       - name: Scope of result
         run: |
           echo 'OFFLINE_MARKET_CLAIM_VALIDATION_ONLY=PASS'
