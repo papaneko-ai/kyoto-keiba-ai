@@ -18,11 +18,11 @@ jobs:
           python-version: '3.11'
       - name: Fetch pinned P4 F11 F12 witness produced by separate CI
         env:
-          GH_TOKEN: \${{ github.token }}
+          GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
           curl --fail --location --silent --show-error --retry 0 --max-time 30 \
-            -H "Authorization: Bearer \${GH_TOKEN}" \
+            -H "Authorization: Bearer ${GH_TOKEN}" \
             -H "Accept: application/vnd.github+json" \
             "https://api.github.com/repos/papaneko-ai/kyoto-keiba-ai/actions/artifacts/13906453657/zip" \
             -o f11_original_lab_witness.zip
