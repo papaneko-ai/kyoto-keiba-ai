@@ -775,4 +775,21 @@ class PCOnlyPreviouslyAgreedRouteTests(unittest.TestCase):
   self.assertIn('channels=("PC","SP") if os.environ["HYBRID"]=="true" else (os.environ["OBSERVED_CHANNEL"],)',src)
   self.assertEqual(src.count("validate(require_channels=channels)"),2)
 
+class EmptyAlternateSourceMustNeverVerifyRosterTests(unittest.TestCase):
+ def test_empty_sp_source_does_not_certify_pc_only_roster(self):
+  from diagnostics.jra_one_shot_market_capture import verified_roster_from_snapshot,ObservedRaceSpec
+  obj=ObservedRaceSpec("20261114",11,"2026-11-14_KYOTO_11R","京都",
+     "https://jra.jp/JRADB/accessD.html?CNAME=pw01dde0108202605011120261114%2F13",
+     "", "2026-11-13T09:30:00Z").validate(require_channels=("PC",))
+  roster={"race_date":"2026-11-14","race_number":11,"venue":"京都",
+      "source_url":"","source_sha256":"a"*64,"source_bytes":123,
+      "fetched_at_utc":"2026-11-13T10:00:00Z",
+      "runners":[{"horse_number":1,"frame_number":1,"horse_name":"A"},
+                 {"horse_number":2,"frame_number":2,"horse_name":"B"}]}
+  with self.assertRaisesRegex(SourceChainError,"roster_meeting_race_source_mismatch"):
+   verified_roster_from_snapshot(roster,obj,race_start_utc="2026-11-14T06:45:00Z")
+  roster["source_url"]=obj.pc_racecard_url
+  self.assertEqual(verified_roster_from_snapshot(roster,obj,
+      race_start_utc="2026-11-14T06:45:00Z"),((1,1),(2,2)))
+
 if __name__=="__main__":unittest.main()
