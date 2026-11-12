@@ -11,10 +11,11 @@ on:
         type: boolean
         default: true
       channel:
-        description: 'Independently observed official channel'
+        description: 'AUTO uses already-verified SP candidate benchmark; SP/PC override'
         required: true
         type: choice
-        options: [PC, SP]
+        options: [AUTO, SP, PC]
+        default: AUTO
       spec_path:
         description: 'Previously verified race identity + observed PC/SP official URLs (inside docs/diagnostics/)'
         required: true
