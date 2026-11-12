@@ -1,0 +1,102 @@
+name: Kyoto P6 second-independent original JRA two-race SQLite replay
+on:
+  push:
+    branches: [jra-html-diagnostic-20261105]
+    paths:
+      - diagnostics/kyoto_p6_second_real_official_sqlite_auditor.py
+      - .github/workflows/kyoto-p6-second-original-real-final-audit.yml
+permissions:
+  contents: read
+  actions: read
+jobs:
+  independent-original-source-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install independent real HTML source parser
+        run: python -m pip install 'beautifulsoup4>=4.12,<5'
+      - name: Retrieve prior authentic JRA source ZIP and separately persisted SQLite registry
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          curl --fail --location --silent --show-error --max-time 35 --retry 0 \
+            -H "Authorization: Bearer ${GH_TOKEN}" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/papaneko-ai/kyoto-keiba-ai/actions/artifacts/13904353071/zip" -o first_jra_original.zip
+          curl --fail --location --silent --show-error --max-time 35 --retry 0 \
+            -H "Authorization: Bearer ${GH_TOKEN}" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/papaneko-ai/kyoto-keiba-ai/actions/artifacts/13909876366/zip" -o first_real_registry.zip
+          python - <<'PY'
+          import zipfile
+          from pathlib import Path
+          with zipfile.ZipFile('first_real_registry.zip') as z:
+              assert set(z.namelist())=={'official_final_only.sqlite','receipt.json'},z.namelist()
+              root=Path('first_real_registry')
+              root.mkdir()
+              for n in z.namelist():(root/n).write_bytes(z.read(n))
+          PY
+      - name: Independently inspect actual JRA source HTML and persisted immutable SQLite
+        env:
+          PYTHONPATH: .
+        run: |
+          python - <<'PY'
+          import copy,hashlib,json,os,sqlite3,tempfile,shutil
+          from pathlib import Path
+          from diagnostics.kyoto_p6_second_real_official_sqlite_auditor import (
+              verify,SecondOfficialAuditRejected)
+          root=Path('first_real_registry')
+          db=root/'official_final_only.sqlite'
+          receipt=json.loads((root/'receipt.json').read_text())
+          html=Path('first_jra_original.zip').read_bytes()
+          good=verify(db,receipt,html)
+          assert good['verified_postrace_runner_rows']==31
+          assert good['verified_markets']==4
+          counter=0
+          def reject(label,fn):
+              global counter
+              try:fn()
+              except SecondOfficialAuditRejected:
+                  counter+=1
+                  print('INDEPENDENT_CORRUPTION_REJECTED='+label)
+              else:raise AssertionError('invalid source accepted '+label)
+          fake=copy.deepcopy(receipt)
+          fake['registry_sha256']='f'*64
+          reject('db_hash',lambda:verify(db,fake,html))
+          fake=copy.deepcopy(receipt)
+          fake['live_actual_settlement_operational']=True
+          reject('false_live',lambda:verify(db,fake,html))
+          fake=copy.deepcopy(receipt)
+          fake['ci_run_id']='wrong'
+          reject('first_run_provenance',lambda:verify(db,fake,html))
+          reject('source_zip',lambda:verify(db,receipt,html+b' '))
+          with tempfile.TemporaryDirectory() as td:
+              bad=Path(td)/'bad.sqlite'
+              shutil.copyfile(db,bad)
+              with sqlite3.connect(bad) as c:
+                  c.execute("DROP TRIGGER official_postrace_no_update")
+                  c.execute("UPDATE official_postrace_observations SET raw_payload='{}' WHERE seq=1")
+              fake=copy.deepcopy(receipt)
+              fake['registry_sha256']=hashlib.sha256(bad.read_bytes()).hexdigest()
+              reject('rehash_tampered_sqlite',lambda:verify(bad,fake,html))
+          assert counter==5
+          good['second_ci_run_id']=int(os.environ['GITHUB_RUN_ID'])
+          good['second_ci_sha']=os.environ['GITHUB_SHA']
+          good['five_mutation_tests_rejected']=counter
+          out=Path('second_real_result_audit')
+          out.mkdir()
+          (out/'independent_audit.json').write_text(json.dumps(good,sort_keys=True,ensure_ascii=False,indent=2)+'\n')
+          print('P6_SECOND_REAL_ORIGINAL_SQLITE_REPLAY=PASS')
+          print('ACTUAL_JRA_PRERACE_PAPER_INVESTMENT=NOT_VERIFIED')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: kyoto-p6-actual-jra-source-ledger-second-independent-audit
+          path: second_real_result_audit/
+          retention-days: 7
+          if-no-files-found: error
