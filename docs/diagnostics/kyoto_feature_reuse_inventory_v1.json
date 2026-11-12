@@ -242,12 +242,14 @@
     },
     {
       "id": "P1_JOCKEY_TRAINER_STATS",
-      "status": "DESIGNED_NOT_IMPLEMENTED",
-      "code_paths": [],
+      "status": "IMPLEMENTED_PARTIAL",
+      "code_paths": [
+        "diagnostics/inventory_jra_features.py"
+      ],
       "evidence_paths": [
         "docs/JRA_148_RUNNER_PREDICTIVE_FEATURE_COMPLETENESS_MILESTONE_20261106.md"
       ],
-      "remaining": "Discover official jockey/trainer index independently, then verify previous-only win rates and horse-jockey pair history; no approved compiled statistics feed or real lift established."
+      "remaining": "Official jockey/trainer listing endpoint discovery and keyword inventory code already exists. A genuine previous-only aggregate and jockey-horse interactions remain uncollected and unverified; do not claim this page discovery gives statistics."
     },
     {
       "id": "P1_TRACK_WEATHER",
