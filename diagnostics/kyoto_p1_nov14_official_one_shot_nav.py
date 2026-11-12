@@ -16,6 +16,10 @@ from urllib.request import Request,build_opener,HTTPRedirectHandler
 SOURCE="https://jra.jp/JRADB/accessD.html?CNAME=pw01dli00%2FF3"
 LIMIT=1_500_000
 EXPECTED_DAY="20261114"
+# JRA FAQ: ordinary unnumbered entries announced Thursday after 16:00 JST.
+# Allow an additional 15 minutes for the official site to update.
+MIN_DISCOVERY_UTC=datetime(2026,11,12,7,15,tzinfo=timezone.utc)
+MAX_DISCOVERY_UTC=datetime(2026,11,14,0,0,tzinfo=timezone.utc)
 class DiscoveryRejected(ValueError):pass
 class NoRedirect(HTTPRedirectHandler):
     def redirect_request(self,request,fp,code,msg,headers,newurl):
@@ -61,40 +65,60 @@ def strict_link_from_official(raw):
             "observed_links":links,"specific_racecard_url_verified":False,
             "smartphone_link_verified":False,"actual_prerace_odds_verified":False}
 
-def inspect_once(directory,*,opener=None,clock=None):
+def inspect_once(directory,*,opener=None,clock=None,authorized_live_http=False):
     now=clock or (lambda:datetime.now(timezone.utc))
     destination=Path(directory)
     destination.mkdir(parents=True,exist_ok=True)
     started=now()
+    if started.tzinfo is None or started.utcoffset() is None:
+        raise DiscoveryRejected("utc_clock_required")
+    started=started.astimezone(timezone.utc)
     receipt={"schema":"kyoto_jra_20261114_kyoto_navigation_one_off.v1",
              "origin":"JRA_OFFICIAL_PC_SELECTION","source_url":SOURCE,
-             "started_utc":started.isoformat(),"attempted_GET":1,
+             "started_utc":started.isoformat(),"attempted_GET":0,
              "no_repeat_polling":True,"status":"UNKNOWN_STOP",
              "current_meeting_racecards_verified":False,
              "current_prerace_market_verified":False,
              "paper_trade_authorized":False}
-    try:
-        client=opener if opener is not None else build_opener(NoRedirect())
-        request=Request(SOURCE,method="GET",
+    if started<MIN_DISCOVERY_UTC:
+        receipt["status"]="WAIT_FOR_JRA_OFFICIAL_PUBLICATION_NO_HTTP"
+        receipt["publication_gate"]="JRA_THURSDAY_16_00_JST_PLUS_15MIN"
+    elif started>=MAX_DISCOVERY_UTC:
+        receipt["status"]="STALE_MEETING_DISCOVERY_NO_HTTP"
+    elif opener is None and authorized_live_http is not True:
+        receipt["status"]="LIVE_HTTP_NOT_EXPLICITLY_AUTHORIZED"
+    else:
+        receipt["attempted_GET"]=1
+        try:
+            client=opener if opener is not None else build_opener(NoRedirect())
+            request=Request(SOURCE,method="GET",
                  headers={"User-Agent":"KyotoRaceAI-Private-ReadOnly/0.1",
                           "Accept":"text/html"})
-        with client.open(request,timeout=12) as response:
-            status=response.status
-            ct=response.headers.get("Content-Type","")
-            final=response.geturl()
-            raw=response.read(LIMIT+1)
-        if status!=200 or final!=SOURCE or "html" not in ct.lower() or not 0<len(raw)<=LIMIT:
-            raise DiscoveryRejected("unverified_original_http_response")
-        summary=strict_link_from_official(raw)
-        (destination/"official_selection.html").write_bytes(raw)
-        receipt.update(summary)
-        receipt["source_sha256"]=hashlib.sha256(raw).hexdigest()
-        receipt["source_bytes"]=len(raw)
-        receipt["completed_utc"]=now().isoformat()
-    except Exception as exc:
-        receipt["status"]="FAILED_CLOSED"
-        receipt["error_class"]=type(exc).__name__
-        receipt["completed_utc"]=now().isoformat()
+            with client.open(request,timeout=12) as response:
+                status=response.status
+                ct=response.headers.get("Content-Type","")
+                final=response.geturl()
+                raw=response.read(LIMIT+1)
+            if status!=200 or final!=SOURCE or "html" not in ct.lower() or not 0<len(raw)<=LIMIT:
+                raise DiscoveryRejected("unverified_original_http_response")
+            summary=strict_link_from_official(raw)
+            (destination/"official_selection.html").write_bytes(raw)
+            receipt.update(summary)
+            receipt["source_sha256"]=hashlib.sha256(raw).hexdigest()
+            receipt["source_bytes"]=len(raw)
+            receipt["completed_utc"]=now().isoformat()
+        except Exception as exc:
+            receipt["status"]="FAILED_CLOSED"
+            receipt["error_class"]=type(exc).__name__
+            if isinstance(exc,DiscoveryRejected):
+                category=str(exc)
+                if category in {
+                    "any_redirect_disallowed","unverified_original_http_response",
+                    "invalid_original_source","source_encoding_invalid",
+                    "unofficial_meeting_link","invalid_observed_meeting_token",
+                    "ambiguous_current_kyoto_link"}:
+                    receipt["safe_error_code"]=category
+            receipt["completed_utc"]=now().isoformat()
     (destination/"receipt.json").write_text(json.dumps(receipt,sort_keys=True,
             ensure_ascii=False,indent=2)+"\n",encoding="utf8")
     return receipt
