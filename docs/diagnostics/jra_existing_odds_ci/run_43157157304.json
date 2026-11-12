@@ -1,0 +1,14 @@
+{
+  "independent_f04_pass": false,
+  "real_jra_prerace_market_verified": false,
+  "real_pc_sp_failover_verified": false,
+  "run_id": "43157157304",
+  "schema": "jra_existing_odds_regression_ci.v1",
+  "source_commit_sha": "2c3d9aa7b2f98bb6471a10c1a3644bc7f84c0f6e",
+  "test_modules": [
+    "tests.test_jra_one_shot_market_capture",
+    "tests.test_jra_p1_failover_offline"
+  ],
+  "test_steps_completed_before_receipt": true,
+  "verification_scope": "EXISTING_P1_FB_AND_ODDS_OFFLINE_REGRESSIONS_ONLY"
+}
