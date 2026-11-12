@@ -14,6 +14,10 @@ on:
         description: 'Explicitly observe both independent channels; no cross-time market price merging'
         type: boolean
         default: false
+      auto_repair_broken_pc_link:
+        description: 'Single PC mode only: on 404/410 rediscover official racecard, verify roster, or safe-stop'
+        type: boolean
+        default: false
       channel:
         description: 'AUTO uses already-verified SP candidate benchmark; SP/PC override'
         required: true
@@ -52,6 +56,7 @@ jobs:
       OBSERVED_CHANNEL: ${{ inputs.channel }}
       HYBRID: ${{ inputs.hybrid }}
       CROSSCHECK: ${{ inputs.independent_crosscheck }}
+      REPAIR_PC: ${{ inputs.auto_repair_broken_pc_link }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -82,6 +87,10 @@ jobs:
       - name: One-shot JRA original-market diagnostic (never submit wagers)
         run: |
           if [ "$HYBRID" = "true" ]; then
+            if [ "$REPAIR_PC" = "true" ]; then
+              echo "::error title=Invalid repair mode::PC repair requires single-channel PC mode"
+              exit 1
+            fi
             CROSSCHECK_ARG=""
             if [ "$CROSSCHECK" = "true" ]; then CROSSCHECK_ARG="--independent-crosscheck"; fi
             python diagnostics/jra_one_shot_market_capture.py \
@@ -94,7 +103,16 @@ jobs:
               --authorized-live-http \
               --out jra_odds_observed_one_shot
           else
+            REPAIR_ARG=""
+            if [ "$REPAIR_PC" = "true" ]; then
+              if [ "$OBSERVED_CHANNEL" != "PC" ]; then
+                echo "::error title=Invalid repair channel::PC link repair requires PC selection"
+                exit 1
+              fi
+              REPAIR_ARG="--auto-repair-broken-pc-link"
+            fi
             python diagnostics/jra_one_shot_market_capture.py \
+              ${REPAIR_ARG:+$REPAIR_ARG} \
               --channel "$OBSERVED_CHANNEL" \
               --verified-start-utc "$OBSERVED_START" \
               --active-roster-json "$OBSERVED_ROSTER" \
@@ -102,6 +120,24 @@ jobs:
               --authorized-live-http \
               --out jra_odds_observed_one_shot
           fi
+      - name: Report link recovery status with GitHub Actions annotations
+        if: always()
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import json
+          outputs=list(Path("jra_odds_observed_one_shot").glob("**/receipt.json"))
+          for p in outputs:
+              try:
+                  alert=json.loads(p.read_text(encoding="utf8")).get("operator_alert")
+              except (OSError,ValueError):
+                  continue
+              if not isinstance(alert,dict):
+                  continue
+              severity="error" if alert.get("severity")=="ERROR" else "notice"
+              message=str(alert.get("message","JRA link status")).replace("\\n"," ")
+              print(f"::{severity} title={alert.get('code','JRA_LINK_STATUS')}::{message}")
+          PY
       - name: Existing P1 immutable three-original handoff (optional, source-only)
         if: success()
         run: |
