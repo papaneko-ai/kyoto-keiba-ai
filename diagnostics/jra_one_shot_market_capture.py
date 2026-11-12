@@ -13,7 +13,7 @@ from http.cookiejar import CookieJar
 from urllib.request import Request,build_opener,HTTPCookieProcessor,HTTPRedirectHandler
 from urllib.parse import urlsplit,urlencode
 from bs4 import BeautifulSoup
-import argparse,json,re,time
+import argparse,json,re,time,unicodedata
 from dataclasses import dataclass
 from datetime import date
 from urllib.parse import parse_qs
@@ -155,7 +155,7 @@ def verified_roster_from_snapshot(snapshot, spec, *, race_start_utc):
 
 
 
-def verify_live_racecard_roster(original,channel,spec,active_runners):
+def verify_live_racecard_roster(original,channel,spec,active_runners,expected_named_runners):
     """Verify new official racecard bytes against frozen numbered race roster.
 
     Reuses previously validated PC/SP parsers; no synthesized identifiers.
@@ -174,6 +174,19 @@ def verify_live_racecard_roster(original,channel,spec,active_runners):
     numbers=tuple((n,f) for n,f,name in parsed)
     if numbers!=tuple(active_runners):
         raise SourceChainError("official_racecard_numbered_roster_mismatch")
+    if (not isinstance(expected_named_runners,(tuple,list))
+        or len(expected_named_runners)!=len(parsed)):
+        raise SourceChainError("official_named_roster_reference_required")
+    def name_key(text):
+        if type(text) is not str or not text.strip():
+            raise SourceChainError("official_named_roster_invalid")
+        return unicodedata.normalize("NFKC",text).replace(" ","").replace("　","")
+    for idx,(number,frame,name) in enumerate(parsed):
+        expected=expected_named_runners[idx]
+        if (not isinstance(expected,(tuple,list)) or len(expected)!=3
+            or expected[0]!=number or expected[1]!=frame
+            or name_key(expected[2])!=name_key(name)):
+            raise SourceChainError("official_racecard_named_roster_mismatch")
     if channel=="SP":
         soup=BeautifulSoup(original.decode("cp932",errors="replace"),"html.parser")
         visible=soup.get_text(" ",strip=True)
@@ -271,7 +284,8 @@ def http_fetch(opener,channel,path,*,cname=None,referer=None,pacer=None):
             "captured_at_utc":received_at,"http_status":status,"method":method}
 
 def capture(out,*,channel,verified_start_utc,active_runners,now_utc=None,opener=None,
-            race_spec=None,authorized_live_http=False,pacer=None):
+            race_spec=None,authorized_live_http=False,pacer=None,
+            expected_named_runners=None):
     spec=(race_spec or DEFAULT_RACE_SPEC).validate()
     folder=Path(out);folder.mkdir(parents=True,exist_ok=True)
     start=aware_utc(verified_start_utc)
@@ -310,7 +324,7 @@ def capture(out,*,channel,verified_start_utc,active_runners,now_utc=None,opener=
         result["request_receipts"].append({"step":"racecard",**{k:v for k,v in racecard.items() if k!="raw"}})
         if authorized_live_http:
             result["current_racecard_roster_proof"]=verify_live_racecard_roster(
-                racecard["raw"],channel,spec,active_runners)
+                racecard["raw"],channel,spec,active_runners,expected_named_runners)
         token=exact_odds_action(racecard["raw"],channel)
         menu_url=f"https://{host}/JRADB/accessO.html"
         menu=http_fetch(opener,channel,menu_url,cname=token,referer=source,pacer=pacer)
@@ -392,7 +406,7 @@ def capture(out,*,channel,verified_start_utc,active_runners,now_utc=None,opener=
     return result
 def capture_hybrid(out, *, primary_channel, verified_start_utc, active_runners,
                    race_spec, authorized_live_http=False, now_utc=None,
-                   openers=None, capture_fn=None):
+                   openers=None, capture_fn=None, expected_named_runners=None):
     """Use the existing official PC/SP capturer; try other source once on error.
 
     Source-only diagnostic: never allows wagers, prediction promotion or
@@ -440,6 +454,8 @@ def capture_hybrid(out, *, primary_channel, verified_start_utc, active_runners,
                   active_runners=active_runners, race_spec=spec,
                   authorized_live_http=authorized_live_http,
                   now_utc=now_utc)
+        if capture_fn is None:
+            args["expected_named_runners"]=expected_named_runners
         if shared_pacer is not None and capture_fn is None:
             args["pacer"]=shared_pacer
         if openers is not None:
@@ -506,8 +522,10 @@ if __name__=="__main__":
           if args.race_spec_json else DEFAULT_RACE_SPEC)
     roster=json.loads(Path(args.active_roster_json).read_text(encoding="utf8"))
     rows=verified_roster_from_snapshot(roster,spec,race_start_utc=args.verified_start_utc)
+    named_rows=tuple((r["horse_number"],r["frame_number"],r["horse_name"]) for r in roster["runners"])
     runner=capture_hybrid if args.hybrid else capture
     options=dict(verified_start_utc=args.verified_start_utc,active_runners=rows,
+                 expected_named_runners=named_rows,
                  race_spec=spec,authorized_live_http=args.authorized_live_http)
     options["primary_channel" if args.hybrid else "channel"]=args.channel
     print(json.dumps(runner(args.out,**options),ensure_ascii=False,indent=2))
