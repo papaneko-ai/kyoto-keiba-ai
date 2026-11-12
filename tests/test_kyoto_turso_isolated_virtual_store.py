@@ -63,7 +63,10 @@ class FakePipeline:
                         "result":{"rows":rows,
                                   "affected_row_count":max(cursor.rowcount,0)}}})
                 conn.commit()
-            if self.fail_after_commit:
+            if self.fail_after_commit and any(
+                req["type"]=="execute" and req["stmt"]["sql"].startswith("INSERT INTO ")
+                for req in json["requests"]
+            ):
                 self.fail_after_commit=False
                 raise TimeoutError("ambiguous after server commit")
             return FakeResponse(200,{"results":out})
