@@ -1,0 +1,65 @@
+name: Kyoto F10 independent exact-rational risk certification
+on:
+  push:
+    branches: [jra-html-diagnostic-20261105]
+    paths:
+      - 'diagnostics/kyoto_f10_independent_fraction_risk_auditor.py'
+      - 'tests/test_kyoto_f10_independent_fraction_risk_auditor.py'
+      - '.github/workflows/kyoto-f10-independent-risk-certification.yml'
+permissions:
+  contents: read
+  actions: read
+jobs:
+  second-risk-verification:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Run independent rational risk auditor destructive regression
+        env:
+          PYTHONPATH: .
+        run: |
+          set -euo pipefail
+          python -m unittest -v tests.test_kyoto_f10_independent_fraction_risk_auditor
+      - name: Fetch independently-produced exact F10 original lab witness
+        env:
+          GH_TOKEN: \${{ github.token }}
+        run: |
+          set -euo pipefail
+          curl --fail --location --silent --show-error --retry 0 --max-time 30 \
+            -H "Authorization: Bearer \${GH_TOKEN}" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/papaneko-ai/kyoto-keiba-ai/actions/artifacts/13907422713/zip" \
+            -o f10_original_lab_witness.zip
+      - name: Independently recompute complete F10 risk positions, expenses and loss caps
+        env:
+          PYTHONPATH: .
+        run: |
+          python - <<'PY'
+          import json,hashlib,zipfile,os
+          from pathlib import Path
+          from diagnostics.kyoto_f10_independent_fraction_risk_auditor import verify
+          with zipfile.ZipFile('f10_original_lab_witness.zip') as z:
+              assert z.namelist()==['F10_lab_risk_evidence.json'],z.namelist()
+              witness=json.loads(z.read('F10_lab_risk_evidence.json'))
+          rubric=Path('docs/diagnostics/kyoto_final_completion_criteria_v1.json').read_bytes()
+          evidence=verify(witness,rubric)
+          evidence['second_ci_run_id']=int(os.environ['GITHUB_RUN_ID'])
+          evidence['second_ci_head_sha']=os.environ['GITHUB_SHA']
+          evidence['first_zip_sha256']=hashlib.sha256(Path('f10_original_lab_witness.zip').read_bytes()).hexdigest()
+          out=Path('f10_independent_risk_acceptance')
+          out.mkdir()
+          (out/'F10_independent_audit.json').write_text(json.dumps(
+              evidence,ensure_ascii=False,sort_keys=True,indent=2)+'\n')
+          print('F10_INDEPENDENT_FRACTION_MATH_AND_EXPOSURE_CHECK_PASS=TRUE')
+          print('REAL_RACING_OR_CALIBRATED_PROBABILITY_VERIFIED=FALSE')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: kyoto-F10-second-independent-risk-audit
+          path: f10_independent_risk_acceptance/
+          retention-days: 7
+          if-no-files-found: error
