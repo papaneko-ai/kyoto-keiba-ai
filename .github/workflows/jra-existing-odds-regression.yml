@@ -11,7 +11,7 @@ on:
       - .github/workflows/jra-existing-odds-regression.yml
   workflow_dispatch:
 permissions:
-  contents: write
+  contents: read
 jobs:
   offline-only:
     runs-on: ubuntu-latest
@@ -37,15 +37,15 @@ jobs:
           echo "FIXED_F04_ACCEPTANCE=NOT_VERIFIED"
           echo "REAL_HTTP_REQUESTS_IN_THIS_WORKFLOW=0"
 
-      - name: Record auditable offline CI source and run ID on development branch
-        if: success() && github.event_name == 'push'
+      - name: Generate immutable-run offline evidence receipt (no Git push)
+        if: success()
         run: |
-          mkdir -p docs/diagnostics/jra_existing_odds_ci
+          mkdir -p /tmp/kyoto_offline_odds_ci
           python - <<'PY'
           import json,os
           from pathlib import Path
           record={
-            "schema":"jra_existing_odds_regression_ci.v1",
+            "schema":"jra_existing_odds_regression_ci.v2",
             "run_id":os.environ["GITHUB_RUN_ID"],
             "source_commit_sha":os.environ["GITHUB_SHA"],
             "verification_scope":"EXISTING_P1_FB_AND_ODDS_OFFLINE_REGRESSIONS_ONLY",
@@ -54,15 +54,18 @@ jobs:
             "test_steps_completed_before_receipt":True,
             "real_jra_prerace_market_verified":False,
             "real_pc_sp_failover_verified":False,
-            "independent_f04_pass":False
+            "independent_f04_pass":False,
+            "repository_mutated":False
           }
-          target=Path("docs/diagnostics/jra_existing_odds_ci")/("run_"+os.environ["GITHUB_RUN_ID"]+".json")
-          if target.exists(): raise SystemExit("receipt already exists")
-          target.write_text(json.dumps(record,indent=2,sort_keys=True)+"\n",encoding="utf8")
+          target=Path("/tmp/kyoto_offline_odds_ci")/("run_"+os.environ["GITHUB_RUN_ID"]+".json")
+          with target.open("x",encoding="utf8") as output:
+              output.write(json.dumps(record,indent=2,sort_keys=True)+"\n")
           PY
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add docs/diagnostics/jra_existing_odds_ci/
-          git commit -m "Record offline PC-SP source-complement CI run ${GITHUB_RUN_ID}"
-          git pull --rebase origin jra-html-diagnostic-20261105
-          git push origin HEAD:jra-html-diagnostic-20261105
+      - name: Upload same-run evidence without changing development HEAD
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: kyoto-offline-odds-ci-${{ github.run_id }}
+          path: /tmp/kyoto_offline_odds_ci/
+          if-no-files-found: error
+          retention-days: 30
