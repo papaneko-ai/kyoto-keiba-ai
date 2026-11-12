@@ -7,6 +7,7 @@ It reuses the exact existing strict P1 validator; an immutable single archive
 can be moved to an authorized operational verifier without data loss.
 """
 from __future__ import annotations
+import argparse
 import hashlib
 import io
 import json
@@ -241,3 +242,42 @@ def save_immutable_archive(path,data):
     except FileExistsError as exc:
         raise MarketHandoffRejected("archive_already_exists") from exc
     return hashlib.sha256(data).hexdigest()
+
+
+def main(argv=None):
+    """Offline source-only handoff. Does not authenticate origin or make bets."""
+    p=argparse.ArgumentParser(description=__doc__)
+    p.add_argument("--capture-directory",required=True,type=Path)
+    p.add_argument("--snapshot",required=True,type=Path)
+    p.add_argument("--observed-utc",required=True)
+    p.add_argument("--output-archive",required=True,type=Path)
+    a=p.parse_args(argv)
+    if a.snapshot.is_symlink() or not a.snapshot.is_file():
+        raise MarketHandoffRejected("snapshot_file_unavailable")
+    if a.output_archive.exists() or a.output_archive.is_symlink():
+        raise MarketHandoffRejected("immutable_archive_must_be_new")
+    snapshot=json.loads(a.snapshot.read_text(encoding="utf-8"))
+    result=package_saved_observed_market_capture(
+        capture_directory=a.capture_directory,snapshot=snapshot,
+        observed_utc=a.observed_utc)
+    digest=hashlib.sha256(result["archive_bytes"]).hexdigest()
+    replay=verify_prerace_handoff_archive(result["archive_bytes"],
+        expected_sha256=digest,observed_utc=a.observed_utc,
+        channel=result["receipt"]["channel"])
+    if not replay["all_three_content_verified"] or replay["official_origin_authenticated"]:
+        raise MarketHandoffRejected("unauthenticated_handoff_replay_blocked")
+    saved=save_immutable_archive(a.output_archive,result["archive_bytes"])
+    print(json.dumps({
+        "classification":"OFFLINE_THREE_ORIGINALS_CONTENT_VERIFIED_ONLY",
+        "archive_sha256":saved,
+        "capture_receipt_sha256":result["capture_receipt_sha256"],
+        "prediction_ready":False,
+        "real_paper_trade_authorized":False,
+        "network_requests":0
+    },sort_keys=True))
+    return {"archive_sha256":saved,"capture_receipt_sha256":result["capture_receipt_sha256"],
+            "prediction_ready":False,"network_requests":0}
+
+
+if __name__=="__main__":
+    main()
