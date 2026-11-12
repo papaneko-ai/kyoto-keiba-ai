@@ -184,6 +184,34 @@ def package_saved_observed_market_capture(*,capture_directory,snapshot,observed_
         "pre_race_odds":("quinella","quinella_original.html"),
         "bracket_odds":("bracket_quinella","bracket_quinella_original.html"),
     }
+    # The canonical observed JRA odds navigation parser is the only authority
+    # for which market POST action token was actually present on saved HTML.
+    from diagnostics.jra_official_market_navigation import (
+        find_market_links,MarketNavigationError)
+    menu_items=[x for x in request_receipts if isinstance(x,dict) and
+                x.get("step") in ("odds_menu","odds_navigation_1","odds_navigation_2")]
+    if not menu_items or len({x["step"] for x in menu_items})!=len(menu_items):
+        raise MarketHandoffRejected("saved_market_menu_chain_missing_or_duplicate")
+    chosen_menu=menu_items[-1]
+    menu_file={"odds_menu":"official_odds_menu.html",
+               "odds_navigation_1":"official_odds_navigation_1.html",
+               "odds_navigation_2":"official_odds_navigation_2.html"}[chosen_menu["step"]]
+    menu_path=root/menu_file
+    if menu_path.is_symlink() or not menu_path.is_file():
+        raise MarketHandoffRejected("observed_market_menu_original_missing")
+    menu_raw=menu_path.read_bytes()
+    if (chosen_menu.get("sha256")!=hashlib.sha256(menu_raw).hexdigest()
+        or chosen_menu.get("bytes")!=len(menu_raw)):
+        raise MarketHandoffRejected("observed_market_menu_digest_mismatch")
+    try:
+        links=find_market_links(menu_raw,
+            expected_race_day=snapshot["meeting_date"].replace("-",""),
+            expected_race_number=snapshot["race"],
+            expected_host=("jra.jp" if channel=="PC" else "sp.jra.jp"))
+    except (ValueError,KeyError,TypeError,MarketNavigationError) as exc:
+        raise MarketHandoffRejected("canonical_market_navigation_rejected:"+str(exc)) from exc
+    if links["source_final_odds_detected"]:
+        raise MarketHandoffRejected("observed_final_market_forbidden")
     selected={}
     for kind,(step,filename) in mapping.items():
         matches=[x for x in request_receipts
@@ -216,6 +244,10 @@ def package_saved_observed_market_capture(*,capture_directory,snapshot,observed_
             if type(token) is not str or not re.fullmatch(
                     ("pw" if channel=="PC" else "sw")+r"[A-Za-z0-9]+/[A-Za-z0-9]+",token):
                 raise MarketHandoffRejected("source_action_token_missing:"+step)
+            expected_market="quinella" if kind=="pre_race_odds" else "bracket_quinella"
+            actual_link=links["markets"][expected_market]
+            if (actual_link["cname"]!=token or actual_link["official_post_url"]!=source_url):
+                raise MarketHandoffRejected("observed_market_action_not_in_saved_menu:"+step)
             wire=urlencode({"cname":token}).encode("ascii")
             if (item.get("post_body_sha256")!=hashlib.sha256(wire).hexdigest()
                 or item.get("post_body_size")!=len(wire)):
