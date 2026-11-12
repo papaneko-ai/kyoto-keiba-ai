@@ -26,11 +26,11 @@ jobs:
           python -m unittest -v tests.test_kyoto_f07_independent_fraction_auditor
       - name: Fetch pinned original CI evidence (original run status separately independently checked)
         env:
-          GH_TOKEN: \${{ github.token }}
+          GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
           curl --fail --location --silent --show-error --retry 0 --max-time 30 \
-            -H "Authorization: Bearer \${GH_TOKEN}" \
+            -H "Authorization: Bearer ${GH_TOKEN}" \
             -H "Accept: application/vnd.github+json" \
             "https://api.github.com/repos/papaneko-ai/kyoto-keiba-ai/actions/artifacts/13905124378/zip" \
             -o first_independent_witness.zip
