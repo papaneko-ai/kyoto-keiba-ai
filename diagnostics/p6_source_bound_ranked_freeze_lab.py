@@ -15,6 +15,7 @@ from pathlib import Path
 from diagnostics.p4_source_bound_model_ev_research import compare_source_market_to_frozen_model, _utc
 from diagnostics.p5_source_bound_race_ranking_lab import rank_lab_research_races
 from diagnostics.p5_bounded_risk_capital_lab import research_capital_control,CapitalRiskRejected
+from diagnostics.kyoto_f12_ticket_budget_planner import plan_f12,F12Rejected
 from diagnostics.p3_p6_research_no_bet import quinella_from_strength,bracket_from_quinella
 from diagnostics.p6_virtual_settlement_fixture_lab import freeze_fixture
 from diagnostics.p6_fixture_durable_ledger import append_record,read_journal
@@ -27,7 +28,8 @@ def digest(value):
 
 def freeze_ranked_research_day(*,day_inputs, ranking, destination,
                                commit_utc, stake_per_ticket_yen=100,
-                               capital_receipt=None,capital_policy=None):
+                               capital_receipt=None,capital_policy=None,
+                               f12_receipt=None,f12_inputs=None):
     """day_inputs: list of P4 argument dictionaries, no real/network IO.
 
     Preflight compares P4 receipts and recalculates P5 with the exact displayed
@@ -66,6 +68,10 @@ def freeze_ranked_research_day(*,day_inputs, ranking, destination,
         raise FrozenRankingRejected("p5_ranking_recomputed_receipt_mismatch")
     if len({k[0] for k in records})!=1:
         raise FrozenRankingRejected("mixed_racing_days_forbidden")
+    if (f12_receipt is None)!=(f12_inputs is None):
+        raise FrozenRankingRejected("f12_plan_and_inputs_both_required")
+    if f12_receipt is not None and (capital_receipt is not None or capital_policy is not None):
+        raise FrozenRankingRejected("f12_and_capital_modes_mutually_exclusive")
     if (capital_receipt is None)!=(capital_policy is None):
         raise FrozenRankingRejected("capital_receipt_and_policy_both_required")
     selected_rows=ranking["selected"]
@@ -108,6 +114,72 @@ def freeze_ranked_research_day(*,day_inputs, ranking, destination,
         if sum(t["stake_yen"] for row in selected_rows for t in row["tickets"])!=chosen_spend:
             raise FrozenRankingRejected("capital_budget_reconciliation_failed")
         capital_sha=recomputed["capital_sha256"]
+    f12_sha=None
+    if f12_receipt is not None:
+        if type(f12_inputs) is not dict or type(f12_receipt) is not dict:
+            raise FrozenRankingRejected("f12_input_schema_invalid")
+        expected_fields={"day_budget_yen","exposure_target_yen","market","mode",
+                         "candidates","selected_races","manual_race_amounts","concentrate"}
+        if set(f12_inputs)!=expected_fields:
+            raise FrozenRankingRejected("f12_complete_inputs_required")
+        # The F12 standalone allocator is independent of odds/forecasts.
+        # It can only be used here for already-ranked, source-bound pairs.
+        allowed_ranked={row["race"]:row for row in ranking["selected"]}
+        if (f12_inputs["market"]!=ranking["ticket_type"]
+            or f12_inputs["day_budget_yen"]!=ranking["daily_budget_ceiling_yen"]
+            or type(f12_inputs["candidates"]) is not list
+            or len(f12_inputs["candidates"])!=len(allowed_ranked)):
+            raise FrozenRankingRejected("f12_ranking_identity_conflict")
+        seen_candidates=set()
+        for candidate in f12_inputs["candidates"]:
+            if type(candidate) is not dict:
+                raise FrozenRankingRejected("f12_candidate_invalid")
+            race=candidate.get("race")
+            ranked=allowed_ranked.get(race)
+            if (ranked is None or race in seen_candidates
+                or candidate.get("priority")!=ranked["rank"]
+                or candidate.get("ticket_type")!=ranking["ticket_type"]
+                or candidate.get("eligible") is not True
+                or type(candidate.get("tickets")) is not list
+                or not candidate["tickets"]):
+                raise FrozenRankingRejected("f12_candidate_not_source_ranked")
+            permitted={tuple(t["pair"]) for t in ranked["tickets"]}
+            offered=[t.get("pair") for t in candidate["tickets"] if type(t) is dict]
+            if (len(offered)!=len(candidate["tickets"])
+                or any(type(pair) is not list or tuple(pair) not in permitted
+                       for pair in offered)):
+                raise FrozenRankingRejected("f12_ticket_not_source_ranked")
+            seen_candidates.add(race)
+        if seen_candidates!=set(allowed_ranked):
+            raise FrozenRankingRejected("f12_missing_ranked_candidate")
+        try:
+            expected_f12=plan_f12(**f12_inputs)
+        except (F12Rejected,ValueError,TypeError,KeyError) as exc:
+            raise FrozenRankingRejected("f12_plan_validation_failed") from exc
+        if expected_f12!=f12_receipt:
+            raise FrozenRankingRejected("f12_recomputed_receipt_mismatch")
+        if (f12_receipt["scope"]!="OFFLINE_MANUAL_OR_AUTO_PLANNING_NOT_A_BET"
+            or f12_receipt["real_source_verified"] is not False
+            or f12_receipt["model_calibrated"] is not False
+            or f12_receipt["real_purchase_authorized"] is not False):
+            raise FrozenRankingRejected("f12_false_live_claim")
+        selected_rows=[]
+        for chosen in f12_receipt["selected"]:
+            ranked=allowed_ranked.get(chosen["race"])
+            if ranked is None or chosen["priority"]!=ranked["rank"]:
+                raise FrozenRankingRejected("f12_race_selection_conflict")
+            permitted={tuple(t["pair"]) for t in ranked["tickets"]}
+            tickets=[{"pair":t["pair"],"stake_yen":t["stake_yen"]}
+                     for t in chosen["tickets"] if t["stake_yen"]>0]
+            if any(tuple(t["pair"]) not in permitted for t in tickets):
+                raise FrozenRankingRejected("f12_frozen_pair_not_ranked")
+            if tickets:
+                selected_rows.append({**ranked,"tickets":tickets,
+                                      "research_stake_yen":sum(t["stake_yen"] for t in tickets)})
+        chosen_spend=f12_receipt["spent_yen"]
+        if sum(t["stake_yen"] for row in selected_rows for t in row["tickets"])!=chosen_spend:
+            raise FrozenRankingRejected("f12_stake_reconciliation_failed")
+        f12_sha=f12_receipt["plan_sha256"]
     commits=[]
     for selected in selected_rows:
         key=(selected["race_date"],selected["race"])
@@ -135,6 +207,9 @@ def freeze_ranked_research_day(*,day_inputs, ranking, destination,
         if capital_sha is not None:
             source_basis["capital_receipt_sha256"]=capital_sha
             source_basis["capital_policy_sha256"]=digest(capital_policy)
+        if f12_sha is not None:
+            source_basis["f12_receipt_sha256"]=f12_sha
+            source_basis["f12_inputs_sha256"]=digest(f12_inputs)
         source_hash=digest(source_basis)
         frozen=freeze_fixture(scenario_id=scenario,ticket_type=ranking["ticket_type"],
               cutoff_utc=snap["prediction_cutoff_utc"],frozen_utc=commit_utc,
@@ -172,6 +247,14 @@ def freeze_ranked_research_day(*,day_inputs, ranking, destination,
             body["allocation_source"]="P5_RECOMPUTED_BOUNDED_RISK_CAPITAL"
             body["capital_receipt_sha256"]=capital_sha
             body["capital_policy_sha256"]=digest(capital_policy)
+            body["not_real_risk_calibration"]=True
+        if f12_sha is not None:
+            body["allocation_source"]="F12_RECOMPUTED_USER_SELECTION"
+            body["f12_receipt_sha256"]=f12_sha
+            body["f12_inputs_sha256"]=digest(f12_inputs)
+            body["f12_mode"]=f12_receipt["mode"]
+            body["user_selected_races"]=f12_receipt["user_selected_races"]
+            body["f12_exposure_target_yen"]=f12_receipt["exposure_target_yen"]
             body["not_real_risk_calibration"]=True
         receipt={**body,"receipt_sha256":digest(body)}
         (stage/"manifest.json").write_text(json.dumps(receipt,ensure_ascii=False,sort_keys=True,
