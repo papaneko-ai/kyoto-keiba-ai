@@ -13,7 +13,7 @@ from http.cookiejar import CookieJar
 from urllib.request import Request,build_opener,HTTPCookieProcessor,HTTPRedirectHandler
 from urllib.parse import urlsplit,urlencode
 from bs4 import BeautifulSoup
-import argparse,json,re
+import argparse,json,re,time
 from dataclasses import dataclass
 from datetime import date
 from urllib.parse import parse_qs
@@ -32,6 +32,27 @@ SP_RACECARD_URL="https://sp.jra.jp/JRADB/accessD.html?CNAME=sw01dde0108202605011
 MOBILE_UA="Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 Version/17.0 Mobile/15E148 Safari/604.1"
 ACTION=re.compile(r"doAction\s*\(\s*['\"](/JRADB/accessO\.html)['\"]\s*,\s*['\"]([^'\"]+)['\"]")
 LIMIT=1_500_000
+
+class RequestPacer:
+    """Rate limit requests within this one-shot, including PC/SP fallback.
+
+    This does not claim global deduplication across separately running
+    hosts; the offline cross-process registry is a distinct existing gate.
+    """
+    def __init__(self,*,min_gap_seconds=2.0,clock=None,sleep=None):
+        self.clock=clock if clock is not None else time.monotonic
+        self.sleep=sleep if sleep is not None else time.sleep
+        if min_gap_seconds<2:
+            raise SourceChainError("jra_request_gap_under_two_seconds")
+        self.gap=min_gap_seconds
+        self.last=None
+    def before_request(self):
+        current=self.clock()
+        if self.last is not None:
+            remaining=self.gap-(current-self.last)
+            if remaining>0:
+                self.sleep(remaining)
+        self.last=self.clock()
 
 class NoRedirect(HTTPRedirectHandler):
     def redirect_request(self, request, fp, code, msg, headers, newurl):
@@ -189,7 +210,7 @@ def observed_next_market_action(raw, channel, spec, *, step):
         raise SourceChainError("observed_market_navigation_link_missing_or_ambiguous")
     return next(iter(candidates))
 
-def http_fetch(opener,channel,path,*,cname=None,referer=None):
+def http_fetch(opener,channel,path,*,cname=None,referer=None,pacer=None):
     host="jra.jp" if channel=="PC" else "sp.jra.jp"
     u=urlsplit(path)
     if (u.scheme!="https" or u.hostname!=host or u.port is not None
@@ -203,6 +224,7 @@ def http_fetch(opener,channel,path,*,cname=None,referer=None):
     if cname is not None:headers["Content-Type"]="application/x-www-form-urlencoded"
     request=Request(path,data=None if cname is None else urlencode({"cname":cname}).encode("ascii"),
                     headers=headers,method=method)
+    if pacer is not None:pacer.before_request()
     with opener.open(request,timeout=20) as response:
         data=response.read(LIMIT+1);status=response.status
         ct=response.headers.get("Content-Type","")
@@ -216,7 +238,7 @@ def http_fetch(opener,channel,path,*,cname=None,referer=None):
             "captured_at_utc":received_at,"http_status":status,"method":method}
 
 def capture(out,*,channel,verified_start_utc,active_runners,now_utc=None,opener=None,
-            race_spec=None,authorized_live_http=False):
+            race_spec=None,authorized_live_http=False,pacer=None):
     spec=(race_spec or DEFAULT_RACE_SPEC).validate()
     folder=Path(out);folder.mkdir(parents=True,exist_ok=True)
     start=aware_utc(verified_start_utc)
@@ -245,15 +267,16 @@ def capture(out,*,channel,verified_start_utc,active_runners,now_utc=None,opener=
             (folder/"receipt.json").write_text(json.dumps(result,ensure_ascii=False,indent=2)+"\n",encoding="utf8")
             return result
         opener=build_opener(NoRedirect(),HTTPCookieProcessor(CookieJar()))
+        if pacer is None:pacer=RequestPacer()
     source=spec.pc_racecard_url if channel=="PC" else spec.sp_racecard_url
     host="jra.jp" if channel=="PC" else "sp.jra.jp"
     try:
-        racecard=http_fetch(opener,channel,source)
+        racecard=http_fetch(opener,channel,source,pacer=pacer)
         (folder/"official_racecard.html").write_bytes(racecard["raw"])
         result["request_receipts"].append({"step":"racecard",**{k:v for k,v in racecard.items() if k!="raw"}})
         token=exact_odds_action(racecard["raw"],channel)
         menu_url=f"https://{host}/JRADB/accessO.html"
-        menu=http_fetch(opener,channel,menu_url,cname=token,referer=source)
+        menu=http_fetch(opener,channel,menu_url,cname=token,referer=source,pacer=pacer)
         (folder/"official_odds_menu.html").write_bytes(menu["raw"])
         result["request_receipts"].append({"step":"odds_menu",**{k:v for k,v in menu.items() if k!="raw"}})
         text=BeautifulSoup(menu["raw"].decode("cp932",errors="replace"),"html.parser").get_text(" ",strip=True)
@@ -288,7 +311,7 @@ def capture(out,*,channel,verified_start_utc,active_runners,now_utc=None,opener=
                 seen_tokens.add(next_token)
                 if datetime.now(timezone.utc)>=start-timedelta(minutes=10):
                     raise SourceChainError("cutoff_reached_during_navigation")
-                menu=http_fetch(opener,channel,menu_url,cname=next_token,referer=menu_url)
+                menu=http_fetch(opener,channel,menu_url,cname=next_token,referer=menu_url,pacer=pacer)
                 (folder/f"official_odds_navigation_{navigation_step+1}.html").write_bytes(menu["raw"])
                 result["request_receipts"].append({
                     "step":f"odds_navigation_{navigation_step+1}",
@@ -308,7 +331,7 @@ def capture(out,*,channel,verified_start_utc,active_runners,now_utc=None,opener=
             url=record["official_post_url"]
             if datetime.now(timezone.utc)>=start-timedelta(minutes=10):
                 raise SourceChainError("cutoff_reached_during_acquisition")
-            page=http_fetch(opener,channel,url,cname=link,referer=menu_url)
+            page=http_fetch(opener,channel,url,cname=link,referer=menu_url,pacer=pacer)
             market_originals[market]=page["raw"]
             urls[market]=url
             times[market]=page["captured_at_utc"]
@@ -372,6 +395,7 @@ def capture_hybrid(out, *, primary_channel, verified_start_utc, active_runners,
         raise SourceChainError("hybrid_run_directory_not_empty")
     folder.mkdir(parents=True, exist_ok=True)
     runner=capture_fn or capture
+    shared_pacer=RequestPacer() if openers is None and authorized_live_http else None
     outcomes=[]
     def one(channel):
         channel_dir=folder / channel.lower()
@@ -379,6 +403,8 @@ def capture_hybrid(out, *, primary_channel, verified_start_utc, active_runners,
                   active_runners=active_runners, race_spec=spec,
                   authorized_live_http=authorized_live_http,
                   now_utc=now_utc)
+        if shared_pacer is not None and capture_fn is None:
+            args["pacer"]=shared_pacer
         if openers is not None:
             args["opener"]=openers.get(channel)
         try:
