@@ -1,0 +1,70 @@
+{
+  "schema": "kyoto_20261112_market_navigation_and_current_roster_checkpoint.v1",
+  "date": "2026-11-12",
+  "type": "implementation_checkpoint_not_final_acceptance",
+  "prior_source_reuse": [
+    "diagnostics/jra_one_shot_market_capture.py",
+    "diagnostics/jra_official_market_navigation.py",
+    "diagnostics/jra_market_source_chain.py",
+    "diagnostics/jra_odds_matrix_parser.py",
+    "diagnostics/jra_source_router.py",
+    "diagnostics/jra_benchmark_acceptance.py",
+    "diagnostics/jra_p1_failover_offline.py"
+  ],
+  "completed_changes": [
+    "Two additional bounded, individually observed action hops from odds meeting selection toward specific race market, no guessed CNAME",
+    "Persist original HTML and separate UTC/SHA request receipt after each observed odds navigation hop",
+    "Reject ambiguous date/venue/race-specific links and avoid footer-only race identity",
+    "Existing guarded PC-SP hybrid can use measured SP priority candidate; no automatic production rollout",
+    "Reject stale Nov7 roster, mismatched meeting or race, missing source SHA and late/tampered runners before new-date odds diagnostic",
+    "Preserve unchanged 20-gate rubric and production isolation"
+  ],
+  "evidence": {
+    "source_commit": "0317269b3daf39309803950630dbbc654db31759",
+    "offline_workflow_run": 43155714522,
+    "workflow_job_id": 130975046779,
+    "workflow_conclusion": "success",
+    "test_counts": {
+      "existing_odds_capture_and_navigation": 56,
+      "existing_p1_fb_source_reconciliation": 25,
+      "total": 81
+    },
+    "github_actions_url": "https://github.com/papaneko-ai/kyoto-keiba-ai/actions/runs/43155714522",
+    "github_receipt": "docs/diagnostics/jra_existing_odds_ci/run_43155714522.json",
+    "source_benchmark": "docs/diagnostics/pc_sp_benchmark_20261106/benchmark_report.json",
+    "pc_sp_historical_samples": {
+      "races": 5,
+      "runners": 61,
+      "sp_bytes_reduction_pct": 35.4,
+      "sp_capture_parse_gain_pct": 17.4
+    }
+  },
+  "not_verified": [
+    "2026-11-14 real official PC/SP race-specific odds navigation (HTML is not yet saved/verified)",
+    "Actual before-start quinella and bracket quinella original odds bytes and official sale state",
+    "Automatic capture at valid legal time and final race cutoff with shared global dedupe across hosts",
+    "Actual timed same-market PC/SP comparative source and current late scratches",
+    "Live paper trade and final official outcome connection"
+  ],
+  "planned_actual_capture_conditions": [
+    "Independently observed actual PC/SP URLs and fresh numbered roster from the same Nov14 race",
+    "Actual JRA prices after publication, not synthetic market fixture",
+    "Original source bytes+UTC+SHA and response headers before offline market proof",
+    "No permission/identity/budget/cutoff violation",
+    "Only after independent proof can F04 be reviewed; no automatic scoring"
+  ],
+  "fixed_metrics": {
+    "research": "32/32",
+    "graduation": "12/12",
+    "families": "21/21",
+    "real_live": "0/6",
+    "operational": "0/100",
+    "final_20_gate": "35/100"
+  },
+  "source_security": {
+    "real_http_in_ci": 0,
+    "production_main_modified": false,
+    "production_turso_modified": false,
+    "real_wagers": false
+  }
+}
