@@ -1,0 +1,78 @@
+name: Kyoto P6 real archived JRA results immutable source ledger integration
+on:
+  push:
+    branches: [jra-html-diagnostic-20261105]
+    paths:
+      - diagnostics/kyoto_p6_actual_official_final_registry.py
+      - tests/test_kyoto_p6_actual_official_final_registry.py
+      - .github/workflows/kyoto-p6-real-jra-postrace-immutable-registry.yml
+permissions:
+  contents: read
+  actions: read
+jobs:
+  real-original-to-durable-journal:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: HTML parser dependency
+        run: python -m pip install 'beautifulsoup4>=4.12,<5'
+      - name: Retrieve pinned JRA original capture and verify original ZIP bytes
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          curl --fail --location --silent --show-error --max-time 35 --retry 0 \
+            -H "Authorization: Bearer ${GH_TOKEN}" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/papaneko-ai/kyoto-keiba-ai/actions/artifacts/13904353071/zip" \
+            -o original_official_postrace.zip
+          python - <<'PY'
+          import hashlib
+          from pathlib import Path
+          assert hashlib.sha256(Path('original_official_postrace.zip').read_bytes()).hexdigest()=='dad5f93f72b3b993ab96ef1a053561d60a84ad3c868b4d3b4f4b2dc72bb9f004'
+          print('REAL_JRA_ORIGINAL_BYTES_PINNED=TRUE')
+          PY
+      - name: 16 real-source immutable registry safety and replay tests
+        env:
+          PYTHONPATH: .
+          KYOTO_ACTUAL_2DAY_ORIGINAL_ARCHIVE: original_official_postrace.zip
+        run: |
+          set -euo pipefail
+          python -m unittest -v tests.test_kyoto_p6_actual_official_final_registry
+      - name: Create official source-only append-only journal and check restart
+        env:
+          PYTHONPATH: .
+        run: |
+          python - <<'PY'
+          import hashlib,json,os,sqlite3
+          from pathlib import Path
+          from diagnostics.kyoto_p6_actual_official_final_registry import register_actual_final_sources,replay_official_sources
+          o=Path('official_source_registry_witness');o.mkdir()
+          db=o/'official_final_only.sqlite'
+          raw=Path('original_official_postrace.zip').read_bytes()
+          a=register_actual_final_sources(db,raw,observed_at_utc='2026-11-12T02:20:30Z')
+          assert a['new_final_sources']==2
+          b=replay_official_sources(db)
+          assert b['count']==2 and not b['pre_race_investment_or_profit_proven']
+          with sqlite3.connect(db) as c:c.execute('PRAGMA wal_checkpoint(TRUNCATE)')
+          receipt={'schema':'kyoto_two_real_jra_final_only_registry_evidence.v1',
+              'ci_run_id':os.environ['GITHUB_RUN_ID'],
+              'ci_sha':os.environ['GITHUB_SHA'],
+              'registry_sha256':hashlib.sha256(db.read_bytes()).hexdigest(),
+              'source_archive_sha256':hashlib.sha256(raw).hexdigest(),
+              'append':a,'replay':b,'synthetic_bets_inserted':False,
+              'prerace_market_verified':False,'live_actual_settlement_operational':False}
+          (o/'receipt.json').write_text(json.dumps(receipt,ensure_ascii=False,sort_keys=True,indent=2)+'\n')
+          print('ACTUAL_JRA_FINAL_SOURCE_REGISTRY_TWO_RACES=PASS')
+          print('BACKDATED_VIRTUAL_PROFIT_OR_PRE_RACE_ODDS=NONE')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: kyoto-p6-two-actual-jra-final-sources-immutable-journal
+          path: official_source_registry_witness/
+          retention-days: 7
+          if-no-files-found: error
