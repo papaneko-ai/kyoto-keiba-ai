@@ -22,7 +22,9 @@ jobs:
       - name: Test JRA official meeting link no-guessing and no-polling safeguards
         env:
           PYTHONPATH: .
-        run: python -m unittest -v tests.test_kyoto_p1_nov14_official_one_shot_nav
+        run: |
+          python -m unittest -v tests.test_kyoto_p1_nov14_official_one_shot_nav
+          python -m unittest -v tests.test_kyoto_p1_nov14_receipt_handoff
       - name: ONE limited official JRA GET only for Nov14 Kyoto meeting link
         env:
           PYTHONPATH: .
@@ -36,6 +38,15 @@ jobs:
           print('NO_ODDS_OR_AUTOMATED_BETS=TRUE')
           print('ORIGINAL_SOURCE_BYTES_VALIDATED='+str(bool(r.get('source_sha256'))))
           PY
+      - name: Independently bind original official selection receipt to next observed meeting URL
+        env:
+          PYTHONPATH: .
+        run: |
+          python -m diagnostics.kyoto_p1_nov14_receipt_handoff \
+            --source-directory jra_nov14_official_one_off \
+            --out jra_nov14_official_one_off/verified_meeting_handoff.json
+          echo "NEXT_STAGE=OBSERVED_MEETING_ONLY_NEVER_GUESSED_RACECARD"
+          echo "PRE_RACE_MARKETS_NOT_VERIFIED=TRUE"
       - name: Retain official original HTML and UTC SHA receipt with 30-day bounded artifact
         if: always()
         uses: actions/upload-artifact@v4
