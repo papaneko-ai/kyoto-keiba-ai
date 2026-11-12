@@ -550,4 +550,50 @@ class CanonicalRacecardReuseTests(unittest.TestCase):
   self.assertEqual(result["state"],"CAPTURE_BLOCKED")
   self.assertEqual(len(stub.requests),1)
   self.assertFalse(result["pre_race_prices_accepted"])
+class ExplicitDualSourceObservationTests(unittest.TestCase):
+ def spec(self):
+  from diagnostics.jra_one_shot_market_capture import DEFAULT_RACE_SPEC
+  return DEFAULT_RACE_SPEC
+ def run_check(self,states):
+  from diagnostics.jra_one_shot_market_capture import capture_hybrid
+  calls=[]
+  def runner(out,**kwargs):
+   channel=kwargs["channel"]
+   calls.append(channel)
+   state=states[channel]
+   return {"race_id":self.spec().race_id,"channel":channel,"state":state,
+           "pre_race_prices_accepted":state=="SOURCE_FROZEN"}
+  with tempfile.TemporaryDirectory() as d:
+   result=capture_hybrid(d,primary_channel="SP",race_spec=self.spec(),
+      verified_start_utc="2026-11-07T06:45:00Z",
+      active_runners=((1,1),(2,2)),capture_fn=runner,
+      independent_crosscheck=True)
+  return result,calls
+ def test_independent_crosscheck_observes_both_original_channels(self):
+  r,calls=self.run_check({"SP":"SOURCE_FROZEN","PC":"SOURCE_FROZEN"})
+  self.assertEqual(calls,["SP","PC"])
+  self.assertTrue(r["dual_independent_source_originals"])
+  self.assertEqual(r["selected_channel"],"SP")
+  self.assertEqual(r["state"],"DUAL_SOURCES_CAPTURED_PRICE_PARITY_UNVERIFIED")
+  self.assertFalse(r["market_value_parity_verified"])
+  self.assertFalse(r["cross_time_odds_comparison_authorized"])
+  self.assertFalse(r["prediction_ready"])
+ def test_secondary_failure_does_not_hide_original_incident(self):
+  r,calls=self.run_check({"SP":"SOURCE_FROZEN","PC":"CAPTURE_BLOCKED"})
+  self.assertEqual(calls,["SP","PC"])
+  self.assertFalse(r["dual_independent_source_originals"])
+  self.assertEqual(r["attempts"][1]["state"],"CAPTURE_BLOCKED")
+  self.assertEqual(r["state"],"SOURCE_ONLY_PRIMARY")
+  self.assertFalse(r["market_value_parity_verified"])
+ def test_publication_refusal_never_forces_secondary_get(self):
+  r,calls=self.run_check({"SP":"OFFICIAL_NOT_PUBLISHED","PC":"SOURCE_FROZEN"})
+  self.assertEqual(calls,["SP"])
+  self.assertEqual(r["state"],"SAFE_STOP")
+ def test_crosscheck_requires_explicit_boolean(self):
+  from diagnostics.jra_one_shot_market_capture import capture_hybrid
+  with tempfile.TemporaryDirectory() as d:
+   with self.assertRaisesRegex(SourceChainError,"crosscheck_boolean_required"):
+    capture_hybrid(d,primary_channel="SP",race_spec=self.spec(),
+       verified_start_utc="2026-11-07T06:45:00Z",active_runners=((1,1),(2,2)),
+       independent_crosscheck="true")
 if __name__=="__main__":unittest.main()
