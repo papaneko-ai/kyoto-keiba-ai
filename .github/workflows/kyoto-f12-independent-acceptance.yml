@@ -1,0 +1,60 @@
+name: Kyoto F12 fixed ticket and budget acceptance
+on:
+  push:
+    branches: [jra-html-diagnostic-20261105]
+    paths:
+      - 'diagnostics/kyoto_f12_ticket_budget_planner.py'
+      - 'tests/test_kyoto_f12_ticket_budget_planner.py'
+      - '.github/workflows/kyoto-f12-independent-acceptance.yml'
+permissions:
+  contents: read
+jobs:
+  ticket-budget:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Test F12 independent validation of safe limits
+        env:
+          PYTHONPATH: .
+        run: |
+          set -euo pipefail
+          python -m unittest -v tests.test_kyoto_f12_ticket_budget_planner
+      - name: Output deterministic synthetic witness and locked scoring source
+        env:
+          PYTHONPATH: .
+        run: |
+          python - <<'PY'
+          import hashlib,json,os
+          from pathlib import Path
+          from diagnostics.kyoto_f12_ticket_budget_planner import plan_f12
+          p=Path('docs/diagnostics/kyoto_final_completion_criteria_v1.json')
+          rubric=json.loads(p.read_text())
+          gate=next(x for x in rubric['criteria'] if x['id']=='F12')
+          assert gate['points']==5 and gate['title']=='券種・買い目・金額の最適化'
+          assert len(rubric['criteria'])==20 and rubric['maximum']==100
+          source=[{'race':i,'priority':i,'eligible':True,'tickets':[
+              {'pair':pair,'weight':w} for pair,w in zip([[1,2],[2,3],[3,4]],[60,30,10])]}
+              for i in range(1,5)]
+          witness=plan_f12(day_budget_yen=10000,exposure_target_yen=3500,
+              market='QUINELLA',mode='AUTO',candidates=source,selected_races=[1,2,3])
+          assert witness['spent_yen']==3500 and witness['unspent_yen']==6500
+          witness['ci_run_id']=os.environ['GITHUB_RUN_ID']
+          witness['ci_head_sha']=os.environ['GITHUB_SHA']
+          witness['rubric_sha256']=hashlib.sha256(p.read_bytes()).hexdigest()
+          witness['F12_fixed_validation']='OFFLINE_ONLY'
+          out=Path('f12_acceptance')
+          out.mkdir()
+          (out/'F12_witness.json').write_text(json.dumps(witness,ensure_ascii=False,indent=2,sort_keys=True)+'\n')
+          print('F12_100YEN_4R_3PAIR_MANUAL_CONCENTRATION_BUDGET_PASS=TRUE')
+          print('REAL_BETS_AND_LIVE_MODEL=FALSE')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: kyoto-F12-offline-ticket-budget-acceptance
+          path: f12_acceptance/
+          retention-days: 7
+          if-no-files-found: error
