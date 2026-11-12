@@ -203,6 +203,24 @@ def package_saved_observed_market_capture(*,capture_directory,snapshot,observed_
     if (chosen_menu.get("sha256")!=hashlib.sha256(menu_raw).hexdigest()
         or chosen_menu.get("bytes")!=len(menu_raw)):
         raise MarketHandoffRejected("observed_market_menu_digest_mismatch")
+    menu_requested=chosen_menu.get("requested_url")
+    if (type(menu_requested) is not str or
+        chosen_menu.get("response_url")!=menu_requested or
+        urlsplit(menu_requested).scheme!="https" or
+        urlsplit(menu_requested).hostname!=("jra.jp" if channel=="PC" else "sp.jra.jp") or
+        urlsplit(menu_requested).path!="/JRADB/accessO.html" or
+        urlsplit(menu_requested).query):
+        raise MarketHandoffRejected("observed_menu_redirect_or_wrong_host")
+    if chosen_menu.get("method")!="POST":
+        raise MarketHandoffRejected("observed_menu_post_method_missing")
+    menu_token=chosen_menu.get("observed_action_token")
+    if type(menu_token) is not str or not re.fullmatch(
+            ("pw" if channel=="PC" else "sw")+r"[A-Za-z0-9]+/[A-Za-z0-9]+",menu_token):
+        raise MarketHandoffRejected("observed_menu_post_action_missing")
+    menu_wire=urlencode({"cname":menu_token}).encode("ascii")
+    if (chosen_menu.get("post_body_sha256")!=hashlib.sha256(menu_wire).hexdigest()
+        or chosen_menu.get("post_body_size")!=len(menu_wire)):
+        raise MarketHandoffRejected("observed_menu_wire_request_mismatch")
     try:
         links=find_market_links(menu_raw,
             expected_race_day=snapshot["meeting_date"].replace("-",""),
