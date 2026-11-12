@@ -155,49 +155,60 @@ def verified_roster_from_snapshot(snapshot, spec, *, race_start_utc):
 
 
 
-def verify_live_racecard_roster(original,channel,spec,active_runners,expected_named_runners):
-    """Verify new official racecard bytes against frozen numbered race roster.
+def verify_live_racecard_roster(original,channel,spec,active_runners,
+                               expected_named_runners,*,captured_at_utc,observed_utc,
+                               verified_start_utc):
+    """Adapter to the EXISTING Nov9 three-column, SHA and UTC reconciler.
 
-    Reuses previously validated PC/SP parsers; no synthesized identifiers.
-    This must run BEFORE issuing an odds-navigation HTTP request.
-    A source footer mentioning Kyoto is insufficient; PC parser binds date
-    and race, and SP must expose both the meeting date and race heading.
+    Do not duplicate the already accepted PC/SP identity comparison.
+    This is a current source safeguard, not new independent certification.
     """
-    from diagnostics.jra_pc_sp_benchmark import pc_rows,sp_rows
+    from diagnostics.jra_pc_sp_benchmark import reconcile_saved_racecards
     if not isinstance(original,bytes) or not 0<len(original)<=LIMIT:
         raise SourceChainError("racecard_original_invalid")
-    race_date=f"{spec.race_day[:4]}-{spec.race_day[4:6]}-{spec.race_day[6:]}"
-    try:
-        parsed=pc_rows(original,spec.race_number,meeting_date=race_date) if channel=="PC" else sp_rows(original)
-    except (ValueError,TypeError,IndexError,KeyError) as exc:
-        raise SourceChainError("original_racecard_parser_failed") from exc
-    numbers=tuple((n,f) for n,f,name in parsed)
-    if numbers!=tuple(active_runners):
-        raise SourceChainError("official_racecard_numbered_roster_mismatch")
+    if channel not in ("PC","SP"):
+        raise SourceChainError("racecard_channel_invalid")
     if (not isinstance(expected_named_runners,(tuple,list))
-        or len(expected_named_runners)!=len(parsed)):
+        or not 2<=len(expected_named_runners)<=18):
         raise SourceChainError("official_named_roster_reference_required")
-    def name_key(text):
-        if type(text) is not str or not text.strip():
-            raise SourceChainError("official_named_roster_invalid")
-        return unicodedata.normalize("NFKC",text).replace(" ","").replace("　","")
-    for idx,(number,frame,name) in enumerate(parsed):
-        expected=expected_named_runners[idx]
-        if (not isinstance(expected,(tuple,list)) or len(expected)!=3
-            or expected[0]!=number or expected[1]!=frame
-            or name_key(expected[2])!=name_key(name)):
-            raise SourceChainError("official_racecard_named_roster_mismatch")
+    if any(not isinstance(x,(tuple,list)) or len(x)!=3 or
+           type(x[2]) is not str or not x[2].strip()
+           for x in expected_named_runners):
+        raise SourceChainError("official_named_roster_invalid")
+    reference=tuple(tuple(x) for x in expected_named_runners)
+    if tuple((x[0],x[1]) for x in reference)!=tuple(active_runners):
+        raise SourceChainError("official_numbered_roster_reference_mismatch")
+    race_date=f"{spec.race_day[:4]}-{spec.race_day[4:6]}-{spec.race_day[6:]}"
+    frozen={"race_date":race_date,"race_number":spec.race_number,
+            "roster_verified":True,
+            "runners":[{"horse_number":n,"frame_number":f,"horse_name":name}
+                       for n,f,name in reference]}
+    observed={channel:{"raw":original,"sha256":sha256(original).hexdigest(),
+                       "captured_utc":captured_at_utc}}
+    try:
+        audited=reconcile_saved_racecards(
+            observed,frozen,meeting_date=race_date,race=spec.race_number,
+            cutoff_utc=verified_start_utc,observed_utc=observed_utc)
+    except (ValueError,TypeError,KeyError) as exc:
+        raise SourceChainError("existing_racecard_reconciler_rejected:"+str(exc)) from exc
+    status=audited["sources"][channel]["status"]
+    if status!="MATCH":
+        raise SourceChainError("official_racecard_three_column_mismatch:"+status)
+    # The SP parser does not itself verify the meeting header. Guard that
+    # channel against a different race sharing the same numbered roster.
     if channel=="SP":
         soup=BeautifulSoup(original.decode("cp932",errors="replace"),"html.parser")
         visible=soup.get_text(" ",strip=True)
-        day=date.fromisoformat(race_date)
-        if (not re.search(fr"{day.year}年\s*{day.month}月\s*{day.day}日",visible)
-                or not re.search(fr"(?<!\d)0?{spec.race_number}\s*(?:R|レース)(?!\d)",visible)
-                or "京都" not in visible):
+        d=date.fromisoformat(race_date)
+        if (not re.search(fr"{d.year}年\\s*{d.month}月\\s*{d.day}日",visible)
+            or not re.search(fr"(?<!\\d)0?{spec.race_number}\\s*(?:R|レース)(?!\\d)",visible)
+            or "京都" not in visible):
             raise SourceChainError("sp_racecard_date_race_venue_not_proven")
-    return {"count":len(parsed),"channel":channel,
+    return {"count":audited["runner_count"],"channel":channel,
             "roster_source_sha256":sha256(original).hexdigest(),
-            "race_id":spec.race_id,"source_only":True}
+            "race_id":spec.race_id,
+            "reused_reconciler":"reconcile_saved_racecards",
+            "source_only":True}
 
 
 def exact_odds_action(raw,channel):
@@ -324,7 +335,10 @@ def capture(out,*,channel,verified_start_utc,active_runners,now_utc=None,opener=
         result["request_receipts"].append({"step":"racecard",**{k:v for k,v in racecard.items() if k!="raw"}})
         if authorized_live_http:
             result["current_racecard_roster_proof"]=verify_live_racecard_roster(
-                racecard["raw"],channel,spec,active_runners,expected_named_runners)
+                racecard["raw"],channel,spec,active_runners,expected_named_runners,
+                captured_at_utc=racecard["captured_at_utc"],
+                observed_utc=datetime.now(timezone.utc).isoformat(),
+                verified_start_utc=start.isoformat())
         token=exact_odds_action(racecard["raw"],channel)
         menu_url=f"https://{host}/JRADB/accessO.html"
         menu=http_fetch(opener,channel,menu_url,cname=token,referer=source,pacer=pacer)
