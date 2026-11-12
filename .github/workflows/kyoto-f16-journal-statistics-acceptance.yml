@@ -1,0 +1,70 @@
+name: Kyoto F16 virtual journal multi-race metrics independent CI
+on:
+  push:
+    branches: [jra-html-diagnostic-20261105]
+    paths:
+      - diagnostics/kyoto_f16_virtual_performance_stats.py
+      - tests/test_kyoto_f16_virtual_performance_stats.py
+      - .github/workflows/kyoto-f16-journal-statistics-acceptance.yml
+permissions:
+  contents: read
+jobs:
+  f16-restart-replay:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Fixed F16 rubric unchanged
+        run: |
+          python - <<'PY'
+          import hashlib,json
+          from pathlib import Path
+          p=Path('docs/diagnostics/kyoto_final_completion_criteria_v1.json')
+          assert hashlib.sha256(p.read_bytes()).hexdigest()=='92bae5c1d61d6ac00a5380dd8d5e08beb59f96c898b03c05a3c8bf8721ced632'
+          f=next(x for x in json.loads(p.read_text())['criteria'] if x['id']=='F16')
+          assert f['points']==5 and f['title']=='仮想成績・リスクの自動集計'
+          PY
+      - name: Run 17 virtual journal and 18 F16 statistics safety tests
+        env:
+          PYTHONPATH: .
+        run: |
+          set -euo pipefail
+          python -m unittest -v tests.test_kyoto_virtual_sqlite_journal tests.test_kyoto_f16_virtual_performance_stats
+      - name: Generate isolated LAB evidence DB, stats and SHA receipt
+        env:
+          PYTHONPATH: .:tests
+        run: |
+          python - <<'PY'
+          import json,hashlib,os,tempfile
+          from pathlib import Path
+          from test_kyoto_f16_virtual_performance_stats import make
+          from diagnostics.kyoto_f16_virtual_performance_stats import summarize_lab_journal
+          import sqlite3
+          output=Path('f16_evidence')
+          output.mkdir()
+          database=output/'lab.sqlite'
+          report=make(database)
+          with sqlite3.connect(database) as con:
+              con.execute('PRAGMA wal_checkpoint(TRUNCATE)')
+          report2=summarize_lab_journal(database)
+          assert report==report2
+          assert report['totals']['profit_yen']==900
+          assert report['max_realized_drawdown_yen']==200
+          assert report['unsettled_races_excluded_from_roi']==1
+          receipt={'ci_run_id':os.environ['GITHUB_RUN_ID'],
+                   'ci_head_sha':os.environ['GITHUB_SHA'],
+                   'source_scope':'OFFLINE_SYNTHETIC_VIRTUAL_ONLY',
+                   'sqlite_sha256':hashlib.sha256(database.read_bytes()).hexdigest(),
+                   'stats':report,'source_live_authenticity':False}
+          (output/'receipt.json').write_text(json.dumps(receipt,sort_keys=True,ensure_ascii=False,indent=2)+'\n')
+          print('F16_FOUR_FROZEN_THREE_SETTLED_ONE_UNSETTLED_TWO_MODEL_TWO_MARKET=PASS')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: kyoto-F16-lab-stats-immutable-replay-witness
+          path: f16_evidence/
+          retention-days: 7
+          if-no-files-found: error
