@@ -68,6 +68,10 @@ def strict_link_from_official(raw):
 def inspect_once(directory,*,opener=None,clock=None,authorized_live_http=False):
     now=clock or (lambda:datetime.now(timezone.utc))
     destination=Path(directory)
+    if destination.is_symlink() or (destination.exists() and not destination.is_dir()):
+        raise DiscoveryRejected("evidence_folder_invalid")
+    if destination.exists() and any(destination.iterdir()):
+        raise DiscoveryRejected("one_shot_existing_evidence_must_not_be_overwritten")
     destination.mkdir(parents=True,exist_ok=True)
     started=now()
     if started.tzinfo is None or started.utcoffset() is None:
@@ -102,7 +106,13 @@ def inspect_once(directory,*,opener=None,clock=None,authorized_live_http=False):
             if status!=200 or final!=SOURCE or "html" not in ct.lower() or not 0<len(raw)<=LIMIT:
                 raise DiscoveryRejected("unverified_original_http_response")
             summary=strict_link_from_official(raw)
-            (destination/"official_selection.html").write_bytes(raw)
+            try:
+                with (destination/"official_selection.html").open("xb") as original:
+                    original.write(raw)
+            except FileExistsError as exc:
+                raise DiscoveryRejected("one_shot_original_already_exists") from exc
+            if hashlib.sha256((destination/"official_selection.html").read_bytes()).hexdigest()!=hashlib.sha256(raw).hexdigest():
+                raise DiscoveryRejected("one_shot_original_write_corrupted")
             receipt.update(summary)
             receipt["source_sha256"]=hashlib.sha256(raw).hexdigest()
             receipt["source_bytes"]=len(raw)
@@ -119,6 +129,10 @@ def inspect_once(directory,*,opener=None,clock=None,authorized_live_http=False):
                     "ambiguous_current_kyoto_link"}:
                     receipt["safe_error_code"]=category
             receipt["completed_utc"]=now().isoformat()
-    (destination/"receipt.json").write_text(json.dumps(receipt,sort_keys=True,
-            ensure_ascii=False,indent=2)+"\n",encoding="utf8")
+    encoded=json.dumps(receipt,sort_keys=True,ensure_ascii=False,indent=2,allow_nan=False)+"\n"
+    try:
+        with (destination/"receipt.json").open("x",encoding="utf8") as output:
+            output.write(encoded)
+    except FileExistsError as exc:
+        raise DiscoveryRejected("one_shot_receipt_already_exists") from exc
     return receipt
