@@ -1,0 +1,49 @@
+{
+  "schema": "kyoto_P6_turso_isolated_crossclient_contract_20261112.v1",
+  "date": "2026-11-12",
+  "accepted_level": "OFFLINE_SIMULATED_REMOTE_PROTOCOL_PLUS_SEPARATE_PROCESS_RESTART_ONLY",
+  "first_failed_run": {
+    "id": 43138711602,
+    "cause": "fault injection fired before the intended INSERT",
+    "excluded_from_success": true
+  },
+  "passing_run": {
+    "id": 43138954786,
+    "job_id": 130920971656,
+    "head_sha": "df16cdadb55149dbda7b7e19492d0c8fd02651e2",
+    "conclusion": "success",
+    "unittest_passed": 39,
+    "separate_python_process_persistence_and_replay": true,
+    "proof_artifact_id": 13908906305
+  },
+  "source_files": [
+    "diagnostics/kyoto_turso_isolated_virtual_store.py",
+    "diagnostics/kyoto_p6_mock_turso_cross_process_demo.py",
+    "tests/test_kyoto_turso_isolated_virtual_store.py",
+    ".github/workflows/kyoto-p6-turso-isolated-virtual-contract.yml"
+  ],
+  "fixed_rules": [
+    "only hardcoded isolated Turso test DB hostname permitted",
+    "strict isolated namespace table and SQL update/delete triggers",
+    "bound SQL parameters",
+    "source scope synthetic LAB only",
+    "duplicate primary key reconciliation",
+    "no automatic retries on ambiguous HTTP outcome",
+    "explicit separate process readback",
+    "no credentials in logs",
+    "no real betting APIs"
+  ],
+  "manual_real_test_workflow": ".github/workflows/kyoto-p6-turso-manual-test-db-crossrunner.yml",
+  "manual_real_test_workflow_executed": false,
+  "actual_turso_test_db_connection_verified_this_turn": false,
+  "actual_cross_host_test_db_verified_this_turn": false,
+  "real_jra_pre_race_verified": false,
+  "live_6_gates": "0/6",
+  "operational_ability_lower_bound": "0/100",
+  "final_completion_before": 25,
+  "final_completion_after": 25,
+  "fixed_completion_20gate_evidence_unchanged": true,
+  "protected_main_not_modified": true,
+  "production_turso_not_modified": true,
+  "streamlit_public_app_not_modified": true
+}
