@@ -63,4 +63,18 @@ class Tests(unittest.TestCase):
         self.add(0)
         with self.assertRaises(sqlite3.IntegrityError):
             self.s.conn.execute("DELETE FROM stages")
+    def test_13_stage_spoof_rejected(self):
+        with self.assertRaisesRegex(StageError,"IDENTITY_MISMATCH"):
+            self.add(0,{**payload("ENTRIES"),"stage":"MARKET"})
+    def test_14_changed_race_start_rejected(self):
+        self.add(0)
+        changed="2026-11-14T02:00:00Z"
+        p={**payload("NUMBERED"),"race_start_utc":changed}
+        with self.assertRaisesRegex(StageError,"RACE_START_CHANGED"):
+            self.s.append(race_id=RACE,stage="NUMBERED",captured_utc=DATES[1],
+                          start_utc=changed,raw=b"stage2",payload=p)
+    def test_15_more_than_three_tickets_rejected(self):
+        self.first3()
+        with self.assertRaisesRegex(StageError,"BAD_STAKES"):
+            self.freeze(tickets=[{"stake_yen":100}]*4)
 if __name__=="__main__":unittest.main()
