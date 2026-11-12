@@ -1,0 +1,50 @@
+{
+  "schema": "kyoto_20261112_reuse_canonical_pc_sp_hybrid_checkpoint.v1",
+  "source_branch": "jra-html-diagnostic-20261105",
+  "scope": "P1-FB existing assets reuse and source-only real odds readiness; not live market certification",
+  "canonical_reused": "diagnostics/jra_pc_sp_benchmark.py::reconcile_saved_racecards",
+  "canonical_original_milestone": "docs/KYOTO_AI_20261109_PC_SP_EXISTING_PARSERS_REUSED_MILESTONE.md",
+  "independent_three_original_validation": "diagnostics/p1_three_original_dual_intake.py::inspect_three_original_dual_intake",
+  "implemented": [
+    "Replace duplicated horse number/frame/name matching logic in jra_one_shot_market_capture.py with call to canonical Nov9 reconciler and official original SHA/UTC cutoff checks",
+    "Maintain an additional SP date/venue/race heading guard where canonical SP parser checks entrant rows rather than full meeting header",
+    "Add explicit independently requested PC and SP dual capture with separate saved originals, no cross-time odds price merging and no fabricated equivalence",
+    "Preserve conditional PC/SP transport failover; block fallback on racecard identity conflict or final-market phase conflict",
+    "Wire independently requested crosscheck option into manual-only diagnostic workflow"
+  ],
+  "offline_ci": {
+    "run_id": 43157296540,
+    "job_id": 130980085258,
+    "source_commit": "71c15c452cd394183a5a667b332c2c74e2b38457",
+    "conclusion": "SUCCESS",
+    "tests": {
+      "existing_odds_navigation_and_hybrid": 74,
+      "existing_P1_FB": 25,
+      "total": 99
+    },
+    "reference": "https://github.com/papaneko-ai/kyoto-keiba-ai/actions/runs/43157296540"
+  },
+  "fixed_gates": {
+    "research": "32/32",
+    "graduation": "12/12",
+    "alg_evo": "21/21",
+    "live": "0/6",
+    "operational": "0/100",
+    "final_gate_score": "35/100",
+    "new_certified_points": 0
+  },
+  "not_yet_proven": [
+    "Current Nov14 official PC/SP racecard URLs and independently observed named roster",
+    "Real live presale two-market prices with original SHA and UTC, scratch state and cutoffs",
+    "Actual PC/SP complementary source content and independent timing consistency under live conditions",
+    "Cross-host global attempted GET deduplication in GitHub Actions and Streamlit",
+    "End-to-end preregistered real-meeting paper trade followed by official payout settlement"
+  ],
+  "protected": [
+    "main",
+    "production Turso",
+    "current published Streamlit",
+    "actual wagers"
+  ],
+  "next": "Obtain independently published current official race-specific PC and SP source links (never guessed), then after real sale start capture authentic pre-race quinella and bracket odds; retain both source originals and objectively audit F04; if missing, stop without scoring."
+}
