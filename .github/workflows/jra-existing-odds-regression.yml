@@ -4,6 +4,8 @@ on:
     branches: [jra-html-diagnostic-20261105]
     paths:
       - diagnostics/jra_one_shot_market_capture.py
+      - diagnostics/jra_official_link_repair.py
+      - tests/test_jra_official_link_repair.py
       - diagnostics/jra_p1_failover_offline.py
       - tests/test_jra_p1_failover_offline.py
       - tests/test_jra_one_shot_market_capture.py
@@ -24,11 +26,13 @@ jobs:
         with:
           python-version: '3.11'
       - name: Compile modified acquisition and P1-FB modules before tests
-        run: python -m compileall -q diagnostics/jra_one_shot_market_capture.py diagnostics/jra_p1_failover_offline.py tests/test_jra_one_shot_market_capture.py tests/test_jra_p1_failover_offline.py
+        run: python -m compileall -q diagnostics/jra_one_shot_market_capture.py diagnostics/jra_p1_failover_offline.py tests/test_jra_one_shot_market_capture.py tests/test_jra_p1_failover_offline.py diagnostics/jra_official_link_repair.py tests/test_jra_official_link_repair.py
       - name: Install existing parser
         run: python -m pip install 'beautifulsoup4>=4.12,<5'
       - name: Existing live-odds navigation and cutoff regression
         run: python -m unittest -v tests.test_jra_one_shot_market_capture
+      - name: New bounded PC link self-repair destructive offline tests
+        run: python -m unittest -v tests.test_jra_official_link_repair
       - name: Reuse existing P1-FB controls, complementary sources and conflict tests
         run: python -m unittest -v tests.test_jra_p1_failover_offline
       - name: Explicitly prohibit live source certification from offline CI
@@ -48,8 +52,9 @@ jobs:
             "schema":"jra_existing_odds_regression_ci.v2",
             "run_id":os.environ["GITHUB_RUN_ID"],
             "source_commit_sha":os.environ["GITHUB_SHA"],
-            "verification_scope":"EXISTING_P1_FB_AND_ODDS_OFFLINE_REGRESSIONS_ONLY",
+            "verification_scope":"P1_PC_OFFICIAL_LINK_REPAIR_AND_EXISTING_OFFLINE_REGRESSIONS_ONLY",
             "test_modules":["tests.test_jra_one_shot_market_capture",
+                            "tests.test_jra_official_link_repair",
                             "tests.test_jra_p1_failover_offline"],
             "test_steps_completed_before_receipt":True,
             "real_jra_prerace_market_verified":False,
