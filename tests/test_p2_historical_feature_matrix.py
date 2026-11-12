@@ -126,5 +126,68 @@ class HistoricalMatrixTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError,"invalid_numeric_feature"):
             materialize(self.status,rows)
 
+
+class EightFamilyCurrentArchiveHandoffTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.rows=json.loads((DATA/"feature_rows_148.json").read_text(encoding="utf8"))
+        cls.status=json.loads((DATA/"status.json").read_text(encoding="utf8"))
+
+    def audit(self, rows=None, status=None):
+        from diagnostics.p2_historical_feature_matrix import audit_latest_family_coverage
+        rows=self.rows if rows is None else rows
+        status=self.status if status is None else status
+        return audit_latest_family_coverage(status,rows,materialize(status,rows))
+
+    def test_existing_96_real_profiles_and_52_gaps(self):
+        r=self.audit()
+        self.assertEqual((r["source_verified_profile_count"],r["unqueried_profiles"],
+                          r["historical_prior_race_rows"]),(96,52,592))
+        self.assertEqual(r["family_coverage"]["horse_profile"]["available"],96)
+        self.assertEqual(r["family_coverage"]["horse_profile"]["missing"],52)
+        self.assertEqual(r["family_coverage"]["racecard"]["available"],148)
+        self.assertFalse(r["predictions_authorized"])
+
+    def test_missing_jockey_weather_workout_and_odds_are_not_invented(self):
+        r=self.audit()
+        for key in ("race_conditions","jockey_trainer","track_weather",
+                    "training_workouts","market_odds"):
+            self.assertEqual(r["family_coverage"][key]["available"],0)
+            self.assertEqual(r["family_coverage"][key]["missing"],148)
+        self.assertEqual(r["family_coverage"]["payout_result"]["not_applicable"],148)
+
+    def test_reference_148_source_rows_are_stable_and_deterministic(self):
+        self.assertEqual(self.audit(self.rows),self.audit(list(reversed(self.rows))))
+
+    def test_same_horse_mismatched_source_name_rejected(self):
+        from diagnostics.p2_historical_feature_matrix import audit_latest_family_coverage
+        matrix=materialize(self.status,self.rows)
+        matrix[0]["horse_name"]="異なる馬"
+        with self.assertRaisesRegex(ValueError,"feature_original_identity_mismatch"):
+            audit_latest_family_coverage(self.status,self.rows,matrix)
+
+    def test_same_horse_mismatched_original_sha_rejected(self):
+        from diagnostics.p2_historical_feature_matrix import audit_latest_family_coverage
+        matrix=materialize(self.status,self.rows)
+        matrix[0]["racecard_sha256"]="a"*64
+        with self.assertRaisesRegex(ValueError,"feature_original_identity_mismatch"):
+            audit_latest_family_coverage(self.status,self.rows,matrix)
+
+    def test_fabricated_workout_evidence_rejected(self):
+        from diagnostics.p2_historical_feature_matrix import audit_latest_family_coverage
+        rows=copy.deepcopy(self.rows)
+        rows[0]["source_coverage"]["training_workouts"]="CONFIRMED"
+        matrix=materialize(self.status,rows)
+        with self.assertRaisesRegex(ValueError,"unverified_additional_feature_source"):
+            audit_latest_family_coverage(self.status,rows,matrix)
+
+    def test_future_result_cannot_enter_prerace_family(self):
+        from diagnostics.p2_historical_feature_matrix import audit_latest_family_coverage
+        rows=copy.deepcopy(self.rows)
+        rows[0]["source_coverage"]["payout_result"]="CONFIRMED"
+        matrix=materialize(self.status,rows)
+        with self.assertRaisesRegex(ValueError,"postrace_outcome_cannot_be_prerace_feature"):
+            audit_latest_family_coverage(self.status,rows,matrix)
+
 if __name__=="__main__":
     unittest.main()
