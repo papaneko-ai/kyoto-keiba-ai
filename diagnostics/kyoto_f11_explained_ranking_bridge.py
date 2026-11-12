@@ -79,7 +79,9 @@ def rank_f11(*,comparisons,day_budget_yen,ticket_type,observed_utc,
                 "expectation":"conservative expected net per unit (LAB estimate)",
                 "confidence":"externally supplied LAB confidence, not calibrated",
                 "freshness":"seconds from snapshot to decision cutoff"},
-            "tickets":[{"pair":t["pair"],"weight":max(1,int(100*(t["stressed_net_lower"]+1)))}
+            "tickets":[{"pair":t["pair"],"weight":max(1,min(100,
+                       round(100*(t["stressed_net_lower"]+1)/
+                           sum(x["stressed_net_lower"]+1 for x in r["tickets"]))))}
                        for t in r["tickets"]]
         })
     body={
