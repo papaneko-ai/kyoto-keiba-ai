@@ -89,5 +89,14 @@ class PreraceMarketTests(unittest.TestCase):
         with self.assertRaises(PreraceMarketRejected):
             check(evidence)
 
+    def test_09_small_field_bracket_not_sold_without_shared_bracket(self):
+        evidence=copy.deepcopy(BASE)
+        evidence["ticket_type"]="BRACKET_QUINELLA"
+        evidence["horse_to_bracket"]={"1":1,"2":2,"3":3}
+        evidence["pairs"]=[{"pair":[1,2],"odds":"4"},{"pair":[1,3],"odds":"5"},
+                            {"pair":[2,3],"odds":"6"}]
+        with self.assertRaisesRegex(PreraceMarketRejected,"BRACKET_MARKET_NOT_PROVEN_ON_SALE"):
+            check(evidence)
+
 if __name__=="__main__":
     unittest.main()
