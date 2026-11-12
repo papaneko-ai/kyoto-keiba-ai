@@ -49,12 +49,13 @@ jobs:
         run: |
           python - <<'PY'
           import hashlib,json,os,sqlite3
+          from datetime import datetime,timezone
           from pathlib import Path
           from diagnostics.kyoto_p6_actual_official_final_registry import register_actual_final_sources,replay_official_sources
           o=Path('official_source_registry_witness');o.mkdir()
           db=o/'official_final_only.sqlite'
           raw=Path('original_official_postrace.zip').read_bytes()
-          a=register_actual_final_sources(db,raw,observed_at_utc='2026-11-12T02:20:30Z')
+          a=register_actual_final_sources(db,raw,observed_at_utc=datetime.now(timezone.utc).isoformat().replace('+00:00','Z'))
           assert a['new_final_sources']==2
           b=replay_official_sources(db)
           assert b['count']==2 and not b['pre_race_investment_or_profit_proven']
