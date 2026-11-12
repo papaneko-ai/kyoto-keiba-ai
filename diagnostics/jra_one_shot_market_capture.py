@@ -220,6 +220,24 @@ def capture_hybrid(out, *, primary_channel, verified_start_utc, active_runners,
     triggers. Distinct data from two channels are never merged by guesswork.
     """
     spec=race_spec.validate()
+    route_basis={"selection":"EXPLICIT","sampled_benchmark":False}
+    if primary_channel=="AUTO":
+        # Do not re-benchmark the public site. Replay the already accepted
+        # 2026-11-06 actual PC/SP 5-race evidence via its existing validator.
+        from diagnostics.jra_benchmark_acceptance import audit_report, REPORT, _read
+        try:
+            measured=audit_report(_read(REPORT))
+        except (OSError, ValueError, KeyError, TypeError) as exc:
+            raise SourceChainError("historical_route_evidence_unverified") from exc
+        primary_channel=measured.get("router_candidate")
+        if measured.get("router_state")!="CANDIDATE" or primary_channel not in ("PC","SP"):
+            raise SourceChainError("historical_route_candidate_not_accepted")
+        route_basis={"selection":"HISTORICAL_MEASURED_CANDIDATE_ONLY",
+                     "sampled_benchmark":True,
+                     "source_sample_day":measured["date"],
+                     "sampled_races":measured["sampled_races"],
+                     "sp_bytes_reduction_pct":measured["sp_bytes_reduction_pct"],
+                     "sp_end_to_end_gain_pct":measured["sp_end_to_end_gain_pct"]}
     if primary_channel not in ("PC", "SP"):
         raise SourceChainError("invalid_primary_channel")
     if type(authorized_live_http) is not bool:
@@ -273,6 +291,7 @@ def capture_hybrid(out, *, primary_channel, verified_start_utc, active_runners,
             selected=other
     receipt=dict(schema="jra_pc_sp_one_shot_failover.v1",
                  race_id=spec.race_id, primary_channel=primary_channel,
+                 route_basis=route_basis,
                  selected_channel=selected, attempts=outcomes,
                  state=("SOURCE_ONLY_PRIMARY" if selected==primary_channel else
                         "SOURCE_ONLY_FALLBACK" if selected else "SAFE_STOP"),
@@ -286,7 +305,7 @@ def capture_hybrid(out, *, primary_channel, verified_start_utc, active_runners,
 if __name__=="__main__":
     p=argparse.ArgumentParser()
     p.add_argument("--out",required=True)
-    p.add_argument("--channel",choices=["PC","SP"],default="PC")
+    p.add_argument("--channel",choices=["PC","SP","AUTO"],default="PC")
     p.add_argument("--hybrid",action="store_true",help="One conditional cross-channel fallback")
     p.add_argument("--verified-start-utc",required=True)
     p.add_argument("--active-roster-json",required=True)
@@ -294,6 +313,8 @@ if __name__=="__main__":
     p.add_argument('--authorized-live-http', action='store_true',
         help='Explicit diagnostic read-only opt-in; never a production authorization')
     args=p.parse_args()
+    if args.channel=="AUTO" and not args.hybrid:
+        p.error("--channel AUTO requires --hybrid")
     if args.authorized_live_http and not args.race_spec_json:
         p.error('--authorized-live-http requires independently observed --race-spec-json')
     roster=json.loads(Path(args.active_roster_json).read_text(encoding="utf8"))
