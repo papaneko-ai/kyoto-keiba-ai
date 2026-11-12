@@ -4,6 +4,7 @@ on:
     branches: [jra-html-diagnostic-20261105]
     paths:
       - diagnostics/kyoto_turso_isolated_virtual_store.py
+      - diagnostics/kyoto_p6_mock_turso_cross_process_demo.py
       - diagnostics/kyoto_virtual_sqlite_journal.py
       - tests/test_kyoto_turso_isolated_virtual_store.py
       - .github/workflows/kyoto-p6-turso-isolated-virtual-contract.yml
@@ -38,3 +39,21 @@ jobs:
           assert r['fixed_operational_lower_bound']=='0/100'
           print('NO_FALSE_LIVE_OR_PRODUCTION_CERTIFICATION=PASS')
           PY
+      - name: Python process A creates synthetic remote event database
+        env:
+          PYTHONPATH: .
+        run: python -m diagnostics.kyoto_p6_mock_turso_cross_process_demo create p6_mock_remote_receipts
+      - name: Python process B independently opens and checks exact event receipt
+        env:
+          PYTHONPATH: .
+        run: |
+          set -euo pipefail
+          python -m diagnostics.kyoto_p6_mock_turso_cross_process_demo verify p6_mock_remote_receipts
+          echo TWO_INDEPENDENT_PROCESSES_SAME_PERSISTENT_MOCK=PASS
+      - name: Persist bounded mock-only restart proof
+        uses: actions/upload-artifact@v4
+        with:
+          name: kyoto-p6-mock-turso-two-process-proof
+          path: p6_mock_remote_receipts/
+          retention-days: 7
+          if-no-files-found: error
