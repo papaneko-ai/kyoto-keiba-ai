@@ -68,4 +68,63 @@ class DualSourceOffline(unittest.TestCase):
             with self.assertRaisesRegex(ValueError,"horse_identity_conflict"):
                 write_case(target,item("SP",False),item("PC",horse="別馬"),cutoff=CUTOFF)
             self.assertFalse(target.exists())
+class ComplementaryEvidenceTests(unittest.TestCase):
+    def pack(self,channel,fields,**kwargs):
+        from hashlib import sha256
+        return {"channel_result":item(channel,**kwargs),"fields":fields,
+                "fields_sha256":sha256(json.dumps(fields,sort_keys=True,
+                  separators=(",",":"),ensure_ascii=False).encode()).hexdigest()}
+    def reconcile(self,pc,sp,required=("horse_name","surface","distance_m")):
+        from diagnostics.jra_p1_failover_offline import reconcile_complementary_fields
+        return reconcile_complementary_fields(pc,sp,cutoff=CUTOFF,required_fields=required)
+    def test_sp_only_field_is_retained(self):
+        r=self.reconcile(self.pack("PC",{"horse_name":"試験馬","surface":"芝"}),
+                         self.pack("SP",{"horse_name":"試験馬","distance_m":1600}))
+        self.assertEqual(r["state"],"COMPLETE")
+        self.assertEqual(r["merged"]["distance_m"],1600)
+        self.assertEqual(r["provenance"]["distance_m"][0]["channel"],"SP")
+        self.assertFalse(r["prediction_ready"])
+    def test_pc_only_field_is_retained(self):
+        r=self.reconcile(self.pack("PC",{"horse_name":"試験馬","surface":"芝","distance_m":1600}),
+                         self.pack("SP",{"horse_name":"試験馬"}))
+        self.assertEqual(r["state"],"COMPLETE")
+        self.assertEqual(r["provenance"]["distance_m"][0]["channel"],"PC")
+    def test_identical_value_has_both_originals(self):
+        r=self.reconcile(self.pack("PC",{"horse_name":"試験馬","surface":"芝","distance_m":1600}),
+                         self.pack("SP",{"horse_name":"試験馬","surface":"芝","distance_m":1600}))
+        self.assertEqual(len(r["provenance"]["surface"]),2)
+    def test_conflict_quarantines_entire_result(self):
+        r=self.reconcile(self.pack("PC",{"horse_name":"試験馬","surface":"芝"}),
+                         self.pack("SP",{"horse_name":"試験馬","surface":"ダート"}))
+        self.assertEqual(r["state"],"CONFLICT_QUARANTINED")
+        self.assertEqual(r["merged"],{})
+        self.assertIn("surface",r["conflicts"])
+    def test_missing_required_is_incomplete(self):
+        r=self.reconcile(self.pack("PC",{"horse_name":"試験馬"}),
+                         self.pack("SP",{"horse_name":"試験馬"}))
+        self.assertEqual(r["state"],"INCOMPLETE")
+        self.assertEqual(r["missing_required"],["distance_m","surface"])
+    def test_cannot_merge_odds_from_different_times(self):
+        with self.assertRaisesRegex(ValueError,"volatile_or_postrace_fields"):
+            self.reconcile(self.pack("PC",{"market_odds":"12.4"}),
+                           self.pack("SP",{"market_odds":"12.3"}),required=())
+    def test_cross_horse_sources_blocked(self):
+        with self.assertRaisesRegex(ValueError,"pc_sp_horse_identity_conflict"):
+            self.reconcile(self.pack("PC",{"horse_name":"試験馬"}),
+                           self.pack("SP",{"horse_name":"試験馬"},horse="別馬"))
+    def test_fields_sha_tamper_rejected(self):
+        bad=self.pack("PC",{"horse_name":"試験馬"})
+        bad["fields"]["horse_name"]="改変"
+        with self.assertRaisesRegex(ValueError,"field_original_sha_mismatch"):
+            self.reconcile(bad,self.pack("SP",{"horse_name":"試験馬"}))
+    def test_missing_raw_evidence_rejected(self):
+        with self.assertRaisesRegex(ValueError,"original_not_preserved"):
+            self.reconcile(self.pack("PC",{"horse_name":"試験馬"},raw=False),
+                           self.pack("SP",{"horse_name":"試験馬"}))
+    def test_source_after_cutoff_rejected(self):
+        with self.assertRaisesRegex(ValueError,"source_after_cutoff"):
+            self.reconcile(self.pack("PC",{"horse_name":"試験馬"},
+                            stamp="2026-11-07T00:00:00Z"),
+                           self.pack("SP",{"horse_name":"試験馬"}))
+
 if __name__=="__main__":unittest.main()
