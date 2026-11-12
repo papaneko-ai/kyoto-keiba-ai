@@ -207,10 +207,86 @@ def capture(out,*,channel,verified_start_utc,active_runners,now_utc=None,opener=
         result["ended_at_utc"]=datetime.now(timezone.utc).isoformat()
         (folder/"receipt.json").write_text(json.dumps(result,ensure_ascii=False,indent=2)+"\n",encoding="utf8")
     return result
+def capture_hybrid(out, *, primary_channel, verified_start_utc, active_runners,
+                   race_spec, authorized_live_http=False, now_utc=None,
+                   openers=None, capture_fn=None):
+    """Use the existing official PC/SP capturer; try other source once on error.
+
+    Source-only diagnostic: never allows wagers, prediction promotion or
+    automatic URL invention. Both URLs in race_spec must be independently
+    observed. Primary failure remains in its own directory. Publication,
+    cutoff, permission and final-odds refusals are terminal, not fallback
+    triggers. Distinct data from two channels are never merged by guesswork.
+    """
+    spec=race_spec.validate()
+    if primary_channel not in ("PC", "SP"):
+        raise SourceChainError("invalid_primary_channel")
+    if type(authorized_live_http) is not bool:
+        raise SourceChainError("explicit_boolean_authorization_required")
+    if openers is not None and (type(openers) is not dict or
+                                set(openers) - {"PC", "SP"}):
+        raise SourceChainError("invalid_channel_openers")
+    folder=Path(out)
+    if folder.exists() and any(folder.iterdir()):
+        raise SourceChainError("hybrid_run_directory_not_empty")
+    folder.mkdir(parents=True, exist_ok=True)
+    runner=capture_fn or capture
+    outcomes=[]
+    def one(channel):
+        channel_dir=folder / channel.lower()
+        args=dict(channel=channel, verified_start_utc=verified_start_utc,
+                  active_runners=active_runners, race_spec=spec,
+                  authorized_live_http=authorized_live_http,
+                  now_utc=now_utc)
+        if openers is not None:
+            args["opener"]=openers.get(channel)
+        try:
+            result=runner(channel_dir, **args)
+            if type(result) is not dict:
+                raise SourceChainError("invalid_channel_receipt")
+            state=result.get("state")
+            if result.get("race_id") != spec.race_id or result.get("channel") != channel:
+                raise SourceChainError("channel_race_identity_conflict")
+            if state=="SOURCE_FROZEN" and not result.get("pre_race_prices_accepted"):
+                raise SourceChainError("false_source_validation")
+            return dict(channel=channel, state=state,
+                        accepted=state=="SOURCE_FROZEN",
+                        reason=result.get("reason"),
+                        receipt_path=str(channel_dir/"receipt.json"))
+        except Exception as exc:
+            return dict(channel=channel,state="CAPTURE_EXCEPTION",accepted=False,
+                        reason=type(exc).__name__+":"+str(exc)[:160],
+                        receipt_path=str(channel_dir/"receipt.json"))
+    first=one(primary_channel)
+    outcomes.append(first)
+    # Do not turn publication/permission/cutoff refusals into a second GET.
+    fallback_allowed={"CAPTURE_BLOCKED","CAPTURE_EXCEPTION",
+                      "OFFICIAL_MENU_NEEDS_RACE_NAVIGATION",
+                      "MARKETS_FAILED_VALIDATION"}
+    selected=primary_channel if first["accepted"] else None
+    if not selected and first["state"] in fallback_allowed:
+        other="SP" if primary_channel=="PC" else "PC"
+        second=one(other)
+        outcomes.append(second)
+        if second["accepted"]:
+            selected=other
+    receipt=dict(schema="jra_pc_sp_one_shot_failover.v1",
+                 race_id=spec.race_id, primary_channel=primary_channel,
+                 selected_channel=selected, attempts=outcomes,
+                 state=("SOURCE_ONLY_PRIMARY" if selected==primary_channel else
+                        "SOURCE_ONLY_FALLBACK" if selected else "SAFE_STOP"),
+                 prediction_ready=False, training_ready=False,
+                 paper_trade_authorized=False,
+                 actual_wager_authorized=False)
+    (folder/"hybrid_receipt.json").write_text(json.dumps(
+        receipt,ensure_ascii=False,indent=2)+"\n",encoding="utf8")
+    return receipt
+
 if __name__=="__main__":
     p=argparse.ArgumentParser()
     p.add_argument("--out",required=True)
     p.add_argument("--channel",choices=["PC","SP"],default="PC")
+    p.add_argument("--hybrid",action="store_true",help="One conditional cross-channel fallback")
     p.add_argument("--verified-start-utc",required=True)
     p.add_argument("--active-roster-json",required=True)
     p.add_argument("--race-spec-json",help="Independently observed official navigation and race identity; no HTTP authorization")
@@ -223,6 +299,8 @@ if __name__=="__main__":
     rows=tuple((int(r["horse_number"]),int(r["frame_number"])) for r in roster["runners"])
     spec=(ObservedRaceSpec(**json.loads(Path(args.race_spec_json).read_text(encoding="utf8"))).validate()
           if args.race_spec_json else DEFAULT_RACE_SPEC)
-    print(json.dumps(capture(args.out,channel=args.channel,
-       verified_start_utc=args.verified_start_utc,active_runners=rows,
-       race_spec=spec,authorized_live_http=args.authorized_live_http),ensure_ascii=False,indent=2))
+    runner=capture_hybrid if args.hybrid else capture
+    options=dict(verified_start_utc=args.verified_start_utc,active_runners=rows,
+                 race_spec=spec,authorized_live_http=args.authorized_live_http)
+    options["primary_channel" if args.hybrid else "channel"]=args.channel
+    print(json.dumps(runner(args.out,**options),ensure_ascii=False,indent=2))
