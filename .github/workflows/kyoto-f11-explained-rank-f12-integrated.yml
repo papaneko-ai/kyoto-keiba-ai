@@ -1,0 +1,41 @@
+name: Kyoto F11 explained source-bound ranking F12 integrated acceptance
+on:
+  push:
+    branches: [jra-html-diagnostic-20261105]
+    paths:
+      - 'diagnostics/kyoto_f11_explained_ranking_bridge.py'
+      - 'tests/test_kyoto_f11_explained_ranking_bridge.py'
+      - '.github/workflows/kyoto-f11-explained-rank-f12-integrated.yml'
+permissions:
+  contents: read
+jobs:
+  F11-source-bound-ranking:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install HTML parser only
+        run: python -m pip install beautifulsoup4
+      - name: Execute existing P4/P5 original-source tests and F11 to F12 integration
+        env:
+          PYTHONPATH: .:tests
+        run: |
+          set -euo pipefail
+          python -m unittest -v tests.test_p5_source_bound_race_ranking_lab tests.test_kyoto_f11_explained_ranking_bridge
+          echo F11_TO_F12_SOURCE_BOUND_LAB_INTEGRATION=PASS
+          echo REAL_JRA_LIVE_PRE_RACE=NOT_PROVEN
+      - name: Record exact unmodified F11 rubric SHA
+        run: |
+          python - <<'PY'
+          import json,hashlib
+          from pathlib import Path
+          p=Path('docs/diagnostics/kyoto_final_completion_criteria_v1.json')
+          r=json.loads(p.read_text())
+          f=next(x for x in r['criteria'] if x['id']=='F11')
+          assert f['points']==5 and f['title']=='推奨レースの選択と説明'
+          assert hashlib.sha256(p.read_bytes()).hexdigest()=='92bae5c1d61d6ac00a5380dd8d5e08beb59f96c898b03c05a3c8bf8721ced632'
+          print('F11_UNCHANGED_FIXED_ACCEPTANCE_CRITERION=PASS')
+          PY
