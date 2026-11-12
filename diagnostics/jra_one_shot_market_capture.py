@@ -178,8 +178,8 @@ def verify_live_racecard_roster(original,channel,spec,active_runners):
         soup=BeautifulSoup(original.decode("cp932",errors="replace"),"html.parser")
         visible=soup.get_text(" ",strip=True)
         day=date.fromisoformat(race_date)
-        if (not re.search(fr"{day.year}年\\s*{day.month}月\\s*{day.day}日",visible)
-                or not re.search(fr"(?<!\\d)0?{spec.race_number}\\s*(?:R|レース)(?!\\d)",visible)
+        if (not re.search(fr"{day.year}年\s*{day.month}月\s*{day.day}日",visible)
+                or not re.search(fr"(?<!\d)0?{spec.race_number}\s*(?:R|レース)(?!\d)",visible)
                 or "京都" not in visible):
             raise SourceChainError("sp_racecard_date_race_venue_not_proven")
     return {"count":len(parsed),"channel":channel,
