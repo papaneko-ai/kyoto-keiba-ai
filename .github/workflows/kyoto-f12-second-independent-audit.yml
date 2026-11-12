@@ -1,0 +1,63 @@
+name: Kyoto F12 second independent fixed-gate assessment
+on:
+  push:
+    branches: [jra-html-diagnostic-20261105]
+    paths:
+      - '.github/workflows/kyoto-f12-second-independent-audit.yml'
+permissions:
+  contents: read
+  actions: read
+jobs:
+  second-f12-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Run independent auditor destructive tests
+        env:
+          PYTHONPATH: .
+        run: |
+          set -euo pipefail
+          python -m unittest -v tests.test_kyoto_f12_second_independent_auditor
+      - name: Fetch EXACT original GitHub Actions witness with token
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          curl --fail --location --silent --show-error --retry 0 --max-time 30 \
+            -H "Authorization: Bearer ${GH_TOKEN}" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/papaneko-ai/kyoto-keiba-ai/actions/artifacts/13905778699/zip" \
+            -o f12_original_witness.zip
+      - name: Independently recalculate immutable F12 witness and reject false scope
+        env:
+          PYTHONPATH: .
+        run: |
+          python - <<'PY'
+          import json,zipfile,hashlib,os
+          from pathlib import Path
+          from diagnostics.kyoto_f12_second_independent_auditor import audit_f12
+          with zipfile.ZipFile('f12_original_witness.zip') as archive:
+              assert archive.namelist()==['F12_witness.json'],archive.namelist()
+              witness=json.loads(archive.read('F12_witness.json'))
+          fixed=Path('docs/diagnostics/kyoto_final_completion_criteria_v1.json').read_bytes()
+          r=audit_f12(witness,fixed)
+          r['second_ci_run_id']=os.environ['GITHUB_RUN_ID']
+          r['second_ci_head_sha']=os.environ['GITHUB_SHA']
+          r['first_witness_zip_sha256']=hashlib.sha256(Path('f12_original_witness.zip').read_bytes()).hexdigest()
+          folder=Path('f12_independently_certified')
+          folder.mkdir()
+          (folder/'F12_second_independent_audit.json').write_text(
+              json.dumps(r,ensure_ascii=False,indent=2,sort_keys=True)+'\n',encoding='utf8')
+          print('F12_SECOND_INDEPENDENT_ACCEPTANCE_PASS_OFFLINE_BUDGET_ONLY=TRUE')
+          print('LIVE_SOURCE_PAPER_TRADING_PROVEN=FALSE')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: kyoto-F12-second-independent-fixed-budget-audit
+          path: f12_independently_certified/
+          retention-days: 7
+          if-no-files-found: error
