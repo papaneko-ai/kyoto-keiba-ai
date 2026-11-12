@@ -321,4 +321,52 @@ class ReceiptPersistenceRegressionTests(unittest.TestCase):
    self.assertEqual(saved,result)
    self.assertEqual(saved["state"],"LIVE_HTTP_NOT_AUTHORIZED")
    self.assertFalse(saved["pre_race_prices_accepted"])
+class ObservedOddsMenuTraversalTests(unittest.TestCase):
+ def observed(self,channel,kind="meeting",day="2026年11月14日",duplicates=False):
+  prefix="pw" if channel=="PC" else "sw"
+  token=prefix+"15observed/AA"
+  label="京都 11月14日 開催" if kind=="meeting" else "11レース"
+  a=f"""<a onclick="return doAction('/JRADB/accessO.html','{token}')">{label}</a>"""
+  if duplicates:
+   a+=f"""<a onclick="return doAction('/JRADB/accessO.html','{prefix}15other/BB')">{label}</a>"""
+  return html(day+" 京都 "+a)
+ def spec(self):
+  from diagnostics.jra_one_shot_market_capture import ObservedRaceSpec
+  return ObservedRaceSpec(
+   "20261114",11,"2026-11-14_KYOTO_11R","京都",
+   "https://jra.jp/JRADB/accessD.html?CNAME=pw01dde0108202605011120261114%2F13",
+   "https://sp.jra.jp/JRADB/accessD.html?CNAME=sw01dde0108202605011120261114%2FA0",
+   "2026-11-13T09:30:00Z")
+ def next_action(self,raw,channel,step):
+  from diagnostics.jra_one_shot_market_capture import observed_next_market_action
+  return observed_next_market_action(raw,channel,self.spec(),step=step)
+ def test_pc_meeting_action_comes_from_html(self):
+  self.assertEqual(self.next_action(self.observed("PC"),"PC",0),"pw15observed/AA")
+ def test_sp_meeting_action_comes_from_html(self):
+  self.assertEqual(self.next_action(self.observed("SP"),"SP",0),"sw15observed/AA")
+ def test_pc_exact_11_race_from_html(self):
+  self.assertEqual(self.next_action(self.observed("PC","race"),"PC",1),"pw15observed/AA")
+ def test_sp_exact_11_race_from_html(self):
+  self.assertEqual(self.next_action(self.observed("SP","race"),"SP",1),"sw15observed/AA")
+ def test_unobserved_date_never_guessed(self):
+  with self.assertRaisesRegex(SourceChainError,"market_navigation_day_not_visible"):
+   self.next_action(self.observed("PC",day="2026年11月7日"),"PC",0)
+ def test_conflicting_official_links_are_quarantined(self):
+  with self.assertRaisesRegex(SourceChainError,"ambiguous"):
+   self.next_action(self.observed("PC",duplicates=True),"PC",0)
+ def test_other_channel_token_rejected(self):
+  with self.assertRaisesRegex(SourceChainError,"link_missing"):
+   self.next_action(self.observed("SP"),"PC",0)
+ def test_other_race_label_not_selected(self):
+  raw=self.observed("PC","race").replace("11レース","10レース")
+  with self.assertRaisesRegex(SourceChainError,"link_missing"):
+   self.next_action(raw,"PC",1)
+ def test_final_odds_not_used_as_navigation(self):
+  raw=self.observed("PC").replace("京都 ", "最終オッズ 京都 ",1)
+  with self.assertRaisesRegex(SourceChainError,"market_navigation_not_live"):
+   self.next_action(raw,"PC",0)
+ def test_unsupported_third_link_refused(self):
+  with self.assertRaisesRegex(SourceChainError,"unsupported_market_navigation_step"):
+   self.next_action(self.observed("PC"),"PC",2)
+
 if __name__=="__main__":unittest.main()
