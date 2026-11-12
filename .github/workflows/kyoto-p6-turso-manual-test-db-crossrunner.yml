@@ -1,0 +1,106 @@
+name: Kyoto P6 ISOLATED Turso test DB two-runner remote proof (manual only)
+on:
+  workflow_dispatch:
+    inputs:
+      confirm_isolated_test_db_only:
+        description: 'Type YES-ISOLATED-TEST-ONLY; not production, never real purchases'
+        required: true
+        default: 'NO'
+permissions:
+  contents: read
+concurrency:
+  group: kyoto-p6-isolated-real-turso-test-db-only
+  cancel-in-progress: false
+jobs:
+  write-synthetic-freeze:
+    if: github.event.inputs.confirm_isolated_test_db_only == 'YES-ISOLATED-TEST-ONLY'
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    outputs:
+      payload_sha256: ${{ steps.freeze.outputs.sha }}
+    env:
+      TURSO_DATABASE_URL: ${{ secrets.TURSO_DATABASE_URL }}
+      TURSO_AUTH_TOKEN: ${{ secrets.TURSO_AUTH_TOKEN }}
+      PYTHONPATH: .
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install only limited HTTP dependency
+        run: python -m pip install requests
+      - name: Two gates before any live HTTP and any mutation
+        run: |
+          python - <<'PY'
+          import os
+          from diagnostics.kyoto_turso_isolated_virtual_store import endpoint
+          url=os.environ.get('TURSO_DATABASE_URL','')
+          token=os.environ.get('TURSO_AUTH_TOKEN','')
+          endpoint(url)
+          if len(token)<16 or any(c.isspace() for c in token):
+              raise SystemExit('MISSING_AUTHORIZED_ISOLATED_TEST_SECRETS_STOP')
+          print('EXACT_TEST_ONLY_HOST_VALIDATED=TRUE')
+          PY
+      - id: freeze
+        name: Write one synthetic non-JRA freeze only to test DB
+        run: |
+          python - <<'PY'
+          import os,requests
+          from diagnostics.kyoto_turso_isolated_virtual_store import TursoLabStore
+          from diagnostics.kyoto_virtual_sqlite_journal import sha
+          store=TursoLabStore(database_url=os.environ['TURSO_DATABASE_URL'],
+              token=os.environ['TURSO_AUTH_TOKEN'],transport=requests)
+          store.prepare_isolated_namespace()
+          payload={
+             'race_id':'20991114-KYOTO-R01',
+             'race_start_utc':'2099-11-14T05:00:00Z',
+             'frozen_utc':'2099-11-14T04:20:00Z',
+             'source_observed_utc':'2099-11-14T04:15:00Z',
+             'source_sha256':'a'*64,'model_sha256':'b'*64,
+             'model_version':'synthetic-isolated-crossrunner-contract-v1',
+             'ticket_type':'QUINELLA',
+             'tickets':[{'pair':[1,2],'stake_yen':100,'observed_odds':5.1}],
+             'daily_budget_yen':1000,
+             'provenance_scope':'UNAUTHENTICATED_LAB_INPUT'}
+          out=store.append_freeze_lab(payload)
+          assert out['status'] in ('APPENDED','ALREADY_PRESENT')
+          if store.read_race_lab(payload['race_id'])['events'][0]['sha256']!=sha(payload):
+              raise SystemExit('TEST_DB_FREEZE_RECONCILIATION_FAILED')
+          # Only sha output; never serialized private record/credentials in logs.
+          with open(os.environ['GITHUB_OUTPUT'],'a') as f:
+              f.write('sha='+sha(payload)+'\n')
+          print('ISOLATED_TEST_DB_SYNTHETIC_FREEZE_RECORDED=TRUE')
+          print('REAL_PRERACE_EVIDENCE=FALSE')
+          PY
+  read-from-different-runner:
+    needs: write-synthetic-freeze
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    env:
+      TURSO_DATABASE_URL: ${{ secrets.TURSO_DATABASE_URL }}
+      TURSO_AUTH_TOKEN: ${{ secrets.TURSO_AUTH_TOKEN }}
+      EXPECTED_SHA: ${{ needs.write-synthetic-freeze.outputs.payload_sha256 }}
+      PYTHONPATH: .
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Second separate GitHub runner reads persisted lab event through Turso HTTP
+        run: |
+          python -m pip install requests
+          python - <<'PY'
+          import os,requests
+          from diagnostics.kyoto_turso_isolated_virtual_store import TursoLabStore
+          from diagnostics.kyoto_virtual_sqlite_journal import sha
+          s=TursoLabStore(database_url=os.environ['TURSO_DATABASE_URL'],
+                 token=os.environ['TURSO_AUTH_TOKEN'],transport=requests)
+          data=s.read_race_lab('20991114-KYOTO-R01')
+          matches=[x for x in data['events'] if x['type']=='FREEZE']
+          assert len(matches)==1 and matches[0]['sha256']==os.environ['EXPECTED_SHA']
+          assert sha(matches[0]['payload'])==os.environ['EXPECTED_SHA']
+          assert data['production_validated'] is False
+          print('ISOLATED_REAL_TURSO_TWO_DIFFERENT_GITHUB_RUNNERS_READBACK=PASS')
+          print('STREAMLIT_CROSS_HOST_VERIFIED=FALSE')
+          print('JRA_ACTUAL_PRE_RACE_VERIFIED=FALSE')
+          PY
