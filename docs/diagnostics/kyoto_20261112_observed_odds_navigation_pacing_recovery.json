@@ -1,0 +1,49 @@
+{
+  "schema": "kyoto_20261112_observed_odds_navigation_pacing_recovery.v1",
+  "written_utc": "2026-11-12",
+  "project": "KYOTO_AI_P1_F04_REAL_MARKET_PIPELINE",
+  "baseline": "docs/diagnostics/kyoto_20261112_existing_pc_sp_asset_reuse_receipt.json",
+  "source_commit": "ad471b8e5f74125a1dd39ce0f717be3c28e55621",
+  "evidence": {
+    "workflow_run_id": 43156019175,
+    "job_id": 130976010596,
+    "conclusion": "SUCCESS",
+    "offline_modules": {
+      "tests.test_jra_one_shot_market_capture": 59,
+      "tests.test_jra_p1_failover_offline": 25
+    },
+    "independently_current_live_source_verified": false,
+    "fixed_F04_unverified": true,
+    "source_url": "https://github.com/papaneko-ai/kyoto-keiba-ai/actions/runs/43156019175"
+  },
+  "changes": [
+    "Follow up to two observed (never inferred) odds-menu actions after official meeting selection, preserving raw, SHA and UTC for each",
+    "Constrain observed link to date/venue/race context; reject site-footer-only candidate and mixed-race pages",
+    "Bind CLI supplied numbered roster to observed target race day, number, venue and source URL; reject use of previous Nov7 roster in Nov14 odds capture",
+    "Apply request pacing at minimum 2s between actual authorized reads, including the cross-channel one-shot fallback",
+    "Retain prior measured SP optimization and data-provenance complementary field reconciliation without reimplementing historical code"
+  ],
+  "limitations": [
+    "Current race Nov14 PC/SP independent URLs and numbered roster are not present as verified, newly fetched originals",
+    "JRA official pre-race quinella and bracket quinella actual values have not been independently frozen",
+    "No cross-host GlobalAttemptRegistry coverage proven by this single-run pacer",
+    "No proof of PC/SP current live market equivalence or real automatic fallback",
+    "Not integrated into live freeze, live virtual trade, production Streamlit or Turso"
+  ],
+  "status": {
+    "research": "32/32",
+    "graduation": "12/12",
+    "alg_evo": "21/21",
+    "real_live": "0/6",
+    "operational": "0/100",
+    "final_fixed_20": "35/100"
+  },
+  "next_real_proof": "After official publication and sale start, collect same-race independent actual PC/SP observed navigation, numbered roster and pre-race market originals; audit SHA+UTC+market completeness+withdrawals; only then consider F04 PASS.",
+  "preserve_existing": [
+    "main",
+    "Turso production",
+    "existing archived 2026-11-06 source originals",
+    "existing fixed gate rubric"
+  ],
+  "score_increment": 0
+}
