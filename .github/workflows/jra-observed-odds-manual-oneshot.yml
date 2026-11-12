@@ -41,6 +41,8 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
+      - name: Install the existing source parser
+        run: python -m pip install 'beautifulsoup4>=4.12,<5'
       - name: Offline evidence gates before any network
         run: |
           python - <<'PY'
@@ -50,26 +52,24 @@ jobs:
           import json
           for key in ("OBSERVED_SPEC","OBSERVED_ROSTER"):
               value=os.environ[key]
-              if not re.fullmatch(r"docs/diagnostics/[A-Za-z0-9_./-]+\\.json",value) or ".." in value.split("/"):
+              if not re.fullmatch(r"docs/diagnostics/[A-Za-z0-9_./-]+\.json",value) or ".." in value.split("/"):
                   raise SystemExit("VERIFIED_REPOSITORY_EVIDENCE_PATH_REQUIRED")
               if not Path(value).is_file():
                   raise SystemExit("EVIDENCE_FILE_NOT_FOUND")
           spec=ObservedRaceSpec(**json.loads(Path(os.environ["OBSERVED_SPEC"]).read_text(encoding="utf8"))).validate()
-          if not re.fullmatch(r"20\\d{2}-\\d\\d-\\d\\dT\\d\\d:\\d\\d:\\d\\dZ",os.environ["OBSERVED_START"]):
+          if not re.fullmatch(r"20\d{2}-\d\d-\d\dT\d\d:\d\d:\d\dZ",os.environ["OBSERVED_START"]):
               raise SystemExit("VERIFIED_START_UTC_REQUIRED")
           print("OFFLINE_SOURCE_SPEC_VALIDATED_FOR_DIAGNOSTIC_ONLY")
           print("NO_JRA_REQUESTS_SO_FAR=TRUE")
           PY
-      - name: Install the existing source parser
-        run: python -m pip install 'beautifulsoup4>=4.12,<5'
       - name: One-shot JRA original-market diagnostic (never submit wagers)
         run: |
-          python diagnostics/jra_one_shot_market_capture.py \\
-            --channel "$OBSERVED_CHANNEL" \\
-            --verified-start-utc "$OBSERVED_START" \\
-            --active-roster-json "$OBSERVED_ROSTER" \\
-            --race-spec-json "$OBSERVED_SPEC" \\
-            --authorized-live-http \\
+          python diagnostics/jra_one_shot_market_capture.py \
+            --channel "$OBSERVED_CHANNEL" \
+            --verified-start-utc "$OBSERVED_START" \
+            --active-roster-json "$OBSERVED_ROSTER" \
+            --race-spec-json "$OBSERVED_SPEC" \
+            --authorized-live-http \
             --out jra_odds_observed_one_shot
       - name: Preserve originals and a source-only receipt
         if: always()
