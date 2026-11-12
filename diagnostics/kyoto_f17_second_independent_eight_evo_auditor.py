@@ -68,7 +68,7 @@ def verify(w,rubric):
      "research_hypothesis_count":8,
      "independent_evolution_certified":False,"auto_promote":False,
      "prediction_ready":False,"real_bet_authorized":False}
- ck(r["manifest_sha256"]==dig({**screen_payload,"receipt_sha256":dig(screen_payload)}),
+ ck(r["manifest_sha256"]==dig(screen_payload),
     "approved_EVO_screen_receipt_not_grounded")
  for i,name in enumerate(NAMES):
     ck(set(inp[name])==set(FIELDS[i]),"EVO_field_schema_changed")
