@@ -325,7 +325,7 @@ class ObservedOddsMenuTraversalTests(unittest.TestCase):
  def observed(self,channel,kind="meeting",day="2026年11月14日",duplicates=False):
   prefix="pw" if channel=="PC" else "sw"
   token=prefix+"15observed/AA"
-  label="京都 11月14日 開催" if kind=="meeting" else "11レース"
+  label="京都 11月14日 開催" if kind=="meeting" else "京都 11レース"
   a=f"""<a onclick="return doAction('/JRADB/accessO.html','{token}')">{label}</a>"""
   if duplicates:
    a+=f"""<a onclick="return doAction('/JRADB/accessO.html','{prefix}15other/BB')">{label}</a>"""
@@ -357,6 +357,10 @@ class ObservedOddsMenuTraversalTests(unittest.TestCase):
  def test_other_channel_token_rejected(self):
   with self.assertRaisesRegex(SourceChainError,"link_missing"):
    self.next_action(self.observed("SP"),"PC",0)
+ def test_unbound_race_label_from_other_meeting_is_not_selected(self):
+  raw=self.observed("PC","race").replace("京都 11レース".encode("cp932"),"11レース".encode("cp932"))
+  with self.assertRaisesRegex(SourceChainError,"link_missing"):
+   self.next_action(raw,"PC",1)
  def test_other_race_label_not_selected(self):
   raw=self.observed("PC","race").replace("11レース".encode("cp932"),"10レース".encode("cp932"))
   with self.assertRaisesRegex(SourceChainError,"link_missing"):
@@ -386,7 +390,7 @@ class BoundedObservedMenuIntegrationTests(unittest.TestCase):
   pages=[
    (html(LINK),spec.pc_racecard_url),
    (menu("京都 11月14日 開催","pw15meeting/AA"),"https://jra.jp/JRADB/accessO.html"),
-   (menu("11レース","pw15race/BB"),"https://jra.jp/JRADB/accessO.html"),
+   (menu("京都 11レース","pw15race/BB"),"https://jra.jp/JRADB/accessO.html"),
    (menu("開催済レース一覧","pw15end/CC"),"https://jra.jp/JRADB/accessO.html")
   ]
   stub=StubOpener(pages)
