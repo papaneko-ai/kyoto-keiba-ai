@@ -1,0 +1,60 @@
+{
+  "schema": "kyoto_F16_offline_independent_certification.v1",
+  "gate": "F16",
+  "scope": "ISOLATED_LAB_STATISTICS_REPLAY_NOT_REAL_JRA",
+  "accepted_points": 5,
+  "first_ci": {
+    "run_id": 43138143478,
+    "job_id": 130918345870,
+    "sha": "1cf3dbf1bc989cd7eb0ef618e6b1c78c4080d60b",
+    "result": "success",
+    "tests": 35,
+    "artifact_id": 13908605907
+  },
+  "second_ci": {
+    "run_id": 43138274045,
+    "job_id": 130918774945,
+    "sha": "35bbb690d7c5665da2e5033e05c68e9b951fd329",
+    "result": "success",
+    "negative_witnesses_rejected": 6,
+    "artifact_id": 13908710872
+  },
+  "verified_fixture": {
+    "frozen_races": 4,
+    "settled_races": 3,
+    "unsettled_excluded": 1,
+    "settled_stake_yen": 600,
+    "settled_return_yen": 1500,
+    "settled_profit_yen": 900,
+    "maximum_drawdown_yen": 200,
+    "hit_races": 2,
+    "hit_tickets": 2,
+    "ticket_types": [
+      "QUINELLA",
+      "BRACKET"
+    ],
+    "model_versions": [
+      "MODEL-A",
+      "MODEL-B"
+    ],
+    "corrected_result_versions": true,
+    "refund_not_counted_hit": true
+  },
+  "fixed_rubric_sha256": "92bae5c1d61d6ac00a5380dd8d5e08beb59f96c898b03c05a3c8bf8721ced632",
+  "evidence": [
+    "diagnostics/kyoto_f16_virtual_performance_stats.py",
+    "diagnostics/kyoto_f16_independent_sqlite_auditor.py",
+    "tests/test_kyoto_f16_virtual_performance_stats.py",
+    ".github/workflows/kyoto-f16-journal-statistics-acceptance.yml",
+    ".github/workflows/kyoto-f16-second-independent-audit.yml"
+  ],
+  "real_jra_pre_race_data_authenticated": false,
+  "production_turso_cross_host_verified": false,
+  "real_paper_trading_run_verified": false,
+  "fixed_final_previous": 20,
+  "fixed_final_now": 25,
+  "fixed_final_delta": 5,
+  "fixed_live_independent": "0/6",
+  "fixed_operational_lower_bound": "0/100",
+  "production_ready": false
+}
