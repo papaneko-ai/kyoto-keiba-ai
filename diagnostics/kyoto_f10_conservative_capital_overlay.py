@@ -172,11 +172,18 @@ def overlay_lab_risk(*,f11_handoff,lab_quotes,decision_utc,
         elif age>max_quote_age_seconds:reason="STALE_QUOTE"
         elif expected_net<=min_ev:reason="NO_POSITIVE_STRESSED_EDGE"
         else:
+            # Conservative heuristic sizing, not a Kelly stake or an
+            # estimated profitable real strategy. Higher error/drift reduces
+            # both stressed EV and the permitted per-pair capital.
+            edge_fraction=min(pair_cap_frac,
+                max(0.0,expected_net)/(4.0*(1.0+max(0.0,expected_net))))
+            edge_cap=_bounds(edge_fraction,budget)
             available=min(
                 expected[key]["planned_stake_yen"],
                 max(0,daily_cap-used),
                 max(0,race_cap-per_race.get(race,0)),
                 pair_cap,
+                edge_cap,
                 *(max(0,entity_cap-per_entity.get((race,e),0)) for e in set(pair)),
             )
             amount=(available//100)*100
