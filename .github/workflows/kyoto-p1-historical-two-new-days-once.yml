@@ -1,0 +1,70 @@
+name: Kyoto P1 historical two new days one-shot JRA HTML proof
+on:
+  push:
+    branches: [jra-html-diagnostic-20261105]
+    paths:
+      - '.github/workflows/kyoto-p1-historical-two-new-days-once.yml'
+permissions:
+  contents: read
+concurrency:
+  group: kyoto-p1-history-20261112-unique
+  cancel-in-progress: false
+jobs:
+  two-day-proof:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Run isolated destructive tests before any official GET
+        env:
+          PYTHONPATH: .
+        run: |
+          set -euo pipefail
+          python -m unittest -v tests.test_jra_historical_two_day_source_capture
+      - name: Verify JRA robots policy for the EXACT two known URLs
+        run: |
+          python - <<'PY'
+          from urllib.robotparser import RobotFileParser
+          from diagnostics.jra_historical_two_day_source_capture import KNOWN
+          robot=RobotFileParser()
+          robot.set_url('https://www.jra.go.jp/robots.txt')
+          robot.read()
+          for date,race,url in KNOWN:
+              if not robot.can_fetch('KyotoRaceAI-Research/0.1', url):
+                  raise SystemExit('ROBOTS_REJECTED_STOP')
+          print('ROBOTS_PATHS_ALLOW; permission to redistribute NOT inferred')
+          PY
+      - name: Fetch only two verified official dated result URLs, save raw + SHA
+        env:
+          PYTHONPATH: .
+        run: |
+          set -euo pipefail
+          python -m diagnostics.jra_historical_two_day_source_capture --out jra_historical_two_days_20261112
+      - name: Record diagnostic job provenance even if external fetch fails
+        if: always()
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import json,datetime,os
+          p=Path('jra_historical_two_days_20261112')
+          p.mkdir(exist_ok=True)
+          (p/'job_provenance.json').write_text(json.dumps({
+            'timestamp_utc':datetime.datetime.now(datetime.timezone.utc).isoformat(),
+            'head_sha':os.environ.get('GITHUB_SHA',''),
+            'run_id':os.environ.get('GITHUB_RUN_ID',''),
+            'trigger':'single_initial_workflow_push',
+            'scope':'HISTORICAL_POST_RACE_STRUCTURE_ONLY',
+            'production_turso_touched':False,
+            'live_paper_trade_certified':False},indent=2)+'\n')
+          PY
+      - name: Upload raw HTML and audit receipts (short-lived only)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: kyoto-p1-historical-two-day-source-20261112
+          path: jra_historical_two_days_20261112/
+          retention-days: 3
+          if-no-files-found: error
