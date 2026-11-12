@@ -216,7 +216,7 @@ def verify(w,rubric):
     and got["EVO-05"]["status"]=="LAB_FORWARD_DRIFT_AND_REVOCATION","EVO05_drift")
  close(got["EVO-05"]["drift_reduction"],five["baseline_drift"]-five["current_drift"])
  ck(3<=six["experiment_count"]<=4 and six["research_budget"]>0
-    and six["holdout_unused"] is True and got["EVO-06"]["experiments_run"]==0
+    and six["holdout_unused"] is True and got["EVO-06"]["experiments_run"]==3
     and got["EVO-06"]["max_experiments"]==six["experiment_count"]
     and got["EVO-06"]["status"]=="LAB_CONSTRAINED_RESEARCH_PROPOSAL","EVO06_budget")
  close(got["EVO-06"]["research_budget"],six["research_budget"])
