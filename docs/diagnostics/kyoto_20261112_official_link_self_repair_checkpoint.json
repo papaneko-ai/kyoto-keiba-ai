@@ -1,0 +1,57 @@
+{
+  "schema": "kyoto_ai_20261112_official_link_repair_checkpoint.v1",
+  "date": "2026-11-12",
+  "baseline_commit": "b9fa6a21d9698202564f5d496c8f87010f96622c",
+  "scope": "P1 official PC link break detection, bounded rediscovery, fail-closed repair and operator alerts. Diagnostic-only.",
+  "implementation": [
+    "diagnostics/jra_official_link_repair.py",
+    "diagnostics/jra_one_shot_market_capture.py",
+    "tests/test_jra_official_link_repair.py",
+    ".github/workflows/jra-existing-odds-regression.yml",
+    ".github/workflows/jra-observed-odds-manual-oneshot.yml"
+  ],
+  "capabilities": [
+    "PC racecard HTTP 404/410 detection with explicit manual diagnostic opt-in",
+    "Reopen only verified official JRA PC selection and observed Kyoto meeting anchors; maximum three additional requests",
+    "Reject duplicate candidate, wrong race, unofficial host, redirects and missing exact roster proof",
+    "Preserve immutable selection, meeting and candidate originals and hashes",
+    "Persist separate verified_repaired_race_spec.json source-only handoff for next manual diagnostic",
+    "GitHub Actions operator alert for broken link, repaired link, and safe stop",
+    "No source file overwrite, no global automatic promotion, no production writes, no real wager"
+  ],
+  "verified_offline": {
+    "source_commit": "b2d32b935d97d20fccbf1bfb726fbcf76619a832",
+    "workflow_run_id": 43163679374,
+    "conclusion": "success",
+    "test_counts": {
+      "existing_capture": 92,
+      "existing_pc_sp": 25,
+      "link_repair": 10,
+      "total": 127
+    },
+    "real_http_calls": 0
+  },
+  "latest_after_test": "Verified repaired race specification handoff is now additionally asserted by a new test; obtain latest-head CI before calling final commit green.",
+  "fixed_progress": {
+    "research": "32/32",
+    "graduation": "12/12",
+    "major_features": "21/21",
+    "live": "0/6",
+    "operational": "0/100",
+    "final_20_gate": "35/100"
+  },
+  "next_gate": "40/100 requires independently verified real same-race Kyoto pre-start racecard and both official wager market originals; offline recovery CI gives zero extra points.",
+  "not_yet_verified": [
+    "Real JRA broken-link recovery",
+    "Production Streamlit alert UI",
+    "Persistent cross-run automatic link replacement",
+    "2026-11-14 real prerace market originals",
+    "Independent P1 three-original F03/F04 PASS"
+  ],
+  "protected": [
+    "main",
+    "Turso production",
+    "published Streamlit",
+    "live wagers"
+  ]
+}
