@@ -1,0 +1,96 @@
+name: Kyoto F16 second independent SQLite event audit
+on:
+  push:
+    branches: [jra-html-diagnostic-20261105]
+    paths:
+      - diagnostics/kyoto_f16_independent_sqlite_auditor.py
+      - .github/workflows/kyoto-f16-second-independent-audit.yml
+permissions:
+  contents: read
+  actions: read
+jobs:
+  second-p6-metrics:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Fetch exact first CI frozen SQLite and receipt (no JRA or Turso)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          curl --fail --location --silent --show-error --retry 0 --max-time 30 \
+            -H "Authorization: Bearer ${GH_TOKEN}" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/papaneko-ai/kyoto-keiba-ai/actions/artifacts/13908605907/zip" \
+            -o original_F16_lab.zip
+          mkdir -p original_lab
+          python - <<'PY'
+          import zipfile
+          from pathlib import Path
+          with zipfile.ZipFile('original_F16_lab.zip') as z:
+              assert set(z.namelist())=={'receipt.json','lab.sqlite'},z.namelist()
+              for name in z.namelist():
+                  Path('original_lab',name).write_bytes(z.read(name))
+          PY
+      - name: Independent no-target-import P6 correction, max drawdown and model breakdown audit
+        env:
+          PYTHONPATH: .
+        run: |
+          python - <<'PY'
+          import copy,hashlib,json,os,sqlite3
+          from pathlib import Path
+          from diagnostics.kyoto_f16_independent_sqlite_auditor import audit,F16AuditRejected,_dig
+          folder=Path('original_lab')
+          source=json.loads((folder/'receipt.json').read_text())
+          rubric=Path('docs/diagnostics/kyoto_final_completion_criteria_v1.json').read_bytes()
+          output=audit(folder/'lab.sqlite',source,rubric)
+          failures=0
+          def blocked(record,label):
+              global failures
+              try:audit(folder/'lab.sqlite',record,rubric)
+              except F16AuditRejected:
+                  failures+=1
+                  print('F16_NEGATIVE_REJECTED='+label)
+                  return
+              raise AssertionError('accepted invalid witness '+label)
+          fake=copy.deepcopy(source)
+          fake['stats']['totals']['return_yen']+=100
+          blocked(fake,'tampered_return')
+          fake=copy.deepcopy(source)
+          fake['stats']['totals']['return_yen']+=100
+          fake['stats']['stats_sha256']=_dig({k:v for k,v in fake['stats'].items() if k!='stats_sha256'})
+          blocked(fake,'rehashed_return')
+          fake=copy.deepcopy(source)
+          fake['stats']['max_realized_drawdown_yen']=0
+          fake['stats']['stats_sha256']=_dig({k:v for k,v in fake['stats'].items() if k!='stats_sha256'})
+          blocked(fake,'rehashed_drawdown')
+          fake=copy.deepcopy(source)
+          fake['stats']['live_jra_authenticity_verified']=True
+          blocked(fake,'false_live_claim')
+          fake=copy.deepcopy(source)
+          fake['ci_run_id']='wrong'
+          blocked(fake,'wrong_original_provenance')
+          try:audit(folder/'lab.sqlite',source,rubric+b' ')
+          except F16AuditRejected:failures+=1
+          else:raise AssertionError('changed rubric accepted')
+          assert failures==6
+          output['second_ci_run_id']=int(os.environ['GITHUB_RUN_ID'])
+          output['second_ci_head_sha']=os.environ['GITHUB_SHA']
+          output['malicious_witnesses_rejected']=failures
+          output['source_zip_sha256']=hashlib.sha256(Path('original_F16_lab.zip').read_bytes()).hexdigest()
+          folder=Path('f16_independent_result')
+          folder.mkdir()
+          (folder/'F16_second_audit.json').write_text(json.dumps(output,sort_keys=True,ensure_ascii=False,indent=2)+'\n')
+          print('F16_EXACT_INDEPENDENT_EVENT_REPLAY_PASS=TRUE')
+          print('F16_NO_ACTUAL_LIVE_PAPER_TRADE_VERIFIED=TRUE')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: kyoto-F16-second-independent-replay-proof
+          path: f16_independent_result/
+          retention-days: 7
+          if-no-files-found: error
