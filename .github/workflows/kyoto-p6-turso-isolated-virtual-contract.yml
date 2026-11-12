@@ -1,0 +1,40 @@
+name: Kyoto P6 isolated Turso cross-client virtual journal contract
+on:
+  push:
+    branches: [jra-html-diagnostic-20261105]
+    paths:
+      - diagnostics/kyoto_turso_isolated_virtual_store.py
+      - diagnostics/kyoto_virtual_sqlite_journal.py
+      - tests/test_kyoto_turso_isolated_virtual_store.py
+      - .github/workflows/kyoto-p6-turso-isolated-virtual-contract.yml
+permissions:
+  contents: read
+jobs:
+  isolated-remote-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Run virtual journal and fake remote isolated cross-client tests
+        env:
+          PYTHONPATH: .
+        run: |
+          set -euo pipefail
+          python -m unittest -v tests.test_kyoto_virtual_sqlite_journal tests.test_kyoto_turso_isolated_virtual_store
+          echo KYOTO_REMOTE_STORE_CONTRACT_TESTS=PASS
+          echo TURSO_REAL_HTTP_REQUESTS=0
+          echo PRODUCTION_DATABASE_WRITES=0
+      - name: Check fixed acceptance lower-bound is not inflated
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          r=json.loads(Path('docs/diagnostics/kyoto_final_20_gate_verified_state_20261112.json').read_text())
+          assert r['current_verified_lower_bound']==25
+          assert r['fixed_live_acceptance']=='0/6'
+          assert r['fixed_operational_lower_bound']=='0/100'
+          print('NO_FALSE_LIVE_OR_PRODUCTION_CERTIFICATION=PASS')
+          PY
