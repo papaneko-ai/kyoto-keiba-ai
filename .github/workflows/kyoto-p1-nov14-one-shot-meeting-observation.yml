@@ -27,7 +27,7 @@ jobs:
           python - <<'PY'
           import json
           from diagnostics.kyoto_p1_nov14_official_one_shot_nav import inspect_once
-          r=inspect_once('jra_nov14_official_one_off')
+          r=inspect_once('jra_nov14_official_one_off',authorized_live_http=True)
           print('NOV14_OFFICIAL_MEETING_DISCOVERY_STATUS='+r['status'])
           print('JRA_HTTP_GET_LIMIT=ONE')
           print('NO_ODDS_OR_AUTOMATED_BETS=TRUE')
