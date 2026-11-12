@@ -112,6 +112,24 @@ with tab_results:
     st.metric("累積損益", "未確定")
     st.caption("速報・確定・返還・訂正を区別。未確定をゼロ円にしません。")
 
+    with st.expander("JRA公式の過去の確定結果・払戻（仮想投資の成績ではありません）"):
+        try:
+            from diagnostics.kyoto_p6_real_final_mobile_viewmodel import (
+                view as actual_final_view,
+            )
+            official = actual_final_view()
+            st.caption("2026年10月25日京都10Rと11月8日京都11Rの事後確定結果。"
+                       "馬連・枠連の払戻は100円当たり。発走前オッズではありません。")
+            st.dataframe([
+                {k: v for k, v in row.items() if k != "race_id"}
+                for row in official["rows"]
+            ], hide_index=True, use_container_width=True)
+            st.caption("JRA原本SHA256：" + official["source_archive_sha256"])
+            st.info("この2レースで事前の仮想馬券を登録した事実はありません。"
+                    "仮想収支・的中率・回収率には加算しません。")
+        except (OSError, ValueError, KeyError, TypeError, ImportError):
+            st.error("公式過去結果の整合性が確認できないため、払戻資料を表示しません。")
+
 with tab_evolution:
     st.subheader("AIの自己進化")
     st.info("独立進化認定・ロールバックの実開催統合は未接続です。")
