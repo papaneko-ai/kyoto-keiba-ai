@@ -1,0 +1,30 @@
+name: Kyoto isolated durable virtual paper ledger E2E
+on:
+  push:
+    branches: [jra-html-diagnostic-20261105]
+    paths:
+      - diagnostics/kyoto_virtual_sqlite_journal.py
+      - tests/test_kyoto_virtual_sqlite_journal.py
+      - .github/workflows/kyoto-virtual-sqlite-journal-e2e.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  sqlite-ledger-offline:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Durable virtual journal repeatable negative and positive tests
+        env:
+          PYTHONPATH: .
+        run: |
+          set -euo pipefail
+          python -m unittest -v tests.test_kyoto_virtual_sqlite_journal
+          echo KYOTO_DURABLE_VIRTUAL_LEDGER_TESTS_PASS=TRUE
+          echo LIVE_JRA_AUTHENTICATION_NOT_CLAIMED=TRUE
+          echo PRODUCTION_TURSO_NOT_TOUCHED=TRUE
+          echo NO_ACTUAL_BET_SUBMISSION=TRUE
