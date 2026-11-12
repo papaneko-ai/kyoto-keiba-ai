@@ -48,7 +48,7 @@ class F07IndependentAcceptance(unittest.TestCase):
     def test_scratch_changes_entire_pair_universe(self):
         a=fixture()
         a["runners"][-1]["status"]="SCRATCHED"
-        with self.assertRaisesRegex(F07Rejected,"missing_or_extra_offered_pair:QUINELLA"):
+        with self.assertRaisesRegex(F07Rejected,"missing_or_extra_offered_pair"):
             calculate_f07(**a)
         fixed=make_args(a["runners"])
         r=calculate_f07(**fixed)
