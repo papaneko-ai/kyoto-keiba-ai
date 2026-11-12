@@ -1,0 +1,50 @@
+{
+  "schema": "kyoto_F17_evo01_08_integrated_independent_certification.v1",
+  "gate": "F17",
+  "title": "EVO-01..08 connected research cycle",
+  "accepted_scope": "PASS_OFFLINE_F17_EIGHT_EVO_SYNTHETIC_INTEGRATION_ONLY",
+  "accepted_points": 5,
+  "rubric_sha256": "92bae5c1d61d6ac00a5380dd8d5e08beb59f96c898b03c05a3c8bf8721ced632",
+  "initial": {
+    "run_id": 43148350496,
+    "job_id": 130951395793,
+    "head_sha": "2a0368241d03fc653bc4b83c2be1826e6aba4be0",
+    "result": "success",
+    "tests_passed": 25,
+    "artifact_id": 13912941740
+  },
+  "independent": {
+    "run_id": 43148482205,
+    "job_id": 130951828745,
+    "head_sha": "43c23a166ced5bbc1085cb3e2e9d9088f98759c2",
+    "result": "success",
+    "forgeries_rejected": 6,
+    "artifact_id": 13911769069
+  },
+  "functions": [
+    "EVO-01 supplementary data value/cost ranking",
+    "EVO-02 error weakness detection",
+    "EVO-03 paired shadow AI comparison on F18 original holdout",
+    "EVO-04 pre-registered portfolio and drawdown checks",
+    "EVO-05 forward deterioration and shadow revocation",
+    "EVO-06 bounded research experiment budget and no autocode mutation",
+    "EVO-07 independent F18 plan/hash-based audit binding",
+    "EVO-08 surprise hypothesis counterexample/retest"
+  ],
+  "provenance": "ORIGINAL_SYNTHETIC_EVO_INPUT_WITH_F18_SEALED_HOLDOUT_FROM_PRIOR_CI",
+  "verified_distinct_evo_capabilities": 8,
+  "actual_jra_prediction_improvement_verified": false,
+  "real_jra_data_used": false,
+  "actual_automated_live_evolution_verified": false,
+  "production_model_changed": false,
+  "real_bet_allowed": false,
+  "note": "Acceptance covers eight isolated offline algorithmic functional integrations only. No future/real-world performance evidence; a separate authentic JRA prospective qualification remains mandatory.",
+  "fixed_final_before": 30,
+  "fixed_final_now": 35,
+  "delta": 5,
+  "fixed_live_independent": "0/6",
+  "fixed_operational_lower_bound": "0/100",
+  "protected_main_changed": false,
+  "production_turso_changed": false,
+  "public_streamlit_changed": false
+}
