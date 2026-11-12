@@ -83,6 +83,13 @@ def validate(evidence, *, raw_bytes, verified_urls, now_utc):
         expected={(a,b) for a in horses for b in horses if a<b}
     else:
         counts={b:list(mapping.values()).count(b) for b in set(mapping.values())}
+        # JRA: bracket quinella is normally offered for 9+ sale-start runners.
+        # With <=8 it is offered only if a bracket held >=2 at sale start.
+        # Current active runners are NOT proof of the sale-start roster.
+        # Fail closed on obvious unsupported markets; a historic scratch after
+        # 9+ started-sale runners needs independent sale-start evidence later.
+        if len(horses)<=8 and not any(n>=2 for n in counts.values()):
+            reject("BRACKET_MARKET_NOT_PROVEN_ON_SALE")
         expected={(a,b) for a in counts for b in counts if a<b or (a==b and counts[a]>=2)}
     if seen!=expected:
         reject("INCOMPLETE_OR_EXTRA_MARKET_GRID")
