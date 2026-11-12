@@ -1,0 +1,75 @@
+name: Kyoto P6 ISOLATED Turso actual read-only connectivity proof
+on:
+  push:
+    branches: [jra-html-diagnostic-20261105]
+    paths:
+      - 'diagnostics/turso_readonly_inventory.py'
+      - '.github/workflows/kyoto-p6-turso-actual-readonly-proof.yml'
+permissions:
+  contents: read
+jobs:
+  isolated-read-only:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    env:
+      TURSO_DATABASE_URL: ${{ secrets.TURSO_DATABASE_URL }}
+      TURSO_AUTH_TOKEN: ${{ secrets.TURSO_AUTH_TOKEN }}
+      PYTHONPATH: .
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install read-only HTTP client
+        run: python -m pip install requests
+      - name: Run destructive offline host and SQL safety regression
+        run: python -m unittest discover -s tests -p 'test_turso_readonly_inventory.py' -v
+      - name: Actual isolated Turso READ-ONLY inspection when credentials exist
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json,os
+          from pathlib import Path
+          from diagnostics.turso_readonly_inventory import validate_url, validate_token, inventory
+          url=os.environ.get('TURSO_DATABASE_URL','')
+          token=os.environ.get('TURSO_AUTH_TOKEN','')
+          rec={'schema':'kyoto_p6_turso_actual_readonly_probe.v1',
+               'ci_run_id':os.environ['GITHUB_RUN_ID'],
+               'head_sha':os.environ['GITHUB_SHA'],
+               'target':'DEDICATED_TEST_DB_ONLY',
+               'operation':'READ_ONLY_TABLE_METADATA',
+               'production_database_mutated':False,
+               'live_jra_paper_trading_verified':False,
+               'cross_host_recovery_verified':False}
+          if not url or not token:
+              rec['result']='SKIPPED_MISSING_GITHUB_ACTIONS_SECRETS'
+              rec['real_test_db_connection_verified']=False
+          else:
+              # Do not attempt ANY outbound request until both exact host
+              # and token format have passed offline validation.
+              validate_url(url)
+              validate_token(token)
+              try:
+                  result=inventory(database_url=url,auth_token=token)
+                  rec['result']='PASS_ACTUAL_READONLY_TEST_DB'
+                  rec['real_test_db_connection_verified']=result['connection_verified']
+                  rec['visible_table_count']=result['table_count_visible']
+              except Exception:
+                  rec['result']='FAILED_OR_INCONCLUSIVE_ACTUAL_READONLY_TEST_DB'
+                  rec['real_test_db_connection_verified']=False
+          out=Path('p6_actual_readonly_receipt')
+          out.mkdir()
+          (out/'status.json').write_text(json.dumps(rec,sort_keys=True,indent=2)+'\n')
+          print('ACTUAL_ISOLATED_TURSO_READONLY_STATUS='+rec['result'])
+          print('NO_SQL_MUTATIONS_ALLOWED=TRUE')
+          if rec['result']=='FAILED_OR_INCONCLUSIVE_ACTUAL_READONLY_TEST_DB':
+              raise SystemExit('READONLY_PROBE_INCONCLUSIVE')
+          PY
+      - name: Persist non-sensitive test status receipt
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: kyoto-p6-actual-isolated-turso-readonly-status
+          path: p6_actual_readonly_receipt/
+          retention-days: 7
+          if-no-files-found: warn
