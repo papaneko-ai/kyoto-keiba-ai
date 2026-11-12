@@ -1,0 +1,52 @@
+name: Kyoto P1 actual historical 12 race prerace evidence re-audit
+on:
+  push:
+    branches: [jra-html-diagnostic-20261105]
+    paths:
+      - diagnostics/kyoto_p1_saved_real_prerace_roster_reaudit.py
+      - tests/test_kyoto_p1_saved_real_prerace_roster_reaudit.py
+      - .github/workflows/kyoto-p1-real-prerace-148-revalidation.yml
+permissions:
+  contents: read
+jobs:
+  prerace-148-receipt:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Independent 12-race real saved receipt audit and destructive tests
+        env:
+          PYTHONPATH: .
+        run: |
+          set -euo pipefail
+          python -m unittest -v tests.test_kyoto_p1_saved_real_prerace_roster_reaudit
+      - name: Persist SHA-bound original metadata inspection with exact incomplete-gate status
+        env:
+          PYTHONPATH: .
+        run: |
+          python - <<'PY'
+          import json,os
+          from pathlib import Path
+          from diagnostics.kyoto_p1_saved_real_prerace_roster_reaudit import inspect_day
+          result=inspect_day()
+          assert result['races_checked']==12 and result['runners_checked']==148
+          assert not result['F03_fixed_gate_accepted']
+          assert not result['F04_fixed_gate_accepted']
+          result['ci_run_id']=os.environ['GITHUB_RUN_ID']
+          result['ci_head_sha']=os.environ['GITHUB_SHA']
+          folder=Path('p1_real_prerace_148_reaudit')
+          folder.mkdir()
+          (folder/'historic_prerace_148_evidence.json').write_text(
+              json.dumps(result,ensure_ascii=False,indent=2,sort_keys=True)+'\n')
+          print('PREVIOUS_ACTUAL_PRERACE_ROSTER_12R_148_UNALTERED=TRUE')
+          print('MARKET_OR_COMPLETE_REQUIRED_FEATURES_NOT_YET_PROVEN=TRUE')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: kyoto-real-prerace-roster-148-receipt-only-not-html
+          path: p1_real_prerace_148_reaudit/
+          retention-days: 7
+          if-no-files-found: error
