@@ -1,0 +1,55 @@
+{
+  "schema": "kyoto_F18_offline_shadow_adoption_drift_rollback_independent_certification.v1",
+  "gate": "F18",
+  "fixed_rubric_sha256": "92bae5c1d61d6ac00a5380dd8d5e08beb59f96c898b03c05a3c8bf8721ced632",
+  "status": "PASS_OFFLINE_F18_SYNTHETIC_SHADOW_ADOPTION_DRIFT_ROLLBACK_ONLY",
+  "accepted_points": 5,
+  "original_ci": {
+    "run_id": 43144148977,
+    "job_id": 130937904311,
+    "head_sha": "5824eaf63217f94d1980472826c0d7faf8add030",
+    "conclusion": "success",
+    "passed_tests": 20,
+    "artifact_id": 13910832192
+  },
+  "independent_ci": {
+    "run_id": 43144276789,
+    "job_id": 130938314358,
+    "head_sha": "1fa1faf79f92c3251f851b6c3c2aae1590995240",
+    "conclusion": "success",
+    "malicious_receipts_rejected": 6,
+    "artifact_id": 13910977291
+  },
+  "evidence_files": [
+    "diagnostics/kyoto_f18_offline_shadow_rollback_contract.py",
+    "tests/test_kyoto_f18_offline_shadow_rollback_contract.py",
+    "diagnostics/kyoto_f18_second_independent_shadow_auditor.py",
+    ".github/workflows/kyoto-f18-offline-shadow-rollback-ci.yml",
+    ".github/workflows/kyoto-f18-second-independent-shadow-audit.yml"
+  ],
+  "fixed_methods": [
+    "research LAB original source only",
+    "sealed training end and plan lock",
+    "10 holdout races with same population for champion challenger baseline",
+    "independent Brier/log loss/sign test and multiplicity adjustment",
+    "20 unique forward races in two windows",
+    "shadow adoption and monitored deterioration",
+    "rollback to champion without alternate promotion",
+    "same source repeated run deterministic",
+    "SHA linked forward decisions",
+    "reject rehashed unauthorized decisions, fake production, reused holdout and altered rubric"
+  ],
+  "actual_JRA_live_source": false,
+  "real_model_out_of_sample_improvement_verified": false,
+  "production_model_updated": false,
+  "real_bets_allowed": false,
+  "scope_warning": "Research-only synthetic shadow acceptance. Not a deployable racing prediction, not any JRA performance demonstration, not operational completion.",
+  "fixed_final_before": 25,
+  "fixed_final_now": 30,
+  "fixed_final_delta": 5,
+  "operational_lower_bound": "0/100",
+  "live_connection_independent": "0/6",
+  "protected_main_unchanged": true,
+  "production_turso_unchanged": true,
+  "public_streamlit_unchanged": true
+}
