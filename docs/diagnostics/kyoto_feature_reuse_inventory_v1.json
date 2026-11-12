@@ -86,6 +86,214 @@
         "docs/diagnostics/kyoto_ai_full_resume_ci_reconciliation_20261109.json"
       ],
       "remaining": "Complete official preregistered prediction and settlement."
+    },
+    {
+      "id": "P1_PROFILE_96_ARCHIVE",
+      "status": "IMPLEMENTED_PARTIAL",
+      "code_paths": [
+        "diagnostics/jra_p1_batch14_original_replay.py",
+        "diagnostics/p1_registry_reconcile.py"
+      ],
+      "evidence_paths": [
+        "docs/diagnostics/jra_p1_batch14_96_profiles_20261106/status.json",
+        "docs/diagnostics/p1_real_recovery_archive_84_source_reparse_20261109.json"
+      ],
+      "remaining": "96 profiles confirmed, 84 PC originals replayed; 12 source originals not recovered; 52 profiles unqueried. Reuse originals, never backdate a historical profile."
+    },
+    {
+      "id": "P2_REAL_FEATURE_MATRIX",
+      "status": "IMPLEMENTED_PARTIAL",
+      "code_paths": [
+        "diagnostics/p2_historical_feature_matrix.py",
+        "diagnostics/jra_feature_coverage_148.py"
+      ],
+      "evidence_paths": [
+        "docs/diagnostics/p2_historical_feature_matrix_evidence_20261109.json",
+        "docs/diagnostics/jra_p1_batch14_96_profiles_20261106/feature_rows_148.json"
+      ],
+      "remaining": "148 historical rows, 77 actual-history, 19 verified empty, 52 not queried; 19-column offline matrix exists. Real forward race and P3 training adoption are unverified."
+    },
+    {
+      "id": "PC_SP_MEASURED_ROUTING",
+      "status": "IMPLEMENTED_PARTIAL",
+      "code_paths": [
+        "diagnostics/jra_source_router.py",
+        "diagnostics/jra_pc_sp_benchmark.py"
+      ],
+      "evidence_paths": [
+        "docs/diagnostics/pc_sp_benchmark_20261106/benchmark_report.json",
+        "docs/JRA_PC_SP_DUAL_SOURCE_EVALUATION_20261106.md"
+      ],
+      "remaining": "Real 5-race benchmark measured 35.4 percent SP bytes less and 17.4 percent faster median. Historical adaptive routing is candidate only; never assert current live comparative parity."
+    },
+    {
+      "id": "PC_SP_SPECIAL_HISTORY",
+      "status": "IMPLEMENTED_PARTIAL",
+      "code_paths": [
+        "diagnostics/jra_p1_sp_profile_offline.py",
+        "diagnostics/jra_p1_fb_pc_sp_row_parity.py"
+      ],
+      "evidence_paths": [
+        "docs/KYOTO_AI_P1_FB_STAGE3_SPECIAL_SP_AND_REQUEST_GUARDS_HANDOFF_20261106.md"
+      ],
+      "remaining": "Official SP two-column history, local-racing rows, administrative transfer, missing popularity and one-horse PC/SP 210-cell parity already solved. Different live horses and complete parity remain unverified."
+    },
+    {
+      "id": "P1_FB_SHARED_LEDGER",
+      "status": "IMPLEMENTED_PARTIAL",
+      "code_paths": [
+        "diagnostics/jra_p1_fb_stage5_global_attempt_registry.py",
+        "diagnostics/jra_p1_fb_stage5_live_preflight_disabled.py"
+      ],
+      "evidence_paths": [
+        "docs/KYOTO_AI_20261109_P1_FB_STAGE5_SHARED_LEDGER_MILESTONE_HANDOFF.md"
+      ],
+      "remaining": "SQLite four-process same-host source reservation tested. Cross-host Github Actions to Streamlit atomic dedup and legal live transport remain unproven; never silently add standalone registry."
+    },
+    {
+      "id": "P1_ORIGINAL_BACKUP_RECOVERY",
+      "status": "IMPLEMENTED_PARTIAL",
+      "code_paths": [
+        "diagnostics/kyoto_resume_gate.py",
+        "diagnostics/jra_p1_historical_raw_inventory.py"
+      ],
+      "evidence_paths": [
+        "docs/diagnostics/kyoto_ai_resume_evidence_registry_v1.json",
+        "docs/KYOTO_AI_20261109_REAL_HTML_84_REPARSE_AND_RECOVERY_MILESTONE.md"
+      ],
+      "remaining": "Restore and verify preserved source bytes before recollection. Time-limited Actions artifact is not permanent cold storage; 12 original PC profiles remain outstanding."
+    },
+    {
+      "id": "P1_MULTIDAY_OFFICIAL_RESULTS",
+      "status": "IMPLEMENTED_PARTIAL",
+      "code_paths": [
+        "diagnostics/jra_historical_two_day_source_capture.py",
+        "diagnostics/jra_historical_two_day_result_import.py"
+      ],
+      "evidence_paths": [
+        "docs/KYOTO_AI_20261112_P1_HISTORICAL_TWO_DAYS_REAL_CAPTURE_MILESTONE.md"
+      ],
+      "remaining": "Two genuine historical final-result source captures and 31 entrant rows exist. Not legal blanket scraping, not real presale odds or future race input; need independently timed more meetings."
+    },
+    {
+      "id": "P1_MARKET_TEMPORAL_QUALITY",
+      "status": "IMPLEMENTED_PARTIAL",
+      "code_paths": [
+        "diagnostics/p4_temporal_market_controls.py",
+        "diagnostics/jra_market_source_chain.py"
+      ],
+      "evidence_paths": [
+        "docs/KYOTO_AI_20261110_P4_SOURCE_BOUND_EV_82PCT_MILESTONE.md"
+      ],
+      "remaining": "Separate original SHA, UTC, cutoff, scratches and market freshness controls already exist; real race-timed price source and cross-time consistency remain unverified."
+    },
+    {
+      "id": "P1_HORSE_ID_CROSSWALK",
+      "status": "IMPLEMENTED_PARTIAL",
+      "code_paths": [
+        "diagnostics/jra_roster_crosswalk.py",
+        "diagnostics/jra_pre_race_audit.py"
+      ],
+      "evidence_paths": [
+        "docs/JRA_PC_SP_DUAL_SOURCE_EVALUATION_20261106.md"
+      ],
+      "remaining": "Horse number/name/frame, race identities and source crosswalk verified historically; independent stable permanent horse IDs and current scratch linkage remain missing."
+    },
+    {
+      "id": "P1_RACE_CONDITIONS",
+      "status": "DESIGNED_NOT_IMPLEMENTED",
+      "code_paths": [],
+      "evidence_paths": [
+        "docs/JRA_148_RUNNER_PREDICTIVE_FEATURE_COMPLETENESS_MILESTONE_20261106.md"
+      ],
+      "remaining": "Retrieve current surface, distance, class, jockey, carried weight, age and scheduled off time with original/cutoff proof. Existing 148-runner history audit does not prove structured real conditions."
+    },
+    {
+      "id": "P1_JOCKEY_TRAINER_STATS",
+      "status": "DESIGNED_NOT_IMPLEMENTED",
+      "code_paths": [],
+      "evidence_paths": [
+        "docs/JRA_148_RUNNER_PREDICTIVE_FEATURE_COMPLETENESS_MILESTONE_20261106.md"
+      ],
+      "remaining": "Discover official jockey/trainer index independently, then verify previous-only win rates and horse-jockey pair history; no approved compiled statistics feed or real lift established."
+    },
+    {
+      "id": "P1_TRACK_WEATHER",
+      "status": "IMPLEMENTED_PARTIAL",
+      "code_paths": [
+        "diagnostics/inventory_jra_features.py"
+      ],
+      "evidence_paths": [
+        "docs/JRA_148_RUNNER_PREDICTIVE_FEATURE_COMPLETENESS_MILESTONE_20261106.md"
+      ],
+      "remaining": "Official track page discovery and keyword inventory exist; structured same-cutoff weather, moisture, cushion and going feed not verified."
+    },
+    {
+      "id": "P1_TRAINING_WORKOUTS",
+      "status": "DESIGNED_NOT_IMPLEMENTED",
+      "code_paths": [],
+      "evidence_paths": [
+        "docs/JRA_148_RUNNER_PREDICTIVE_FEATURE_COMPLETENESS_MILESTONE_20261106.md"
+      ],
+      "remaining": "Historical plan targets training/workout times, state and grade but no measured lawful free official pre-race data feed; retain truthful missing markers."
+    },
+    {
+      "id": "P1_LIVE_MARKET_OBSERVATION",
+      "status": "IMPLEMENTED_PARTIAL",
+      "code_paths": [
+        "diagnostics/jra_one_shot_market_capture.py",
+        "diagnostics/jra_official_market_navigation.py"
+      ],
+      "evidence_paths": [
+        "docs/diagnostics/kyoto_20261112_canonical_pc_sp_reuse_99test_checkpoint.json"
+      ],
+      "remaining": "Observed-only meeting/race menu navigation and manual dual-source diagnostic implemented; no real published before-race quinella/bracket originals verified."
+    },
+    {
+      "id": "P6_HISTORICAL_PAYOUT",
+      "status": "IMPLEMENTED_PARTIAL",
+      "code_paths": [
+        "diagnostics/kyoto_p6_real_historical_final_payout_reaudit.py",
+        "diagnostics/kyoto_p6_second_real_official_sqlite_auditor.py"
+      ],
+      "evidence_paths": [
+        "docs/KYOTO_AI_20261112_P6_TWO_REAL_JRA_HISTORICAL_FINAL_PAYOUTS_MILESTONE.md"
+      ],
+      "remaining": "Two real post-event payout originals, independent recalculation and settlement tests done; continuous preliminary-to-final-to-correction on a real forward race not proven."
+    },
+    {
+      "id": "P7_EVO01_INFORMATION_VALUE",
+      "status": "IMPLEMENTED_PARTIAL",
+      "code_paths": [
+        "diagnostics/kyoto_f17_evo_eight_integrated_research.py",
+        "diagnostics/kyoto_f17_second_independent_eight_evo_auditor.py"
+      ],
+      "evidence_paths": [
+        "docs/KYOTO_AI_AUTONOMOUS_EVOLUTION_SIX_CAPABILITIES_REQUIREMENTS_20261106.md"
+      ],
+      "remaining": "EVO-01 lab source value-cost ratio is implemented for synthetic sealed research only; real source gain, confidence, communications cost and held-out predictive lift still absent. Do not claim source ranking proven."
+    },
+    {
+      "id": "P2_THREE_WAY_CHRONOLOGY",
+      "status": "IMPLEMENTED_PARTIAL",
+      "code_paths": [
+        "diagnostics/p2_three_way_discovery.py"
+      ],
+      "evidence_paths": [
+        "docs/KYOTO_AI_20261110_P2_THREE_WAY_DISCOVERY_52PCT_MILESTONE.md"
+      ],
+      "remaining": "Chronological train/validation/unused holdout and counterexample hypothesis screening exists in research scope; no independently verified future JRA prediction lift established."
+    },
+    {
+      "id": "P8_STORAGE_PROTECTION",
+      "status": "IMPLEMENTED_PARTIAL",
+      "code_paths": [
+        "diagnostics/kyoto_retention_quota_guard.py"
+      ],
+      "evidence_paths": [
+        "docs/KYOTO_AI_20261111_STORAGE_BUDGET_RETENTION_POLICY_v1.md"
+      ],
+      "remaining": "HOT/COLD/PROTECTED retention, thresholds, cache-delete boundaries and no protected-proof deletion agreed; real Turso usage integration, cold recovery and cross-host measurement pending."
     }
   ]
 }
