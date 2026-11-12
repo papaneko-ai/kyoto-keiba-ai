@@ -358,7 +358,7 @@ def persist_receipt_once(folder,name,receipt):
 
 def capture(out,*,channel,verified_start_utc,active_runners,now_utc=None,opener=None,
             race_spec=None,authorized_live_http=False,pacer=None,
-            expected_named_runners=None):
+            expected_named_runners=None,auto_repair_broken_pc_link=False):
     spec=(race_spec or DEFAULT_RACE_SPEC).validate(require_channels=(channel,))
     folder=prepare_empty_original_directory(out)
     start=aware_utc(verified_start_utc)
@@ -392,7 +392,44 @@ def capture(out,*,channel,verified_start_utc,active_runners,now_utc=None,opener=
     source=spec.pc_racecard_url if channel=="PC" else spec.sp_racecard_url
     host="jra.jp" if channel=="PC" else "sp.jra.jp"
     try:
-        racecard=http_fetch(opener,channel,source,pacer=pacer)
+        try:
+            racecard=http_fetch(opener,channel,source,pacer=pacer)
+        except Exception as broken:
+            # Strict opt-in: only an HTTP 404/410 on the PC racecard link
+            # may trigger a bounded official-page rediscovery. Never repair
+            # on redirect, 403, content/identity conflict, or network timeout.
+            from urllib.error import HTTPError
+            eligible=(auto_repair_broken_pc_link is True and
+                      authorized_live_http is True and channel=="PC" and
+                      isinstance(broken,HTTPError) and broken.code in (404,410))
+            if not eligible:
+                raise
+            from diagnostics.jra_official_link_repair import repair_pc_racecard
+            def verified_fetch(url):
+                if datetime.now(timezone.utc)>=start-timedelta(minutes=10):
+                    raise SourceChainError("cutoff_reached_during_link_repair")
+                return http_fetch(opener,"PC",url,pacer=pacer)
+            def retain_repair(name,page):
+                persist_original_once(folder,name,page["raw"],page)
+                result["request_receipts"].append({
+                    "step":name,**{k:v for k,v in page.items() if k!="raw"}})
+            def verify_repaired(raw,changed,captured):
+                return verify_live_racecard_roster(
+                    raw,"PC",changed,active_runners,expected_named_runners,
+                    captured_at_utc=captured,
+                    observed_utc=datetime.now(timezone.utc).isoformat(),
+                    verified_start_utc=start.isoformat())
+            try:
+                spec,racecard,repair_receipt=repair_pc_racecard(
+                    spec,fetch=verified_fetch,retain=retain_repair,
+                    verify=verify_repaired)
+            except Exception as repair_error:
+                result["link_repair"]={
+                    "state":"FAILED_CLOSED", "original_http_status":broken.code,
+                    "error":type(repair_error).__name__+":"+str(repair_error)[:160]}
+                raise SourceChainError("official_link_repair_failed") from repair_error
+            result["link_repair"]=repair_receipt
+            source=spec.pc_racecard_url
         persist_original_once(folder,"official_racecard.html",racecard["raw"],racecard)
         result["request_receipts"].append({"step":"racecard",**{k:v for k,v in racecard.items() if k!="raw"}})
         if authorized_live_http:
@@ -622,6 +659,8 @@ if __name__=="__main__":
     p.add_argument("--race-spec-json",help="Independently observed official navigation and race identity; no HTTP authorization")
     p.add_argument('--authorized-live-http', action='store_true',
         help='Explicit diagnostic read-only opt-in; never a production authorization')
+    p.add_argument('--auto-repair-broken-pc-link',action='store_true',
+        help='Optional 404/410-only official PC link recovery; no guessed URLs')
     args=p.parse_args()
     if args.channel=="AUTO" and not args.hybrid:
         p.error("--channel AUTO requires --hybrid")
@@ -641,6 +680,10 @@ if __name__=="__main__":
                  expected_named_runners=named_rows,
                  race_spec=spec,authorized_live_http=args.authorized_live_http)
     if args.hybrid:
+        if args.auto_repair_broken_pc_link:
+            p.error("--auto-repair-broken-pc-link requires single-channel capture")
         options["independent_crosscheck"]=args.independent_crosscheck
+    else:
+        options["auto_repair_broken_pc_link"]=args.auto_repair_broken_pc_link
     options["primary_channel" if args.hybrid else "channel"]=args.channel
     print(json.dumps(runner(args.out,**options),ensure_ascii=False,indent=2))
