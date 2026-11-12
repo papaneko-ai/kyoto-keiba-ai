@@ -1,0 +1,48 @@
+{
+  "schema": "kyoto_ai_20261112_p8_source_archive_and_link_alert_checkpoint.v1",
+  "updated_at_jst": "2026-11-12T15:03:00+09:00",
+  "baseline_head": "f7eec3fd42ad6f2dbdd4ad4baa50b6143ba4aa36",
+  "scope": "P8 isolated read-only operator review; no public Streamlit change, no online source certification, no production database changes.",
+  "files": [
+    "diagnostics/p8_official_source_status.py",
+    "tests/test_p8_official_source_status.py",
+    "diagnostics/p8_mobile_readonly_planner_app.py",
+    ".github/workflows/kyoto-ai-always-run-continuity.yml"
+  ],
+  "new_capabilities": [
+    "Read-only ZIP upload: immutable saved JRA meeting-selection HTML original and receipt crosscheck",
+    "Strict ZIP bounds, malicious paths, duplicate members and symlink rejection",
+    "Independent reuse of existing one-shot receipt/original verifier; verified meeting handoff compared if supplied",
+    "Read-only Japanese diagnostic display within mobile-first operator app",
+    "Read-only link-break, repair-success or repair-failed notification from source receipt JSON, never called authenticated proof",
+    "No download links invented; no network; no API requests; no betting; zero operational score promotion"
+  ],
+  "verified_ci": {
+    "run_id": 43165252639,
+    "sha": "6635034cd0a4dcc6c15cc0d1c8bed96028333175",
+    "conclusion": "success",
+    "scope": "ZIP source validation and mobile-readonly app"
+  },
+  "additional_code_after_pass": "Link repair JSON status viewer and four refusal/score insulation tests on SHA 26e12a426996ca8c0a82d3330ead950da32ef9d4; latest-head CI must be checked separately.",
+  "fixed_progress": {
+    "research": "100% (32/32)",
+    "graduation": "100% (12/12)",
+    "major_functions": "100% (21/21)",
+    "real_live_gates": "0/6",
+    "operational_independent": "0/100",
+    "final_20_gates": "35/100"
+  },
+  "next_gate": "Independently observed pre-race Kyoto 2026-11-14 racecard + quinella + bracket sources; never award 40/100 based on source upload or offline tests.",
+  "next_actions": [
+    "Confirm latest-head CI, debug if red without unrelated retries",
+    "At official publication use already scheduled one-shot link observation and immutable source-handoff receipt, no duplicate GET",
+    "For 2026-11-14 prove genuine same-race pre-cutoff market originals and independent operational acceptance",
+    "Keep P1 source capture and P2-P8 model/budget/paper trade link offline until evidence can be promoted"
+  ],
+  "protected": [
+    "main",
+    "Turso production",
+    "public Streamlit",
+    "real wagers"
+  ]
+}
