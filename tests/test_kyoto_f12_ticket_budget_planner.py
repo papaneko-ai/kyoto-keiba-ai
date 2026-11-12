@@ -5,7 +5,7 @@ from diagnostics.kyoto_f12_ticket_budget_planner import plan_f12,F12Rejected
 def candidates(market="QUINELLA"):
     tickets=[[1,2],[2,3],[3,4]]
     if market=="BRACKET":tickets=[[1,1],[1,2],[2,2]]
-    return [{"race":r,"priority":r,"eligible":True,
+    return [{"race":r,"priority":r,"eligible":True,"ticket_type":market,
        "tickets":[{"pair":p,"weight":w} for p,w in zip(tickets,[60,30,10])]}
        for r in range(1,6)]
 def params(market="QUINELLA"):
