@@ -1,0 +1,73 @@
+name: Kyoto P6 actual historical JRA final quinella and bracket payouts
+on:
+  push:
+    branches: [jra-html-diagnostic-20261105]
+    paths:
+      - 'diagnostics/kyoto_p6_real_historical_final_payout_reaudit.py'
+      - 'tests/test_kyoto_p6_real_historical_final_payout_reaudit.py'
+      - '.github/workflows/kyoto-p6-actual-historical-payout-reaudit.yml'
+permissions:
+  contents: read
+  actions: read
+jobs:
+  actual-final-result-2-race:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install readonly HTML dependency
+        run: python -m pip install beautifulsoup4
+      - name: Fetch frozen real JRA original 2 day results from earlier GitHub run
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          curl --fail --location --silent --show-error --retry 0 --max-time 35 \
+            -H "Authorization: Bearer ${GH_TOKEN}" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/papaneko-ai/kyoto-keiba-ai/actions/artifacts/13904353071/zip" \
+            -o actual_two_day_jra_original.zip
+          python - <<'PY'
+          from pathlib import Path
+          from hashlib import sha256
+          p=Path('actual_two_day_jra_original.zip')
+          assert sha256(p.read_bytes()).hexdigest()=='dad5f93f72b3b993ab96ef1a053561d60a84ad3c868b4d3b4f4b2dc72bb9f004'
+          print('ORIGINAL_PRIOR_GITHUB_CAPTURE_BYTE_SHA=PASS')
+          PY
+      - name: Actual JRA payout and roster 16 independent factual tests
+        env:
+          PYTHONPATH: .
+          KYOTO_ACTUAL_2DAY_ORIGINAL_ARCHIVE: actual_two_day_jra_original.zip
+        run: |
+          set -euo pipefail
+          python -m unittest -v tests.test_kyoto_p6_real_historical_final_payout_reaudit
+      - name: Save official postrace only 2 race x 2 markets independent outcome receipt
+        env:
+          PYTHONPATH: .
+        run: |
+          python - <<'PY'
+          import os,json
+          from pathlib import Path
+          from diagnostics.kyoto_p6_real_historical_final_payout_reaudit import extract_real_two_race_payouts
+          r=extract_real_two_race_payouts(Path('actual_two_day_jra_original.zip').read_bytes())
+          assert r['real_final_payout_pairs_verified']==4
+          assert r['official_result_rows']==31
+          assert r['pre_race_market_prices_verified'] is False
+          r['CI_run_id']=os.environ['GITHUB_RUN_ID']
+          r['CI_head_sha']=os.environ['GITHUB_SHA']
+          folder=Path('real_official_two_race_historical_payout_receipt')
+          folder.mkdir()
+          (folder/'receipt.json').write_text(json.dumps(r,ensure_ascii=False,sort_keys=True,indent=2)+'\n')
+          print('TWO_GENUINE_JRA_HISTORICAL_FINAL_PAYOUT_MARKETS=PASS')
+          print('NO_NEW_JRA_HTTP_CALLS=TRUE')
+          print('NO_BACKDATED_PRERACE_PRICE_OR_BET=TRUE')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: kyoto-p6-two-genuine-postrace-result-payout-receipts
+          path: real_official_two_race_historical_payout_receipt/
+          retention-days: 7
+          if-no-files-found: error
