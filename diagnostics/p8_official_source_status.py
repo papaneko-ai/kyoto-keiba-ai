@@ -92,3 +92,50 @@ def inspect_official_selection_archive(data:bytes):
         "operational_progress_credit":0,
         "network_requests":0,
     }
+
+def inspect_recorded_link_alert(raw:bytes):
+    """Display bounded, untrusted source-log status; never certify a repair."""
+    if type(raw) is not bytes or not 0<len(raw)<=300_000:
+        raise SourceStatusRejected("link_receipt_size_invalid")
+    try:
+        receipt=json.loads(raw.decode("utf-8"))
+    except (UnicodeError,ValueError) as exc:
+        raise SourceStatusRejected("link_receipt_not_json") from exc
+    if (type(receipt) is not dict
+        or receipt.get("schema_version")!="jra_one_shot_market_capture.v1"
+        or receipt.get("channel")!="PC"
+        or type(receipt.get("race_id")) is not str
+        or not receipt["race_id"].startswith("2026-")
+        or type(receipt.get("operator_alert")) is not dict
+        or type(receipt.get("link_repair")) is not dict):
+        raise SourceStatusRejected("link_receipt_schema_invalid")
+    alert=receipt["operator_alert"]
+    repair=receipt["link_repair"]
+    code=alert.get("code")
+    if code=="JRA_RACECARD_LINK_BROKEN":
+        if repair.get("state")!="BROKEN_NOT_REPAIRED" or receipt.get("state")!="CAPTURE_BLOCKED":
+            raise SourceStatusRejected("broken_link_state_mismatch")
+        label="出馬表リンク切れが記録されています。自動修復は未実施です。"
+        severity="ERROR"
+    elif code=="JRA_LINK_REPAIR_FAILED":
+        if repair.get("state")!="FAILED_CLOSED" or receipt.get("state")!="CAPTURE_BLOCKED":
+            raise SourceStatusRejected("failed_repair_state_mismatch")
+        label="公式リンクの再探索が失敗したため取得を停止した記録です。"
+        severity="ERROR"
+    elif code=="JRA_LINK_REPAIRED_VERIFIED":
+        if repair.get("status")!="REPAIRED_VERIFIED_PC_ONLY":
+            raise SourceStatusRejected("repaired_link_state_mismatch")
+        label="修復成功と記録されています。実際の原本・SHA照合は別途必要です。"
+        severity="INFO"
+    else:
+        raise SourceStatusRejected("unknown_link_alert_code")
+    if alert.get("severity")!=severity:
+        raise SourceStatusRejected("link_alert_severity_mismatch")
+    return {
+        "code":code,"severity":severity,"message":label,
+        "receipt_sha256":hashlib.sha256(raw).hexdigest(),
+        "recorded_race_id":receipt["race_id"],
+        "record_only_not_authenticated":True,
+        "actual_jra_source_independently_verified":False,
+        "operational_progress_credit":0,
+    }
