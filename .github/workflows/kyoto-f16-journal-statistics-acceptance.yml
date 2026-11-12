@@ -4,6 +4,8 @@ on:
     branches: [jra-html-diagnostic-20261105]
     paths:
       - diagnostics/kyoto_f16_virtual_performance_stats.py
+      - diagnostics/kyoto_virtual_sqlite_journal.py
+      - tests/test_kyoto_virtual_sqlite_journal.py
       - tests/test_kyoto_f16_virtual_performance_stats.py
       - .github/workflows/kyoto-f16-journal-statistics-acceptance.yml
 permissions:
