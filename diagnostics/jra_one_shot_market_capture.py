@@ -327,6 +327,18 @@ def persist_original_once(folder, name, original, receipt):
         raise SourceChainError("source_written_bytes_digest_conflict")
     return target
 
+
+def persist_receipt_once(folder,name,receipt):
+    """Write one immutable JSON evidence receipt; no later rewrite."""
+    if not isinstance(receipt,dict):
+        raise SourceChainError("source_receipt_invalid")
+    try:
+        with (folder/name).open("x",encoding="utf-8") as out:
+            json.dump(receipt,out,ensure_ascii=False,indent=2,allow_nan=False)
+            out.write("\n")
+    except FileExistsError as exc:
+        raise SourceChainError("source_receipt_already_exists") from exc
+
 def capture(out,*,channel,verified_start_utc,active_runners,now_utc=None,opener=None,
             race_spec=None,authorized_live_http=False,pacer=None,
             expected_named_runners=None):
@@ -346,18 +358,18 @@ def capture(out,*,channel,verified_start_utc,active_runners,now_utc=None,opener=
     if channel not in ("PC","SP"):raise SourceChainError("invalid_channel")
     if now<aware_utc(spec.normal_sales_open_utc):
         result["state"]="WAIT_FOR_OFFICIAL_SALES"
-        (folder/"receipt.json").write_text(json.dumps(result,ensure_ascii=False,indent=2)+"\n",encoding="utf8")
+        persist_receipt_once(folder,"receipt.json",result)
         return result
     if now>=start-timedelta(minutes=10):
         result["state"]="CUTOFF_PASSED_NO_HTTP"
-        (folder/"receipt.json").write_text(json.dumps(result,ensure_ascii=False,indent=2)+"\n",encoding="utf8")
+        persist_receipt_once(folder,"receipt.json",result)
         return result
     if authorized_live_http and pacer is None:
         pacer=RequestPacer()
     if opener is None:
         if not authorized_live_http:
             result["state"]="LIVE_HTTP_NOT_AUTHORIZED"
-            (folder/"receipt.json").write_text(json.dumps(result,ensure_ascii=False,indent=2)+"\n",encoding="utf8")
+            persist_receipt_once(folder,"receipt.json",result)
             return result
         opener=build_opener(NoRedirect(),HTTPCookieProcessor(CookieJar()))
     source=spec.pc_racecard_url if channel=="PC" else spec.sp_racecard_url
@@ -449,7 +461,7 @@ def capture(out,*,channel,verified_start_utc,active_runners,now_utc=None,opener=
         result["reason"]=type(exc).__name__+":"+str(exc)[:230]
     finally:
         result["ended_at_utc"]=datetime.now(timezone.utc).isoformat()
-        (folder/"receipt.json").write_text(json.dumps(result,ensure_ascii=False,indent=2)+"\n",encoding="utf8")
+        persist_receipt_once(folder,"receipt.json",result)
     return result
 def capture_hybrid(out, *, primary_channel, verified_start_utc, active_runners,
                    race_spec, authorized_live_http=False, now_utc=None,
