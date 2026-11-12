@@ -1,0 +1,71 @@
+name: Kyoto F18 sealed offline shadow adoption and forward drift rollback
+on:
+  push:
+    branches: [jra-html-diagnostic-20261105]
+    paths:
+      - diagnostics/kyoto_f18_offline_shadow_rollback_contract.py
+      - tests/test_kyoto_f18_offline_shadow_rollback_contract.py
+      - .github/workflows/kyoto-f18-offline-shadow-rollback-ci.yml
+permissions:
+  contents: read
+jobs:
+  f18-sealed-lab:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Fix unchanged F18 acceptance rubric and separate research from real
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import hashlib,json
+          p=Path('docs/diagnostics/kyoto_final_completion_criteria_v1.json')
+          assert hashlib.sha256(p.read_bytes()).hexdigest()=='92bae5c1d61d6ac00a5380dd8d5e08beb59f96c898b03c05a3c8bf8721ced632'
+          f18=next(x for x in json.loads(p.read_text())['criteria'] if x['id']=='F18')
+          assert f18['points']==5 and f18['title']=='進化認定・安全採否・復帰'
+          print('F18_FIXED_RUBRIC_UNMODIFIED=PASS')
+          PY
+      - name: Sealed holdout and forward rollback 20 destructive tests
+        env:
+          PYTHONPATH: .
+        run: |
+          set -euo pipefail
+          python -m unittest -v tests.test_kyoto_f18_offline_shadow_rollback_contract
+      - name: Persist same-source shadow, baseline and forward monitor receipts
+        env:
+          PYTHONPATH: .:tests
+        run: |
+          python - <<'PY'
+          import os,json
+          from pathlib import Path
+          from test_kyoto_f18_offline_shadow_rollback_contract import fixture
+          from diagnostics.kyoto_f18_offline_shadow_rollback_contract import research_shadow_evolution
+          p,h,m=fixture()
+          report=research_shadow_evolution(p,h,m)
+          assert report['first_independent_gate']=='LAB_ONLY_PASS'
+          assert report['initial_shadow_admitted'] is True
+          assert report['final_state']=='SHADOW_REVOKED_ROLLBACK_TO_CHAMPION'
+          assert report['unique_holdout_monitor_races']==30
+          assert report['production_model_changed'] is False
+          out=Path('f18_shadow_evidence');out.mkdir()
+          data={'schema':'kyoto_F18_first_lab_witness.v1',
+              'ci_run_id':os.environ['GITHUB_RUN_ID'],
+              'ci_sha':os.environ['GITHUB_SHA'],
+              'source_scope':'SYNTHETIC_LAB_HOLDOUT_NOT_REAL_JRA',
+              'plan':p,'holdout':h,'forward_monitoring':m,
+              'decision':report,
+              'production_model_changed':False,
+              'real_jra_calibration_proven':False}
+          (out/'F18_source_and_decision.json').write_text(
+             json.dumps(data,ensure_ascii=False,sort_keys=True,indent=2)+'\n')
+          print('F18_SEALED_THREE_MODEL_30_RACE_ROLLBACK_WITNESS=PASS')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: kyoto-F18-sealed-lab-shadow-monitor-witness
+          path: f18_shadow_evidence/
+          retention-days: 7
+          if-no-files-found: error
