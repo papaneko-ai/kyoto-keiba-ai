@@ -117,4 +117,80 @@ class AtomicThreeMarketTests(unittest.TestCase):
   self.assertFalse(v["receipt"]["official_sales_authenticated"])
   self.assertFalse(v["receipt"]["official_scratches_authenticated"])
   self.assertEqual(v["receipt"]["network_requests"],0)
+
+class ExistingCaptureToAtomicThreeOriginalTests(AtomicThreeMarketTests):
+ def stage(self, *, state="SOURCE_FROZEN", wrong_sha=False, wrong_token=False):
+  from urllib.parse import urlencode
+  root=self.fx.root/"captured-current"
+  root.mkdir()
+  names={"racecard":"official_racecard.html",
+         "pre_race_odds":"quinella_original.html",
+         "bracket_odds":"bracket_quinella_original.html"}
+  steps={"racecard":"racecard","pre_race_odds":"quinella",
+         "bracket_odds":"bracket_quinella"}
+  entries=[]
+  for kind,item in self.captures().items():
+   raw=item["raw"];(root/names[kind]).write_bytes(raw)
+   url=item["observed_url"]
+   token=None if kind=="racecard" else ("pw15fromHtml/XX" if wrong_token and kind=="bracket_odds" else "pw15fromHtml/AA")
+   if kind=="racecard":
+    url="https://jra.jp/JRADB/accessD.html?CNAME=pw01/AA"
+   body=None if token is None else urlencode({"cname":token}).encode("ascii")
+   entries.append({"step":steps[kind],"method":"GET" if token is None else "POST",
+     "sha256":("0"*64 if wrong_sha and kind=="racecard" else hashlib.sha256(raw).hexdigest()),
+     "bytes":len(raw),"captured_at_utc":item["captured_utc"],
+     "requested_url":url,"response_url":url,
+     "observed_action_token":token,
+     "post_body_sha256":None if body is None else hashlib.sha256(body).hexdigest(),
+     "post_body_size":0 if body is None else len(body)})
+  info={"state":state,"pre_race_prices_accepted":state=="SOURCE_FROZEN",
+        "channel":"PC",
+        "race_id":f"{self.fx.snapshot['meeting_date']}_KYOTO_{self.fx.snapshot['race']:02d}R",
+        "request_receipts":entries}
+  (root/"receipt.json").write_text(json.dumps(info),encoding="utf8")
+  return root
+ def test_saved_real_capture_receipts_reuse_canonical_atomic_handoff(self):
+  from diagnostics.p1_atomic_dual_market_handoff import package_saved_observed_market_capture
+  staged=self.stage()
+  v=package_saved_observed_market_capture(capture_directory=staged,
+      snapshot=self.fx.snapshot,observed_utc=NOW)
+  digest=hashlib.sha256(v["archive_bytes"]).hexdigest()
+  self.assertTrue(verify_prerace_handoff_archive(v["archive_bytes"],
+      expected_sha256=digest,observed_utc=NOW,channel="PC")["all_three_content_verified"])
+  self.assertEqual(v["capture_receipt_sha256"],
+       hashlib.sha256((staged/"receipt.json").read_bytes()).hexdigest())
+  self.assertFalse(v["receipt"]["prediction_ready"])
+ def test_original_sha_mismatch_rejected_before_canonical_packaging(self):
+  from diagnostics.p1_atomic_dual_market_handoff import package_saved_observed_market_capture
+  staged=self.stage(wrong_sha=True)
+  with self.assertRaisesRegex(MarketHandoffRejected,"capture_receipt_original_hash_conflict"):
+   package_saved_observed_market_capture(capture_directory=staged,
+      snapshot=self.fx.snapshot,observed_utc=NOW)
+ def test_not_frozen_never_released(self):
+  from diagnostics.p1_atomic_dual_market_handoff import package_saved_observed_market_capture
+  staged=self.stage(state="CAPTURE_BLOCKED")
+  with self.assertRaisesRegex(MarketHandoffRejected,"original_capture_not_frozen"):
+   package_saved_observed_market_capture(capture_directory=staged,
+      snapshot=self.fx.snapshot,observed_utc=NOW)
+ def test_response_url_redirection_rejected(self):
+  from diagnostics.p1_atomic_dual_market_handoff import package_saved_observed_market_capture
+  staged=self.stage()
+  p=staged/"receipt.json"
+  receipt=json.loads(p.read_text())
+  receipt["request_receipts"][1]["response_url"]="https://evil.invalid"
+  p.write_text(json.dumps(receipt),encoding="utf8")
+  with self.assertRaisesRegex(MarketHandoffRejected,"redirect_or_missing_url_receipt"):
+   package_saved_observed_market_capture(capture_directory=staged,
+      snapshot=self.fx.snapshot,observed_utc=NOW)
+ def test_market_capture_time_conflict_rejected_by_existing_validator(self):
+  from diagnostics.p1_atomic_dual_market_handoff import package_saved_observed_market_capture
+  staged=self.stage()
+  p=staged/"receipt.json"
+  receipt=json.loads(p.read_text())
+  receipt["request_receipts"][-1]["captured_at_utc"]="2026-11-14T08:00:00Z"
+  p.write_text(json.dumps(receipt),encoding="utf8")
+  with self.assertRaisesRegex(MarketHandoffRejected,"post_cutoff_or_future_capture"):
+   package_saved_observed_market_capture(capture_directory=staged,
+      snapshot=self.fx.snapshot,observed_utc=NOW)
+
 if __name__=="__main__":unittest.main()
