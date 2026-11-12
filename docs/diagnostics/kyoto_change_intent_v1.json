@@ -20,6 +20,81 @@
       "feature_id": "P6_PAPER_LAB",
       "action": "REUSE",
       "rationale": "Preserve existing research and settlement components."
+    },
+    {
+      "feature_id": "P1_PROFILE_96_ARCHIVE",
+      "action": "REUSE",
+      "rationale": "Preserve 84 verified source originals, 96 archived profiles and the 52 not yet queried; do not recollect historic sources."
+    },
+    {
+      "feature_id": "P2_REAL_FEATURE_MATRIX",
+      "action": "INTEGRATE",
+      "rationale": "Use existing 148-row historical feature matrix and eight-family coverage audit; do not duplicate feature calculations."
+    },
+    {
+      "feature_id": "PC_SP_MEASURED_ROUTING",
+      "action": "REUSE",
+      "rationale": "Keep the actual SP size and latency comparison and conditional selection, not a guessed PC preference."
+    },
+    {
+      "feature_id": "PC_SP_SPECIAL_HISTORY",
+      "action": "REUSE",
+      "rationale": "Retain SP local race histories, transfer events, missing popularity and independent 210-cell PC/SP verified parity."
+    },
+    {
+      "feature_id": "P1_FB_SHARED_LEDGER",
+      "action": "INTEGRATE",
+      "rationale": "Re-use same-host SQLite reservation implementation; independently prove shared cross-host atomicity before enabling deployment."
+    },
+    {
+      "feature_id": "P1_ORIGINAL_BACKUP_RECOVERY",
+      "action": "REUSE",
+      "rationale": "Honor the source artifact and 84 already SHA-verified originals; retain missing 12 originals as a separate class."
+    },
+    {
+      "feature_id": "P1_MULTIDAY_OFFICIAL_RESULTS",
+      "action": "REUSE",
+      "rationale": "Use the already archived real two-day JRA result capture for labels only, not future prerace feature evidence."
+    },
+    {
+      "feature_id": "P1_MARKET_TEMPORAL_QUALITY",
+      "action": "INTEGRATE",
+      "rationale": "Reuse market freshness, sale, withdrawal and individual UTC gates when official current live sources become available."
+    },
+    {
+      "feature_id": "P1_HORSE_ID_CROSSWALK",
+      "action": "REUSE",
+      "rationale": "Preserve prior crosswalk and roster-identity checks; do not synthesize permanent horse IDs."
+    },
+    {
+      "feature_id": "P1_TRACK_WEATHER",
+      "action": "REUSE",
+      "rationale": "Use existing official track page source inventory while preserving no verified structured historical going weather and moisture data."
+    },
+    {
+      "feature_id": "P1_LIVE_MARKET_OBSERVATION",
+      "action": "INTEGRATE",
+      "rationale": "Use the existing guarded observed-only manual capture and original recording, avoiding duplicate discovery of JRA page navigation."
+    },
+    {
+      "feature_id": "P6_HISTORICAL_PAYOUT",
+      "action": "REUSE",
+      "rationale": "Reuse independent audited real historical final payout sources; do not call them live automatic settlement."
+    },
+    {
+      "feature_id": "P7_EVO01_INFORMATION_VALUE",
+      "action": "INTEGRATE",
+      "rationale": "Reuse existing EVO-01 value minus cost LAB algorithm but reject use for real source ranking absent measured out-of-sample predictive gain."
+    },
+    {
+      "feature_id": "P2_THREE_WAY_CHRONOLOGY",
+      "action": "REUSE",
+      "rationale": "Maintain existing chronological three-way selection and independent counterexample testing; no post-event information leakage."
+    },
+    {
+      "feature_id": "P8_STORAGE_PROTECTION",
+      "action": "INTEGRATE",
+      "rationale": "Reuse existing HOT COLD PROTECTED quota thresholds, cache safety and retention constraints before future data-intensive deployment."
     }
   ]
 }
