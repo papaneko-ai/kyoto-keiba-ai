@@ -135,6 +135,88 @@ def build_receipt(rows, csv_bytes):
     }
 
 
+
+def audit_latest_family_coverage(status, rows, matrix):
+    """Join the canonical eight P1 source families to the later 96-profile P2 matrix.
+
+    This is the existing archival registry and existing feature schema only:
+    no new parsers, no network and no future-source inference.
+    """
+    from diagnostics.jra_feature_coverage_148 import FIELDS as FAMILY_FIELDS
+    from diagnostics.p1_registry_reconcile import reconcile
+    verified = reconcile(status, rows)
+    if len(matrix) != verified["runner_count"]:
+        raise ValueError("archived_feature_matrix_size_disagreement")
+    indexed={(r["race_number"],r["horse_number"]):r for r in rows}
+    seen=set()
+    group_counts={k:{"available":0,"missing":0,"not_applicable":0}
+                  for k in FAMILY_FIELDS}
+    state_counts={"VERIFIED_SOURCE_ROWS":0,"VERIFIED_EMPTY_HISTORY":0,"NOT_QUERIED":0}
+    for item in matrix:
+        key=(item["race_number"],item["horse_number"])
+        if key in seen or key not in indexed:
+            raise ValueError("feature_identity_duplicate_or_unmatched")
+        seen.add(key)
+        original=indexed[key]
+        if (item["horse_name"]!=original["horse_name"]
+            or item["frame_number"]!=original["frame_number"]
+            or item["racecard_sha256"]!=original["racecard_source_sha256"]):
+            raise ValueError("feature_original_identity_mismatch")
+        groups=original["source_coverage"]
+        if set(groups)!=set(FAMILY_FIELDS):
+            raise ValueError("feature_family_schema_drift")
+        status_value=groups["horse_profile"]
+        if item["profile_state"]!=status_value or status_value not in state_counts:
+            raise ValueError("source_profile_state_conflict")
+        state_counts[status_value]+=1
+        for family,raw_state in groups.items():
+            if family=="racecard":
+                if raw_state!="CONFIRMED":
+                    raise ValueError("racecard_no_source")
+                state="available"
+            elif family=="horse_profile":
+                state="available" if raw_state in ("VERIFIED_SOURCE_ROWS","VERIFIED_EMPTY_HISTORY") else "missing"
+            elif family=="payout_result":
+                if raw_state!="NOT_APPLICABLE_BEFORE_RACE":
+                    raise ValueError("postrace_outcome_cannot_be_prerace_feature")
+                state="not_applicable"
+            else:
+                if raw_state!="MISSING":
+                    # A claim of new source completeness belongs in new
+                    # independently verified evidence, never the 2026-11-07 archive.
+                    raise ValueError("unverified_additional_feature_source")
+                state="missing"
+            group_counts[family][state]+=1
+    if seen!=set(indexed) or state_counts!={"VERIFIED_SOURCE_ROWS":77,
+                                           "VERIFIED_EMPTY_HISTORY":19,"NOT_QUERIED":52}:
+        raise ValueError("archived_96_profile_baseline_conflict")
+    return {
+        "schema":"kyoto_p1_p2_archived_eight_family_handoff.v1",
+        "source_day":"2026-11-07",
+        "race_count":12,
+        "runner_count":len(matrix),
+        "source_verified_profile_count":96,
+        "with_prior_performance":77,
+        "verified_empty_history":19,
+        "unqueried_profiles":52,
+        "historical_prior_race_rows":verified["valid_prior_rows"],
+        "family_coverage":{k:{"fields":list(FAMILY_FIELDS[k]),**v}
+                           for k,v in group_counts.items()},
+        "predictions_authorized":False,
+        "training_authorized":False,
+        "official_live_current_day_verified":False,
+        "cross_time_source_merging_authorized":False,
+        "network_requests":0,
+        "warnings":[
+            "Old 12-profile coverage report is a historical milestone, not the later 96-profile state",
+            "VERIFIED_EMPTY_HISTORY is not equivalent to NOT_QUERIED",
+            "Verified historical profiles are not 2026-11-14 current-day evidence",
+            "Jockey/trainer aggregates, workout, weather/track and live odds are missing",
+            "Payouts and current-race results are never prerace features",
+        ],
+    }
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--registry", type=Path, required=True)
@@ -146,8 +228,11 @@ def main():
     feature_rows = materialize(status, data)
     csv_bytes = render_csv(feature_rows)
     receipt = build_receipt(feature_rows, csv_bytes)
+    family_coverage = audit_latest_family_coverage(status, data, feature_rows)
     args.output_dir.mkdir(parents=True, exist_ok=True)
     (args.output_dir / "historical_feature_matrix.csv").write_bytes(csv_bytes)
+    (args.output_dir / "eight_family_coverage.json").write_text(
+        json.dumps(family_coverage,sort_keys=True,indent=2,ensure_ascii=False)+"\n",encoding="utf8")
     (args.output_dir / "receipt.json").write_text(
         json.dumps(receipt, sort_keys=True, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
     )
