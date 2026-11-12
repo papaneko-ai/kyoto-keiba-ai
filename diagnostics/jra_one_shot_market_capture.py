@@ -502,7 +502,24 @@ def capture_hybrid(out, *, primary_channel, verified_start_utc, active_runners,
                       "MARKETS_FAILED_VALIDATION"}
     selected=primary_channel if first["accepted"] else None
     other="SP" if primary_channel=="PC" else "PC"
-    if not selected and first["state"] in fallback_allowed:
+    # Do not camouflage a wrong identity, source-content contradiction or
+    # unsafe market phase as a normal transient-channel failure.
+    terminal_conflicts=(
+        "official_racecard_three_column_mismatch",
+        "official_numbered_roster_reference_mismatch",
+        "sp_racecard_date_race_venue_not_proven",
+        "existing_racecard_reconciler_rejected",
+        "official_named_roster_reference_required",
+        "conflicting_market_phases",
+        "market_navigation_cycle",
+        "racecard_original_invalid",
+        "official_market_identity_conflict",
+        "cutoff_reached_during",
+        "source_not_before_cutoff",
+        "final_or_unpublished_original",
+    )
+    unsafe_primary=any(x in (first.get("reason") or "") for x in terminal_conflicts)
+    if not selected and first["state"] in fallback_allowed and not unsafe_primary:
         second=one(other)
         outcomes.append(second)
         if second["accepted"]:
@@ -518,6 +535,7 @@ def capture_hybrid(out, *, primary_channel, verified_start_utc, active_runners,
                  route_basis=route_basis,
                  selected_channel=selected, attempts=outcomes,
                  independent_crosscheck_requested=independent_crosscheck,
+                 primary_semantic_conflict_blocked=unsafe_primary,
                  dual_independent_source_originals=dual_captured,
                  cross_time_odds_comparison_authorized=False,
                  market_value_parity_verified=False,
