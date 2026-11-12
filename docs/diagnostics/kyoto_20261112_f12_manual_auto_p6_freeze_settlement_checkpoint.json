@@ -1,0 +1,60 @@
+{
+  "schema": "kyoto_ai_20261112_f12_manual_auto_to_p6_freeze_settlement_checkpoint.v1",
+  "date": "2026-11-12",
+  "baseline_sha": "da814270d25f16d055573b053cb69ced4882a1c2",
+  "milestone": "F12_USER_MANUAL_AND_AUTO_ALLOCATION_TO_P6_FROZEN_JOURNAL_AND_CORRECTION_ACCEPTED_LAB",
+  "development_branch": "jra-html-diagnostic-20261105",
+  "modified": [
+    "diagnostics/p6_source_bound_ranked_freeze_lab.py",
+    "diagnostics/p6_final_html_settlement_lab.py",
+    ".github/workflows/kyoto-ai-always-run-continuity.yml"
+  ],
+  "created": [
+    "tests/test_f12_p6_manual_allocation_freeze_settlement_bridge.py"
+  ],
+  "implementation": [
+    "F12 budget planner output is independently recomputed from exact selected ranked candidates and user weights; neither F12 plan digest nor user claims alone are trusted",
+    "Only market-matching prior P4 source-bound and P5 positive-EV ranked race/pair candidates can enter F12-P6 freeze",
+    "Manual race amounts and automatic concentration use F12 100-yen increments and daily cap; no forced spend",
+    "F12 P6 freeze is mutually exclusive with previously supported risk-capital mode; legacy uniform 100 yen remains unchanged",
+    "Freeze binds F12 receipt hash and F12 complete inputs hash into source digest; immutable event journal retains exact stakes with no future result data",
+    "Correction settlement carries original user plan, user-selected races, exposure target and daily ceiling to next version",
+    "F12 user allocation and result settlement remain lab-only; never authenticate actual prerace JRA odds or authorize production bets"
+  ],
+  "verified": {
+    "run_id": 43167460891,
+    "job_id": 131012564426,
+    "commit_sha": "b0803ec9950540082eeeb2aabd9bca6c11d6ee2e",
+    "conclusion": "success",
+    "new_F12_P6_tests": 15,
+    "regression_tests_all_existing": "success",
+    "official_live_data_http_requests_in_new_tests": 0,
+    "actual_real_market_certification": false
+  },
+  "incident_resolved": {
+    "first_regression_failure_run_ids": [
+      43167372773,
+      43167411280
+    ],
+    "cause": "Versioned settled F12 manifests did not carry the original daily budget ceiling into correction version, triggering safe-stop",
+    "repair": "Carry validated day_budget_ceiling_yen through successive LAB settlement manifests",
+    "proof": "Manual precommit -> first payout -> version 2 correction passes in accepted latest-head regression"
+  },
+  "metrics_fixed": {
+    "research": "100% (32/32)",
+    "research_graduation": "100% (12/12)",
+    "twenty_one_integrations": "100% (21/21)",
+    "real_live_independent": "0/6",
+    "operational_independent": "0/100",
+    "final_twenty_gate": "35/100",
+    "delta_final": 0
+  },
+  "next_step_without_nov14": "Prepare read-only user-facing ranked ticket receipt viewer for F12 LAB selection and frozen ticket values, keeping true live predictions blocked; independently verify historical official final results are not misrepresented as paper-trade PnL",
+  "external_live_gate": "40/100 only after independent actual prereace Kyoto roster+quinella+bracket original capture and event timing; not earned here",
+  "protected": [
+    "main",
+    "Turso production",
+    "published Streamlit",
+    "real wagers"
+  ]
+}
