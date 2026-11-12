@@ -182,6 +182,23 @@ class ExistingCaptureToAtomicThreeOriginalTests(AtomicThreeMarketTests):
   with self.assertRaisesRegex(MarketHandoffRejected,"redirect_or_missing_url_receipt"):
    package_saved_observed_market_capture(capture_directory=staged,
       snapshot=self.fx.snapshot,observed_utc=NOW)
+ def test_operator_cli_replays_immutable_originals_without_network(self):
+  from diagnostics.p1_atomic_dual_market_handoff import main
+  captured=self.stage()
+  snapshot=self.fx.root/"operator_snapshot.json"
+  snapshot.write_text(json.dumps(self.fx.snapshot),encoding="utf8")
+  output=self.fx.root/"operator_archive.zip"
+  receipt=main(["--capture-directory",str(captured),"--snapshot",str(snapshot),
+                "--observed-utc",NOW,"--output-archive",str(output)])
+  self.assertTrue(output.exists())
+  self.assertEqual(hashlib.sha256(output.read_bytes()).hexdigest(),receipt["archive_sha256"])
+  self.assertFalse(receipt["prediction_ready"])
+  self.assertEqual(receipt["network_requests"],0)
+  before=output.read_bytes()
+  with self.assertRaisesRegex(MarketHandoffRejected,"immutable_archive_must_be_new"):
+   main(["--capture-directory",str(captured),"--snapshot",str(snapshot),
+         "--observed-utc",NOW,"--output-archive",str(output)])
+  self.assertEqual(output.read_bytes(),before)
  def test_market_capture_time_conflict_rejected_by_existing_validator(self):
   from diagnostics.p1_atomic_dual_market_handoff import package_saved_observed_market_capture
   staged=self.stage()
