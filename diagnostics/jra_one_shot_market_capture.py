@@ -98,6 +98,45 @@ def exact_odds_action(raw,channel):
         raise SourceChainError("unverified_navigation_token")
     return token
 
+def observed_next_market_action(raw, channel, spec, *, step):
+    """Choose exactly one real official market-navigation action from HTML.
+
+    0: Kyoto meeting with the expected published calendar day.
+    1: exact race number. Never manufacture or modify a CNAME.
+    This is deliberately conservative; unsupported menu layouts fail closed.
+    """
+    if step not in (0, 1) or channel not in ("PC", "SP"):
+        raise SourceChainError("unsupported_market_navigation_step")
+    soup=BeautifulSoup(raw.decode("cp932",errors="replace"),"html.parser")
+    visible=soup.get_text(" ",strip=True)
+    d=date.fromisoformat(spec.race_day[:4]+"-"+spec.race_day[4:6]+"-"+spec.race_day[6:])
+    calendar=(f"{d.year}年{d.month}月{d.day}日",f"{d.month}月{d.day}日")
+    if not any(x in visible for x in calendar):
+        raise SourceChainError("market_navigation_day_not_visible")
+    if "最終オッズ" in visible or "オッズは未発表" in visible:
+        raise SourceChainError("market_navigation_not_live")
+    candidates=set()
+    for link in soup.select("a"):
+        label=link.get_text(" ",strip=True)
+        action=ACTION.search(link.get("onclick",""))
+        if not action:continue
+        token=action.group(2)
+        if not re.fullmatch(r"[A-Za-z0-9]+/[A-Za-z0-9]+",token):
+            continue
+        if not token.startswith("pw" if channel=="PC" else "sw"):
+            continue
+        if step==0:
+            matched=("京都" in label and ("競馬場" not in label or "開催" in label))
+        else:
+            matched=bool(re.search(fr"(?<!\\d)0?{spec.race_number}(?:\\s*R|\\s*レース)(?!\\d)",label))
+            # Prevent other meetings' same race number from being selected.
+            matched=matched and ("京都" in visible)
+        if matched:
+            candidates.add(token)
+    if len(candidates)!=1:
+        raise SourceChainError("observed_market_navigation_link_missing_or_ambiguous")
+    return next(iter(candidates))
+
 def http_fetch(opener,channel,path,*,cname=None,referer=None):
     host="jra.jp" if channel=="PC" else "sp.jra.jp"
     u=urlsplit(path)
@@ -172,13 +211,44 @@ def capture(out,*,channel,verified_start_utc,active_runners,now_utc=None,opener=
         if "最終オッズ" in text:
             result["state"]="REJECT_FINAL_ODDS"
             return result
-        try:markets=find_market_links(menu["raw"],expected_race_day=spec.race_day,
-                expected_race_number=spec.race_number,expected_host=host)
-        except MarketNavigationError:
-            # The current page may be a meeting-selection index. Do not
-            # invent subsequent endpoints; require observed navigation.
-            result["state"]="OFFICIAL_MENU_NEEDS_RACE_NAVIGATION"
-            return result
+        # Previous workflow stopped at the generic "odds meeting selection".
+        # Traverse at most TWO explicitly observed menu actions. Each page
+        # is persisted and time-stamped BEFORE attempting another action.
+        seen_tokens={token}
+        for navigation_step in range(3):
+            try:
+                markets=find_market_links(menu["raw"],expected_race_day=spec.race_day,
+                    expected_race_number=spec.race_number,expected_host=host)
+                break
+            except MarketNavigationError:
+                if navigation_step>=2:
+                    result["state"]="OFFICIAL_MENU_NEEDS_RACE_NAVIGATION"
+                    return result
+                try:
+                    next_token=observed_next_market_action(menu["raw"],channel,spec,
+                                                            step=navigation_step)
+                except SourceChainError as exc:
+                    result["state"]="OFFICIAL_MENU_NEEDS_RACE_NAVIGATION"
+                    result["navigation_reason"]=str(exc)
+                    return result
+                if next_token in seen_tokens:
+                    raise SourceChainError("market_navigation_cycle")
+                seen_tokens.add(next_token)
+                if datetime.now(timezone.utc)>=start-timedelta(minutes=10):
+                    raise SourceChainError("cutoff_reached_during_navigation")
+                menu=http_fetch(opener,channel,menu_url,cname=next_token,referer=menu_url)
+                (folder/f"official_odds_navigation_{navigation_step+1}.html").write_bytes(menu["raw"])
+                result["request_receipts"].append({
+                    "step":f"odds_navigation_{navigation_step+1}",
+                    **{k:v for k,v in menu.items() if k!="raw"}})
+                text=BeautifulSoup(menu["raw"].decode("cp932",errors="replace"),
+                                   "html.parser").get_text(" ",strip=True)
+                if "最終オッズ" in text:
+                    result["state"]="REJECT_FINAL_ODDS"
+                    return result
+                if "オッズは未発表" in text:
+                    result["state"]="OFFICIAL_NOT_PUBLISHED"
+                    return result
         market_originals={};urls={};times={}
         for market in ("quinella","bracket_quinella"):
             record=markets["markets"][market]
