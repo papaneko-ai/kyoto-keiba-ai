@@ -28,14 +28,22 @@ jobs:
         run: |
           python - <<'PY'
           from urllib.robotparser import RobotFileParser
+          from urllib.request import Request, urlopen
           from diagnostics.jra_historical_two_day_source_capture import KNOWN
+          req=Request('https://www.jra.go.jp/robots.txt',
+              headers={'User-Agent':'KyotoRaceAI-Research/0.1'},method='GET')
+          with urlopen(req,timeout=8) as response:
+              if response.status != 200 or response.geturl() != req.full_url:
+                  raise SystemExit('ROBOTS_UNVERIFIED_STOP')
+              content=response.read(10000)
+          if not content.startswith(b'User-agent:') or len(content)==10000:
+              raise SystemExit('ROBOTS_CONTENT_UNVERIFIED_STOP')
           robot=RobotFileParser()
-          robot.set_url('https://www.jra.go.jp/robots.txt')
-          robot.read()
+          robot.parse(content.decode('utf-8','replace').splitlines())
           for date,race,url in KNOWN:
               if not robot.can_fetch('KyotoRaceAI-Research/0.1', url):
                   raise SystemExit('ROBOTS_REJECTED_STOP')
-          print('ROBOTS_PATHS_ALLOW; permission to redistribute NOT inferred')
+          print('ROBOTS_FETCHED_AND_ALLOWED; NO unrestricted use granted')
           PY
       - name: Fetch only two verified official dated result URLs, save raw + SHA
         env:
