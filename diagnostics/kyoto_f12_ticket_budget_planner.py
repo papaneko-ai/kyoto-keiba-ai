@@ -47,9 +47,11 @@ def plan_f12(*,day_budget_yen,exposure_target_yen,market,mode,candidates,
         raise F12Rejected("selected_duplicate")
     by_race={}
     for c in candidates:
-        if type(c) is not dict or set(c)!={"race","priority","tickets","eligible"}:
+        if type(c) is not dict or set(c)!={"race","priority","tickets","eligible","ticket_type"}:
             raise F12Rejected("candidate_schema_invalid")
         race,priority=c["race"],c["priority"]
+        if c["ticket_type"]!=market:
+            raise F12Rejected("candidate_ticket_type_mismatch")
         if type(race) is not int or not 1<=race<=12 or race in by_race:
             raise F12Rejected("race_invalid")
         if type(priority) is not int or not 1<=priority<=12:
