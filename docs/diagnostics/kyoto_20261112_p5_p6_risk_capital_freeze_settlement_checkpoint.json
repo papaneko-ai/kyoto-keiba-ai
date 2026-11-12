@@ -1,0 +1,69 @@
+{
+  "schema": "kyoto_ai_20261112_p5_p6_risk_capital_complete_offline_lifecycle.v1",
+  "date": "2026-11-12",
+  "source_branch": "jra-html-diagnostic-20261105",
+  "milestone": "P5_RISK_CAPITAL_TO_P6_IMMUTABLE_FREEZE_AND_VERSIONED_SETTLEMENT_LAB_ACCEPTED",
+  "implemented": [
+    "P5 capital policy and recomputed risk allocation bound to P6 pre-result frozen ticket amounts",
+    "Exact receipt equality, not merely self-hashed capital claim, required before freeze",
+    "P5 rank and exact original-bound P4 market pair must match frozen ticket identity",
+    "Source provenance hash includes risk capital receipt SHA256 and policy SHA256",
+    "Zero exposure and unused budget preserved; no forced stakes",
+    "Immutable P6 journal with pre-cutoff guard and replay of exact risk-allocated stakes",
+    "P6 fixture result settlement verifies sum of frozen stakes against manifest and retains risk capital lineage",
+    "Result correction creates a new journal/snapshot; frozen capital remains unchanged",
+    "All test files registered in existing always-run CI; independent open-source job evidence"
+  ],
+  "files_changed": [
+    "diagnostics/p6_source_bound_ranked_freeze_lab.py",
+    "diagnostics/p6_final_html_settlement_lab.py",
+    ".github/workflows/kyoto-ai-always-run-continuity.yml"
+  ],
+  "files_added": [
+    "tests/test_p5_p6_risk_allocated_freeze_bridge.py",
+    "tests/test_p5_p6_risk_final_settlement_e2e.py"
+  ],
+  "verified_ci": {
+    "run_id": 43166230163,
+    "job_id": 131008633349,
+    "commit_sha": "d759789d16649a8cd046ae30c5a90cb7c55dd095",
+    "conclusion": "success",
+    "new_risk_freeze_tests": 9,
+    "new_risk_settlement_tests": 6,
+    "existing_continuity_gate": "success",
+    "real_jra_http_during_new_tests": 0
+  },
+  "protected": {
+    "real_sources": "Historical originals remain postrace only; new lifecycle exercises synthetic pre-race originals and LAB model",
+    "operational_independent": "0/100",
+    "final_20_gate": "35/100",
+    "new_research_credit": 0,
+    "no_real_prerace_market_verified": true,
+    "no_actual_prediction_or_paper_trade_verified": true,
+    "no_real_ticket_purchased": true,
+    "main_unchanged": true,
+    "production_turso_unchanged": true,
+    "public_streamlit_unchanged": true
+  },
+  "fixed_metrics": {
+    "research": "100% (32/32)",
+    "graduation": "100% (12/12)",
+    "integrated_21_features": "100% (21/21)",
+    "live_integration": "0/6",
+    "operational_readiness": "0/100",
+    "final_20_gate": "35/100"
+  },
+  "next_work_order": [
+    "Independently prove source-neutral real PC racecard/quinella/bracket provenance and event timing before any promotion from LAB",
+    "Connect P5 user-selected / manual 100-yen allocations through the same immutable P6 journal path without reimplementing the source verification",
+    "Add source-bound real event freeze adapter only after independent live certification",
+    "Use Nov14 scheduled one-shot separately; never synthesize missing JRA data"
+  ],
+  "invariants": [
+    "No fabricated pre-race JRA HTML or market quotes",
+    "Do not reuse archived postrace payout data as prerace odds or pretend any historical winning returns were precommitted",
+    "Do not increase the fixed final score for offline lab acceptance",
+    "Do not overwrite successful prior P1-P8 code or immutable LAB journals",
+    "Daily budget cap and zero-stake permitted"
+  ]
+}
