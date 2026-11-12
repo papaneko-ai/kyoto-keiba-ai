@@ -1,0 +1,45 @@
+name: Kyoto P6 durable virtual paper ledger cross-process milestone
+on:
+  push:
+    branches: [jra-html-diagnostic-20261105]
+    paths:
+      - .github/workflows/kyoto-p6-cross-process-restart-demo.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  create-archive-restart-verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: P6 immutable SQLite ledger 17 adversarial tests
+        env: { PYTHONPATH: . }
+        run: python -m unittest -v tests.test_kyoto_virtual_sqlite_journal
+      - name: Independent Python process A - create synthetic frozen+corrected ledger
+        env: { PYTHONPATH: . }
+        run: python -m diagnostics.kyoto_virtual_paper_restart_demo create lab-ledger-evidence
+      - name: Independent Python process B - read existing settled state after restart
+        env: { PYTHONPATH: . }
+        run: python -m diagnostics.kyoto_virtual_paper_restart_demo verify lab-ledger-evidence
+      - name: Copy and verify restored checkpoint in a fresh isolated directory
+        env: { PYTHONPATH: . }
+        run: |
+          set -euo pipefail
+          mkdir lab-restored-copy
+          cp lab-ledger-evidence/virtual_only.sqlite lab-restored-copy/
+          cp lab-ledger-evidence/receipt.json lab-restored-copy/
+          python -m diagnostics.kyoto_virtual_paper_restart_demo verify lab-restored-copy
+          echo CROSS_PROCESS_AND_RESTORE_SUCCESS=TRUE
+          echo ISOLATED_SYNTHETIC_FIXTURE_ONLY=TRUE
+          echo NO_TURSO_PRODUCTION_WRITE=TRUE
+      - name: Upload reproducible LAB-only SQLite & hash-chain receipt
+        uses: actions/upload-artifact@v4
+        with:
+          name: kyoto-p6-synthetic-durable-ledger-restore-proof
+          path: lab-ledger-evidence/
+          retention-days: 7
+          if-no-files-found: error
