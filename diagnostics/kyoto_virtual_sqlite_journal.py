@@ -48,11 +48,16 @@ def _money(v, name, zero=False):
     if type(v) is not int or v < (0 if zero else 100) or v % 100:
         raise VirtualLedgerRejected(name + "_must_be_100yen_units")
 
-def _pair(p):
-    if not isinstance(p, list) or len(p) != 2 or any(type(n) is not int or n < 1 or n > 18 for n in p):
+def _pair(p, market):
+    if market not in ("QUINELLA", "BRACKET"):
+        raise VirtualLedgerRejected("market_invalid")
+    maximum = 18 if market == "QUINELLA" else 8
+    if not isinstance(p, list) or len(p) != 2 or any(
+        type(n) is not int or n < 1 or n > maximum for n in p
+    ):
         raise VirtualLedgerRejected("pair_invalid")
-    if p[0] >= p[1]:
-        raise VirtualLedgerRejected("pair_must_be_ascending_distinct")
+    if p[0] > p[1] or (market == "QUINELLA" and p[0] == p[1]):
+        raise VirtualLedgerRejected("pair_order_or_same_horse_invalid")
     return tuple(p)
 
 def validate_freeze(p):
@@ -83,7 +88,7 @@ def validate_freeze(p):
     for t in p["tickets"]:
         if not isinstance(t, dict) or set(t) != {"pair", "stake_yen", "observed_odds"}:
             raise VirtualLedgerRejected("ticket_schema_invalid")
-        pair = _pair(t["pair"])
+        pair = _pair(t["pair"], p["ticket_type"])
         if pair in seen:
             raise VirtualLedgerRejected("duplicate_pair")
         seen.add(pair)
@@ -116,12 +121,12 @@ def validate_final(p, freeze):
     for i in p["payouts"]:
         if not isinstance(i, dict) or set(i) != {"pair", "yen_per_100"}:
             raise VirtualLedgerRejected("payout_schema_invalid")
-        pair = _pair(i["pair"])
+        pair = _pair(i["pair"], freeze["ticket_type"])
         if pair in seen:
             raise VirtualLedgerRejected("duplicate_payout_pair")
         seen.add(pair)
         _money(i["yen_per_100"], "payout_per_100")
-    refunds = [_pair(x) for x in p["refund_pairs"]]
+    refunds = [_pair(x, freeze["ticket_type"]) for x in p["refund_pairs"]]
     if len(refunds) != len(set(refunds)) or set(refunds) & seen:
         raise VirtualLedgerRejected("refund_conflicts_with_payout")
     return True
