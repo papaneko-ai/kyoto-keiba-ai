@@ -261,13 +261,14 @@ def capture(out,*,channel,verified_start_utc,active_runners,now_utc=None,opener=
         result["state"]="CUTOFF_PASSED_NO_HTTP"
         (folder/"receipt.json").write_text(json.dumps(result,ensure_ascii=False,indent=2)+"\n",encoding="utf8")
         return result
+    if authorized_live_http and pacer is None:
+        pacer=RequestPacer()
     if opener is None:
         if not authorized_live_http:
             result["state"]="LIVE_HTTP_NOT_AUTHORIZED"
             (folder/"receipt.json").write_text(json.dumps(result,ensure_ascii=False,indent=2)+"\n",encoding="utf8")
             return result
         opener=build_opener(NoRedirect(),HTTPCookieProcessor(CookieJar()))
-        if pacer is None:pacer=RequestPacer()
     source=spec.pc_racecard_url if channel=="PC" else spec.sp_racecard_url
     host="jra.jp" if channel=="PC" else "sp.jra.jp"
     try:
@@ -395,7 +396,7 @@ def capture_hybrid(out, *, primary_channel, verified_start_utc, active_runners,
         raise SourceChainError("hybrid_run_directory_not_empty")
     folder.mkdir(parents=True, exist_ok=True)
     runner=capture_fn or capture
-    shared_pacer=RequestPacer() if openers is None and authorized_live_http else None
+    shared_pacer=RequestPacer() if authorized_live_http else None
     outcomes=[]
     def one(channel):
         channel_dir=folder / channel.lower()
