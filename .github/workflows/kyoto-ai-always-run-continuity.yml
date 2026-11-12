@@ -50,6 +50,7 @@ jobs:
           python -m unittest discover -s tests -p 'test_p6_source_bound_ranked_freeze_lab.py' -v
           python -m unittest discover -s tests -p 'test_p5_p6_risk_allocated_freeze_bridge.py' -v
           python -m unittest discover -s tests -p 'test_p5_p6_risk_final_settlement_e2e.py' -v
+          python -m unittest discover -s tests -p 'test_f12_p6_manual_allocation_freeze_settlement_bridge.py' -v
           python -m unittest discover -s tests -p 'test_p6_final_html_settlement_lab.py' -v
           python -m unittest discover -s tests -p 'test_p1_authorized_pc_sp_fallback.py' -v
           python -m unittest discover -s tests -p 'test_p1_atomic_dual_market_handoff.py' -v
