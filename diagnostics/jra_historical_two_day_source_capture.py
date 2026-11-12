@@ -56,11 +56,11 @@ def parse_official_result_identity(raw,date,race,url):
   raise HistoricalRejected("source_bytes_invalid")
  p=Summary()
  p.feed(raw.decode("cp932",errors="replace"))
- body=re.sub(r"\\s+","","".join(p.words))
+ body=re.sub(r"\s+","","".join(p.words))
  year,month,day=map(int,date.split("-"))
  if f"{year}年{month}月{day}日" not in body:
   raise HistoricalRejected("wrong_date")
- if "京都" not in body or not re.search(rf"(?<!\\d){race}(?:レース|R)",body):
+ if "京都" not in body or not re.search(rf"(?<!\d){race}(?:レース|R)",body):
   raise HistoricalRejected("wrong_venue_or_race")
  if "レース結果" not in body or "着順" not in body or p.tables<1:
   raise HistoricalRejected("not_race_result_table")
@@ -93,7 +93,7 @@ def capture_one(date,race,url,directory,*,opener=None,clock=None):
  if html_path.exists() or receipt.exists():
   raise HistoricalRejected("capture_must_not_overwrite")
  html_path.write_bytes(raw)
- receipt.write_text(json.dumps(report,ensure_ascii=False,sort_keys=True,indent=2)+"\\n",encoding="utf-8")
+ receipt.write_text(json.dumps(report,ensure_ascii=False,sort_keys=True,indent=2)+"\n",encoding="utf-8")
  return report
 
 def main():
@@ -107,7 +107,7 @@ def main():
   "new_historical_days_confirmed":len({r["date"] for r in reports}),
   "official_html_requests":len(reports),"reports":reports,
   "prerace_evidence_verified":False,"training_ready":False}
- (args.out/"summary.json").write_text(json.dumps(receipt,ensure_ascii=False,indent=2,sort_keys=True)+"\\n",encoding="utf-8")
+ (args.out/"summary.json").write_text(json.dumps(receipt,ensure_ascii=False,indent=2,sort_keys=True)+"\n",encoding="utf-8")
  print(json.dumps(receipt,ensure_ascii=False,sort_keys=True))
 
 if __name__=="__main__":main()
