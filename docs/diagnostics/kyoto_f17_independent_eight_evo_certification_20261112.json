@@ -6,30 +6,30 @@
   "accepted_points": 5,
   "rubric_sha256": "92bae5c1d61d6ac00a5380dd8d5e08beb59f96c898b03c05a3c8bf8721ced632",
   "initial": {
-    "run_id": 43148350496,
-    "job_id": 130951395793,
-    "head_sha": "2a0368241d03fc653bc4b83c2be1826e6aba4be0",
+    "run_id": 43148780887,
+    "job_id": 130952779552,
+    "head_sha": "a078afcc3fa4662f53b820ce6459864de38df621",
     "result": "success",
-    "tests_passed": 25,
-    "artifact_id": 13912941740
+    "tests_passed": 30,
+    "artifact_id": 13911709766
   },
   "independent": {
-    "run_id": 43148482205,
-    "job_id": 130951828745,
-    "head_sha": "43c23a166ced5bbc1085cb3e2e9d9088f98759c2",
+    "run_id": 43148970085,
+    "job_id": 130953377184,
+    "head_sha": "f5357ec74863bf6161a8b562756863e3a91ad716",
     "result": "success",
-    "forgeries_rejected": 6,
-    "artifact_id": 13911769069
+    "forgeries_rejected": 8,
+    "artifact_id": 13912578750
   },
   "functions": [
-    "EVO-01 supplementary data value/cost ranking",
-    "EVO-02 error weakness detection",
-    "EVO-03 paired shadow AI comparison on F18 original holdout",
-    "EVO-04 pre-registered portfolio and drawdown checks",
-    "EVO-05 forward deterioration and shadow revocation",
-    "EVO-06 bounded research experiment budget and no autocode mutation",
-    "EVO-07 independent F18 plan/hash-based audit binding",
-    "EVO-08 surprise hypothesis counterexample/retest"
+    "EVO-01 rank three source candidates by net value/cost and coverage using original raw rows",
+    "EVO-02 group all ten F18 holdout races into loss/weakness categories, compare baseline and candidate",
+    "EVO-03 same original F18 sealed 10 races paired shadow/champion proper-score comparison",
+    "EVO-04 run two preregistered 10-race LAB portfolio PnL paths and compute max drawdown",
+    "EVO-05 compute three LAB drift windows linked to F18 genuine synthetic forward shadow revocation",
+    "EVO-06 execute deterministic budget-capped three LAB experiment selections (no external code)",
+    "EVO-07 independently verify original F18 sealed plan and held-out paired audit SHA",
+    "EVO-08 compute surprise errors and explicit counterexample IDs from LAB prediction/outcome records"
   ],
   "provenance": "ORIGINAL_SYNTHETIC_EVO_INPUT_WITH_F18_SEALED_HOLDOUT_FROM_PRIOR_CI",
   "verified_distinct_evo_capabilities": 8,
@@ -38,7 +38,7 @@
   "actual_automated_live_evolution_verified": false,
   "production_model_changed": false,
   "real_bet_allowed": false,
-  "note": "Acceptance covers eight isolated offline algorithmic functional integrations only. No future/real-world performance evidence; a separate authentic JRA prospective qualification remains mandatory.",
+  "note": "F17 qualifies scoped LAB functional math and actual raw row computations, not genuine JRA live evolution or out-of-sample profitability. Previous initial 25-case screening was insufficient and superseded by 30-case raw-executing CI; earlier second run 43148906648 failed due stale expected experiment_count=0, corrected after independent auditor was aligned to actual 3 LAB experiments.",
   "fixed_final_before": 30,
   "fixed_final_now": 35,
   "delta": 5,
@@ -46,5 +46,13 @@
   "fixed_operational_lower_bound": "0/100",
   "protected_main_changed": false,
   "production_turso_changed": false,
-  "public_streamlit_changed": false
+  "public_streamlit_changed": false,
+  "evidence_files": [
+    "diagnostics/kyoto_f17_executable_lab_streams.py",
+    "diagnostics/kyoto_f17_evo_eight_integrated_research.py",
+    "diagnostics/kyoto_f17_second_independent_eight_evo_auditor.py",
+    "tests/test_kyoto_f17_evo_eight_integrated_research.py",
+    ".github/workflows/kyoto-f17-eight-evo-integration.yml",
+    ".github/workflows/kyoto-f17-second-independent-evo-audit.yml"
+  ]
 }
