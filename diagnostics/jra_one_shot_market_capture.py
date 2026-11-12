@@ -154,6 +154,39 @@ def verified_roster_from_snapshot(snapshot, spec, *, race_start_utc):
     return tuple(output)
 
 
+
+def verify_live_racecard_roster(original,channel,spec,active_runners):
+    """Verify new official racecard bytes against frozen numbered race roster.
+
+    Reuses previously validated PC/SP parsers; no synthesized identifiers.
+    This must run BEFORE issuing an odds-navigation HTTP request.
+    A source footer mentioning Kyoto is insufficient; PC parser binds date
+    and race, and SP must expose both the meeting date and race heading.
+    """
+    from diagnostics.jra_pc_sp_benchmark import pc_rows,sp_rows
+    if not isinstance(original,bytes) or not 0<len(original)<=LIMIT:
+        raise SourceChainError("racecard_original_invalid")
+    race_date=f"{spec.race_day[:4]}-{spec.race_day[4:6]}-{spec.race_day[6:]}"
+    try:
+        parsed=pc_rows(original,spec.race_number,meeting_date=race_date) if channel=="PC" else sp_rows(original)
+    except (ValueError,TypeError,IndexError,KeyError) as exc:
+        raise SourceChainError("original_racecard_parser_failed") from exc
+    numbers=tuple((n,f) for n,f,name in parsed)
+    if numbers!=tuple(active_runners):
+        raise SourceChainError("official_racecard_numbered_roster_mismatch")
+    if channel=="SP":
+        soup=BeautifulSoup(original.decode("cp932",errors="replace"),"html.parser")
+        visible=soup.get_text(" ",strip=True)
+        day=date.fromisoformat(race_date)
+        if (not re.search(fr"{day.year}年\\s*{day.month}月\\s*{day.day}日",visible)
+                or not re.search(fr"(?<!\\d)0?{spec.race_number}\\s*(?:R|レース)(?!\\d)",visible)
+                or "京都" not in visible):
+            raise SourceChainError("sp_racecard_date_race_venue_not_proven")
+    return {"count":len(parsed),"channel":channel,
+            "roster_source_sha256":sha256(original).hexdigest(),
+            "race_id":spec.race_id,"source_only":True}
+
+
 def exact_odds_action(raw,channel):
     soup=BeautifulSoup(raw.decode("cp932",errors="replace"),"html.parser")
     values=set()
@@ -275,6 +308,9 @@ def capture(out,*,channel,verified_start_utc,active_runners,now_utc=None,opener=
         racecard=http_fetch(opener,channel,source,pacer=pacer)
         (folder/"official_racecard.html").write_bytes(racecard["raw"])
         result["request_receipts"].append({"step":"racecard",**{k:v for k,v in racecard.items() if k!="raw"}})
+        if authorized_live_http:
+            result["current_racecard_roster_proof"]=verify_live_racecard_roster(
+                racecard["raw"],channel,spec,active_runners)
         token=exact_odds_action(racecard["raw"],channel)
         menu_url=f"https://{host}/JRADB/accessO.html"
         menu=http_fetch(opener,channel,menu_url,cname=token,referer=source,pacer=pacer)
