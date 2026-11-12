@@ -402,4 +402,51 @@ class BoundedObservedMenuIntegrationTests(unittest.TestCase):
    self.assertEqual((Path(d)/"official_odds_navigation_1.html").read_bytes(),pages[2][0])
    self.assertEqual((Path(d)/"official_odds_navigation_2.html").read_bytes(),pages[3][0])
    self.assertFalse(result["pre_race_prices_accepted"])
+class VerifiedNumberedRosterHandoffTests(unittest.TestCase):
+ def spec(self):
+  from diagnostics.jra_one_shot_market_capture import ObservedRaceSpec
+  return ObservedRaceSpec("20261114",11,"2026-11-14_KYOTO_11R","京都",
+    "https://jra.jp/JRADB/accessD.html?CNAME=pw01dde0108202605011120261114%2F13",
+    "https://sp.jra.jp/JRADB/accessD.html?CNAME=sw01dde0108202605011120261114%2FA0",
+    "2026-11-13T09:30:00Z")
+ def roster(self):
+  return {"race_date":"2026-11-14","race_number":11,"venue":"KYOTO",
+    "source_url":self.spec().sp_racecard_url,"source_sha256":"a"*64,
+    "source_bytes":60000,"fetched_at_utc":"2026-11-13T03:00:00Z",
+    "runners":[{"horse_number":1,"frame_number":1,"horse_name":"A"},
+               {"horse_number":2,"frame_number":2,"horse_name":"B"}]}
+ def check(self,r):
+  from diagnostics.jra_one_shot_market_capture import verified_roster_from_snapshot
+  return verified_roster_from_snapshot(r,self.spec(),race_start_utc="2026-11-14T06:45:00Z")
+ def test_current_numbered_official_bound_roster(self):
+  self.assertEqual(self.check(self.roster()),((1,1),(2,2)))
+ def test_old_nov7_roster_blocked_before_network(self):
+  r=self.roster();r["race_date"]="2026-11-07"
+  with self.assertRaisesRegex(SourceChainError,"roster_meeting_race_source_mismatch"):
+   self.check(r)
+ def test_old_pc_racecard_url_blocked(self):
+  r=self.roster();r["source_url"]="https://jra.jp/JRADB/accessD.html?CNAME=pw01dde0108202605011120261107%2F13"
+  with self.assertRaisesRegex(SourceChainError,"roster_meeting_race_source_mismatch"):
+   self.check(r)
+ def test_different_race_number_blocked(self):
+  r=self.roster();r["race_number"]=10
+  with self.assertRaisesRegex(SourceChainError,"roster_meeting_race_source_mismatch"):
+   self.check(r)
+ def test_unproven_source_original_rejected(self):
+  r=self.roster();r["source_sha256"]="notverified"
+  with self.assertRaisesRegex(SourceChainError,"roster_original_provenance_missing"):
+   self.check(r)
+ def test_duplicate_horse_numbers_rejected(self):
+  r=self.roster();r["runners"][1]["horse_number"]=1
+  with self.assertRaisesRegex(SourceChainError,"roster_number_sequence_invalid"):
+   self.check(r)
+ def test_race_started_roster_rejected(self):
+  r=self.roster();r["fetched_at_utc"]="2026-11-14T07:00:00Z"
+  with self.assertRaisesRegex(SourceChainError,"roster_capture_not_before_start"):
+   self.check(r)
+ def test_withdrawal_needs_fresh_status_not_stale_roster(self):
+  r=self.roster();r["runners"][1]["status"]="取消"
+  with self.assertRaisesRegex(SourceChainError,"roster_withdrawal_needs_current_independent_proof"):
+   self.check(r)
+
 if __name__=="__main__":unittest.main()
