@@ -26,11 +26,11 @@ jobs:
           python -m unittest -v tests.test_kyoto_f10_independent_fraction_risk_auditor
       - name: Fetch independently-produced exact F10 original lab witness
         env:
-          GH_TOKEN: \${{ github.token }}
+          GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
           curl --fail --location --silent --show-error --retry 0 --max-time 30 \
-            -H "Authorization: Bearer \${GH_TOKEN}" \
+            -H "Authorization: Bearer ${GH_TOKEN}" \
             -H "Accept: application/vnd.github+json" \
             "https://api.github.com/repos/papaneko-ai/kyoto-keiba-ai/actions/artifacts/13907422713/zip" \
             -o f10_original_lab_witness.zip
