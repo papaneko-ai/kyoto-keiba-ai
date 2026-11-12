@@ -46,6 +46,34 @@ class ContinuityGateTests(unittest.TestCase):
         with self.assertRaisesRegex(PreflightBlocked,"missing_reuse_rationale"):
             self.audit()
 
+    def test_research_scope_is_not_limited_to_odds(self):
+        for name in ("P2_REAL_FEATURE_MATRIX", "P7_EVO01_INFORMATION_VALUE",
+                     "P8_STORAGE_PROTECTION", "P1_FB_SHARED_LEDGER",
+                     "P1_MULTIDAY_OFFICIAL_RESULTS", "P1_TRAINING_WORKOUTS",
+                     "P1_JOCKEY_TRAINER_STATS", "P1_TRACK_WEATHER",
+                     "PC_SP_MEASURED_ROUTING", "P1_ORIGINAL_BACKUP_RECOVERY"):
+            self.assertIn(name, REQUIRED)
+
+    def test_removed_history_and_evo_cannot_pass_preflight(self):
+        self.inventory["features"] = [
+            x for x in self.inventory["features"]
+            if x["id"] != "P7_EVO01_INFORMATION_VALUE"]
+        with self.assertRaisesRegex(PreflightBlocked,
+                                   "inventory_incomplete|required_feature_missing"):
+            self.audit()
+
+    def test_existing_code_cannot_be_mislabeled_as_unimplemented(self):
+        self.inventory["features"][0]["status"] = "DESIGNED_NOT_IMPLEMENTED"
+        with self.assertRaisesRegex(PreflightBlocked,"designed_status_has_existing_code"):
+            self.audit()
+
+    def test_conflicting_intent_for_same_feature_is_rejected(self):
+        self.intent["changes"].append({
+            "feature_id":"PC_RACECARD","action":"NEW",
+            "rationale":"Duplicated implementation declaration must never be accepted"})
+        with self.assertRaisesRegex(PreflightBlocked,"duplicate_intent_feature"):
+            self.audit()
+
     def test_three_runs_deterministic(self):
         a=self.audit()
         for _ in range(3):
