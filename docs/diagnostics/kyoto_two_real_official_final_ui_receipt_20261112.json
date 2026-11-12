@@ -1,0 +1,68 @@
+{
+  "schema": "kyoto_actual_official_historical_final_ui_receipt.v1",
+  "source_scope": "TWO_JRA_ACTUAL_POSTRACE_FINALS_REPLAYED_FROM_ORIGINAL_HTML",
+  "source_capture_run_id": 43129613002,
+  "source_original_artifact_id": 13904353071,
+  "original_source_zip_sha256": "dad5f93f72b3b993ab96ef1a053561d60a84ad3c868b4d3b4f4b2dc72bb9f004",
+  "official_sqlite_registry_run_id": 43141692999,
+  "official_sqlite_registry_sha256": "bba8d8c69bd68a1747dfe3d360fa899959f876d716d931842c32d932c2c62bc9",
+  "official_source_chain_head": "6a75026fd542de27c2c91af1d98e449c0ed1927b322d06932d87bc5917f4fd6c",
+  "independent_original_audit_run_id": 43141831772,
+  "independent_original_audit_result": "SUCCESS",
+  "races": [
+    {
+      "race_id": "2026-10-25-KYOTO-R10",
+      "date": "2026-10-25",
+      "race": 10,
+      "first_horse": 12,
+      "second_horse": 10,
+      "source_sha256": "44d5480f668fca57293f67924e90d44294c9222c902cb187e594ed3087de54a2",
+      "event_sha256": "1a00c115862825f5836dab9ea7a46507aaf15149ba8370428da570732283d3ad",
+      "quinella": {
+        "pair": [
+          10,
+          12
+        ],
+        "yen_per_100": 15090
+      },
+      "bracket": {
+        "pair": [
+          6,
+          7
+        ],
+        "yen_per_100": 1540
+      }
+    },
+    {
+      "race_id": "2026-11-08-KYOTO-R11",
+      "date": "2026-11-08",
+      "race": 11,
+      "first_horse": 11,
+      "second_horse": 8,
+      "source_sha256": "846c0f0b9a491f5375604ff11385f0f7e7f8c7a10960c717c2a381ff06667325",
+      "event_sha256": "6a75026fd542de27c2c91af1d98e449c0ed1927b322d06932d87bc5917f4fd6c",
+      "quinella": {
+        "pair": [
+          8,
+          11
+        ],
+        "yen_per_100": 1670
+      },
+      "bracket": {
+        "pair": [
+          4,
+          6
+        ],
+        "yen_per_100": 1330
+      }
+    }
+  ],
+  "original_postrace_runner_count": 31,
+  "official_real_market_final_payout_count": 4,
+  "actual_pre_race_quinella_bracket_prices_authenticated": false,
+  "real_virtual_paper_trades_precommitted": false,
+  "actual_paper_pnl_available": false,
+  "f15_entire_lifecycle_accepted": false,
+  "f19_real_smartphone_accepted": false,
+  "production_write_authorized": false
+}
