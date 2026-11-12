@@ -23,6 +23,8 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
+      - name: Compile modified acquisition and P1-FB modules before tests
+        run: python -m compileall -q diagnostics/jra_one_shot_market_capture.py diagnostics/jra_p1_failover_offline.py tests/test_jra_one_shot_market_capture.py tests/test_jra_p1_failover_offline.py
       - name: Install existing parser
         run: python -m pip install 'beautifulsoup4>=4.12,<5'
       - name: Existing live-odds navigation and cutoff regression
