@@ -128,7 +128,7 @@ def observed_next_market_action(raw, channel, spec, *, step):
         if step==0:
             matched=("京都" in label and ("競馬場" not in label or "開催" in label))
         else:
-            matched=bool(re.search(fr"(?<!\\d)0?{spec.race_number}(?:\\s*R|\\s*レース)(?!\\d)",label))
+            matched=bool(re.search(fr"(?<!\d)0?{spec.race_number}(?:\s*R|\s*レース)(?!\d)",label))
             # Prevent other meetings' same race number from being selected.
             matched=matched and ("京都" in visible)
         if matched:
