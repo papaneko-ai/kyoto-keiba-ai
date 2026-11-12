@@ -626,4 +626,66 @@ class SemanticConflictsCannotFallbackTests(unittest.TestCase):
   r,calls=self.check("TimeoutError:timed_out")
   self.assertEqual(calls,["PC","SP"])
   self.assertEqual(r["state"],"SOURCE_ONLY_FALLBACK")
+
+class SourceOriginalImmutabilityAndPostProofTests(unittest.TestCase):
+ def test_official_post_retains_observed_action_and_wire_body_hash(self):
+  from hashlib import sha256
+  stub=StubOpener([(HTML,"https://jra.jp/JRADB/accessO.html")])
+  r=http_fetch(stub,"PC","https://jra.jp/JRADB/accessO.html",cname="pw15fromHtml/AA")
+  req=stub.requests[0]
+  self.assertEqual(r["observed_action_token"],"pw15fromHtml/AA")
+  self.assertEqual(r["requested_url"],"https://jra.jp/JRADB/accessO.html")
+  self.assertEqual(r["response_url"],"https://jra.jp/JRADB/accessO.html")
+  self.assertEqual(r["method"],"POST")
+  self.assertEqual(r["post_body_sha256"],sha256(req.data).hexdigest())
+  self.assertEqual(r["post_body_size"],len(req.data))
+  self.assertIn(b"cname=pw15fromHtml%2FAA",req.data)
+ def test_official_get_retains_exact_requested_url_and_no_post(self):
+  stub=StubOpener([(HTML,PC_RACECARD_URL)])
+  r=http_fetch(stub,"PC",PC_RACECARD_URL)
+  self.assertEqual(r["requested_url"],PC_RACECARD_URL)
+  self.assertIsNone(r["observed_action_token"])
+  self.assertIsNone(r["post_body_sha256"])
+  self.assertEqual(r["post_body_size"],0)
+ def test_nonempty_previous_capture_is_rejected_before_network(self):
+  from pathlib import Path
+  with tempfile.TemporaryDirectory() as d:
+   (Path(d)/"official_racecard.html").write_bytes(b"old-original")
+   with self.assertRaisesRegex(SourceChainError,"source_output_contains_existing_evidence"):
+    capture(d,channel="PC",verified_start_utc="2026-11-07T06:45:00Z",
+      active_runners=((1,1),(2,2)),now_utc="2026-11-06T10:00:00Z",
+      opener=RefusalOpener())
+   self.assertEqual((Path(d)/"official_racecard.html").read_bytes(),b"old-original")
+ def test_original_write_is_exclusive_even_if_prior_check_raced(self):
+  from pathlib import Path
+  from hashlib import sha256
+  from diagnostics.jra_one_shot_market_capture import persist_original_once
+  with tempfile.TemporaryDirectory() as d:
+   receipt={"sha256":sha256(HTML).hexdigest()}
+   persist_original_once(Path(d),"official_racecard.html",HTML,receipt)
+   with self.assertRaisesRegex(SourceChainError,"source_original_already_exists"):
+    persist_original_once(Path(d),"official_racecard.html",b"new-bytes",
+                          {"sha256":sha256(b"new-bytes").hexdigest()})
+   self.assertEqual((Path(d)/"official_racecard.html").read_bytes(),HTML)
+ def test_original_sha_mismatch_never_written(self):
+  from pathlib import Path
+  from diagnostics.jra_one_shot_market_capture import persist_original_once
+  with tempfile.TemporaryDirectory() as d:
+   with self.assertRaisesRegex(SourceChainError,"source_original_receipt_hash_disagrees"):
+    persist_original_once(Path(d),"official_racecard.html",HTML,{"sha256":"a"*64})
+   self.assertFalse((Path(d)/"official_racecard.html").exists())
+ def test_second_attempt_after_completed_receipt_is_rejected(self):
+  from pathlib import Path
+  with tempfile.TemporaryDirectory() as d:
+   a=capture(d,channel="PC",verified_start_utc="2026-11-07T06:45:00Z",
+      active_runners=((1,1),(2,2)),now_utc="2026-11-06T04:00:00Z",
+      opener=RefusalOpener())
+   self.assertEqual(a["state"],"WAIT_FOR_OFFICIAL_SALES")
+   before=(Path(d)/"receipt.json").read_bytes()
+   with self.assertRaisesRegex(SourceChainError,"source_output_contains_existing_evidence"):
+    capture(d,channel="PC",verified_start_utc="2026-11-07T06:45:00Z",
+      active_runners=((1,1),(2,2)),now_utc="2026-11-06T10:00:00Z",
+      opener=RefusalOpener())
+   self.assertEqual((Path(d)/"receipt.json").read_bytes(),before)
+
 if __name__=="__main__":unittest.main()
