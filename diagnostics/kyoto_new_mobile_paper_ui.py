@@ -72,6 +72,37 @@ with tab_races:
     st.button("仮想馬券を登録", disabled=True,
               help="実開催の発走前原本と永続記録が検証できるまで無効")
 
+    with st.expander("過去のJRA出馬表・実データ取得状況（2026年11月7日）"):
+        st.caption("保存済みの実データです。現在の開催ではなく、最新の出走取消・オッズを示しません。")
+        try:
+            from diagnostics.kyoto_p1_saved_real_prerace_roster_reaudit import (
+                inspect_day, file_for
+            )
+            import json
+            status = inspect_day()
+            st.success(f"保存済み発走前出馬表：{status['races_checked']}レース・{status['runners_checked']}頭")
+            st.caption(f"取得時点の過去走日付：{status['prior_race_dates_checked']}件")
+            selected_history_race = st.selectbox(
+                "過去の京都レースを表示",
+                options=list(range(1, 13)),
+                format_func=lambda r: f"2026年11月7日 京都{r}R",
+                key="kyoto_saved_roster_race"
+            )
+            historical = json.loads(file_for(selected_history_race).read_text(encoding="utf-8"))
+            st.dataframe([
+                {"馬番": h["horse_number"], "枠番": h["frame_number"], "馬名": h["horse_name"]}
+                for h in historical["runners"]
+            ], hide_index=True, use_container_width=True)
+            stamp = historical.get("fetched_at_utc", historical.get("captured_at_utc"))
+            st.caption(f"当時の取得日時（UTC）：{stamp}")
+            st.caption(f"当時の原本SHA256：{historical['source_sha256']}")
+            st.warning(
+                "過去のHTML原本の今回の独立バイト照合、最新取消、"
+                "発走前の馬連・枠連オッズ、実際の予想と仮想投資は未検証です。"
+            )
+        except (OSError, ValueError, KeyError, TypeError, ImportError):
+            st.error("保存済み出馬表の整合性が確認できないため、実データの表示を停止しました。")
+
 with tab_results:
     st.subheader("仮想投資の成績")
     st.info("正式な仮想投資記録と公式払戻は未接続です。")
