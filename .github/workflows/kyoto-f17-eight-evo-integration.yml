@@ -1,0 +1,68 @@
+name: Kyoto F17 actual eight EVO capability LAB integration acceptance
+on:
+  push:
+    branches: [jra-html-diagnostic-20261105]
+    paths:
+      - diagnostics/kyoto_f17_evo_eight_integrated_research.py
+      - tests/test_kyoto_f17_evo_eight_integrated_research.py
+      - .github/workflows/kyoto-f17-eight-evo-integration.yml
+permissions:
+  contents: read
+  actions: read
+jobs:
+  f17-eight-capabilities:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Check fixed F17 rubric source SHA unchanged
+        run: |
+          python - <<'PY'
+          import hashlib,json
+          from pathlib import Path
+          p=Path("docs/diagnostics/kyoto_final_completion_criteria_v1.json")
+          assert hashlib.sha256(p.read_bytes()).hexdigest()=="92bae5c1d61d6ac00a5380dd8d5e08beb59f96c898b03c05a3c8bf8721ced632"
+          f=next(x for x in json.loads(p.read_text())["criteria"] if x["id"]=="F17")
+          assert f["points"]==5
+          print("F17_FIXED_RUBRIC_UNCHANGED=PASS")
+          PY
+      - name: Run 25 distinct eight-EVO integration and destructive tests
+        env:
+          PYTHONPATH: .
+        run: |
+          set -euo pipefail
+          python -m unittest -v tests.test_kyoto_f17_evo_eight_integrated_research
+      - name: Create actual original synthetic research input and F18 bound receipt
+        env:
+          PYTHONPATH: .
+        run: |
+          python - <<'PY'
+          import json,os
+          from pathlib import Path
+          from tests.test_kyoto_f17_evo_eight_integrated_research import sample
+          from diagnostics.kyoto_f17_evo_eight_integrated_research import integrate
+          packet,f18=sample()
+          rubric=Path("docs/diagnostics/kyoto_final_completion_criteria_v1.json").read_bytes()
+          r=integrate(packet,f18_witness=f18,rubric_bytes=rubric)
+          assert r["evaluated_capabilities"]==8
+          assert r["EVO_results"]["EVO-05"]["observed_F18_last_state"]=="SHADOW_REVOKED_ROLLBACK_TO_CHAMPION"
+          assert not r["models_deployed"] and not r["real_JRA_EVO_certification"]
+          result={"schema":"kyoto_F17_original_eight_evo_lab_receipt.v1",
+                  "ci_run_id":os.environ["GITHUB_RUN_ID"],"ci_head_sha":os.environ["GITHUB_SHA"],
+                  "scope":"SYNTHETIC_EVO01_08_F18_RESEARCH_ONLY",
+                  "packet":packet,"original_F18_lab_witness":f18,"integrated_result":r}
+          out=Path("F17_first_original_eight_evo")
+          out.mkdir()
+          (out/"eight_evo_lab_original.json").write_text(json.dumps(result,ensure_ascii=False,indent=2,sort_keys=True)+"\n")
+          print("F17_ALL_EIGHT_DISTINCT_FUNCTIONS_AND_F18_SOURCE=PASS")
+          print("REAL_JRA_EVO_IMPROVEMENT_NOT_VERIFIED=TRUE")
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: kyoto-F17-original-eight-EVO-lab-integration
+          path: F17_first_original_eight_evo/
+          retention-days: 7
+          if-no-files-found: error
