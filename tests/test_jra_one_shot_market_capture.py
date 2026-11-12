@@ -596,4 +596,34 @@ class ExplicitDualSourceObservationTests(unittest.TestCase):
     capture_hybrid(d,primary_channel="SP",race_spec=self.spec(),
        verified_start_utc="2026-11-07T06:45:00Z",active_runners=((1,1),(2,2)),
        independent_crosscheck="true")
+class SemanticConflictsCannotFallbackTests(unittest.TestCase):
+ def check(self,first_reason,first_state="CAPTURE_BLOCKED"):
+  from diagnostics.jra_one_shot_market_capture import capture_hybrid,DEFAULT_RACE_SPEC
+  calls=[]
+  def runner(out,**kw):
+   channel=kw["channel"];calls.append(channel)
+   if channel=="PC":
+    return {"race_id":DEFAULT_RACE_SPEC.race_id,"channel":"PC",
+            "state":first_state,"reason":first_reason,
+            "pre_race_prices_accepted":False}
+   return {"race_id":DEFAULT_RACE_SPEC.race_id,"channel":"SP",
+           "state":"SOURCE_FROZEN","pre_race_prices_accepted":True}
+  with tempfile.TemporaryDirectory() as d:
+   result=capture_hybrid(d,primary_channel="PC",
+     verified_start_utc="2026-11-07T06:45:00Z",
+     active_runners=((1,1),(2,2)),race_spec=DEFAULT_RACE_SPEC,capture_fn=runner)
+  return result,calls
+ def test_named_roster_source_conflict_is_terminal(self):
+  r,calls=self.check("SourceChainError:official_racecard_three_column_mismatch:ROSTER_MISMATCH")
+  self.assertEqual(calls,["PC"])
+  self.assertEqual(r["state"],"SAFE_STOP")
+  self.assertTrue(r["primary_semantic_conflict_blocked"])
+ def test_final_market_phase_conflict_is_terminal(self):
+  r,calls=self.check("SourceChainError:conflicting_market_phases")
+  self.assertEqual(calls,["PC"])
+  self.assertTrue(r["primary_semantic_conflict_blocked"])
+ def test_transport_error_preserves_conditional_fallback(self):
+  r,calls=self.check("TimeoutError:timed_out")
+  self.assertEqual(calls,["PC","SP"])
+  self.assertEqual(r["state"],"SOURCE_ONLY_FALLBACK")
 if __name__=="__main__":unittest.main()
