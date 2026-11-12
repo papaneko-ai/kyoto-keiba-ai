@@ -151,7 +151,7 @@ def capture(out,*,channel,verified_start_utc,active_runners,now_utc=None,opener=
     if opener is None:
         if not authorized_live_http:
             result["state"]="LIVE_HTTP_NOT_AUTHORIZED"
-            (folder/"receipt.json").write_text(json.dumps(result,ensure_ascii=False,indent=2)+"\\n",encoding="utf8")
+            (folder/"receipt.json").write_text(json.dumps(result,ensure_ascii=False,indent=2)+"\n",encoding="utf8")
             return result
         opener=build_opener(NoRedirect(),HTTPCookieProcessor(CookieJar()))
     source=spec.pc_racecard_url if channel=="PC" else spec.sp_racecard_url
