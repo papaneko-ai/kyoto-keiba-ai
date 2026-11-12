@@ -1,0 +1,73 @@
+name: Kyoto F10 risk controlled allocation isolated verification
+on:
+  push:
+    branches: [jra-html-diagnostic-20261105]
+    paths:
+      - 'diagnostics/kyoto_f10_conservative_capital_overlay.py'
+      - 'tests/test_kyoto_f10_conservative_capital_overlay.py'
+      - '.github/workflows/kyoto-f10-risk-capital-acceptance.yml'
+permissions:
+  contents: read
+jobs:
+  F10-risk-lab:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Fixed-rubric lock verification
+        run: |
+          python - <<'PY'
+          import hashlib,json
+          from pathlib import Path
+          p=Path('docs/diagnostics/kyoto_final_completion_criteria_v1.json')
+          assert hashlib.sha256(p.read_bytes()).hexdigest()=='92bae5c1d61d6ac00a5380dd8d5e08beb59f96c898b03c05a3c8bf8721ced632'
+          r=next(x for x in json.loads(p.read_text())['criteria'] if x['id']=='F10')
+          assert r['points']==5 and r['title']=='市場鮮度と損失リスク制御'
+          print('F10_FIXED_RUBRIC_UNCHANGED=TRUE')
+          PY
+      - name: Isolated F10 market quote and risk exposure tests
+        env:
+          PYTHONPATH: .
+        run: |
+          set -euo pipefail
+          python -m unittest -v tests.test_kyoto_f10_conservative_capital_overlay
+          echo F10_RISK_CONSTRAINED_NO_BET_ALLOCATION_TESTS_PASS=TRUE
+      - name: Deterministic risk witness from synthetic F12 source
+        env:
+          PYTHONPATH: .:tests
+        run: |
+          python - <<'PY'
+          import json,os
+          from pathlib import Path
+          from test_kyoto_f10_conservative_capital_overlay import fixture
+          from diagnostics.kyoto_f10_conservative_capital_overlay import overlay_lab_risk
+          hand,quotes=fixture()
+          decision=overlay_lab_risk(f11_handoff=hand,lab_quotes=quotes,
+              decision_utc='2026-11-14T03:05:00Z')
+          assert decision['risk_accepted_spent_yen']<=3500
+          assert decision['maximum_loss_upper_bound_yen']==decision['risk_accepted_spent_yen']
+          assert decision['takeout_embedded_in_published_odds'] is True
+          assert decision['live_source_authenticated'] is False
+          data={'schema':'kyoto_F10_offline_risk_witness.v1',
+              'ci_run_id':os.environ['GITHUB_RUN_ID'],
+              'ci_head_sha':os.environ['GITHUB_SHA'],
+              'lab_source_f11_f12_handoff':hand,
+              'lab_quotes':quotes,
+              'decision':decision,
+              'real_market_authenticated':False,
+              'production_paper_trade_authorized':False}
+          out=Path('f10_risk_witness')
+          out.mkdir()
+          (out/'F10_lab_risk_evidence.json').write_text(
+              json.dumps(data,ensure_ascii=False,sort_keys=True,indent=2)+'\n')
+          print('F10_SAME_LAB_SOURCE_RISK_RECOMPUTATION_RECEIPT=PASS')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: kyoto-F10-risk-overlay-original-lab-witness
+          path: f10_risk_witness/
+          retention-days: 7
+          if-no-files-found: error
