@@ -4,6 +4,7 @@ on:
     branches: [jra-html-diagnostic-20261105]
     paths:
       - diagnostics/kyoto_f17_evo_eight_integrated_research.py
+      - diagnostics/kyoto_f17_executable_lab_streams.py
       - tests/test_kyoto_f17_evo_eight_integrated_research.py
       - .github/workflows/kyoto-f17-eight-evo-integration.yml
 permissions:
@@ -29,7 +30,7 @@ jobs:
           assert f["points"]==5
           print("F17_FIXED_RUBRIC_UNCHANGED=PASS")
           PY
-      - name: Run 25 distinct eight-EVO integration and destructive tests
+      - name: Run 30 raw-executable eight-EVO integration and destructive tests
         env:
           PYTHONPATH: .
         run: |
