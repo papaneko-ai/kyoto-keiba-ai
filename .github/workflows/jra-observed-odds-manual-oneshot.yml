@@ -6,6 +6,10 @@ on:
         description: 'Type ONE-SHOT-READ-ONLY after checking actual JRA page and usage conditions'
         required: true
         default: 'NO'
+      hybrid:
+        description: 'Use existing PC/SP one-fallback if primary has source failure'
+        type: boolean
+        default: true
       channel:
         description: 'Independently observed official channel'
         required: true
@@ -36,6 +40,7 @@ jobs:
       OBSERVED_ROSTER: ${{ inputs.roster_path }}
       OBSERVED_START: ${{ inputs.verified_start_utc }}
       OBSERVED_CHANNEL: ${{ inputs.channel }}
+      HYBRID: ${{ inputs.hybrid }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -64,13 +69,24 @@ jobs:
           PY
       - name: One-shot JRA original-market diagnostic (never submit wagers)
         run: |
-          python diagnostics/jra_one_shot_market_capture.py \
-            --channel "$OBSERVED_CHANNEL" \
-            --verified-start-utc "$OBSERVED_START" \
-            --active-roster-json "$OBSERVED_ROSTER" \
-            --race-spec-json "$OBSERVED_SPEC" \
-            --authorized-live-http \
-            --out jra_odds_observed_one_shot
+          if [ "$HYBRID" = "true" ]; then
+            python diagnostics/jra_one_shot_market_capture.py \
+              --hybrid \
+              --channel "$OBSERVED_CHANNEL" \
+              --verified-start-utc "$OBSERVED_START" \
+              --active-roster-json "$OBSERVED_ROSTER" \
+              --race-spec-json "$OBSERVED_SPEC" \
+              --authorized-live-http \
+              --out jra_odds_observed_one_shot
+          else
+            python diagnostics/jra_one_shot_market_capture.py \
+              --channel "$OBSERVED_CHANNEL" \
+              --verified-start-utc "$OBSERVED_START" \
+              --active-roster-json "$OBSERVED_ROSTER" \
+              --race-spec-json "$OBSERVED_SPEC" \
+              --authorized-live-http \
+              --out jra_odds_observed_one_shot
+          fi
       - name: Preserve originals and a source-only receipt
         if: always()
         uses: actions/upload-artifact@v4
