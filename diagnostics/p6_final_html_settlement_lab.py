@@ -165,14 +165,34 @@ def settle_ranked_lab_results(*,prior_directory,destination,result_captures,
         # and correction snapshot, while keeping the preexisting non-risk
         # research path byte-compatible.
         if "allocation_source" in manifest:
-            if (manifest.get("allocation_source")!="P5_RECOMPUTED_BOUNDED_RISK_CAPITAL"
-                or any(not isinstance(manifest.get(k),str) or
-                       not re.fullmatch(r"[0-9a-f]{64}",manifest[k])
-                       for k in ("capital_receipt_sha256","capital_policy_sha256"))
-                or manifest.get("not_real_risk_calibration") is not True):
-                raise FinalResultRejected("risk_capital_provenance_invalid")
-            for key in ("allocation_source","capital_receipt_sha256",
-                        "capital_policy_sha256","not_real_risk_calibration"):
+            if manifest["allocation_source"]=="P5_RECOMPUTED_BOUNDED_RISK_CAPITAL":
+                fields=("capital_receipt_sha256","capital_policy_sha256")
+                if (any(not isinstance(manifest.get(k),str)
+                        or not re.fullmatch(r"[0-9a-f]{64}",manifest[k])
+                        for k in fields)
+                    or manifest.get("not_real_risk_calibration") is not True):
+                    raise FinalResultRejected("risk_capital_provenance_invalid")
+                kept=("allocation_source",*fields,"not_real_risk_calibration")
+            elif manifest["allocation_source"]=="F12_RECOMPUTED_USER_SELECTION":
+                fields=("f12_receipt_sha256","f12_inputs_sha256")
+                selected=manifest.get("user_selected_races")
+                if (any(not isinstance(manifest.get(k),str)
+                        or not re.fullmatch(r"[0-9a-f]{64}",manifest[k])
+                        for k in fields)
+                    or manifest.get("f12_mode") not in ("AUTO","MANUAL")
+                    or type(selected) is not list or len(selected)>4
+                    or len(set(selected))!=len(selected)
+                    or any(type(race) is not int or not 1<=race<=12 for race in selected)
+                    or type(manifest.get("f12_exposure_target_yen")) is not int
+                    or not 0<=manifest["f12_exposure_target_yen"]<=manifest.get("budget_ceiling_yen",0)
+                    or manifest.get("research_spent_yen",0)>manifest["f12_exposure_target_yen"]
+                    or manifest.get("not_real_risk_calibration") is not True):
+                    raise FinalResultRejected("f12_allocation_provenance_invalid")
+                kept=("allocation_source",*fields,"f12_mode","user_selected_races",
+                      "f12_exposure_target_yen","not_real_risk_calibration")
+            else:
+                raise FinalResultRejected("unknown_allocation_source")
+            for key in kept:
                 body[key]=manifest[key]
         receipt={**body,"receipt_sha256":_hash(body)}
         (stage/"manifest.json").write_text(json.dumps(receipt,ensure_ascii=False,
