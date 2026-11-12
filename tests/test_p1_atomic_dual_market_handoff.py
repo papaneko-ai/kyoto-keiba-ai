@@ -205,7 +205,7 @@ class ExistingCaptureToAtomicThreeOriginalTests(AtomicThreeMarketTests):
   staged=self.stage()
   p=staged/"receipt.json"
   receipt=json.loads(p.read_text())
-  receipt["request_receipts"][1]["response_url"]="https://evil.invalid"
+  receipt["request_receipts"][2]["response_url"]="https://evil.invalid"
   p.write_text(json.dumps(receipt),encoding="utf8")
   with self.assertRaisesRegex(MarketHandoffRejected,"redirect_or_missing_url_receipt"):
    package_saved_observed_market_capture(capture_directory=staged,
@@ -227,6 +227,16 @@ class ExistingCaptureToAtomicThreeOriginalTests(AtomicThreeMarketTests):
    main(["--capture-directory",str(captured),"--snapshot",str(snapshot),
          "--observed-utc",NOW,"--output-archive",str(output)])
   self.assertEqual(output.read_bytes(),before)
+ def test_official_menu_redirect_rejected(self):
+  from diagnostics.p1_atomic_dual_market_handoff import package_saved_observed_market_capture
+  staged=self.stage()
+  p=staged/"receipt.json"
+  receipt=json.loads(p.read_text())
+  receipt["request_receipts"][1]["response_url"]="https://evil.invalid/JRADB/accessO.html"
+  p.write_text(json.dumps(receipt),encoding="utf8")
+  with self.assertRaisesRegex(MarketHandoffRejected,"observed_menu_redirect_or_wrong_host"):
+   package_saved_observed_market_capture(capture_directory=staged,
+      snapshot=self.fx.snapshot,observed_utc=NOW)
  def test_market_capture_time_conflict_rejected_by_existing_validator(self):
   from diagnostics.p1_atomic_dual_market_handoff import package_saved_observed_market_capture
   staged=self.stage()
