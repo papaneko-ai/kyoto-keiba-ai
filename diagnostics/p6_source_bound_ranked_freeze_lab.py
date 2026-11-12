@@ -14,6 +14,7 @@ import os
 from pathlib import Path
 from diagnostics.p4_source_bound_model_ev_research import compare_source_market_to_frozen_model, _utc
 from diagnostics.p5_source_bound_race_ranking_lab import rank_lab_research_races
+from diagnostics.p5_bounded_risk_capital_lab import research_capital_control,CapitalRiskRejected
 from diagnostics.p3_p6_research_no_bet import quinella_from_strength,bracket_from_quinella
 from diagnostics.p6_virtual_settlement_fixture_lab import freeze_fixture
 from diagnostics.p6_fixture_durable_ledger import append_record,read_journal
@@ -25,7 +26,8 @@ def digest(value):
                 separators=(",",":"),allow_nan=False).encode()).hexdigest()
 
 def freeze_ranked_research_day(*,day_inputs, ranking, destination,
-                               commit_utc, stake_per_ticket_yen=100):
+                               commit_utc, stake_per_ticket_yen=100,
+                               capital_receipt=None,capital_policy=None):
     """day_inputs: list of P4 argument dictionaries, no real/network IO.
 
     Preflight compares P4 receipts and recalculates P5 with the exact displayed
@@ -64,8 +66,50 @@ def freeze_ranked_research_day(*,day_inputs, ranking, destination,
         raise FrozenRankingRejected("p5_ranking_recomputed_receipt_mismatch")
     if len({k[0] for k in records})!=1:
         raise FrozenRankingRejected("mixed_racing_days_forbidden")
+    if (capital_receipt is None)!=(capital_policy is None):
+        raise FrozenRankingRejected("capital_receipt_and_policy_both_required")
+    selected_rows=ranking["selected"]
+    chosen_spend=ranking["research_spent_yen"]
+    capital_sha=None
+    if capital_receipt is not None:
+        # P5-03 must be independently recomputed from the exact P5 ranking,
+        # original-bound P4 receipts and *explicit* allocation policy. Neither
+        # a supplied claim nor a self-hashed capital receipt is sufficient.
+        allowed={"exposure_fraction","max_race_fraction","max_pair_fraction",
+                 "max_pair_stake_yen","downside_guard"}
+        if (type(capital_policy) is not dict or set(capital_policy)!=allowed
+            or type(capital_receipt) is not dict):
+            raise FrozenRankingRejected("capital_policy_schema_invalid")
+        try:
+            recomputed=research_capital_control(ranking,**capital_policy)
+        except (CapitalRiskRejected,TypeError,ValueError,KeyError) as exc:
+            raise FrozenRankingRejected("capital_recomputation_failed") from exc
+        if capital_receipt!=recomputed:
+            raise FrozenRankingRejected("capital_recomputed_receipt_mismatch")
+        candidate_rows={row["race"]:row for row in ranking["selected"]}
+        selected_rows=[]
+        for row in recomputed["selected"]:
+            parent=candidate_rows.get(row["race"])
+            if parent is None or row["rank"]!=parent["rank"] or (
+                    row["source_p4_sha256"]!=parent["p4_comparison_sha256"]):
+                raise FrozenRankingRejected("capital_source_race_conflict")
+            allowed_pairs={tuple(t["pair"]) for t in parent["tickets"]}
+            tickets=[]
+            for t in row["tickets"]:
+                amount=t["heuristic_stake_yen"]
+                if tuple(t["pair"]) not in allowed_pairs:
+                    raise FrozenRankingRejected("capital_pair_not_ranked")
+                if amount>0:
+                    tickets.append({"pair":t["pair"],"stake_yen":amount})
+            if tickets:
+                selected_rows.append({**parent,"tickets":tickets,
+                                      "research_stake_yen":sum(t["stake_yen"] for t in tickets)})
+        chosen_spend=recomputed["research_spent_yen"]
+        if sum(t["stake_yen"] for row in selected_rows for t in row["tickets"])!=chosen_spend:
+            raise FrozenRankingRejected("capital_budget_reconciliation_failed")
+        capital_sha=recomputed["capital_sha256"]
     commits=[]
-    for selected in ranking["selected"]:
+    for selected in selected_rows:
         key=(selected["race_date"],selected["race"])
         a,c=records[key];snap=a["snapshot"];m=a["frozen_model"]
         if not (_utc(a["observed_utc"])<=_utc(commit_utc)<_utc(snap["prediction_cutoff_utc"])):
@@ -92,7 +136,7 @@ def freeze_ranked_research_day(*,day_inputs, ranking, destination,
               cutoff_utc=snap["prediction_cutoff_utc"],frozen_utc=commit_utc,
               model_version=m["model_version"],source_sha256=source_hash,tickets=tickets)
         commits.append((key,scenario,frozen,c["comparison_sha256"]))
-    if sum(t["stake_yen"] for _,_,f,_ in commits for t in f["frozen"]["tickets"])!=ranking["research_spent_yen"]:
+    if sum(t["stake_yen"] for _,_,f,_ in commits for t in f["frozen"]["tickets"])!=chosen_spend:
         raise FrozenRankingRejected("budget_not_reconciled")
     # Materialize all temporary journals, read every one back, then publish
     # the entire immutable directory atomically, never an individual journal.
@@ -114,12 +158,17 @@ def freeze_ranked_research_day(*,day_inputs, ranking, destination,
           "p5_ranking_sha256":ranking["ranking_sha256"],
           "commit_utc":commit_utc,"ticket_type":ranking["ticket_type"],
           "budget_ceiling_yen":ranking["daily_budget_ceiling_yen"],
-          "research_spent_yen":ranking["research_spent_yen"],
-          "unspent_yen":ranking["unspent_yen"],
+          "research_spent_yen":chosen_spend,
+          "unspent_yen":ranking["daily_budget_ceiling_yen"]-chosen_spend,
           "journals":manifest,"result_information_in_freeze":False,
           "official_origin_authenticated":False,
           "real_paper_trade_authorized":False,
           "actual_purchase_authorized":False}
+        if capital_sha is not None:
+            body["allocation_source"]="P5_RECOMPUTED_BOUNDED_RISK_CAPITAL"
+            body["capital_receipt_sha256"]=capital_sha
+            body["capital_policy_sha256"]=digest(capital_policy)
+            body["not_real_risk_calibration"]=True
         receipt={**body,"receipt_sha256":digest(body)}
         (stage/"manifest.json").write_text(json.dumps(receipt,ensure_ascii=False,sort_keys=True,
                          separators=(",",":"),allow_nan=False)+"\n",encoding="utf8")
