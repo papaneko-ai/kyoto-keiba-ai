@@ -1,0 +1,180 @@
+{
+  "schema": "kyoto_final_20_gate_verified_state.v1",
+  "date": "2026-11-12",
+  "rubric_path": "docs/diagnostics/kyoto_final_completion_criteria_v1.json",
+  "rubric_sha256": "92bae5c1d61d6ac00a5380dd8d5e08beb59f96c898b03c05a3c8bf8721ced632",
+  "scoring_rule": "Fixed 20 mandatory gates x5 points; no partial points; preserve rubric unchanged; F07 only math gate verified, live not implied.",
+  "previous_verified_lower_bound": 0,
+  "current_verified_lower_bound": 5,
+  "delta": 5,
+  "maximum": 100,
+  "accepted_gate_count": 1,
+  "unaccepted_gate_count": 19,
+  "fixed_live_acceptance": "0/6",
+  "fixed_operational_lower_bound": "0/100",
+  "research_qualification": "32/32=100%",
+  "research_graduation": "12/12=100%",
+  "all_20_gate_final_certified": false,
+  "gates": [
+    {
+      "id": "F01",
+      "title": "全合意要件の網羅",
+      "points": 5,
+      "status": "UNVERIFIED",
+      "accepted_points": 0,
+      "acceptance_proof": null
+    },
+    {
+      "id": "F02",
+      "title": "データ取得の適法性・出所・時点",
+      "points": 5,
+      "status": "UNVERIFIED",
+      "accepted_points": 0,
+      "acceptance_proof": null
+    },
+    {
+      "id": "F03",
+      "title": "実開催出馬表・必須特徴の完全性",
+      "points": 5,
+      "status": "UNVERIFIED",
+      "accepted_points": 0,
+      "acceptance_proof": null
+    },
+    {
+      "id": "F04",
+      "title": "発走前の馬連・枠連市場取得",
+      "points": 5,
+      "status": "UNVERIFIED",
+      "accepted_points": 0,
+      "acceptance_proof": null
+    },
+    {
+      "id": "F05",
+      "title": "勝利条件・適性・交互作用発見",
+      "points": 5,
+      "status": "UNVERIFIED",
+      "accepted_points": 0,
+      "acceptance_proof": null
+    },
+    {
+      "id": "F06",
+      "title": "複数確率モデル比較",
+      "points": 5,
+      "status": "UNVERIFIED",
+      "accepted_points": 0,
+      "acceptance_proof": null
+    },
+    {
+      "id": "F07",
+      "title": "馬連・枠連確率整合",
+      "points": 5,
+      "status": "PASS_OFFLINE_F07_MATH_ONLY",
+      "accepted_points": 5,
+      "acceptance_proof": "docs/diagnostics/kyoto_f07_independent_certification_20261112.json"
+    },
+    {
+      "id": "F08",
+      "title": "確率較正・未使用時系列検証",
+      "points": 5,
+      "status": "UNVERIFIED",
+      "accepted_points": 0,
+      "acceptance_proof": null
+    },
+    {
+      "id": "F09",
+      "title": "実オッズに対する期待値演算",
+      "points": 5,
+      "status": "UNVERIFIED",
+      "accepted_points": 0,
+      "acceptance_proof": null
+    },
+    {
+      "id": "F10",
+      "title": "市場鮮度と損失リスク制御",
+      "points": 5,
+      "status": "UNVERIFIED",
+      "accepted_points": 0,
+      "acceptance_proof": null
+    },
+    {
+      "id": "F11",
+      "title": "推奨レースの選択と説明",
+      "points": 5,
+      "status": "UNVERIFIED",
+      "accepted_points": 0,
+      "acceptance_proof": null
+    },
+    {
+      "id": "F12",
+      "title": "券種・買い目・金額の最適化",
+      "points": 5,
+      "status": "UNVERIFIED",
+      "accepted_points": 0,
+      "acceptance_proof": null
+    },
+    {
+      "id": "F13",
+      "title": "事前予測・モデルの証跡凍結",
+      "points": 5,
+      "status": "UNVERIFIED",
+      "accepted_points": 0,
+      "acceptance_proof": null
+    },
+    {
+      "id": "F14",
+      "title": "ペーパートレード・過去再現",
+      "points": 5,
+      "status": "UNVERIFIED",
+      "accepted_points": 0,
+      "acceptance_proof": null
+    },
+    {
+      "id": "F15",
+      "title": "公式結果と払戻の自動照合",
+      "points": 5,
+      "status": "UNVERIFIED",
+      "accepted_points": 0,
+      "acceptance_proof": null
+    },
+    {
+      "id": "F16",
+      "title": "仮想成績・リスクの自動集計",
+      "points": 5,
+      "status": "UNVERIFIED",
+      "accepted_points": 0,
+      "acceptance_proof": null
+    },
+    {
+      "id": "F17",
+      "title": "EVO-01〜08機能群の連動",
+      "points": 5,
+      "status": "UNVERIFIED",
+      "accepted_points": 0,
+      "acceptance_proof": null
+    },
+    {
+      "id": "F18",
+      "title": "進化認定・安全採否・復帰",
+      "points": 5,
+      "status": "UNVERIFIED",
+      "accepted_points": 0,
+      "acceptance_proof": null
+    },
+    {
+      "id": "F19",
+      "title": "新規スマホアプリ実使用",
+      "points": 5,
+      "status": "UNVERIFIED",
+      "accepted_points": 0,
+      "acceptance_proof": null
+    },
+    {
+      "id": "F20",
+      "title": "運用・復旧・全工程通し検証",
+      "points": 5,
+      "status": "UNVERIFIED",
+      "accepted_points": 0,
+      "acceptance_proof": null
+    }
+  ]
+}
