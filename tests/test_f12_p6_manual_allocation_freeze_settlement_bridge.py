@@ -124,7 +124,7 @@ class F12ToP6FreezeTests(unittest.TestCase):
 
     def test_user_forced_unranked_pair_not_allowed(self):
         inputs=copy.deepcopy(self.inputs)
-        inputs["candidates"][0]["tickets"]=[{"pair":[1,1],"weight":100}]
+        inputs["candidates"][0]["tickets"]=[{"pair":[1,3],"weight":100}]
         with self.assertRaises(FrozenRankingRejected):
             self.freeze(f12_inputs=inputs,f12_receipt=plan_f12(**inputs))
         self.assertFalse(self.path.exists())
