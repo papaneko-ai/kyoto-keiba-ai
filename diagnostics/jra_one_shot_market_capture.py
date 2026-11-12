@@ -332,10 +332,10 @@ def persist_receipt_once(folder,name,receipt):
     """Write one immutable JSON evidence receipt; no later rewrite."""
     if not isinstance(receipt,dict):
         raise SourceChainError("source_receipt_invalid")
+    serialized=json.dumps(receipt,ensure_ascii=False,indent=2,allow_nan=False)+"\n"
     try:
         with (folder/name).open("x",encoding="utf-8") as out:
-            json.dump(receipt,out,ensure_ascii=False,indent=2,allow_nan=False)
-            out.write("\n")
+            out.write(serialized)
     except FileExistsError as exc:
         raise SourceChainError("source_receipt_already_exists") from exc
 
