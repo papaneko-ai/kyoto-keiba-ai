@@ -1,0 +1,33 @@
+name: Kyoto JRA robots fetch failure source diagnosis once
+on:
+  push:
+    branches: [jra-html-diagnostic-20261105]
+    paths: ['.github/workflows/kyoto-jra-robots-transport-diagnostic-once.yml']
+permissions:
+  contents: read
+jobs:
+  robots-status-only:
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Identify transport status of existing official robots URI (ONE request, no result GET)
+        run: |
+          python - <<'PY'
+          from urllib.request import Request,urlopen
+          from urllib.error import HTTPError,URLError
+          from urllib.robotparser import RobotFileParser
+          url='https://www.jra.go.jp/robots.txt'
+          try:
+              with urlopen(Request(url,headers={'User-Agent':'KyotoRaceAI-Research/0.1'}),timeout=8) as response:
+                  body=response.read(10000)
+                  print('ROBOTS_HTTP_STATUS',response.status)
+                  print('ROBOTS_BYTES',len(body))
+                  print('ROBOTS_HEAD',repr(body[:180]))
+                  rp=RobotFileParser()
+                  rp.parse(body.decode('utf-8','replace').splitlines())
+                  print('ROBOTS_ALLOW_VERIFIED_URL',rp.can_fetch('KyotoRaceAI-Research/0.1','https://www.jra.go.jp/JRADB/accessS.html?CNAME=pw01sde1008202605021120261108%2FDE'))
+          except HTTPError as e:
+              print('ROBOTS_HTTP_ERROR',e.code)
+          except URLError as e:
+              print('ROBOTS_TRANSPORT_ERROR',str(e.reason)[:120])
+          PY
