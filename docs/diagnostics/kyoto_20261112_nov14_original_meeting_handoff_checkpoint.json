@@ -1,0 +1,43 @@
+{
+  "schema": "kyoto_ai_20261112_nov14_original_bound_meeting_handoff_checkpoint.v1",
+  "date": "2026-11-12",
+  "description": "Existing one-shot official Nov14 selection HTML is now bound by an independent offline verification layer before any meeting URL is promoted as an observed link.",
+  "files_added": [
+    "diagnostics/kyoto_p1_nov14_receipt_handoff.py",
+    "tests/test_kyoto_p1_nov14_receipt_handoff.py"
+  ],
+  "workflows_updated": [
+    ".github/workflows/kyoto-p1-nov14-one-shot-meeting-observation.yml",
+    ".github/workflows/kyoto-p1-nov14-publication-offline-gate.yml"
+  ],
+  "offline_acceptance": {
+    "run_id": 43164624583,
+    "job_id": 131003474960,
+    "head_sha": "802074834ca17cfae37c6d19e2577728d3d9dfd4",
+    "conclusion": "success",
+    "existing_safety_tests": 20,
+    "new_handoff_tests": 10,
+    "total": 30,
+    "real_jra_get": 0
+  },
+  "outputs_in_one_shot_artifact": [
+    "official_selection.html (only on actual verified HTTP 200)",
+    "receipt.json",
+    "verified_meeting_handoff.json"
+  ],
+  "stages": {
+    "meeting_url": "only if actual selection original + time/hash/receipt passes",
+    "racecard": "NOT_VERIFIED",
+    "prerace_quinella": "NOT_VERIFIED",
+    "prerace_bracket": "NOT_VERIFIED",
+    "final_20_gate": "35/100"
+  },
+  "duplicate_avoidance": "No new automatic HTTP trigger; existing activation file remains absent. Timed task 2026-11-12 16:20 JST must check prior runs and source before creating the single activation.",
+  "next_40_condition": "Independently verify real same race pre-start roster and both 2026-11-14 official wager market originals, with original timestamps and authenticated provenance; no points for offline tests.",
+  "protected": [
+    "main",
+    "Turso production",
+    "published Streamlit",
+    "live wagers"
+  ]
+}
