@@ -137,7 +137,9 @@ def verified_roster_from_snapshot(snapshot, spec, *, race_start_utc):
     if (snapshot.get("race_date")!=expected_date
         or snapshot.get("race_number")!=spec.race_number
         or snapshot.get("venue") not in ("KYOTO","京都")
-        or snapshot.get("source_url") not in (spec.pc_racecard_url,spec.sp_racecard_url)):
+        or type(snapshot.get("source_url")) is not str
+        or not snapshot["source_url"]
+        or snapshot["source_url"] not in (spec.pc_racecard_url,spec.sp_racecard_url)):
         raise SourceChainError("roster_meeting_race_source_mismatch")
     raw_sha=snapshot.get("source_sha256")
     raw_size=snapshot.get("source_bytes")
