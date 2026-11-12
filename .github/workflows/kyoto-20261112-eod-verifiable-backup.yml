@@ -1,0 +1,87 @@
+name: Kyoto AI Nov12 EOD verified source and git-history recovery archive
+on:
+  push:
+    branches: [jra-html-diagnostic-20261105]
+    paths:
+      - '.github/workflows/kyoto-20261112-eod-verifiable-backup.yml'
+      - 'docs/KYOTO_AI_20261112_END_OF_DAY_NO_NOV14_EXECUTION_AND_RESTORE.md'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  archive-and-verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Freeze exact source, all Git refs, and independently verify both
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/kyoto-ai-20261112-eod
+          cd /tmp/kyoto-ai-20261112-eod
+          repo_root="$GITHUB_WORKSPACE"
+          cd "$repo_root"
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          test "$(git branch --show-current)" = "jra-html-diagnostic-20261105"
+          git archive --format=zip --output=/tmp/kyoto-ai-20261112-eod/repository-source.zip HEAD
+          git bundle create /tmp/kyoto-ai-20261112-eod/repository-history.bundle --all
+          git bundle verify /tmp/kyoto-ai-20261112-eod/repository-history.bundle
+          unzip -t /tmp/kyoto-ai-20261112-eod/repository-source.zip
+          cd /tmp/kyoto-ai-20261112-eod
+          printf "repository=papaneko-ai/kyoto-keiba-ai\nbranch=jra-html-diagnostic-20261105\nhead=%s\nevent=%s\nrun_id=%s\nrun_attempt=%s\nretention_days=90\n" \
+            "$GITHUB_SHA" "$GITHUB_EVENT_NAME" "$GITHUB_RUN_ID" "$GITHUB_RUN_ATTEMPT" > BACKUP_MANIFEST.txt
+          printf "source_commit=%s\n" "$GITHUB_SHA" > EXACT_SOURCE_HEAD.txt
+          cat > RESTORE_README.txt <<'EOF'
+          KYOTO AI NOVEMBER 12, 2026 END-OF-DAY RECOVERY
+          - repository-source.zip: complete tracked working tree at EXACT_SOURCE_HEAD.
+          - repository-history.bundle: all Git refs fetched by actions/checkout fetch-depth 0.
+          - SHA256SUMS.txt: checksums for all backup members; validate first.
+          Restore:
+            sha256sum -c SHA256SUMS.txt
+            git clone repository-history.bundle kyoto-ai-restored
+            cd kyoto-ai-restored
+            git checkout jra-html-diagnostic-20261105
+            test "$(git rev-parse HEAD)" = "$(sed -n 's/^source_commit=//p' ../EXACT_SOURCE_HEAD.txt)"
+          GitHub restoration: DO NOT update main or deployed application without approval.
+          The backup does NOT contain the Turso production DB, Streamlit Secrets,
+          GitHub Secrets, untracked historic JRA HTML outside this Git tree,
+          remote previous Actions artifacts, or a Streamlit deployment snapshot.
+          Those remain separate recovery dependencies. No JRA HTTP occurred.
+          Read docs/KYOTO_AI_20261112_END_OF_DAY_NO_NOV14_EXECUTION_AND_RESTORE.md first.
+          EOF
+          sha256sum repository-source.zip repository-history.bundle EXACT_SOURCE_HEAD.txt BACKUP_MANIFEST.txt RESTORE_README.txt > SHA256SUMS.txt
+          sha256sum -c SHA256SUMS.txt
+          python - <<'PY'
+          import pathlib,hashlib,zipfile,os
+          root=pathlib.Path("/tmp/kyoto-ai-20261112-eod")
+          with zipfile.ZipFile(root/"repository-source.zip") as z:
+              required={
+                  "docs/KYOTO_AI_20261112_END_OF_DAY_NO_NOV14_EXECUTION_AND_RESTORE.md",
+                  "docs/KYOTO_AI_HYBRID_SELF_EVOLUTION_MODEL_ARCHITECTURE_20261112.md",
+                  "docs/KYOTO_AI_ALGORITHM_AND_EXECUTION_ROADMAP_20261106.md",
+                  ".github/workflows/kyoto-20261112-eod-verifiable-backup.yml",
+                  "diagnostics/p6_source_bound_ranked_freeze_lab.py",
+                  "diagnostics/p6_final_html_settlement_lab.py",
+              }
+              names=set(z.namelist())
+              missing=required-names
+              assert not missing,missing
+              assert z.testzip() is None
+          assert len((root/"repository-history.bundle").read_bytes())>1000
+          assert os.environ["GITHUB_SHA"] in (root/"EXACT_SOURCE_HEAD.txt").read_text()
+          print("NOV12_EOD_SOURCE_ZIP=VERIFIED")
+          print("NOV12_EOD_GIT_BUNDLE=VERIFIED")
+          print("NOV12_EOD_SHA256=VERIFIED")
+          print("NOV12_EOD_HEAD="+os.environ["GITHUB_SHA"])
+          print("NOV12_NO_JRA_HTTP=TRUE")
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: kyoto-ai-20261112-eod-source-history-sha256
+          path: /tmp/kyoto-ai-20261112-eod/
+          if-no-files-found: error
+          retention-days: 90
