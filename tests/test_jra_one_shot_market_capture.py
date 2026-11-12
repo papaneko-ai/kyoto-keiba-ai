@@ -350,7 +350,7 @@ class ObservedOddsMenuTraversalTests(unittest.TestCase):
   self.assertEqual(self.next_action(self.observed("SP","race"),"SP",1),"sw15observed/AA")
  def test_unobserved_date_never_guessed(self):
   with self.assertRaisesRegex(SourceChainError,"market_navigation_day_not_visible"):
-   self.next_action(self.observed("PC",day="2026年11月7日"),"PC",0)
+   self.next_action(self.observed("PC",day="2026年11月7日").replace("11月14日".encode("cp932"),"11月7日".encode("cp932")),"PC",0)
  def test_conflicting_official_links_are_quarantined(self):
   with self.assertRaisesRegex(SourceChainError,"ambiguous"):
    self.next_action(self.observed("PC",duplicates=True),"PC",0)
