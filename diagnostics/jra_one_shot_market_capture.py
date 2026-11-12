@@ -70,7 +70,12 @@ class ObservedRaceSpec:
     sp_racecard_url: str
     normal_sales_open_utc: str
 
-    def validate(self):
+    def validate(self,*,require_channels=("PC","SP")):
+        if (not isinstance(require_channels,(tuple,list))
+            or len(require_channels) not in (1,2)
+            or len(set(require_channels))!=len(require_channels)
+            or not set(require_channels)<=set(("PC","SP"))):
+            raise SourceChainError("invalid_required_channels")
         try:
             d=date.fromisoformat(self.race_day[:4]+"-"+self.race_day[4:6]+"-"+self.race_day[6:])
             if d.strftime("%Y%m%d")!=self.race_day:raise ValueError("date")
@@ -86,6 +91,16 @@ class ObservedRaceSpec:
             if opening is None or aware_utc(self.normal_sales_open_utc)!=opening:
                 raise ValueError("sales_time_not_independently_validated")
             for channel,url in (("PC",self.pc_racecard_url),("SP",self.sp_racecard_url)):
+                # A single verified PC link can be used for PC-only work;
+                # NEVER guess an SP URL. Hybrid needs BOTH observed URLs.
+                if channel not in require_channels:
+                    if url not in ("",None):
+                        # Optional unused URLs are still validated when present.
+                        pass
+                    else:
+                        continue
+                elif url in ("",None):
+                    raise ValueError("required_observed_racecard_url_missing:"+channel)
                 u=urlsplit(url)
                 host="jra.jp" if channel=="PC" else "sp.jra.jp"
                 q=parse_qs(u.query,strict_parsing=True)
@@ -342,7 +357,7 @@ def persist_receipt_once(folder,name,receipt):
 def capture(out,*,channel,verified_start_utc,active_runners,now_utc=None,opener=None,
             race_spec=None,authorized_live_http=False,pacer=None,
             expected_named_runners=None):
-    spec=(race_spec or DEFAULT_RACE_SPEC).validate()
+    spec=(race_spec or DEFAULT_RACE_SPEC).validate(require_channels=(channel,))
     folder=prepare_empty_original_directory(out)
     start=aware_utc(verified_start_utc)
     if start.astimezone(ZoneInfo('Asia/Tokyo')).date().strftime('%Y%m%d')!=spec.race_day:
@@ -612,8 +627,10 @@ if __name__=="__main__":
         p.error("--independent-crosscheck requires --hybrid")
     if args.authorized_live_http and not args.race_spec_json:
         p.error('--authorized-live-http requires independently observed --race-spec-json')
-    spec=(ObservedRaceSpec(**json.loads(Path(args.race_spec_json).read_text(encoding="utf8"))).validate()
-          if args.race_spec_json else DEFAULT_RACE_SPEC)
+    channels=("PC","SP") if args.hybrid else (args.channel,)
+    spec=(ObservedRaceSpec(**json.loads(Path(args.race_spec_json).read_text(encoding="utf8"))).validate(
+             require_channels=channels)
+          if args.race_spec_json else DEFAULT_RACE_SPEC.validate(require_channels=channels))
     roster=json.loads(Path(args.active_roster_json).read_text(encoding="utf8"))
     rows=verified_roster_from_snapshot(roster,spec,race_start_utc=args.verified_start_utc)
     named_rows=tuple((r["horse_number"],r["frame_number"],r["horse_name"]) for r in roster["runners"])
