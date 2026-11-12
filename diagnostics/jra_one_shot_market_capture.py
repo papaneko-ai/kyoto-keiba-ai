@@ -260,7 +260,7 @@ def capture_hybrid(out, *, primary_channel, verified_start_utc, active_runners,
     first=one(primary_channel)
     outcomes.append(first)
     # Do not turn publication/permission/cutoff refusals into a second GET.
-    fallback_allowed={"CAPTURE_BLOCKED","CAPTURE_EXCEPTION",
+    fallback_allowed={"CAPTURE_BLOCKED",
                       "OFFICIAL_MENU_NEEDS_RACE_NAVIGATION",
                       "MARKETS_FAILED_VALIDATION"}
     selected=primary_channel if first["accepted"] else None
