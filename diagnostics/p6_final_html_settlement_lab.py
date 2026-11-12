@@ -190,6 +190,9 @@ def settle_ranked_lab_results(*,prior_directory,destination,result_captures,
                     raise FinalResultRejected("f12_allocation_provenance_invalid")
                 kept=("allocation_source",*fields,"f12_mode","user_selected_races",
                       "f12_exposure_target_yen","not_real_risk_calibration")
+                # Carry the original daily ceiling into every versioned
+                # correction; an older settled snapshot omits this field.
+                body["budget_ceiling_yen"]=manifest["budget_ceiling_yen"]
             else:
                 raise FinalResultRejected("unknown_allocation_source")
             for key in kept:
