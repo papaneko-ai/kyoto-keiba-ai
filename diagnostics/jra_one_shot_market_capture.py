@@ -10,7 +10,7 @@ from zoneinfo import ZoneInfo
 from pathlib import Path
 from hashlib import sha256
 from http.cookiejar import CookieJar
-from urllib.request import Request,build_opener,HTTPCookieProcessor
+from urllib.request import Request,build_opener,HTTPCookieProcessor,HTTPRedirectHandler
 from urllib.parse import urlsplit,urlencode
 from bs4 import BeautifulSoup
 import argparse,json,re
@@ -32,6 +32,11 @@ SP_RACECARD_URL="https://sp.jra.jp/JRADB/accessD.html?CNAME=sw01dde0108202605011
 MOBILE_UA="Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 Version/17.0 Mobile/15E148 Safari/604.1"
 ACTION=re.compile(r"doAction\s*\(\s*['\"](/JRADB/accessO\.html)['\"]\s*,\s*['\"]([^'\"]+)['\"]")
 LIMIT=1_500_000
+
+class NoRedirect(HTTPRedirectHandler):
+    def redirect_request(self, request, fp, code, msg, headers, newurl):
+        raise SourceChainError('redirect_forbidden')
+
 
 @dataclass(frozen=True)
 class ObservedRaceSpec:
@@ -96,7 +101,10 @@ def exact_odds_action(raw,channel):
 def http_fetch(opener,channel,path,*,cname=None,referer=None):
     host="jra.jp" if channel=="PC" else "sp.jra.jp"
     u=urlsplit(path)
-    if u.scheme!="https" or u.hostname!=host or u.path not in ("/JRADB/accessD.html","/JRADB/accessO.html"):
+    if (u.scheme!="https" or u.hostname!=host or u.port is not None
+        or u.username or u.password or u.fragment
+        or u.path not in ("/JRADB/accessD.html","/JRADB/accessO.html")
+        or (cname is not None and (u.query or u.path!="/JRADB/accessO.html"))):
         raise SourceChainError("invalid_target_origin")
     method="GET" if cname is None else "POST"
     headers={"User-Agent":"Mozilla/5.0" if channel=="PC" else MOBILE_UA,"Accept":"text/html"}
@@ -109,7 +117,8 @@ def http_fetch(opener,channel,path,*,cname=None,referer=None):
         ct=response.headers.get("Content-Type","")
         final=urlsplit(response.geturl())
     received_at=datetime.now(timezone.utc).isoformat()
-    if status!=200 or not 0<len(data)<=LIMIT or "html" not in ct.lower() or final.scheme!="https" or final.hostname not in ({"jra.jp","www.jra.go.jp"} if channel=="PC" else {"sp.jra.jp"}):
+    if status!=200 or not 0<len(data)<=LIMIT or "html" not in ct.lower() or final.scheme!="https" or final.hostname!=host or final.path!=u.path
+            or final.query!=u.query or final.fragment or final.port is not None:
         raise SourceChainError("official_http_response_invalid")
     return {"raw":data,"sha256":sha256(data).hexdigest(),"bytes":len(data),
             "captured_at_utc":received_at,"http_status":status,"method":method}
@@ -143,7 +152,7 @@ def capture(out,*,channel,verified_start_utc,active_runners,now_utc=None,opener=
             result["state"]="LIVE_HTTP_NOT_AUTHORIZED"
             (folder/"receipt.json").write_text(json.dumps(result,ensure_ascii=False,indent=2)+"\\n",encoding="utf8")
             return result
-        opener=build_opener(HTTPCookieProcessor(CookieJar()))
+        opener=build_opener(NoRedirect(),HTTPCookieProcessor(CookieJar()))
     source=spec.pc_racecard_url if channel=="PC" else spec.sp_racecard_url
     host="jra.jp" if channel=="PC" else "sp.jra.jp"
     try:
@@ -205,11 +214,15 @@ if __name__=="__main__":
     p.add_argument("--verified-start-utc",required=True)
     p.add_argument("--active-roster-json",required=True)
     p.add_argument("--race-spec-json",help="Independently observed official navigation and race identity; no HTTP authorization")
+    p.add_argument('--authorized-live-http', action='store_true',
+        help='Explicit diagnostic read-only opt-in; never a production authorization')
     args=p.parse_args()
+    if args.authorized_live_http and not args.race_spec_json:
+        p.error('--authorized-live-http requires independently observed --race-spec-json')
     roster=json.loads(Path(args.active_roster_json).read_text(encoding="utf8"))
     rows=tuple((int(r["horse_number"]),int(r["frame_number"])) for r in roster["runners"])
     spec=(ObservedRaceSpec(**json.loads(Path(args.race_spec_json).read_text(encoding="utf8"))).validate()
           if args.race_spec_json else DEFAULT_RACE_SPEC)
     print(json.dumps(capture(args.out,channel=args.channel,
        verified_start_utc=args.verified_start_utc,active_runners=rows,
-       race_spec=spec),ensure_ascii=False,indent=2))
+       race_spec=spec,authorized_live_http=args.authorized_live_http),ensure_ascii=False,indent=2))
