@@ -225,11 +225,10 @@ def package_saved_observed_market_capture(*,capture_directory,snapshot,observed_
                         "observed_url":source_url}
     packed=package_prerace_market_capture(
         raw_sources=selected,snapshot=snapshot,observed_utc=observed_utc,channel=channel)
-    packed["receipt"]["capture_receipt_sha256"]=hashlib.sha256(
-        (root/"receipt.json").read_bytes()).hexdigest()
-    # Repackage the deterministic archive so the handoff is immutable and its
-    # immutable receipt is consistent; receipt used for audit is external only.
-    return packed
+    # The canonical archive and receipt remain byte-identical and independently
+    # replayable. External capture-chain provenance is a separate envelope.
+    return {**packed,"capture_receipt_sha256":hashlib.sha256(
+        (root/"receipt.json").read_bytes()).hexdigest()}
 
 
 def save_immutable_archive(path,data):
