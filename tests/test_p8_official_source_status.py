@@ -6,7 +6,7 @@ import unittest
 import zipfile
 from diagnostics.kyoto_p1_nov14_official_one_shot_nav import SOURCE,strict_link_from_official
 from diagnostics.p8_official_source_status import (
-    inspect_official_selection_archive, SourceStatusRejected
+    inspect_official_selection_archive, inspect_recorded_link_alert, SourceStatusRejected
 )
 
 GOOD=('<html><title>JRA</title><body>'
@@ -93,6 +93,41 @@ class OperatorStatusTests(unittest.TestCase):
             z.writestr("verified_meeting_handoff.json",json.dumps({"state":"LIVE_VERIFIED"}))
         with self.assertRaises(SourceStatusRejected):
             inspect_official_selection_archive(b.getvalue())
+    def test_recorded_link_break_is_warning_only(self):
+        receipt={"schema_version":"jra_one_shot_market_capture.v1",
+                 "channel":"PC","race_id":"2026-11-14_KYOTO_11R",
+                 "state":"CAPTURE_BLOCKED",
+                 "operator_alert":{"severity":"ERROR","code":"JRA_RACECARD_LINK_BROKEN"},
+                 "link_repair":{"state":"BROKEN_NOT_REPAIRED","original_http_status":404}}
+        result=inspect_recorded_link_alert(json.dumps(receipt).encode())
+        self.assertEqual(result["severity"],"ERROR")
+        self.assertFalse(result["actual_jra_source_independently_verified"])
+        self.assertEqual(result["operational_progress_credit"],0)
+    def test_forged_successful_repair_claim_cannot_gain_credit(self):
+        receipt={"schema_version":"jra_one_shot_market_capture.v1",
+                 "channel":"PC","race_id":"2026-11-14_KYOTO_11R",
+                 "state":"SOURCE_FROZEN",
+                 "operator_alert":{"severity":"INFO","code":"JRA_LINK_REPAIRED_VERIFIED"},
+                 "link_repair":{"status":"REPAIRED_VERIFIED_PC_ONLY"}}
+        result=inspect_recorded_link_alert(json.dumps(receipt).encode())
+        self.assertTrue(result["record_only_not_authenticated"])
+        self.assertEqual(result["operational_progress_credit"],0)
+    def test_mismatched_repair_state_rejected(self):
+        receipt={"schema_version":"jra_one_shot_market_capture.v1",
+                 "channel":"PC","race_id":"2026-11-14_KYOTO_11R",
+                 "state":"CAPTURE_BLOCKED",
+                 "operator_alert":{"severity":"INFO","code":"JRA_LINK_REPAIRED_VERIFIED"},
+                 "link_repair":{"state":"FAILED_CLOSED"}}
+        with self.assertRaises(SourceStatusRejected):
+            inspect_recorded_link_alert(json.dumps(receipt).encode())
+    def test_spoofed_severity_rejected(self):
+        receipt={"schema_version":"jra_one_shot_market_capture.v1",
+                 "channel":"PC","race_id":"2026-11-14_KYOTO_11R",
+                 "state":"CAPTURE_BLOCKED",
+                 "operator_alert":{"severity":"INFO","code":"JRA_RACECARD_LINK_BROKEN"},
+                 "link_repair":{"state":"BROKEN_NOT_REPAIRED","original_http_status":404}}
+        with self.assertRaises(SourceStatusRejected):
+            inspect_recorded_link_alert(json.dumps(receipt).encode())
     def test_no_guess_from_empty_zip(self):
         b=io.BytesIO()
         with zipfile.ZipFile(b,"w") as z:
