@@ -75,3 +75,65 @@ def write_case(directory,primary,secondary,*,cutoff,compare=False):
         "training_ready":False,"prediction_ready":False}
     (target/"receipt.json").write_text(json.dumps(receipt,ensure_ascii=False,indent=2)+"\n",encoding="utf8")
     return receipt
+
+
+def reconcile_complementary_fields(pc, sp, *, cutoff, required_fields=()):
+    """Reconcile already-validated independent source fields, never HTTP.
+
+    Each source: {"channel_result": ChannelResult, "fields": mapping,
+    "fields_sha256": sha256(canonical JSON fields)}. A missing field can be
+    completed from the other validated channel; incompatible non-null values
+    are quarantined, not silently selected. Prices and volatile market values
+    are deliberately forbidden here (they require same-time market evidence).
+    Source validation is inherited from P1-FB and does NOT independently
+    prove the raw HTML was ever downloaded.
+    """
+    import hashlib
+    def validated(p, channel):
+        if not isinstance(p,dict) or not isinstance(p.get("channel_result"),ChannelResult):
+            raise ValueError("source_evidence_required")
+        info=p["channel_result"]
+        validate(info,cutoff)
+        if info.channel!=channel or not info.verified:
+            raise ValueError("independent_verified_channel_required")
+        fields=p.get("fields")
+        if not isinstance(fields,dict) or any(not isinstance(k,str) or not k for k in fields):
+            raise ValueError("invalid_field_dictionary")
+        raw=json.dumps(fields,sort_keys=True,separators=(",",":"),ensure_ascii=False,
+                       allow_nan=False).encode("utf8")
+        if hashlib.sha256(raw).hexdigest()!=p.get("fields_sha256"):
+            raise ValueError("field_original_sha_mismatch")
+        return info,fields
+    p, pf=validated(pc,"PC")
+    q, sf=validated(sp,"SP")
+    if (p.horse,p.race,p.number,p.roster_sha)!=(q.horse,q.race,q.number,q.roster_sha):
+        raise ValueError("pc_sp_horse_identity_conflict")
+    if not isinstance(required_fields,(list,tuple,set,frozenset)) or any(
+            not isinstance(x,str) for x in required_fields):
+        raise ValueError("required_fields_invalid")
+    prohibited={"odds","price","market_odds","quinella_odds","bracket_quinella_odds",
+                "odds_pairs","payout","result","finish_position_today"}
+    all_fields=set(pf)|set(sf)|set(required_fields)
+    if prohibited & all_fields:
+        raise ValueError("volatile_or_postrace_fields_must_not_be_merged")
+    merged={}; provenance={}; conflicts={}
+    for field in sorted(all_fields):
+        left,right=pf.get(field),sf.get(field)
+        if left is not None and right is not None and left!=right:
+            conflicts[field]={"PC":left,"SP":right}
+            continue
+        value=left if left is not None else right
+        if value is None:continue
+        merged[field]=value
+        provenance[field]=[{"channel":info.channel,"original_sha256":info.source_sha256,
+                             "captured_at_utc":info.asof_utc,
+                             "field_set_sha256":piece["fields_sha256"]}
+            for info,piece,v in ((p,pc,left),(q,sp,right)) if v is not None]
+    missing=sorted(set(required_fields)-set(merged))
+    if conflicts:
+        return {"state":"CONFLICT_QUARANTINED","merged":{},
+                "provenance":{},"conflicts":conflicts,
+                "missing_required":missing,"prediction_ready":False}
+    return {"state":"COMPLETE" if not missing else "INCOMPLETE",
+            "merged":merged,"provenance":provenance,"conflicts":{},
+            "missing_required":missing,"prediction_ready":False}
