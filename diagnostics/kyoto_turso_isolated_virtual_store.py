@@ -46,6 +46,12 @@ SCHEMA_SQL=(f"CREATE TABLE IF NOT EXISTS {TABLE} ("
             "payload TEXT NOT NULL,"
             "payload_sha256 TEXT NOT NULL,"
             "created_scope TEXT NOT NULL CHECK(created_scope='UNAUTHENTICATED_LAB_ONLY'))")
+BLOCK_UPDATE_SQL=(f"CREATE TRIGGER IF NOT EXISTS {TABLE}_no_update "
+                  f"BEFORE UPDATE ON {TABLE} BEGIN "
+                  "SELECT RAISE(ABORT,'immutable_lab_event'); END")
+BLOCK_DELETE_SQL=(f"CREATE TRIGGER IF NOT EXISTS {TABLE}_no_delete "
+                  f"BEFORE DELETE ON {TABLE} BEGIN "
+                  "SELECT RAISE(ABORT,'immutable_lab_event'); END")
 INSERT_SQL=(f"INSERT INTO {TABLE} (event_key,race_id,event_type,payload,payload_sha256,created_scope) "
             "VALUES (?,?,?,?,?,'UNAUTHENTICATED_LAB_ONLY') "
             "ON CONFLICT(event_key) DO NOTHING")
@@ -104,6 +110,8 @@ class TursoLabStore:
     def prepare_isolated_namespace(self):
         # This is a WRITE; explicit opt-in from operator required for REAL use.
         self._single(SCHEMA_SQL)
+        self._single(BLOCK_UPDATE_SQL)
+        self._single(BLOCK_DELETE_SQL)
         return {"scope":"TURSO_ISOLATED_LAB_NAMESPACE_SCHEMA_PREPARED",
                 "production_operational_ready":False}
 
