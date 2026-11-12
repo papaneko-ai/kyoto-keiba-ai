@@ -1,0 +1,84 @@
+name: Kyoto F11 second independent source ranking certification
+on:
+  push:
+    branches: [jra-html-diagnostic-20261105]
+    paths:
+      - .github/workflows/kyoto-f11-independent-certification.yml
+permissions:
+  contents: read
+  actions: read
+jobs:
+  independent-ranking-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Fetch pinned P4 F11 F12 witness produced by separate CI
+        env:
+          GH_TOKEN: \${{ github.token }}
+        run: |
+          set -euo pipefail
+          curl --fail --location --silent --show-error --retry 0 --max-time 30 \
+            -H "Authorization: Bearer \${GH_TOKEN}" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/papaneko-ai/kyoto-keiba-ai/actions/artifacts/13906453657/zip" \
+            -o f11_original_lab_witness.zip
+      - name: Independent P4 hash/rank/F12 check and deliberate malicious changes
+        env:
+          PYTHONPATH: .
+        run: |
+          python - <<'PY'
+          import copy,hashlib,json,os,zipfile
+          from pathlib import Path
+          from diagnostics.kyoto_f11_independent_source_rank_auditor import audit,AuditRejected,digest
+          with zipfile.ZipFile('f11_original_lab_witness.zip') as z:
+              assert z.namelist()==['F11_F12_witness.json'],z.namelist()
+              src=json.loads(z.read('F11_F12_witness.json'))
+          rubric=Path('docs/diagnostics/kyoto_final_completion_criteria_v1.json').read_bytes()
+          result=audit(src,rubric)
+          def blocked(fake,label):
+              try:audit(fake,rubric)
+              except AuditRejected:
+                  print('NEGATIVE_TEST_REJECTED='+label)
+                  return
+              raise AssertionError('tamper accepted: '+label)
+          fake=copy.deepcopy(src)
+          fake['f11']['selected'][0]['rank']=3
+          blocked(fake,'wrong_ranking')
+          fake=copy.deepcopy(src)
+          fake['f11']['selected'][0]['rank']=3
+          fake['f11']['f11_sha256']=digest({k:v for k,v in fake['f11'].items() if k!='f11_sha256'})
+          fake['f12_handoff']['f11_source_sha256']=fake['f11']['f11_sha256']
+          blocked(fake,'rehashed_false_ranking')
+          fake=copy.deepcopy(src)
+          fake['f11']['source_jra_authenticated']=True
+          fake['f11']['f11_sha256']=digest({k:v for k,v in fake['f11'].items() if k!='f11_sha256'})
+          blocked(fake,'false_live_origin')
+          fake=copy.deepcopy(src)
+          fake['p4_comparisons'][0]['markets']['QUINELLA']['research_model_expected_net'][0]['stressed_net_lower']=99
+          blocked(fake,'original_P4_receipt_changed')
+          fake=copy.deepcopy(src)
+          fake['f12_handoff']['f12_plan']['spent_yen']=9000
+          blocked(fake,'overspent_recommendation')
+          try:audit(src,rubric+b' ')
+          except AuditRejected:pass
+          else:raise AssertionError('fixed rubric changed unnoticed')
+          result['source_artifact_zip_sha256']=hashlib.sha256(Path('f11_original_lab_witness.zip').read_bytes()).hexdigest()
+          result['second_ci_run_id']=int(os.environ['GITHUB_RUN_ID'])
+          result['second_ci_head_sha']=os.environ['GITHUB_SHA']
+          result['independent_negative_tests_passed']=6
+          out=Path('f11_independent_acceptance')
+          out.mkdir()
+          (out/'F11_audit.json').write_text(json.dumps(result,ensure_ascii=False,indent=2,sort_keys=True)+'\n')
+          print('F11_FIXED_5_POINT_OFFLINE_RANKING_ACCEPTANCE=PASS')
+          print('F11_LIVE_JRA_AUTHENTICATION=NOT_VERIFIED')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: kyoto-F11-second-independent-source-rank-audit
+          path: f11_independent_acceptance/
+          retention-days: 7
+          if-no-files-found: error
