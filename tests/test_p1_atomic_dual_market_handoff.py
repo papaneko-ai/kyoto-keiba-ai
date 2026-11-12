@@ -132,7 +132,9 @@ class ExistingCaptureToAtomicThreeOriginalTests(AtomicThreeMarketTests):
   for kind,item in self.captures().items():
    raw=item["raw"];(root/names[kind]).write_bytes(raw)
    url=item["observed_url"]
-   token=None if kind=="racecard" else ("pw15fromHtml/XX" if wrong_token and kind=="bracket_odds" else "pw15fromHtml/AA")
+   observed_tokens={"pre_race_odds":"pw154ou1008202604100120261114Z/BB",
+                    "bracket_odds":"pw153ou1008202604100120261114Z/37"}
+   token=None if kind=="racecard" else ("pw15wrong/XX" if wrong_token and kind=="bracket_odds" else observed_tokens[kind])
    if kind=="racecard":
     url="https://jra.jp/JRADB/accessD.html?CNAME=pw01/AA"
    body=None if token is None else urlencode({"cname":token}).encode("ascii")
@@ -143,6 +145,19 @@ class ExistingCaptureToAtomicThreeOriginalTests(AtomicThreeMarketTests):
      "observed_action_token":token,
      "post_body_sha256":None if body is None else hashlib.sha256(body).hexdigest(),
      "post_body_size":0 if body is None else len(body)})
+  odds_menu=('''<html><title>単勝・複勝オッズ JRA</title><body>
+  <a onclick="return doAction('/JRADB/accessO.html', 'pw154ou1008202604100120261114Z/BB');">馬連</a>
+  <a onclick="return doAction('/JRADB/accessO.html', 'pw153ou1008202604100120261114Z/37');">枠連</a>
+  </body></html>''').encode("cp932")
+  (root/"official_odds_menu.html").write_bytes(odds_menu)
+  entries.insert(1,{"step":"odds_menu","method":"POST",
+    "sha256":hashlib.sha256(odds_menu).hexdigest(),"bytes":len(odds_menu),
+    "captured_at_utc":self.fx.manifest["sources"][1]["captured_utc"],
+    "requested_url":"https://jra.jp/JRADB/accessO.html",
+    "response_url":"https://jra.jp/JRADB/accessO.html",
+    "observed_action_token":"pw15menu/AA",
+    "post_body_sha256":hashlib.sha256(b"cname=pw15menu%2FAA").hexdigest(),
+    "post_body_size":len(b"cname=pw15menu%2FAA")})
   info={"state":state,"pre_race_prices_accepted":state=="SOURCE_FROZEN",
         "channel":"PC",
         "race_id":f"{self.fx.snapshot['meeting_date']}_KYOTO_{self.fx.snapshot['race']:02d}R",
@@ -160,6 +175,19 @@ class ExistingCaptureToAtomicThreeOriginalTests(AtomicThreeMarketTests):
   self.assertEqual(v["capture_receipt_sha256"],
        hashlib.sha256((staged/"receipt.json").read_bytes()).hexdigest())
   self.assertFalse(v["receipt"]["prediction_ready"])
+ def test_forged_market_post_token_detected_against_saved_menu(self):
+  from diagnostics.p1_atomic_dual_market_handoff import package_saved_observed_market_capture
+  staged=self.stage(wrong_token=True)
+  with self.assertRaisesRegex(MarketHandoffRejected,"observed_market_action_not_in_saved_menu"):
+   package_saved_observed_market_capture(capture_directory=staged,
+      snapshot=self.fx.snapshot,observed_utc=NOW)
+ def test_saved_menu_digest_tampering_detected(self):
+  from diagnostics.p1_atomic_dual_market_handoff import package_saved_observed_market_capture
+  staged=self.stage()
+  with (staged/"official_odds_menu.html").open("ab") as o:o.write(b"forged")
+  with self.assertRaisesRegex(MarketHandoffRejected,"observed_market_menu_digest_mismatch"):
+   package_saved_observed_market_capture(capture_directory=staged,
+      snapshot=self.fx.snapshot,observed_utc=NOW)
  def test_original_sha_mismatch_rejected_before_canonical_packaging(self):
   from diagnostics.p1_atomic_dual_market_handoff import package_saved_observed_market_capture
   staged=self.stage(wrong_sha=True)
