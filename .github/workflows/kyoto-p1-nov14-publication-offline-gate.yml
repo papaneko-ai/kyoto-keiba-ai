@@ -4,6 +4,8 @@ on:
     branches: [jra-html-diagnostic-20261105]
     paths:
       - diagnostics/kyoto_p1_nov14_official_one_shot_nav.py
+      - diagnostics/kyoto_p1_nov14_receipt_handoff.py
+      - tests/test_kyoto_p1_nov14_receipt_handoff.py
       - tests/test_kyoto_p1_nov14_official_one_shot_nav.py
       - .github/workflows/kyoto-p1-nov14-publication-offline-gate.yml
 permissions:
@@ -17,11 +19,12 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      - name: Strict 17 publication and no networking safety tests
+      - name: Official publication and immutable receipt handoff safety tests
         env:
           PYTHONPATH: .
         run: |
           set -euo pipefail
           python -m unittest -v tests.test_kyoto_p1_nov14_official_one_shot_nav
+          python -m unittest -v tests.test_kyoto_p1_nov14_receipt_handoff
           echo JRA_EXTERNAL_HTTP_ATTEMPTED=FALSE
           echo NO_AUTO_RETRY_BEFORE_OFFICIAL_PUBLICATION=TRUE
