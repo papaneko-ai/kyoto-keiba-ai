@@ -481,4 +481,64 @@ class OfficialTwoSecondPacingTests(unittest.TestCase):
   http_fetch(stub,"PC",PC_RACECARD_URL,pacer=pacer)
   self.assertEqual(len(stub.requests),2)
   self.assertEqual(waits,[2.0])
+class RealChannelRosterBindingTests(unittest.TestCase):
+ def spec(self):
+  from diagnostics.jra_one_shot_market_capture import ObservedRaceSpec
+  return ObservedRaceSpec("20261114",11,"2026-11-14_KYOTO_11R","京都",
+    "https://jra.jp/JRADB/accessD.html?CNAME=pw01dde0108202605011120261114%2F13",
+    "https://sp.jra.jp/JRADB/accessD.html?CNAME=sw01dde0108202605011120261114%2FA0",
+    "2026-11-13T09:30:00Z")
+ def test_pc_uses_existing_parser_and_matches_numbers_and_frames(self):
+  from diagnostics.jra_one_shot_market_capture import verify_live_racecard_roster
+  from unittest.mock import patch
+  with patch("diagnostics.jra_pc_sp_benchmark.pc_rows",
+             return_value=((1,1,"馬A"),(2,2,"馬B"))) as parser:
+   r=verify_live_racecard_roster(b"<html>saved</html>","PC",self.spec(),((1,1),(2,2)))
+   self.assertEqual(r["count"],2)
+   parser.assert_called_once()
+ def test_pc_roster_disagreement_is_blocked(self):
+  from diagnostics.jra_one_shot_market_capture import verify_live_racecard_roster
+  from unittest.mock import patch
+  with patch("diagnostics.jra_pc_sp_benchmark.pc_rows",
+             return_value=((1,1,"馬A"),(2,3,"馬B"))):
+   with self.assertRaisesRegex(SourceChainError,"official_racecard_numbered_roster_mismatch"):
+    verify_live_racecard_roster(b"<html>saved</html>","PC",self.spec(),((1,1),(2,2)))
+ def test_sp_accepts_same_race_original(self):
+  from diagnostics.jra_one_shot_market_capture import verify_live_racecard_roster
+  from unittest.mock import patch
+  raw=html("2026年11月14日 京都 11レース")
+  with patch("diagnostics.jra_pc_sp_benchmark.sp_rows",
+             return_value=((1,1,"馬A"),(2,2,"馬B"))) as parser:
+   r=verify_live_racecard_roster(raw,"SP",self.spec(),((1,1),(2,2)))
+   self.assertEqual(r["channel"],"SP")
+   parser.assert_called_once()
+ def test_sp_other_date_blocked_even_if_numbers_match(self):
+  from diagnostics.jra_one_shot_market_capture import verify_live_racecard_roster
+  from unittest.mock import patch
+  raw=html("2026年11月7日 京都 11レース")
+  with patch("diagnostics.jra_pc_sp_benchmark.sp_rows",
+             return_value=((1,1,"馬A"),(2,2,"馬B"))):
+   with self.assertRaisesRegex(SourceChainError,"sp_racecard_date_race_venue_not_proven"):
+    verify_live_racecard_roster(raw,"SP",self.spec(),((1,1),(2,2)))
+ def test_sp_wrong_race_blocked_even_if_numbers_match(self):
+  from diagnostics.jra_one_shot_market_capture import verify_live_racecard_roster
+  from unittest.mock import patch
+  raw=html("2026年11月14日 京都 10レース")
+  with patch("diagnostics.jra_pc_sp_benchmark.sp_rows",
+             return_value=((1,1,"馬A"),(2,2,"馬B"))):
+   with self.assertRaisesRegex(SourceChainError,"sp_racecard_date_race_venue_not_proven"):
+    verify_live_racecard_roster(raw,"SP",self.spec(),((1,1),(2,2)))
+ def test_live_capture_blocks_before_odds_menu_if_new_original_is_wrong(self):
+  from unittest.mock import patch
+  spec=self.spec()
+  stub=StubOpener([(html(LINK),spec.pc_racecard_url)])
+  with tempfile.TemporaryDirectory() as d:
+   with patch("diagnostics.jra_pc_sp_benchmark.pc_rows",
+       return_value=((1,1,"馬A"),(2,3,"馬B"))):
+    r=capture(d,channel="PC",verified_start_utc="2026-11-14T06:45:00Z",
+     active_runners=((1,1),(2,2)),now_utc="2026-11-13T10:00:00Z",
+     opener=stub,race_spec=spec,authorized_live_http=True)
+  self.assertEqual(r["state"],"CAPTURE_BLOCKED")
+  self.assertEqual(len(stub.requests),1)
+  self.assertFalse(r["pre_race_prices_accepted"])
 if __name__=="__main__":unittest.main()
