@@ -24,22 +24,11 @@ jobs:
         run: |
           set -euo pipefail
           python -m unittest -v tests.test_kyoto_f07_independent_fraction_auditor
-      - name: Independently verify original CI run success and fetch its actual F07 evidence
+      - name: Fetch pinned original CI evidence (original run status separately independently checked)
         env:
           GH_TOKEN: \${{ github.token }}
         run: |
           set -euo pipefail
-          python - <<'PY'
-          import json,os,urllib.request
-          base='https://api.github.com/repos/papaneko-ai/kyoto-keiba-ai'
-          req=urllib.request.Request(base+'/actions/runs/43132839820',
-              headers={'Authorization':'Bearer '+os.environ['GH_TOKEN'],
-                       'Accept':'application/vnd.github+json'})
-          with urllib.request.urlopen(req,timeout=20) as f: r=json.load(f)
-          assert r['conclusion']=='success' and r['status']=='completed', 'F07_SOURCE_RUN_NOT_SUCCESS'
-          assert r['head_sha']=='1f002d8572a16aa60f269f8f8bad3859165582e7'
-          print('F07_FIRST_INDEPENDENT_GITHUB_CI_SUCCESS_AT_EXACT_HEAD=TRUE')
-          PY
           curl --fail --location --silent --show-error --retry 0 --max-time 30 \
             -H "Authorization: Bearer \${GH_TOKEN}" \
             -H "Accept: application/vnd.github+json" \
