@@ -101,12 +101,14 @@ def settle_ranked_lab_results(*,prior_directory,destination,result_captures,
     if set(result_captures)!=required or len(required)!=len(rows):
         raise FinalResultRejected("exact_result_race_coverage_required")
     validated=[]
+    frozen_stake_total=0
     for item in rows:
         race=item["race"];path=prior/item["file"]
         if not re.fullmatch(r"race-\d{2}\.jsonl",item["file"]) or path.is_symlink():
             raise FinalResultRejected("journal_member_invalid")
         state=read_journal(path,expected_head=item["journal_head_sha256"])
         frozen=state["entries"][0]["payload"]["record"]["frozen"]
+        frozen_stake_total+=sum(t["stake_yen"] for t in frozen["tickets"])
         if (frozen["scenario_id"]!=item["scenario_id"] or
             state["entries"][0]["payload"]["record"]["frozen_sha256"]!=item["frozen_prediction_sha256"]):
             raise FinalResultRejected("frozen_receipt_mismatch")
@@ -129,6 +131,8 @@ def settle_ranked_lab_results(*,prior_directory,destination,result_captures,
                "payout_per_100":{info["pair"]:info["payout_per_100"]},
                "refunded_pairs":[]}
         validated.append((item,path,state,capture,event))
+    if frozen_stake_total!=manifest.get("research_spent_yen"):
+        raise FinalResultRejected("frozen_stakes_do_not_match_manifest_budget")
     with tempfile.TemporaryDirectory(prefix=".p6-result-stage-",dir=target.parent) as tmp:
         stage=Path(tmp)
         new_rows=[]
@@ -157,6 +161,19 @@ def settle_ranked_lab_results(*,prior_directory,destination,result_captures,
               "official_results_verified":False,
               "real_race_paper_trade_settled":False,
               "actual_purchase_authorized":False}
+        # Preserve exact P5 risk-capital provenance through every settlement
+        # and correction snapshot, while keeping the preexisting non-risk
+        # research path byte-compatible.
+        if "allocation_source" in manifest:
+            if (manifest.get("allocation_source")!="P5_RECOMPUTED_BOUNDED_RISK_CAPITAL"
+                or any(not isinstance(manifest.get(k),str) or
+                       not re.fullmatch(r"[0-9a-f]{64}",manifest[k])
+                       for k in ("capital_receipt_sha256","capital_policy_sha256"))
+                or manifest.get("not_real_risk_calibration") is not True):
+                raise FinalResultRejected("risk_capital_provenance_invalid")
+            for key in ("allocation_source","capital_receipt_sha256",
+                        "capital_policy_sha256","not_real_risk_calibration"):
+                body[key]=manifest[key]
         receipt={**body,"receipt_sha256":_hash(body)}
         (stage/"manifest.json").write_text(json.dumps(receipt,ensure_ascii=False,
            sort_keys=True,separators=(",",":"),allow_nan=False)+"\n",encoding="utf8")
