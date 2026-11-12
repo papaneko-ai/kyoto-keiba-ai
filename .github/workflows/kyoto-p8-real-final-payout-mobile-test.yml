@@ -1,0 +1,31 @@
+name: Kyoto P8 real official historical final payout smartphone AppTest
+on:
+  push:
+    branches: [jra-html-diagnostic-20261105]
+    paths:
+      - diagnostics/kyoto_new_mobile_paper_ui.py
+      - diagnostics/kyoto_p6_real_final_mobile_viewmodel.py
+      - docs/diagnostics/kyoto_two_real_official_final_ui_receipt_20261112.json
+      - tests/test_kyoto_new_mobile_real_final_source_receipts.py
+      - .github/workflows/kyoto-p8-real-final-payout-mobile-test.yml
+permissions:
+  contents: read
+jobs:
+  mobile-historical-final-real:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install headless Streamlit testing
+        run: python -m pip install 'streamlit>=1.40,<2'
+      - name: Test actual JRA independent audit receipt display and anti-profit guards
+        env:
+          PYTHONPATH: .
+        run: |
+          set -euo pipefail
+          python -m unittest -v tests.test_kyoto_new_mobile_real_saved_roster_apptest tests.test_kyoto_new_mobile_real_final_source_receipts
+          echo ACTUAL_POSTRACE_JRA_RESULTS_DISPLAYED_FROM_INDEPENDENT_PROOF=PASS
+          echo PRE_RACE_MARKET_AND_PAPER_PNL_NOT_FABRICATED=TRUE
