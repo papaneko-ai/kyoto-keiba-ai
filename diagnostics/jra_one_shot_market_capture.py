@@ -174,11 +174,15 @@ def observed_next_market_action(raw, channel, spec, *, step):
         if not token.startswith("pw" if channel=="PC" else "sw"):
             continue
         if step==0:
-            matched=("京都" in label and ("競馬場" not in label or "開催" in label))
+            # A footer saying "Kyoto Racecourse" is NOT the target meeting.
+            matched=("京都" in label and
+                     (any(day in label for day in calendar) or spec.race_day in token))
         else:
             matched=bool(re.search(fr"(?<!\d)0?{spec.race_number}(?:\s*R|\s*レース)(?!\d)",label))
-            # Prevent other meetings' same race number from being selected.
-            matched=matched and ("京都" in visible)
+            # Race number alone is shared by every venue. Require a Kyoto
+            # label or a published date+race-bound token, not page footer text.
+            matched=matched and ("京都" in label or
+                                 f"{spec.race_number:02d}{spec.race_day}" in token)
         if matched:
             candidates.add(token)
     if len(candidates)!=1:
