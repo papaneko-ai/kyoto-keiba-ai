@@ -97,6 +97,34 @@ class Nov14NavigationTests(unittest.TestCase):
              clock=lambda:datetime(2026,11,14,1,0,tzinfo=timezone.utc))
         self.assertEqual(r["status"],"STALE_MEETING_DISCOVERY_NO_HTTP")
         self.assertEqual(opener.calls,0)
+ def test_second_meeting_observation_preserves_exact_prior_original(self):
+    from pathlib import Path
+    opener=StubOpener(StubReply(html(GOOD)))
+    with tempfile.TemporaryDirectory() as d:
+        first=inspect_once(d,opener=opener,clock=AFTER_PUBLICATION)
+        before=(Path(d)/"official_selection.html").read_bytes()
+        receipt=(Path(d)/"receipt.json").read_bytes()
+        with self.assertRaisesRegex(DiscoveryRejected,"one_shot_existing_evidence_must_not_be_overwritten"):
+            inspect_once(d,opener=opener,clock=AFTER_PUBLICATION)
+        self.assertEqual(opener.calls,1)
+        self.assertEqual((Path(d)/"official_selection.html").read_bytes(),before)
+        self.assertEqual((Path(d)/"receipt.json").read_bytes(),receipt)
+        self.assertEqual(first["attempted_GET"],1)
+ def test_preexisting_receipt_never_triggers_network(self):
+    from pathlib import Path
+    opener=StubOpener(StubReply(html(GOOD)))
+    with tempfile.TemporaryDirectory() as d:
+        (Path(d)/"receipt.json").write_bytes(b"prior")
+        with self.assertRaisesRegex(DiscoveryRejected,"one_shot_existing_evidence_must_not_be_overwritten"):
+            inspect_once(d,opener=opener,clock=AFTER_PUBLICATION)
+        self.assertEqual(opener.calls,0)
+        self.assertEqual((Path(d)/"receipt.json").read_bytes(),b"prior")
+ def test_official_artifact_retention_and_concurrency(self):
+    from pathlib import Path
+    src=Path(".github/workflows/kyoto-p1-nov14-one-shot-meeting-observation.yml").read_text(encoding="utf8")
+    self.assertIn("retention-days: 30",src)
+    self.assertIn("cancel-in-progress: false",src)
+    self.assertIn("group: kyoto-nov14-single-official-meeting-observation",src)
  def test_no_bet_or_prediction_claim(self):
     opener=StubOpener(StubReply(html(GOOD)))
     with tempfile.TemporaryDirectory() as d:
