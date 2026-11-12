@@ -8,7 +8,7 @@ from pathlib import Path
 import streamlit as st
 from diagnostics.p1_monitor_viewmodel import summarize,StatusInvalid
 from diagnostics.p5_manual_allocation import allocate
-from diagnostics.p8_official_source_status import inspect_official_selection_archive,SourceStatusRejected
+from diagnostics.p8_official_source_status import inspect_official_selection_archive,inspect_recorded_link_alert,SourceStatusRejected
 from diagnostics.rg06_repeatable_mobile_e2e_lab import repeatable_research_e2e, ReproducibilityRejected
 
 ROOT=Path(__file__).resolve().parents[1]
@@ -36,7 +36,7 @@ if official_zip is not None:
  try:
   result=inspect_official_selection_archive(official_zip.getvalue())
   if result["classification"]=="OFFICIAL_MEETING_LINK_OBSERVED_NOT_RACECARD":
-   st.info("公式開催リンクを原本から照合できました。個別レースの出馬表・馬連・枠連オッズは未検証です。")
+   st.info("保存ZIP内の開催リンクと記録が一致しました。サイトへの実接続・原本の真正性・個別レースと両オッズは別途検証が必要です。")
    st.caption("開催リンク："+result["official_meeting_url"])
   else:
    st.warning("公式原本は保存されていますが、開催リンクは未確認です。推測リンクには切り替えません。")
@@ -44,6 +44,19 @@ if official_zip is not None:
   st.caption("実用能力への認定加点：0点。実開催のレース別取得・市場オッズ・仮想投資は別に独立検証が必要です。")
  except (SourceStatusRejected,OSError,ValueError,KeyError,TypeError):
   st.error("原本・受領証の照合に失敗しました。無効なZIPの内容は採用せず、安全停止します。")
+st.caption("リンク切れの検知・復旧結果を確認する場合は、取得器が保存したreceipt.jsonを追加できます。")
+repair_log=st.file_uploader("リンク修復の取得記録（JSON）",type=["json"],key="kyoto_jra_repair_log")
+if repair_log is not None:
+ try:
+  alert=inspect_recorded_link_alert(repair_log.getvalue())
+  if alert["severity"]=="ERROR":
+   st.error(alert["message"])
+  else:
+   st.info(alert["message"])
+  st.caption("対象："+alert["recorded_race_id"]+"｜記録SHA256："+alert["receipt_sha256"])
+  st.caption("この表示は保存ログの内容です。原本の真正性・本番復旧・実用能力を認定しません。")
+ except (SourceStatusRejected,OSError,ValueError,KeyError,TypeError):
+  st.error("リンク修復記録が不正または不整合です。画面への採用を停止します。")
 st.subheader("手動予算計画")
 st.caption("候補は仮の番号です。レース順位・買い目・期待値を推奨していません。")
 budget=st.number_input("1日上限予算（円）",min_value=0,max_value=1_000_000,value=10000,step=100)
