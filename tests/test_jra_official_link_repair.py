@@ -162,6 +162,9 @@ class OfflineRepairTests(unittest.TestCase):
             self.assertTrue((Path(directory)/"repair_meeting.html").is_file())
             self.assertTrue((Path(directory)/"repair_candidate_racecard.html").is_file())
             self.assertTrue((Path(directory)/"receipt.json").is_file())
+            handoff=json.loads((Path(directory)/"verified_repaired_race_spec.json").read_text(encoding="utf8"))
+            self.assertEqual(handoff["race_spec"]["pc_racecard_url"],repaired)
+            self.assertEqual(handoff["promotion_state"],"SOURCE_ONLY_NOT_PRODUCTION")
             self.assertFalse(result["pre_race_prices_accepted"])
 
     def test_404_attempts_repair_then_blocks_if_unverified(self):
