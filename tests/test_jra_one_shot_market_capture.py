@@ -183,4 +183,88 @@ class DiagnosticCliAndRedirectTests(unittest.TestCase):
    http_fetch(stub,"PC","https://jra.jp/JRADB/accessO.html?a=1",cname="pw01/AB")
   self.assertEqual(stub.requests,[])
 
+class ExistingHybridOddsTests(unittest.TestCase):
+ def setUp(self):
+  from diagnostics.jra_one_shot_market_capture import DEFAULT_RACE_SPEC
+  self.spec=DEFAULT_RACE_SPEC
+  self.runners=((1,1),(2,2))
+ def run_hybrid(self,primary="PC",states=None):
+  from diagnostics.jra_one_shot_market_capture import capture_hybrid
+  calls=[]
+  states=states or {}
+  def stub(out,**kwargs):
+   channel=kwargs["channel"]
+   calls.append(channel)
+   state=states.get(channel,"CAPTURE_BLOCKED")
+   return {"channel":channel,"race_id":self.spec.race_id,"state":state,
+           "pre_race_prices_accepted":state=="SOURCE_FROZEN"}
+  with tempfile.TemporaryDirectory() as d:
+   result=capture_hybrid(d,primary_channel=primary,
+          verified_start_utc="2026-11-07T06:45:00Z",
+          active_runners=self.runners,race_spec=self.spec,
+          capture_fn=stub)
+   import json,pathlib
+   saved=json.loads((pathlib.Path(d)/"hybrid_receipt.json").read_text())
+   self.assertEqual(saved,result)
+  return result,calls
+ def test_primary_success_no_duplicate_sp(self):
+  r,calls=self.run_hybrid(states={"PC":"SOURCE_FROZEN"})
+  self.assertEqual(calls,["PC"])
+  self.assertEqual(r["state"],"SOURCE_ONLY_PRIMARY")
+ def test_pc_error_sp_success(self):
+  r,calls=self.run_hybrid(states={"PC":"CAPTURE_BLOCKED","SP":"SOURCE_FROZEN"})
+  self.assertEqual(calls,["PC","SP"])
+  self.assertEqual(r["selected_channel"],"SP")
+  self.assertEqual(r["state"],"SOURCE_ONLY_FALLBACK")
+ def test_sp_error_pc_success(self):
+  r,calls=self.run_hybrid(primary="SP",
+          states={"SP":"CAPTURE_BLOCKED","PC":"SOURCE_FROZEN"})
+  self.assertEqual(calls,["SP","PC"])
+  self.assertEqual(r["selected_channel"],"PC")
+ def test_both_fail_no_third_try(self):
+  r,calls=self.run_hybrid()
+  self.assertEqual(calls,["PC","SP"])
+  self.assertIsNone(r["selected_channel"])
+  self.assertEqual(r["state"],"SAFE_STOP")
+ def test_official_not_published_no_retry(self):
+  for status in ("OFFICIAL_NOT_PUBLISHED","WAIT_FOR_OFFICIAL_SALES",
+                 "CUTOFF_PASSED_NO_HTTP","REJECT_FINAL_ODDS",
+                 "LIVE_HTTP_NOT_AUTHORIZED"):
+   with self.subTest(status=status):
+    r,calls=self.run_hybrid(states={"PC":status})
+    self.assertEqual(calls,["PC"])
+    self.assertIsNone(r["selected_channel"])
+ def test_navigation_error_one_fallback(self):
+  r,calls=self.run_hybrid(states={
+   "PC":"OFFICIAL_MENU_NEEDS_RACE_NAVIGATION","SP":"SOURCE_FROZEN"})
+  self.assertEqual(calls,["PC","SP"])
+  self.assertEqual(r["state"],"SOURCE_ONLY_FALLBACK")
+ def test_wrong_race_receipt_rejected_and_fallback(self):
+  from diagnostics.jra_one_shot_market_capture import capture_hybrid
+  calls=[]
+  def stub(out,**kwargs):
+   calls.append(kwargs["channel"])
+   return {"channel":kwargs["channel"],"race_id":"WRONG",
+           "state":"SOURCE_FROZEN","pre_race_prices_accepted":True}
+  with tempfile.TemporaryDirectory() as d:
+   r=capture_hybrid(d,primary_channel="PC",
+       verified_start_utc="2026-11-07T06:45:00Z",
+       active_runners=self.runners,race_spec=self.spec,capture_fn=stub)
+   self.assertEqual(calls,["PC","SP"])
+   self.assertEqual(r["state"],"SAFE_STOP")
+ def test_refuse_fake_accepted_flag(self):
+  from diagnostics.jra_one_shot_market_capture import capture_hybrid
+  def stub(out,**kwargs):
+   return {"channel":kwargs["channel"],"race_id":self.spec.race_id,
+           "state":"SOURCE_FROZEN","pre_race_prices_accepted":False}
+  with tempfile.TemporaryDirectory() as d:
+   r=capture_hybrid(d,primary_channel="PC",
+       verified_start_utc="2026-11-07T06:45:00Z",
+       active_runners=self.runners,race_spec=self.spec,capture_fn=stub)
+   self.assertEqual(r["state"],"SAFE_STOP")
+ def test_hybrid_never_authorizes_bet(self):
+  r,_=self.run_hybrid(states={"PC":"SOURCE_FROZEN"})
+  self.assertFalse(r["paper_trade_authorized"])
+  self.assertFalse(r["actual_wager_authorized"])
+  self.assertFalse(r["prediction_ready"])
 if __name__=="__main__":unittest.main()
