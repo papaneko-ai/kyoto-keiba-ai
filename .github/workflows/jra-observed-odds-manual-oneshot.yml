@@ -72,7 +72,8 @@ jobs:
                   raise SystemExit("VERIFIED_REPOSITORY_EVIDENCE_PATH_REQUIRED")
               if not Path(value).is_file():
                   raise SystemExit("EVIDENCE_FILE_NOT_FOUND")
-          spec=ObservedRaceSpec(**json.loads(Path(os.environ["OBSERVED_SPEC"]).read_text(encoding="utf8"))).validate()
+          channels=("PC","SP") if os.environ["HYBRID"]=="true" else (os.environ["OBSERVED_CHANNEL"],)
+          spec=ObservedRaceSpec(**json.loads(Path(os.environ["OBSERVED_SPEC"]).read_text(encoding="utf8"))).validate(require_channels=channels)
           if not re.fullmatch(r"20\d{2}-\d\d-\d\dT\d\d:\d\d:\d\dZ",os.environ["OBSERVED_START"]):
               raise SystemExit("VERIFIED_START_UTC_REQUIRED")
           print("OFFLINE_SOURCE_SPEC_VALIDATED_FOR_DIAGNOSTIC_ONLY")
@@ -117,7 +118,8 @@ jobs:
               raise SystemExit("INVALID_THREE_ORIGINAL_SNAPSHOT_PATH")
           if not Path(snapshot).is_file():
               raise SystemExit("THREE_ORIGINAL_SNAPSHOT_NOT_FOUND")
-          spec=ObservedRaceSpec(**json.loads(Path(os.environ["OBSERVED_SPEC"]).read_text(encoding="utf8"))).validate()
+          channels=("PC","SP") if os.environ["HYBRID"]=="true" else (os.environ["OBSERVED_CHANNEL"],)
+          spec=ObservedRaceSpec(**json.loads(Path(os.environ["OBSERVED_SPEC"]).read_text(encoding="utf8"))).validate(require_channels=channels)
           selected=Path("jra_odds_observed_one_shot")
           if os.environ["HYBRID"]=="true":
               receipt=json.loads((selected/"hybrid_receipt.json").read_text(encoding="utf8"))
