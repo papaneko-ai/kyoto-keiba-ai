@@ -7,6 +7,9 @@ on:
       - diagnostics/nov14_one_off_explicit_activation.txt
 permissions:
   contents: read
+concurrency:
+  group: kyoto-nov14-single-official-meeting-observation
+  cancel-in-progress: false
 jobs:
   single-official-page:
     runs-on: ubuntu-latest
@@ -33,11 +36,11 @@ jobs:
           print('NO_ODDS_OR_AUTOMATED_BETS=TRUE')
           print('ORIGINAL_SOURCE_BYTES_VALIDATED='+str(bool(r.get('source_sha256'))))
           PY
-      - name: Keep private original HTML and UTC SHA receipt only in short lived artifact
+      - name: Retain official original HTML and UTC SHA receipt with 30-day bounded artifact
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: kyoto-nov14-one-shot-meeting-link-source-proof
           path: jra_nov14_official_one_off/
-          retention-days: 2
+          retention-days: 30
           if-no-files-found: warn
