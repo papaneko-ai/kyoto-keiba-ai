@@ -85,10 +85,10 @@ jobs:
                   if not settings.is_file():
                       raise SystemExit("NOV15_VERIFIED_START_NOT_PROVIDED")
                   start=settings.read_text(encoding="utf8").strip()
-                  if not re.fullmatch(r"2026-11-15T[0-2]\\d:[0-5]\\d:[0-5]\\dZ",start):
+                  if not re.fullmatch(r"2026-11-15T[0-2]\d:[0-5]\d:[0-5]\dZ",start):
                       raise SystemExit("NOV15_START_UTC_FILE_INVALID")
                   with open(os.environ["GITHUB_ENV"],"a",encoding="utf8") as out:
-                      out.write("START_UTC="+start+"\\n")
+                      out.write("START_UTC="+start+"\n")
           elif os.environ.get("GITHUB_EVENT_NAME")!="workflow_dispatch":
               raise SystemExit("NOV15_UNEXPECTED_TRIGGER")
           repo=os.environ["GITHUB_REPOSITORY"]
@@ -117,6 +117,10 @@ jobs:
           print("NOV15_INDEPENDENT_RUN_CHECKED=TRUE")
           print("JRA_GET_BEFORE_OFFLINE_EVIDENCE_GATES=0")
           PY
+          if [ -z "$START_UTC" ]; then
+            START_UTC="$(cat docs/diagnostics/nov15_pc_verified_start_utc.txt)"
+            export START_UTC
+          fi
           python -m diagnostics.kyoto_nov14_nov15_second_day_handoff \
             --spec "$SPEC" \
             --roster "$ROSTER" \
