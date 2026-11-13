@@ -26,10 +26,12 @@ class LauncherTests(unittest.TestCase):
     def test_offline_first_external_request_is_guarded(self):
         self.assertIn("from diagnostics.kyoto_nov15_two_original_observer import BEGIN,END",self.s)
         self.assertNotIn("from diagnostics.kyoto_p1_github_attempt_history_gate import audit_previous_runs",self.s)
-    def test_date_and_event_still_checked(self):
+    def test_date_guard_kept_and_manual_recovery_dispatch_allowed(self):
         self.assertIn('now.strftime("%Y-%m-%d")!="2026-11-15"',self.s)
         self.assertNotIn('os.environ.get("GITHUB_RUN_ATTEMPT")!="1"',self.s)
-        self.assertIn('os.environ.get("GITHUB_EVENT_NAME")!="schedule"',self.s)
+        self.assertIn('("schedule","workflow_dispatch")',self.s)
+        self.assertIn("NOV15_UNEXPECTED_TRIGGER_NO_HTTP",self.s)
+        self.assertNotIn("NOV15_ONLY_SCHEDULED_UNATTENDED_OBSERVATION_NO_HTTP",self.s)
     def test_no_blanket_prior_attempt_permanent_ban(self):
         self.assertNotIn("audit_previous_runs(",self.s)
         self.assertNotIn("NOV15_NO_RERUN",self.s)
