@@ -72,7 +72,10 @@
       "title": "全市場価格照合・EV計算",
       "phase": "P4",
       "acceptance": "馬連枠連価格の完全性・同時点・販売停止・取消・価格欠落を拒否する",
-      "automation": null
+      "automation": {
+        "suite": "test_r08_full_market_predata_acceptance.py",
+        "tests": 24
+      }
     },
     {
       "id": "R09",
