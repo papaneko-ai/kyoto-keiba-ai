@@ -71,6 +71,22 @@ class ObservationTests(unittest.TestCase):
     self.assertEqual(result["racecard_number"],12)
     self.assertEqual(len(stub.urls),3)
     self.assertEqual(accept_observation(self.root)["state"],"TWO_ORIGINALS_MATCH_RECEIPT_ONLY")
+ def test_missing_third_original_utc_timestamp_is_rejected(self):
+    import json
+    race_anchor='<html><a href="/JRADB/accessD.html?CNAME=pw020aaa01%2F0120261115">京都 1R</a></html>'.encode("cp932")
+    class Three(Stub):
+      def open(self,request,timeout=12):
+        self.urls.append(request.full_url)
+        return R(request.full_url,self.selection if len(self.urls)==1 else race_anchor if len(self.urls)==2 else b"<html>observed racecard</html>")
+    result=observe(self.root,now_utc="2026-11-15T02:00:00Z",opener=Three(),
+                   allowed=True,include_observed_racecard=True)
+    self.assertTrue(result["racecard_original_fetched"])
+    path=self.root/"receipt.json"
+    receipt=json.loads(path.read_text(encoding="utf8"))
+    receipt.pop("racecard_captured_at_utc")
+    path.write_text(json.dumps(receipt),encoding="utf8")
+    with self.assertRaisesRegex(ObservationRejected,"racecard_capture_timestamp_missing"):
+        accept_observation(self.root)
  def test_reuses_existing_pacer_before_each_of_three_observed_gets(self):
     race_anchor='<html><a href="/JRADB/accessD.html?CNAME=pw020aaa01%2F0120261115">京都 1R</a></html>'.encode("cp932")
     class Three(Stub):
