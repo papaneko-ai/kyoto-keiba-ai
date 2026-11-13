@@ -52,6 +52,13 @@ class OfflineRaceLinksTests(unittest.TestCase):
     receipt["meeting_bytes"]=len(raw)
     (self.root/"receipt.json").write_text(json.dumps(receipt))
     with self.assertRaises(OfflineRaceLinkRejected):derive_nov15_race_links(self.root)
+ def test_downstream_handoff_retains_link_evidence_prior_to_market_http(self):
+    wf=Path(".github/workflows/kyoto-nov15-second-day-observed-oneshot.yml").read_text(encoding="utf8")
+    self.assertIn("--output nov15_pc_one_shot/observed_race_links.json",wf)
+    self.assertIn("python -m diagnostics.kyoto_nov15_offline_race_links",wf)
+    self.assertLess(wf.index("python -m diagnostics.kyoto_nov15_offline_race_links"),
+      wf.index("Single bounded Nov15 observed PC racecard and market fetch"))
+    self.assertIn("python -m diagnostics.kyoto_nov15_full_capture_seal",wf)
  def test_has_no_external_http_import_or_live_flag(self):
     code=Path("diagnostics/kyoto_nov15_offline_race_links.py").read_text()
     self.assertNotIn("urlopen(",code)
