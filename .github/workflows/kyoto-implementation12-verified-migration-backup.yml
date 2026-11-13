@@ -3,6 +3,10 @@ on:
   push:
     branches: [jra-html-diagnostic-20261105]
     paths:
+      - 'docs/diagnostics/kyoto_predata_readiness_rubric_v1.json'
+      - 'diagnostics/kyoto_predata_readiness.py'
+      - 'tests/test_r01_predata_source_contract_acceptance.py'
+      - '.github/workflows/kyoto-ai-always-run-continuity.yml'
       - 'docs/KYOTO_AI_20261113_IMPLEMENTATION12_COMPLETE_MIGRATION_PACK.md'
       - 'docs/KYOTO_AI_20261113_IMPLEMENTATION12_START_INSTRUCTIONS.md'
       - 'docs/KYOTO_AI_IMPLEMENTATION13_MIGRATION_AND_PRE_DATA_PROGRESS_20261113.md'
