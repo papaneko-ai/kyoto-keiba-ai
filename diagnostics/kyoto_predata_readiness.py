@@ -18,6 +18,8 @@ CHECKS={
     "R05":("test_p3_three_window_selection_lab.py",13),
     "R06":("test_r06_pair_frame_fixed_acceptance.py",14),
     "R09":("test_p3_p5_p6_synthetic_day_lab.py",14),
+    "R11":("test_r11_predata_freeze_acceptance.py",14),
+    "R13":("test_r13_predata_durable_accounting_acceptance.py",12),
     "R12":("test_p6_virtual_settlement_fixture_lab.py",18),
 }
 IDS=tuple(f"R{i:02d}" for i in range(1,17))
