@@ -7,6 +7,9 @@ on:
       - tests/test_kyoto_nov14_fault_matrix_preflight.py
       - .github/workflows/kyoto-p1-nov14-one-shot-meeting-observation.yml
       - .github/workflows/kyoto-nov14-contingency-offline-preflight.yml
+      - .github/workflows/kyoto-nov15-encrypted-observer.yml
+      - diagnostics/kyoto_nov15_dispatch_guard.py
+      - tests/test_kyoto_nov15_dispatch_guard.py
   workflow_dispatch:
 permissions:
   contents: read
@@ -34,7 +37,9 @@ jobs:
             tests.test_kyoto_p1_nov14_receipt_handoff \
             tests.test_jra_official_link_repair \
             tests.test_p1_atomic_dual_market_handoff \
-            tests.test_jra_one_shot_market_capture 2>&1 | tee preflight_report/unittest.log
+            tests.test_jra_one_shot_market_capture \
+            tests.test_kyoto_nov15_dispatch_guard \
+            tests.test_kyoto_nov15_secure_workflow_gates 2>&1 | tee preflight_report/unittest.log
           python - <<'PY'
           import hashlib,json,os,pathlib
           tests=pathlib.Path("preflight_report/unittest.log").read_bytes()
