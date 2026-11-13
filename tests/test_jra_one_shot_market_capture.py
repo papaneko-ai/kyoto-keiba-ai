@@ -207,6 +207,26 @@ class ExistingHybridOddsTests(unittest.TestCase):
    saved=json.loads((pathlib.Path(d)/"hybrid_receipt.json").read_text())
    self.assertEqual(saved,result)
   return result,calls
+ def test_partial_pc_original_survives_failed_odds_for_offline_repair(self):
+  from dataclasses import replace
+  from pathlib import Path
+  from diagnostics.jra_one_shot_market_capture import capture_hybrid
+  spec=replace(self.spec,sp_racecard_url="")
+  def stub(out,**kwargs):
+   root=Path(out)
+   root.mkdir()
+   (root/"official_racecard.html").write_bytes(b"<html>source-only-original</html>")
+   return {"channel":"PC","race_id":spec.race_id,
+           "state":"OFFICIAL_MENU_NEEDS_RACE_NAVIGATION",
+           "pre_race_prices_accepted":False}
+  with tempfile.TemporaryDirectory() as d:
+   r=capture_hybrid(d,primary_channel="PC",
+      verified_start_utc="2026-11-07T06:45:00Z",
+      active_runners=self.runners,race_spec=spec,capture_fn=stub)
+  self.assertEqual(r["state"],"SAFE_STOP")
+  self.assertEqual(r["saved_racecard_original_channels"],["PC"])
+  self.assertFalse(r["source_capture_usable_for_offline_analysis"])
+  self.assertFalse(r["dual_channel_experiment_complete"])
  def test_pc_primary_only_without_sp_url_preserves_capture(self):
   from dataclasses import replace
   from diagnostics.jra_one_shot_market_capture import capture_hybrid
