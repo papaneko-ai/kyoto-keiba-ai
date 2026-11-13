@@ -69,6 +69,7 @@ jobs:
           python -m unittest discover -s tests -p 'test_kyoto_nov15_two_stage_encrypted_pipeline_lab.py' -v
           python -m unittest discover -s tests -p 'test_kyoto_p1_github_attempt_history_gate.py' -v
           python -m unittest discover -s tests -p 'test_p3_hybrid_prediction_contract.py' -v
+          python -m unittest discover -s tests -p 'test_p3_offline_model_tournament.py' -v
           python -m unittest discover -s tests -p 'test_p7_hybrid_shadow_evolution_cycle.py' -v
           python -m unittest discover -s tests -p 'test_p7_evo02_evo08_shadow_bridge.py' -v
           python -m unittest discover -s tests -p 'test_p7_evo_bounded_candidate_constructor.py' -v
