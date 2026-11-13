@@ -262,6 +262,45 @@ class ExistingHybridOddsTests(unittest.TestCase):
        verified_start_utc="2026-11-07T06:45:00Z",
        active_runners=self.runners,race_spec=self.spec,capture_fn=stub)
    self.assertEqual(r["state"],"SAFE_STOP")
+ def test_403_429_timeout_and_redirect_do_not_switch_host(self):
+  from diagnostics.jra_one_shot_market_capture import capture_hybrid
+  import tempfile
+  for blocked in ("HTTPError:HTTP Error 403: Forbidden",
+                  "HTTPError:HTTP Error 429: Too Many Requests",
+                  "SourceChainError:redirect_forbidden",
+                  "TimeoutError:timed out",
+                  "SourceChainError:official_http_response_invalid"):
+   with self.subTest(blocked=blocked):
+    calls=[]
+    def stub(out,**kwargs):
+     channel=kwargs["channel"]
+     calls.append(channel)
+     return {"channel":channel,"race_id":self.spec.race_id,
+             "state":"CAPTURE_BLOCKED","reason":blocked,
+             "pre_race_prices_accepted":False}
+    with tempfile.TemporaryDirectory() as d:
+     r=capture_hybrid(d,primary_channel="PC",
+       verified_start_utc="2026-11-07T06:45:00Z",
+       active_runners=self.runners,race_spec=self.spec,capture_fn=stub)
+    self.assertEqual(calls,["PC"])
+    self.assertEqual(r["state"],"SAFE_STOP")
+    self.assertTrue(r["primary_semantic_conflict_blocked"])
+ def test_404_can_use_preobserved_sp_one_time(self):
+  from diagnostics.jra_one_shot_market_capture import capture_hybrid
+  calls=[]
+  def stub(out,**kwargs):
+   channel=kwargs["channel"]
+   calls.append(channel)
+   return {"channel":channel,"race_id":self.spec.race_id,
+           "state":"CAPTURE_BLOCKED" if channel=="PC" else "SOURCE_FROZEN",
+           "reason":"HTTPError:HTTP Error 404: Not Found" if channel=="PC" else None,
+           "pre_race_prices_accepted":channel=="SP"}
+  with tempfile.TemporaryDirectory() as d:
+   r=capture_hybrid(d,primary_channel="PC",
+       verified_start_utc="2026-11-07T06:45:00Z",
+       active_runners=self.runners,race_spec=self.spec,capture_fn=stub)
+  self.assertEqual(calls,["PC","SP"])
+  self.assertEqual(r["state"],"SOURCE_ONLY_FALLBACK")
  def test_hybrid_never_authorizes_bet(self):
   r,_=self.run_hybrid(states={"PC":"SOURCE_FROZEN"})
   self.assertFalse(r["paper_trade_authorized"])
