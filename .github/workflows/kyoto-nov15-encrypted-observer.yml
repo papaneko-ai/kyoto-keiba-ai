@@ -41,6 +41,11 @@ jobs:
               raise SystemExit("NOV15_OBSERVATION_NOT_EXPLICITLY_ACTIVATED")
           if os.getenv("GITHUB_RUN_ATTEMPT")!="1":
               raise SystemExit("NOV15_OBSERVATION_RERUN_BLOCKED")
+          from datetime import datetime,timezone
+          from diagnostics.kyoto_nov15_two_original_observer import BEGIN,END
+          now=datetime.now(timezone.utc)
+          if not BEGIN <= now < END:
+              raise SystemExit("NOV15_OBSERVER_OUTSIDE_TIME_WINDOW_NO_HTTP_RETRY_SAFE")
           secret=os.environ.get("ARCHIVE_KEY","")
           if not re.fullmatch(r"[0-9a-fA-F]{64}",secret):
               raise SystemExit("NOV15_ENCRYPTED_ARCHIVE_SECRET_MISSING_OR_INVALID_NO_HTTP")
