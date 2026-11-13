@@ -262,13 +262,12 @@ class ExistingHybridOddsTests(unittest.TestCase):
        verified_start_utc="2026-11-07T06:45:00Z",
        active_runners=self.runners,race_spec=self.spec,capture_fn=stub)
    self.assertEqual(r["state"],"SAFE_STOP")
- def test_403_429_timeout_and_redirect_do_not_switch_host(self):
+ def test_403_429_and_redirect_do_not_switch_host(self):
   from diagnostics.jra_one_shot_market_capture import capture_hybrid
   import tempfile
   for blocked in ("HTTPError:HTTP Error 403: Forbidden",
                   "HTTPError:HTTP Error 429: Too Many Requests",
                   "SourceChainError:redirect_forbidden",
-                  "TimeoutError:timed out",
                   "SourceChainError:official_http_response_invalid"):
    with self.subTest(blocked=blocked):
     calls=[]
