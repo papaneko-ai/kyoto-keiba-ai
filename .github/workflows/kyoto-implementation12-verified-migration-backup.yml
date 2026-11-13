@@ -75,6 +75,7 @@ jobs:
                 "tests/test_p2_p3_p5_offline_feature_bridge.py",
                 "tests/test_p3_lab_calibration_audit.py",
                 "tests/test_p3_offline_model_tournament.py",
+                "tests/test_r06_pair_frame_fixed_acceptance.py",
                 "diagnostics/p7_add_ensemble_candidate_constructor.py",
                 "tests/test_p7_add_ensemble_candidate_constructor.py",
                 "diagnostics/kyoto_nov15_capture_acceptance.py",
