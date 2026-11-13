@@ -136,8 +136,12 @@ def audit_evo_holdout(proposal,training_journal,holdout_journal,
         raise ProposalRejected("holdout_training_race_overlap")
     lock=_utc(proposal["plan_locked_utc"])
     first=_utc(next(iter(held["freezes"].values()))["snapshot"]["cutoff_utc"])
-    if first<=lock:
+    if first<=lock or any(_utc(f["freeze_utc"])<=lock
+            for f in held["freezes"].values()):
         raise ProposalRejected("holdout_started_before_proposal_lock")
+    if any(f["registry_head_sha256"]!=proposal["registry_head_sha256"]
+           for f in held["freezes"].values()):
+        raise ProposalRejected("holdout_registry_anchor_mismatch")
     champion=proposal["champion_id"];candidate=proposal["candidate_id"]
     if any(f["predictions"][0]["model_id"]!=champion or
            f["predictions"][1]["model_id"]!=candidate for f in held["freezes"].values()):
