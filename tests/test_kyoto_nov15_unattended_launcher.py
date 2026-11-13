@@ -8,6 +8,14 @@ class LauncherTests(unittest.TestCase):
     def test_pinned_source_and_no_default_checkout(self):
         self.assertIn("ref: 4493457e1fb8c48baf289cbba754c0e94a9c42ec",self.s)
         self.assertIn("NOV15_SOURCE_REVISION_MISMATCH_NO_HTTP",self.s)
+    def test_dependency_install_precedes_pre_http_imports(self):
+        self.assertLess(self.s.index("name: Install parser and crypto"),
+                        self.s.index("name: Pre-HTTP date, launch, key, revision"))
+        self.assertLess(self.s.index("name: Pre-HTTP date, launch, key, revision"),
+                        self.s.index("name: At most two already-observed official PC HTTP GET"))
+    def test_offline_first_external_request_is_guarded(self):
+        self.assertIn("from diagnostics.kyoto_nov15_two_original_observer import BEGIN,END",self.s)
+        self.assertIn("from diagnostics.kyoto_p1_github_attempt_history_gate import audit_previous_runs",self.s)
     def test_date_and_no_rerun(self):
         self.assertIn('now.strftime("%Y-%m-%d")!="2026-11-15"',self.s)
         self.assertIn('os.environ.get("GITHUB_RUN_ATTEMPT")!="1"',self.s)
