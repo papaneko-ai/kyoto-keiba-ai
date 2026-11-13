@@ -6,7 +6,7 @@ class LauncherTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls): cls.s=P.read_text(encoding="utf8")
     def test_pinned_source_and_no_default_checkout(self):
-        self.assertIn("ref: 0465fb9f9c4f9a96d9358fee48bf47284f239185",self.s)
+        self.assertIn("ref: 9284b1bc694b7b695ad1ccb8f6d23c3b6d412a72",self.s)
         self.assertIn("NOV15_SOURCE_REVISION_MISMATCH_NO_HTTP",self.s)
     def test_dependency_install_precedes_pre_http_imports(self):
         self.assertLess(self.s.index("name: Install parser and crypto"),
@@ -30,6 +30,12 @@ class LauncherTests(unittest.TestCase):
         self.assertIn("kyoto_nov15_encrypted_evidence import encrypt_evidence",self.s)
         self.assertIn("path: nov15_unattended_evidence/",self.s)
         self.assertNotIn("path: nov15_work_originals/",self.s)
+    def test_offline_race_link_index_encrypted_not_public(self):
+        self.assertIn("python -m diagnostics.kyoto_nov15_offline_race_links",self.s)
+        self.assertIn("--output nov15_work_originals/observed_race_links.json",self.s)
+        self.assertLess(self.s.index("python -m diagnostics.kyoto_nov15_offline_race_links"),
+                        self.s.index("- name: Encrypt observation originals"))
+        self.assertIn("encrypt_evidence(source,dest",self.s)
     def test_third_observed_racecard_only_without_market_release(self):
         self.assertIn("include_observed_racecard=True",self.s)
         self.assertIn("At most THREE bounded original-only official PC HTTP GET",self.s)
