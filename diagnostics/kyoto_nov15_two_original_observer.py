@@ -16,6 +16,9 @@ from diagnostics.jra_official_link_repair import observed_links, LinkRepairRejec
 from diagnostics.jra_one_shot_market_capture import RequestPacer
 
 DAY="20261115"
+# Directly observed on the official JRA SP Kyoto 12R publication,
+# 2026-11-13. Never derived from a PC CNAME.
+OFFICIAL_SP_12_URL="https://sp.jra.jp/JRADB/accessD.html?CNAME=sw01dde0108202605041220261115%2F8E"
 BEGIN=datetime(2026,11,12,7,15,tzinfo=timezone.utc)
 END=datetime(2026,11,15,4,0,tzinfo=timezone.utc)
 
@@ -74,7 +77,7 @@ def _single_observed_racecard(meeting_original, meeting_url):
     return race,next(iter(choices[race]))
 
 def observe(selection_root, *, now_utc, opener=None, allowed=False,
-            include_observed_racecard=False, pacer=None):
+            include_observed_racecard=False, include_sp_racecard=False, pacer=None):
     root=Path(selection_root)
     if root.is_symlink() or root.exists() or not root.parent.is_dir():
         raise ObservationRejected("one_shot_output_existing_or_invalid")
@@ -90,7 +93,7 @@ def observe(selection_root, *, now_utc, opener=None, allowed=False,
              "day":DAY,"selection_source":SOURCE,"state":"STARTED",
              "http_requests_started":0,"real_racecard_verified":False,
              "both_markets_verified":False,"paper_trade_authorized":False,
-             "racecard_original_fetched":False,
+             "racecard_original_fetched":False,"sp_racecard_original_fetched":False,
              "started_at_utc":current.isoformat()}
     client=opener if opener is not None else build_opener(NoRedirect())
     # Reuse the established market-capture pacer across all bounded GETs.
@@ -137,9 +140,27 @@ def observe(selection_root, *, now_utc, opener=None, allowed=False,
                 receipt["racecard_original_fetched"]=True
                 _validate_saved_html_encoding(racecard)
                 receipt["racecard_observation"]="ORIGINAL_BYTES_CAPTURED_NOT_ROSTER_AUTHENTICATED"
+        # Optional fourth GET: exact independently published SP 12R only.
+        # This must not silently turn a different PC race into a matched pair.
+        if include_sp_racecard is True:
+            if receipt.get("racecard_number")==12 and receipt["racecard_original_fetched"]:
+                receipt["observed_sp_racecard_url"]=OFFICIAL_SP_12_URL
+                receipt["http_requests_started"]=4
+                request_pacer.before_request()
+                mobile=_read(client,OFFICIAL_SP_12_URL)
+                receipt["sp_racecard_captured_at_utc"]=datetime.now(timezone.utc).isoformat()
+                (root/"official_sp_racecard.html").write_bytes(mobile)
+                receipt["sp_racecard_sha256"]=hashlib.sha256(mobile).hexdigest()
+                receipt["sp_racecard_bytes"]=len(mobile)
+                receipt["sp_racecard_original_fetched"]=True
+                _validate_saved_html_encoding(mobile)
+            else:
+                receipt["sp_observation"]="SKIPPED_PC_12R_NOT_OBSERVED"
         # This is a link observation, not a prerace market, independent roster
         # or correctness proof for the content supplied by JRA.
-        receipt["state"]=("NOV15_RACECARD_ORIGINAL_OBSERVED_ROSTER_UNVERIFIED"
+        receipt["state"]=("NOV15_PC_SP_ORIGINALS_OBSERVED_ROSTERS_UNVERIFIED"
+                          if receipt["sp_racecard_original_fetched"] else
+                          "NOV15_RACECARD_ORIGINAL_OBSERVED_ROSTER_UNVERIFIED"
                           if receipt["racecard_original_fetched"] else
                           "NOV15_MEETING_ORIGINALS_OBSERVED_NOT_RACECARD")
     except Exception as exc:
@@ -159,7 +180,8 @@ def accept_observation(folder):
     except (OSError,ValueError) as exc:
         raise ObservationRejected("receipt_missing") from exc
     if receipt.get("state") not in ("NOV15_MEETING_ORIGINALS_OBSERVED_NOT_RACECARD",
-                                   "NOV15_RACECARD_ORIGINAL_OBSERVED_ROSTER_UNVERIFIED"):
+                                   "NOV15_RACECARD_ORIGINAL_OBSERVED_ROSTER_UNVERIFIED",
+                                   "NOV15_PC_SP_ORIGINALS_OBSERVED_ROSTERS_UNVERIFIED"):
         raise ObservationRejected("observation_not_successful")
     # Reject forged market/roster success and impossible HTTP accounting. 
     # A saved PC-only observation cannot certify independent SP or markets.
