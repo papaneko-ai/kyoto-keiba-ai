@@ -6,7 +6,10 @@ class LauncherTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls): cls.s=P.read_text(encoding="utf8")
     def test_pinned_source_and_no_default_checkout(self):
-        self.assertIn("ref: b03c0a0543e65479832a01a590df94f3a28f2b92",self.s)
+        import re
+        source=re.search(r"ref: ([0-9a-f]{40})",self.s)
+        self.assertIsNotNone(source)
+        self.assertIn('actual!="'+source.group(1)+'"',self.s)
         self.assertIn("NOV15_SOURCE_REVISION_MISMATCH_NO_HTTP",self.s)
     def test_new_offline_tests_precede_every_live_request(self):
         marker="Verify new source acquisition and encryption regressions without JRA HTTP"
