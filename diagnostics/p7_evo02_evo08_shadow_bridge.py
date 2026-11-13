@@ -16,6 +16,7 @@ from diagnostics.p7_hybrid_shadow_evolution_cycle import (
 from diagnostics.p7_guarded_research_rollback import guard_research_champion
 from diagnostics.p7_independent_research_certification import (
     independent_research_audit)
+from diagnostics.kyoto_f17_executable_lab_streams import summarize_frozen_evo02_evo08_errors
 
 class ProposalRejected(ValueError):
     pass
@@ -87,18 +88,7 @@ def propose_evo02_evo08(training_journal,registry_path,*,champion_id,
            x["predictions"][1]["model_id"]!=challenger_id
            for x in state["freezes"].values()):
         raise ProposalRejected("training_forecast_model_pair_mismatch")
-    groups=[]
-    for name in ("CROSS_FRAME","SAME_FRAME"):
-        sub=[x for x in rows if x["error_category"]==name]
-        if sub:
-            groups.append({"category":name,"races":len(sub),
-                "champion_mean_log_loss":fsum(x["champion_loss"] for x in sub)/len(sub),
-                "challenger_mean_log_loss":fsum(x["challenger_loss"] for x in sub)/len(sub)})
-    groups.sort(key=lambda x:(-x["champion_mean_log_loss"],x["category"]))
-    surprise=[{"race_id":x["race_id"],"probability":x["champion_winning_pair_probability"],
-               "category":x["error_category"]} for x in rows
-               if x["champion_winning_pair_probability"]<=surprise_ceiling]
-    surprise.sort(key=lambda x:(x["probability"],x["race_id"]))
+    analysis=summarize_frozen_evo02_evo08_errors(rows,surprise_ceiling=surprise_ceiling)
     payload={
         "schema":"kyoto_evo02_evo08_registry_shadow_proposal.v1",
         "scope":"LAB_TRAINING_ONLY_NOT_JRA",
@@ -111,10 +101,7 @@ def propose_evo02_evo08(training_journal,registry_path,*,champion_id,
         "champion_id":champion_id,"candidate_id":challenger_id,
         "alternate_id":alternative_id,
         "candidate_kind":challenger["model"]["kind"],
-        "evo02_weakness_groups":groups,
-        "evo02_priority":groups[0]["category"],
-        "evo08_surprise_cases":surprise,
-        "evo08_surprise_ceiling":float(surprise_ceiling),
+        **analysis,
         "proposal_strategy":"TEST_PRE_REGISTERED_CANDIDATE_ON_DISJOINT_HOLDOUT",
         "candidate_generated_or_trained":False,
         "independently_certified":False,
