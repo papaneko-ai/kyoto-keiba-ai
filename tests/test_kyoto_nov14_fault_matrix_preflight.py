@@ -47,7 +47,13 @@ class Nov14FaultMatrixTests(unittest.TestCase):
     def run_capture(self,opener,clock=WHEN):
         with tempfile.TemporaryDirectory() as directory:
             receipt=inspect_once(directory,opener=opener,clock=clock)
-            state=assess_saved_selection(directory)
+            try:
+                state=assess_saved_selection(directory)
+            except HandoffRejected as exc:
+                if (receipt["status"]!="FAILED_CLOSED" or
+                    str(exc)!="failed_capture_contains_unverified_original"):
+                    raise
+                state={"state":"UNVERIFIED_SOURCE_PRESERVED_BUT_HANDOFF_REJECTED"}
             return receipt,state
 
     def test_prior_attempt_is_locked_and_never_repeated(self):
@@ -117,7 +123,7 @@ class Nov14FaultMatrixTests(unittest.TestCase):
         stub=Stub(Reply(b'\x81'))
         receipt,state=self.run_capture(stub)
         self.assertEqual(receipt["status"],"FAILED_CLOSED")
-        self.assertEqual(state["state"],"FAILED_OFFICIAL_CAPTURE_SAFE_STOP")
+        self.assertEqual(state["state"],"UNVERIFIED_SOURCE_PRESERVED_BUT_HANDOFF_REJECTED")
 
     def test_invalid_encoding_source_is_saved_but_cannot_be_accepted(self):
         import hashlib
@@ -129,8 +135,8 @@ class Nov14FaultMatrixTests(unittest.TestCase):
             self.assertEqual(receipt["status"],"FAILED_CLOSED")
             self.assertEqual((Path(directory)/"official_selection.html").read_bytes(),broken)
             self.assertEqual(receipt["source_sha256"],hashlib.sha256(broken).hexdigest())
-            state=assess_saved_selection(directory)
-            self.assertNotEqual(state["state"],"OFFICIAL_MEETING_LINK_OBSERVED_NOT_RACECARD")
+            with self.assertRaisesRegex(HandoffRejected,"failed_capture_contains_unverified_original"):
+                assess_saved_selection(directory)
     def test_oversize_page_failed_closed(self):
         stub=Stub(Reply(b"x"*(LIMIT+1)))
         receipt,state=self.run_capture(stub)
@@ -149,7 +155,7 @@ class Nov14FaultMatrixTests(unittest.TestCase):
         receipt,state=self.run_capture(stub)
         self.assertEqual(receipt["status"],"FAILED_CLOSED")
         self.assertEqual(receipt["safe_error_code"],"ambiguous_current_kyoto_link")
-        self.assertEqual(state["state"],"FAILED_OFFICIAL_CAPTURE_SAFE_STOP")
+        self.assertEqual(state["state"],"UNVERIFIED_SOURCE_PRESERVED_BUT_HANDOFF_REJECTED")
 
     def test_valid_official_like_fixture_does_not_certify_race_or_markets(self):
         stub=Stub(Reply(html(LINK)))
