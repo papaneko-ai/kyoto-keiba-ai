@@ -39,8 +39,8 @@ def verify_rubric(rubric):
         if (set(gate)!={"id","title","phase","acceptance","automation"}
             or any(type(gate[k]) is not str or not gate[k].strip()
                    for k in ("title","phase","acceptance"))
-            or (gate["id"] in CHECKS and gate["automation"]!={"suite":CHECKS[gate["id"]][0],"tests":CHECKS[gate["id"]][1]})
-            or (gate["id"] not in CHECKS and gate["automation"] is not None)):
+            or (gate["automation"] is not None and
+                (gate["id"] not in CHECKS or gate["automation"]!={"suite":CHECKS[gate["id"]][0],"tests":CHECKS[gate["id"]][1]}))):
             raise ReadinessRejected("fixed_gate_schema_or_test_contract_changed")
     return True
 
