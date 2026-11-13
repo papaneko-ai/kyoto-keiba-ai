@@ -34,7 +34,7 @@ def derive_nov15_race_links(folder):
             if DAY not in token:continue
             if "京都" not in label and "京都" not in str(receipt.get("meeting_label","")):
                 continue
-            found=re.search(r"(?<![0-9])(?:0?([1-9])|1([0-2]))\\s*(?:R|レース)(?![0-9])",label,re.IGNORECASE)
+            found=re.search(r"(?<![0-9])(?:0?([1-9])|1([0-2]))\s*(?:R|レース)(?![0-9])",label,re.IGNORECASE)
             if not found:continue
             race=int(found.group(1) or "1"+found.group(2))
             # Race number AND entire day must be present in original observed token.
