@@ -170,3 +170,80 @@ def forecast_lab_generated(proposal,registry_path,snapshot,baseline_forecast):
         category=config["category"],multiplier_bps=config["factor_bps"])
     check_lab_prediction(registry_path,snapshot,prediction)
     return prediction
+
+
+def audit_generated_holdout(proposal,training_journal,holdout_journal,
+                            registry_path,*,min_races=10,comparison_count=14):
+    """Recompute every holdout forecast independently from locked formula.
+
+    Require independent P7 Brier/sign-test *and* paired actual-winning-pair
+    log-loss guard. No result is used to choose the multiplier. This is still
+    synthetic research, not real-source EVO07 certification.
+    """
+    from diagnostics.p7_independent_research_certification import independent_research_audit
+    from diagnostics.p7_guarded_research_rollback import guard_research_champion
+    from diagnostics.p7_hybrid_shadow_evolution_cycle import scored_pairs
+    if type(proposal) is not dict or proposal.get("schema")!="kyoto_evo_generated_frame_candidate.v1":
+        raise CandidateBuildRejected("generated_proposal_required")
+    if type(min_races) is not int or min_races<10 or type(comparison_count) is not int or not 1<=comparison_count<=14:
+        raise CandidateBuildRejected("holdout_limit_or_multiplicity_invalid")
+    if read_shadow(training_journal)["head"]!=proposal["training_journal_head_sha256"]:
+        raise CandidateBuildRejected("training_evidence_changed")
+    held=read_shadow(holdout_journal)
+    if (len(held["freezes"])<min_races or len(held["settled"])!=len(held["freezes"])
+        or held["decisions"] or
+        set(held["freezes"]) & set(read_shadow(training_journal)["freezes"])):
+        raise CandidateBuildRejected("disjoint_complete_holdout_required")
+    rows=[]
+    for rid,freeze in held["freezes"].items():
+        if (_utc(freeze["freeze_utc"])<=_utc(proposal["plan_locked_utc"])
+            or _utc(freeze["snapshot"]["cutoff_utc"])<=_utc(proposal["plan_locked_utc"])):
+            raise CandidateBuildRejected("holdout_frozen_before_candidate_lock")
+        original,new=freeze["predictions"]
+        expected=forecast_lab_generated(proposal,registry_path,freeze["snapshot"],original)
+        if new!=expected or new["model_id"]!=proposal["generated_model_id"]:
+            raise CandidateBuildRejected("holdout_generated_forecast_not_reproducible")
+        if freeze["registry_head_sha256"]!=proposal["post_registration_registry_head_sha256"]:
+            raise CandidateBuildRejected("holdout_registry_head_mismatch")
+        result=held["settled"][rid]
+        top=sorted(original["quinella"],key=lambda x:(-x["probability"],x["pair"]))[0]["pair"]
+        old_p=next(x["probability"] for x in original["quinella"] if x["pair"]==top)
+        new_p=next(x["probability"] for x in new["quinella"] if x["pair"]==top)
+        if not 0<old_p<1 or not 0<new_p<1:
+            raise CandidateBuildRejected("binary_pair_probability_out_of_range")
+        rows.append({"race_id":rid,"frozen_utc":freeze["snapshot"]["cutoff_utc"],
+            "result_utc":result["outcome_utc"],
+            "champion_probability":old_p,"candidate_probability":new_p,
+            "outcome":int(top==result["winning_pair"])})
+    plan={"champion":proposal["baseline_id"],"candidate":proposal["generated_model_id"],
+        "researcher_id":"LAB-EVO-CONSTRUCTOR",
+        "auditor_id":"LAB-INDEPENDENT-P7-EVALUATOR",
+        "training_end_utc":proposal["model_spec"]["training_end_utc"],
+        "plan_locked_utc":proposal["plan_locked_utc"],
+        "min_races":min_races,"min_mean_improvement":0.01,
+        "min_win_fraction":0.75,"comparison_count":comparison_count,
+        "holdout_race_ids":list(held["freezes"])}
+    independent=independent_research_audit(plan,rows)
+    guard=guard_research_champion(
+        champion=proposal["baseline_id"],candidate=proposal["generated_model_id"],
+        alternate="LAB-BASELINE-NO-DEPLOY",
+        observations=scored_pairs(holdout_journal),
+        min_races=min_races,min_mean_improvement=0.01,
+        min_paired_win_fraction=0.75)
+    passed=(independent["research_gate"]=="LAB_ONLY_PASS" and
+            guard["decision"]=="SHADOW_CANDIDATE_ELIGIBLE_FOR_INDEPENDENT_AUDIT")
+    payload={"schema":"kyoto_generated_evo_shadow_holdout_audit.v1",
+        "proposal_sha256":proposal["proposal_sha256"],
+        "training_journal_sha256":read_shadow(training_journal)["head"],
+        "holdout_journal_sha256":held["head"],
+        "registered_candidate_id":proposal["generated_model_id"],
+        "holdout_race_count":len(rows),
+        "brier_independent_audit_sha256":independent["audit_sha256"],
+        "logloss_guard_sha256":guard["decision_sha256"],
+        "independent_brier_gate":independent["research_gate"],
+        "paired_logloss_gate":guard["decision"],
+        "decision":"LAB_GENERATED_CANDIDATE_FOR_FURTHER_AUDIT" if passed else "LAB_REJECT_GENERATED_RETAIN_BASELINE",
+        "candidate_deployed":False,
+        "genuine_JRA_evidence_authenticated":False,
+        "real_bet_authorized":False}
+    return {**payload,"audit_sha256":_hash(payload)}
