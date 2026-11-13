@@ -13,6 +13,7 @@ if str(ROOT) not in sys.path:
 
 import streamlit as st
 from diagnostics.p5_manual_allocation import allocate
+from diagnostics.p8_r15_safe_mobile_viewmodel import build_mobile_state, MobileStateRejected
 
 st.set_page_config(
     page_title="京都競馬AI｜新スマホ実践画面",
@@ -32,6 +33,7 @@ div[data-testid="stTabs"] button {font-size:.72rem!important;padding:.35rem .25r
 )
 st.title("🏇 京都競馬AI")
 st.caption("新開発スマホ画面｜仮想投資優先・開発プレビュー")
+selected_date = st.date_input("開催日（表示用・実開催情報未認証）", value=__import__('datetime').date(2026,11,14))
 st.warning(
     "実開催の発走前情報・予測・永続仮想通帳・公式払戻は未接続です。"
     "現在は操作画面の試作版で、実際の馬券購入は行いません。"
@@ -50,6 +52,13 @@ with tab_budget:
     market = st.radio("券種", ("馬連", "枠連"), horizontal=True)
     st.metric("仮想予算上限", f"{budget:,}円")
     st.caption(f"現在選択中：{market}／仮想購入は未登録")
+    try:
+        mobile_state=build_mobile_state(meeting_date=selected_date.isoformat(),market=market,budget_yen=int(budget))
+    except MobileStateRejected:
+        st.error("入力を検証できません。予測・仮想登録を安全停止しました。")
+        st.stop()
+    st.warning("安全停止中：" + " / ".join(mobile_state["reasons"]))
+    st.caption("受入SHA256：" + mobile_state["receipt_sha256"])
     st.info("予算と券種だけを設定できます。実データ未接続のため購入登録はできません。")
     with st.expander("資金配分の操作練習（実レースではありません）"):
         count = st.slider("配分先の数", 1, 4, 3)
@@ -69,6 +78,8 @@ with tab_races:
     st.subheader("推奨レース・買い目")
     st.info("発走前データの真正性が未確認のため、推奨レース・順位・買い目は表示しません。")
     st.caption("接続後は順位・推定確率・期待値・データ時刻・推奨理由を表示します。")
+    st.write("現在の推奨順位：未認定（表示不可）")
+    st.write("発走前凍結：未確認／買い目：表示不可")
     st.button("仮想馬券を登録", disabled=True,
               help="実開催の発走前原本と永続記録が検証できるまで無効")
 
@@ -111,6 +122,7 @@ with tab_results:
     b.metric("回収率", "未確定")
     st.metric("累積損益", "未確定")
     st.caption("速報・確定・返還・訂正を区別。未確定をゼロ円にしません。")
+    st.write("累積収支：未接続（0円とは扱いません）")
 
     with st.expander("JRA公式の過去の確定結果・払戻（仮想投資の成績ではありません）"):
         try:
@@ -137,6 +149,7 @@ with tab_evolution:
     st.write("候補モデル：未評価")
     st.write("進化判定：未実施")
     st.caption("モデルの採否には未使用期間の独立評価を必要とします。")
+    st.write("進化履歴：未接続／旧モデル復帰記録：未確認")
 
 with tab_mode:
     st.subheader("運用モード")
