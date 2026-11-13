@@ -6,8 +6,18 @@ class LauncherTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls): cls.s=P.read_text(encoding="utf8")
     def test_pinned_source_and_no_default_checkout(self):
-        self.assertIn("ref: b854f30f106e169a4e179f44a7870e0e1295e625",self.s)
+        self.assertIn("ref: b03c0a0543e65479832a01a590df94f3a28f2b92",self.s)
         self.assertIn("NOV15_SOURCE_REVISION_MISMATCH_NO_HTTP",self.s)
+    def test_new_offline_tests_precede_every_live_request(self):
+        marker="Verify new source acquisition and encryption regressions without JRA HTTP"
+        self.assertIn(marker,self.s)
+        self.assertIn("test_kyoto_nov15_two_original_observer.py",self.s)
+        self.assertIn("test_kyoto_nov15_offline_race_links.py",self.s)
+        self.assertIn("test_kyoto_nov15_encrypted_evidence.py",self.s)
+        self.assertLess(self.s.index(marker),
+                        self.s.index("Pre-HTTP date, launch, key, revision"))
+        self.assertLess(self.s.index(marker),
+                        self.s.index("At most EIGHT bounded original-only official PC HTTP requests"))
     def test_dependency_install_precedes_pre_http_imports(self):
         self.assertLess(self.s.index("name: Install parser and crypto"),
                         self.s.index("name: Pre-HTTP date, launch, key, revision"))
