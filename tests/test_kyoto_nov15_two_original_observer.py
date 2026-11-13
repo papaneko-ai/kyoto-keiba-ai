@@ -65,6 +65,21 @@ class ObservationTests(unittest.TestCase):
                 "meeting_captured_at_utc","racecard_captured_at_utc","ended_at_utc"):
         self.assertIn(key,result)
         self.assertTrue(result[key].endswith("+00:00"))
+ def test_later_numbered_observed_race_is_preferred_without_start_claim(self):
+    race_anchors=('<html>'
+      '<a href="/JRADB/accessD.html?CNAME=pw020aaa01%2F0120261115">京都 1R</a>'
+      '<a href="/JRADB/accessD.html?CNAME=pw020aaa12%2F1220261115">京都 12R</a>'
+      '</html>').encode("cp932")
+    class Three(Stub):
+      def open(self,request,timeout=12):
+        self.urls.append(request.full_url)
+        return R(request.full_url,self.selection if len(self.urls)==1 else
+                 race_anchors if len(self.urls)==2 else b"<html>racecard</html>")
+    result=observe(self.root,now_utc="2026-11-15T02:00:00Z",
+                   opener=Three(),allowed=True,include_observed_racecard=True)
+    self.assertEqual(result["racecard_number"],12)
+    self.assertEqual(result["http_requests_started"],3)
+    self.assertFalse(result["real_racecard_verified"])
  def test_no_observed_race_means_only_two_gets(self):
     stub=Stub()
     result=observe(self.root,now_utc="2026-11-15T02:00:00Z",opener=stub,
