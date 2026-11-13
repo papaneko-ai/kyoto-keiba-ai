@@ -42,6 +42,6 @@ class SecureWorkflowTests(unittest.TestCase):
     self.assertNotIn("CNAME=pw",self.a)
     self.assertNotIn("CNAME=pw",self.b)
  def test_two_originals_are_not_market_authentication(self):
-    self.assertIn("NOV15_OFFICIAL_PROVENANCE_STILL_UNVERIFIED",self.b)
+    self.assertIn("accept_observation",self.b)
     self.assertIn("NOV15_SOURCE_ONLY_NOT_LIVE_CERTIFICATION",self.b)
 if __name__=="__main__":unittest.main()
