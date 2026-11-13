@@ -14,20 +14,20 @@ class ReadinessTests(unittest.TestCase):
  def test_frozen_sixteen_denominator(self):
     self.assertEqual(len(IDS),16)
     self.assertTrue(verify_rubric(self.rubric))
- def test_all_four_evidenced_suites_score_exactly_25(self):
+ def test_all_five_evidenced_suites_score_exactly_31_25(self):
     r=evaluate(ROOT,results=self.receipts)
     self.assertEqual(r["total_gates"],16)
-    self.assertEqual(r["passed_gates"],4)
-    self.assertEqual(r["remaining_gates"],12)
-    self.assertEqual(r["completion_percent"],25)
-    self.assertEqual(r["accepted_gate_ids"],["R03","R05","R09","R12"])
+    self.assertEqual(r["passed_gates"],5)
+    self.assertEqual(r["remaining_gates"],11)
+    self.assertEqual(r["completion_percent"],31.25)
+    self.assertEqual(r["accepted_gate_ids"],["R03","R05","R06","R09","R12"])
     self.assertFalse(r["revert_to_original_scoring_now"])
     self.assertFalse(r["live_paper_trading_authorized"])
  def test_failing_suite_cannot_get_credit(self):
     self.receipts["R12"]=False
     r=evaluate(ROOT,results=self.receipts)
-    self.assertEqual(r["passed_gates"],3)
-    self.assertEqual(r["completion_percent"],18.75)
+    self.assertEqual(r["passed_gates"],4)
+    self.assertEqual(r["completion_percent"],25.0)
  def test_no_suite_results_means_no_credit(self):
     self.assertEqual(evaluate(ROOT,run_tests=False)["passed_gates"],0)
  def test_fake_added_gate_refused(self):
