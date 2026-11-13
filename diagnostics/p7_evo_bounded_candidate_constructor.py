@@ -185,7 +185,13 @@ def audit_generated_holdout(proposal,training_journal,holdout_journal,
     from diagnostics.p7_hybrid_shadow_evolution_cycle import scored_pairs
     if type(proposal) is not dict or proposal.get("schema")!="kyoto_evo_generated_frame_candidate.v1":
         raise CandidateBuildRejected("generated_proposal_required")
-    if type(min_races) is not int or min_races<10 or type(comparison_count) is not int or not 1<=comparison_count<=14:
+    # The fixed grid tests 12 nontrivial hypotheses (2 frame groups x 6
+    # nonidentity multipliers). Understating multiplicity inflates research
+    # significance and is never permitted, even when one model wins training.
+    fixed_family_count=2*(len(GRID_BPS)-1)
+    if (type(min_races) is not int or min_races<10
+        or type(comparison_count) is not int
+        or comparison_count<fixed_family_count or comparison_count>64):
         raise CandidateBuildRejected("holdout_limit_or_multiplicity_invalid")
     if read_shadow(training_journal)["head"]!=proposal["training_journal_head_sha256"]:
         raise CandidateBuildRejected("training_evidence_changed")
