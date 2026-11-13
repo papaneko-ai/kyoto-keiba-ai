@@ -1,0 +1,69 @@
+{
+  "schema": "kyoto_20261113_evo_bounded_executable_candidate_constructor_milestone.v1",
+  "date_jst": "2026-11-13",
+  "branch": "jra-html-diagnostic-20261105",
+  "milestone": "EVO02_EVO08_RESEARCH_DISCOVERY_TO_ACTUAL_BOUNDED_CANDIDATE_CONSTRUCTION_AND_DISJOINT_P7_DUAL_HOLDOUT_LAB_ACCEPTED",
+  "tested_commit": "93a31f915b74821da98b699ef21528dadc183440",
+  "verification": {
+    "workflow_run": 43354731435,
+    "job_id": 131653929019,
+    "status": "success",
+    "new_target_tests": 16,
+    "passed": 16,
+    "failed": 0,
+    "real_JRA_http": 0,
+    "actual_horse_wager": 0
+  },
+  "reused_existing": [
+    "F17 EVO02/08 frozen champion weakness/surprise aggregation",
+    "P3 shared all-quinella and bracket-frame probability contract",
+    "P7 append-only hashed four-family model registry and parent history",
+    "P7 immutable chronological race freeze, later LAB result labels",
+    "P7 independent signed-rank-ish Brier/sign test and paired proper log-loss rollback guard"
+  ],
+  "implemented": [
+    "Generate a genuinely executable, bounded probability transformation rather than merely naming a candidate",
+    "Fit predeclared 12 non-identity frame-group multiplier formulas from settled six-or-more LAB training races only",
+    "Reject candidate when best training log loss gain does not meet fixed minimum; no registry mutation",
+    "Register an actual new LAB MODIFY model with lineage and hashed training-derived configuration; preserve baseline",
+    "Produce normalized all-pair quinella probabilities and derived frame-pair bracket market on held-out snapshots from formula, no result access",
+    "Lock exact model registry/proposal before future LAB forecasts; refuse tampering or changed registry",
+    "Independently rederive all frozen holdout challenger predictions and check no wrong model, mismatched race or train/test overlap",
+    "Require at least 10 disjoint prospective LAB races, correct cutoff and frozen-after-plan timestamps",
+    "Require P7 Brier/sign-test and paired actual-winning-pair log-loss gates both to pass before any further research consideration",
+    "Correct for candidate exploration with minimum comparison_count=12 in independent holdout; cannot pass comparison_count=1",
+    "Test positive LAB outcomes, opposite losing outcomes, no improvement, missing labels, future leakage, changed config and registry"
+  ],
+  "files": [
+    "diagnostics/p7_evo_bounded_candidate_constructor.py",
+    "tests/test_p7_evo_bounded_candidate_constructor.py",
+    ".github/workflows/kyoto-ai-always-run-continuity.yml"
+  ],
+  "limitations": [
+    "LAB fixtures produce outcomes; no actual official pre-race odds, racecard, or JRA settlement authenticated",
+    "Model modifies frame-group pair probabilities only; does not generate ADD/ENSEMBLE features or arbitrary new code",
+    "Optimizing a finite grid on six LAB races can overfit despite independent holdout: no evidence of useful production accuracy",
+    "Lab proposal and registry SHA are not externally timestamped or Ed25519-signed release certification",
+    "Candidate accepted only for further LAB research, not automatically deployed, not Turso/public Streamlit, not actual bet",
+    "Need EVO07 independent evidence and P1/P6 real frozen-date evaluation; no shortcuts",
+    "Maintain Nov14/Nov15 one-shot access precautions and protected production surfaces"
+  ],
+  "fixed_progress": {
+    "research_percent": 100,
+    "accepted_components": "32/32",
+    "graduation_percent": 100,
+    "major_feature_groups": "21/21",
+    "real_event_independent": "0/6",
+    "operational_floor": "0/100",
+    "final_gate_floor": "35/100",
+    "change": "0"
+  },
+  "next_step": "EVO ADD/ENSEMBLE candidate constructor and independent control-plane certification, then actual P1->P6 immutable pre-race data and official result validation; keep live paper trading MVP highest operational priority",
+  "protected": [
+    "main",
+    "production Turso",
+    "public Streamlit",
+    "Secrets",
+    "real purchasing"
+  ]
+}
