@@ -19,6 +19,10 @@ on:
       - tests/test_kyoto_nov15_observer_artifact_identity.py
       - diagnostics/kyoto_nov15_offline_race_links.py
       - tests/test_kyoto_nov15_offline_race_links.py
+      - diagnostics/kyoto_nov15_two_original_observer.py
+      - diagnostics/kyoto_nov15_encrypted_evidence.py
+      - tests/test_kyoto_nov15_two_original_observer.py
+      - tests/test_kyoto_nov15_encrypted_evidence.py
   workflow_dispatch:
 permissions:
   contents: read
@@ -34,7 +38,7 @@ jobs:
         with:
           python-version: '3.11'
       - name: Install only existing offline HTML parser
-        run: python -m pip install 'beautifulsoup4>=4.12,<5'
+        run: python -m pip install 'beautifulsoup4>=4.12,<5' 'cryptography>=43,<47'
       - name: Run offline failure matrix and existing official-source/market validators
         shell: bash
         run: |
@@ -52,7 +56,9 @@ jobs:
             tests.test_kyoto_nov15_unattended_launcher \
             tests.test_kyoto_race_day_http_gate \
             tests.test_kyoto_nov15_observer_artifact_identity \
-            tests.test_kyoto_nov15_offline_race_links 2>&1 | tee preflight_report/unittest.log
+            tests.test_kyoto_nov15_offline_race_links \
+            tests.test_kyoto_nov15_two_original_observer \
+            tests.test_kyoto_nov15_encrypted_evidence 2>&1 | tee preflight_report/unittest.log
           python - <<'PY'
           import hashlib,json,os,pathlib
           tests=pathlib.Path("preflight_report/unittest.log").read_bytes()
