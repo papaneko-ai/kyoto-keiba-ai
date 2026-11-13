@@ -56,8 +56,8 @@ def readiness(root=".", *, clock_utc="2026-11-14T12:00:00Z", paths=None):
     now=datetime.fromisoformat(clock_utc.replace("Z","+00:00"))
     if now.utcoffset()!=timedelta(0):
         raise SecondDayRejected("readiness_clock_must_be_utc")
-    if now >= datetime(2026,11,15,0,0,tzinfo=timezone.utc):
-        invalid.append("NOV15_PRERACE_PREPARATION_WINDOW_EXPIRED")
+    if now >= datetime(2026,11,16,0,0,tzinfo=timezone.utc):
+        invalid.append("NOV15_OBSERVATION_DAY_EXPIRED")
     if not missing and not invalid:
         try:
             text=originals["start"].decode("utf8").strip()
