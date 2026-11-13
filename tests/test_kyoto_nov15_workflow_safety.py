@@ -19,7 +19,7 @@ class Nov15WorkflowSafetyTests(unittest.TestCase):
  def test_replay_attempt_blocked_before_network(self):
     self.assertIn('GITHUB_RUN_ATTEMPT',self.s)
     self.assertIn('NOV15_PRIOR_DISPATCH_OR_OTHER_CAPTURE_ALREADY_EXISTS_NO_REPEAT',self.s)
-    self.assertLess(self.s.index('NOV15_PRIOR_DISPATCH_ALREADY_EXISTS_NO_REPEAT'),self.s.index('--authorized-live-http'))
+    self.assertLess(self.s.index('NOV15_PRIOR_DISPATCH_OR_OTHER_CAPTURE_ALREADY_EXISTS_NO_REPEAT'),self.s.index('--authorized-live-http'))
  def test_fail_closed_git_hub_run_api(self):
     self.assertIn('NOV15_PRIOR_RUN_AUDIT_INCOMPLETE',self.s)
     self.assertIn('current_seen',self.s)
@@ -33,6 +33,8 @@ class Nov15WorkflowSafetyTests(unittest.TestCase):
     self.assertNotIn('--hybrid',self.s)
  def test_no_live_model_or_real_wager(self):
     self.assertIn('NO_REAL_BETS=TRUE',self.s)
+    self.assertIn('python -m diagnostics.kyoto_nov15_capture_acceptance',self.s)
+    self.assertLess(self.s.index('--authorized-live-http'),self.s.index('python -m diagnostics.kyoto_nov15_capture_acceptance'))
     self.assertIn('NOV15_SOURCE_ONLY_NOT_LIVE_CERTIFICATION=TRUE',self.s)
  def test_utc_start_must_be_verified(self):
     self.assertIn('NOV15_VERIFIED_START_NOT_PROVIDED',self.s)
