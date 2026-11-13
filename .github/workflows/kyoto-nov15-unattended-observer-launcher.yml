@@ -59,7 +59,7 @@ jobs:
               raise SystemExit("NOV15_SOURCE_REVISION_MISMATCH_NO_HTTP")
           print("NOV15_UNATTENDED_OBSERVER_DATE_AND_KEY_GATES_PASS")
           with open(os.environ["GITHUB_ENV"],"a",encoding="utf8") as e:
-              e.write("NOV_SOURCE_PRECHECK_OK=1\\n")
+              e.write("NOV_SOURCE_PRECHECK_OK=1\n")
           PY
       - name: At most EIGHT bounded original-only official PC HTTP requests
         shell: bash
@@ -78,7 +78,7 @@ jobs:
           if r["state"] in ("NOV15_MEETING_ORIGINALS_OBSERVED_NOT_RACECARD",
                               "NOV15_RACECARD_ORIGINAL_OBSERVED_ROSTER_UNVERIFIED"):
               with open(os.environ["GITHUB_ENV"],"a",encoding="utf8") as e:
-                  e.write("PC_CAPTURE_OK=1\\n")
+                  e.write("PC_CAPTURE_OK=1\n")
           else:
               print("PC_CAPTURE_FAILED_SP_WILL_STILL_BE_ATTEMPTED")
           PY
@@ -102,7 +102,7 @@ jobs:
               opener=build_opener(NoRedirect(),HTTPCookieProcessor(CookieJar())))
           report=compare_saved_pc_sp(root,race_day=os.environ["KYOTO_TARGET_DAY"])
           (root/"pc_sp_comparison.json").write_text(
-              json.dumps(report,ensure_ascii=False,sort_keys=True,indent=2)+"\\n",
+              json.dumps(report,ensure_ascii=False,sort_keys=True,indent=2)+"\n",
               encoding="utf8")
           print("SP_ORIGINAL_CAPTURE_STATE="+r["state"])
           print("PC_SP_OFFLINE_COMPARE="+report["state"])
