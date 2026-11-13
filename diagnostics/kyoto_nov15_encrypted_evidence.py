@@ -8,7 +8,7 @@ import hashlib,io,json,re,secrets,tarfile
 from pathlib import Path
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 
-FILES={"official_selection.html","official_meeting.html","receipt.json"}
+FILES={"official_selection.html","official_meeting.html","official_racecard.html","receipt.json"}
 class EvidenceCryptoRejected(ValueError):pass
 
 def _key(s):
