@@ -401,9 +401,51 @@ def accept_observation(folder):
         "odds_menu_action")):
         raise ObservationRejected("unclaimed_odds_menu_original")
     if has_menu:
+        final_menu_original=(root/"official_odds_menu.html").read_bytes()
+        nav_spec=SimpleNamespace(
+            race_day=DAY,race_number=receipt["racecard_number"])
+        for stage in (1,2):
+            prefix="navigation_"+str(stage)
+            path=root/("official_odds_navigation_"+str(stage)+".html")
+            claimed=receipt.get(prefix+"_original_fetched") is True
+            attempted=receipt.get("navigation_requests_started",0)>=stage
+            if not attempted:
+                if path.exists() or any(k in receipt for k in (
+                    prefix+"_sha256",prefix+"_bytes",
+                    prefix+"_captured_at_utc",prefix+"_action")):
+                    raise ObservationRejected("unclaimed_navigation_original")
+                continue
+            if not claimed:
+                if path.exists() or any(k in receipt for k in (
+                    prefix+"_sha256",prefix+"_bytes",
+                    prefix+"_captured_at_utc",prefix+"_action")):
+                    raise ObservationRejected("unclaimed_navigation_original")
+                break
+            try:
+                expected_token=observed_next_market_action(
+                    final_menu_original,"PC",nav_spec,step=stage-1)
+            except SourceChainError as exc:
+                raise ObservationRejected("navigation_token_not_observed") from exc
+            if expected_token!=receipt.get(prefix+"_action"):
+                raise ObservationRejected("navigation_action_mismatch")
+            if path.is_symlink() or not path.is_file():
+                raise ObservationRejected("navigation_original_missing")
+            raw=path.read_bytes()
+            if (not 0<len(raw)<=LIMIT
+                or hashlib.sha256(raw).hexdigest()!=receipt.get(prefix+"_sha256")
+                or len(raw)!=receipt.get(prefix+"_bytes")):
+                raise ObservationRejected("navigation_original_digest_mismatch")
+            try:
+                stamp=datetime.fromisoformat(
+                    receipt[prefix+"_captured_at_utc"].replace("Z","+00:00"))
+            except (ValueError,TypeError,KeyError) as exc:
+                raise ObservationRejected("navigation_timestamp_invalid") from exc
+            if stamp.utcoffset()!=timezone.utc.utcoffset(None):
+                raise ObservationRejected("navigation_timestamp_not_utc")
+            final_menu_original=raw
         try:
             observed_market_links=find_market_links(
-                (root/"official_odds_menu.html").read_bytes(),
+                final_menu_original,
                 expected_race_day=DAY,
                 expected_race_number=receipt["racecard_number"],
                 expected_host="jra.jp")
