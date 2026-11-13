@@ -21,7 +21,7 @@ jobs:
       - name: Checkout fixed verified development source (never default branch code)
         uses: actions/checkout@v4
         with:
-          ref: 344abadb407afa3d10383686365d7df8bfcfcf6b
+          ref: d826b9b7f9904850355bd21c3d513025eb181fbf
           persist-credentials: false
       - uses: actions/setup-python@v5
         with:
@@ -48,7 +48,7 @@ jobs:
           if not re.fullmatch(r"[0-9a-fA-F]{64}",os.environ.get("ARCHIVE_KEY","")):
               raise SystemExit("NOV15_ARCHIVE_SECRET_INVALID_NO_HTTP")
           actual=subprocess.check_output(["git","rev-parse","HEAD"],text=True).strip()
-          if actual!="344abadb407afa3d10383686365d7df8bfcfcf6b":
+          if actual!="d826b9b7f9904850355bd21c3d513025eb181fbf":
               raise SystemExit("NOV15_SOURCE_REVISION_MISMATCH_NO_HTTP")
           r=audit_previous_runs(
               repo=os.environ["GITHUB_REPOSITORY"],token=os.environ["GITHUB_TOKEN"],
