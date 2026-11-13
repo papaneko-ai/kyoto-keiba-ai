@@ -1,8 +1,8 @@
 """Nov15 independent observed-link collection, with bounded zero-guess GETs.
 
-Two requests maximum: JRA PC selection then link actually present in
-the selection original. All bytes stay in volatile workflow workspace until
-encrypted; never claim racecard or market authenticity from a meeting link.
+At most three paced requests: official selection, observed Kyoto meeting,
+and (when actually linked) one observed racecard. All bytes stay in the
+ephemeral workspace until encrypted; no roster or market authentication claim.
 """
 from __future__ import annotations
 import hashlib,json,re
@@ -94,10 +94,10 @@ def observe(selection_root, *, now_utc, opener=None, allowed=False,
              "started_at_utc":current.isoformat()}
     client=opener if opener is not None else build_opener(NoRedirect())
     # Reuse the established market-capture pacer across all bounded GETs.
-    request_pacer=pacer if pacer is not None else RequestPacer(min_gap_seconds=2.0)
-    if not callable(getattr(request_pacer,"before_request",None)):
-        raise ObservationRejected("request_pacer_invalid")
     try:
+        request_pacer=pacer if pacer is not None else RequestPacer(min_gap_seconds=2.0)
+        if not callable(getattr(request_pacer,"before_request",None)):
+            raise ObservationRejected("request_pacer_invalid")
         receipt["http_requests_started"]=1
         request_pacer.before_request()
         selection=_read(client,SOURCE)
