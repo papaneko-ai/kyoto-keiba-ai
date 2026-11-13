@@ -41,6 +41,14 @@ class SecureWorkflowTests(unittest.TestCase):
  def test_nov15_no_source_hardcoding(self):
     self.assertNotIn("CNAME=pw",self.a)
     self.assertNotIn("CNAME=pw",self.b)
+ def test_early_observer_check_occurs_before_get_step(self):
+    self.assertIn("NOV15_OBSERVER_OUTSIDE_TIME_WINDOW_NO_HTTP_RETRY_SAFE",self.a)
+    self.assertLess(self.a.index("NOV15_OBSERVER_OUTSIDE_TIME_WINDOW_NO_HTTP_RETRY_SAFE"),
+                    self.a.index("Up to TWO bounded observed official PC GET requests"))
+ def test_early_market_check_occurs_before_jra_http(self):
+    self.assertIn("NOV15_PC_OUTSIDE_MARKET_WINDOW_NO_HTTP_RETRY_SAFE",self.b)
+    self.assertLess(self.b.index("NOV15_PC_OUTSIDE_MARKET_WINDOW_NO_HTTP_RETRY_SAFE"),
+                    self.b.index("--authorized-live-http"))
  def test_two_originals_are_not_market_authentication(self):
     self.assertIn("accept_observation",self.b)
     self.assertIn("NOV15_SOURCE_ONLY_NOT_LIVE_CERTIFICATION",self.b)
