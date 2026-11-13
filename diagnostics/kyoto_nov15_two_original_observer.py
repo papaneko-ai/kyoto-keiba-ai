@@ -195,6 +195,16 @@ def accept_observation(folder):
                     if has_racecard is True else "NOV15_MEETING_ORIGINALS_OBSERVED_NOT_RACECARD")
     # A third original is evidence only when the capture receipt includes
     # a UTC timestamp for that exact HTTP response.
+    # Independently check provenance of the two mandatory saved originals.
+    # These timestamps must be parseable UTC instants, not merely present.
+    for field in ("selection_captured_at_utc", "meeting_captured_at_utc"):
+        stamp=receipt.get(field)
+        try:
+            parsed=datetime.fromisoformat(stamp.replace("Z","+00:00"))
+        except (AttributeError,TypeError,ValueError) as exc:
+            raise ObservationRejected("mandatory_original_capture_timestamp_missing") from exc
+        if parsed.utcoffset()!=timezone.utc.utcoffset(None):
+            raise ObservationRejected("mandatory_original_capture_timestamp_not_utc")
     if has_racecard is True:
         captured_at=receipt.get("racecard_captured_at_utc")
         try:
