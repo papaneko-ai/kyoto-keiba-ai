@@ -52,9 +52,17 @@ jobs:
           JRA HTML stored as Actions artifacts, external provider settings.
           Artifacts expire; save a copy independently if long-term recovery is needed.
           EOF
-          sha256sum "$root/tracked-repository-source.zip" "$root/git-history.bundle" "$root/ZIP_TEST_LOG.txt" \
-            "$root/RECOVERY_MANIFEST.txt" "$root/EXACT_SOURCE_HEAD.txt" "$root/RESTORE_INSTRUCTIONS.txt" > "$root/SHA256SUMS.txt"
+          (cd "$root" && sha256sum tracked-repository-source.zip git-history.bundle ZIP_TEST_LOG.txt \
+            RECOVERY_MANIFEST.txt EXACT_SOURCE_HEAD.txt RESTORE_INSTRUCTIONS.txt > SHA256SUMS.txt)
           (cd "$root" && sha256sum -c SHA256SUMS.txt)
+          # Verify the same manifest after moving it to a separate restore path.
+          restore="$RUNNER_TEMP/kyoto-restore-probe"
+          mkdir -p "$restore"
+          cp "$root/"{tracked-repository-source.zip,git-history.bundle,ZIP_TEST_LOG.txt,RECOVERY_MANIFEST.txt,EXACT_SOURCE_HEAD.txt,RESTORE_INSTRUCTIONS.txt,SHA256SUMS.txt} "$restore/"
+          (cd "$restore" && sha256sum -c SHA256SUMS.txt && unzip -t tracked-repository-source.zip >/dev/null)
+          git -C "$restore" init -q
+          git -C "$restore" bundle verify "$restore/git-history.bundle"
+          test "$(cat "$restore/EXACT_SOURCE_HEAD.txt")" = "$GITHUB_SHA"
           ROOT="$root" python - <<'PY'
           import os,pathlib,zipfile
           root=pathlib.Path(os.environ["ROOT"])
