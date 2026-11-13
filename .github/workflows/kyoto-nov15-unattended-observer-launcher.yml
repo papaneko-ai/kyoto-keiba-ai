@@ -21,7 +21,7 @@ jobs:
       - name: Checkout fixed verified development source (never default branch code)
         uses: actions/checkout@v4
         with:
-          ref: 0465fb9f9c4f9a96d9358fee48bf47284f239185
+          ref: 9284b1bc694b7b695ad1ccb8f6d23c3b6d412a72
           persist-credentials: false
       - uses: actions/setup-python@v5
         with:
@@ -48,7 +48,7 @@ jobs:
           if not re.fullmatch(r"[0-9a-fA-F]{64}",os.environ.get("ARCHIVE_KEY","")):
               raise SystemExit("NOV15_ARCHIVE_SECRET_INVALID_NO_HTTP")
           actual=subprocess.check_output(["git","rev-parse","HEAD"],text=True).strip()
-          if actual!="0465fb9f9c4f9a96d9358fee48bf47284f239185":
+          if actual!="9284b1bc694b7b695ad1ccb8f6d23c3b6d412a72":
               raise SystemExit("NOV15_SOURCE_REVISION_MISMATCH_NO_HTTP")
           r=audit_previous_runs(
               repo=os.environ["GITHUB_REPOSITORY"],token=os.environ["GITHUB_TOKEN"],
@@ -74,6 +74,14 @@ jobs:
                                "NOV15_RACECARD_ORIGINAL_OBSERVED_ROSTER_UNVERIFIED"):
               raise SystemExit("NOV15_FAILED_CLOSED")
           PY
+      - name: Verify and index observed race links offline before encrypted evidence sealing
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m diagnostics.kyoto_nov15_offline_race_links \
+            --originals nov15_work_originals \
+            --output nov15_work_originals/observed_race_links.json
+          echo NOV15_LINK_INDEX_FROM_SAVED_ORIGINALS_ONLY=TRUE
       - name: Encrypt observation originals before artifact retention
         if: always()
         shell: bash
