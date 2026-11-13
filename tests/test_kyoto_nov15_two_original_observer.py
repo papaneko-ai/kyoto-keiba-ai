@@ -58,6 +58,19 @@ class ObservationTests(unittest.TestCase):
     self.assertFalse(result["both_markets_verified"])
     self.assertFalse(result["real_racecard_verified"])
     self.assertEqual(accept_observation(self.root)["state"],"TWO_ORIGINALS_MATCH_RECEIPT_ONLY")
+ def test_twelve_race_link_is_observed_not_guessed(self):
+    race_anchor='<html><a href="/JRADB/accessD.html?CNAME=pw020aaa12%2F1220261115">京都 12R</a></html>'.encode("cp932")
+    class Three(Stub):
+      def open(self,request,timeout=12):
+        self.urls.append(request.full_url)
+        return R(request.full_url,self.selection if len(self.urls)==1 else race_anchor if len(self.urls)==2 else b"<html>observed 12R original</html>")
+    stub=Three()
+    result=observe(self.root,now_utc="2026-11-15T02:00:00Z",opener=stub,
+                  allowed=True,include_observed_racecard=True)
+    self.assertEqual(result["state"],"NOV15_RACECARD_ORIGINAL_OBSERVED_ROSTER_UNVERIFIED")
+    self.assertEqual(result["racecard_number"],12)
+    self.assertEqual(len(stub.urls),3)
+    self.assertEqual(accept_observation(self.root)["state"],"TWO_ORIGINALS_MATCH_RECEIPT_ONLY")
  def test_reuses_existing_pacer_before_each_of_three_observed_gets(self):
     race_anchor='<html><a href="/JRADB/accessD.html?CNAME=pw020aaa01%2F0120261115">京都 1R</a></html>'.encode("cp932")
     class Three(Stub):
