@@ -86,7 +86,23 @@ def derive_nov15_race_links(folder):
             "observed_meeting_url":observed_meeting,
             "race_links":[results[n] for n in sorted(results)],
             "racecard_originals_fetched":captured,
-            "saved_racecard_original":observed_original,"roster_verified":False,
+            "saved_racecard_original":observed_original,
+            # The unattended observer currently captures PC only. Treat it
+            # as usable source evidence, NEVER as a completed PC/SP experiment.
+            "hybrid_experiment":{
+                "schema":"kyoto_nov15_hybrid_observer_status.v1",
+                "PC":{"racecard_original_fetched":captured,
+                      "structure_diagnostic_pass":bool(
+                          observed_original and observed_original[
+                              "existing_parser_diagnostic"]["structure_diagnostic_pass"])},
+                "SP":{"racecard_original_fetched":False,
+                      "independent_official_sp_racecard_url_verified":False},
+                "dual_racecard_parity_verified":False,
+                "dual_quinella_market_verified":False,
+                "dual_bracket_market_verified":False,
+                "full_hybrid_experiment_pass":False,
+                "state":"INCOMPLETE_PC_ONLY_SP_MISSING"},
+            "roster_verified":False,
             "start_times_verified":False,"quinella_market_verified":False,
             "bracket_market_verified":False,"http_requests":0}
     except OfflineRaceLinkRejected:raise
