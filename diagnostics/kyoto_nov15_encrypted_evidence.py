@@ -90,3 +90,24 @@ def decrypt_evidence(source,out,*,key_hex,repo,run_id):
         (out/name).write_bytes(data)
     return {"files":sorted(contents),"source_run_id":str(run_id),
             "authentication_tag_verified":True,"independent_JRA_provenance_verified":False}
+
+def main(argv=None):
+    import argparse,os
+    p=argparse.ArgumentParser()
+    p.add_argument("--decrypt",action="store_true",required=True)
+    p.add_argument("--source",required=True)
+    p.add_argument("--destination",required=True)
+    p.add_argument("--source-run-id",required=True)
+    args=p.parse_args(argv)
+    report=decrypt_evidence(
+        args.source,args.destination,
+        key_hex=os.environ.get("ARCHIVE_KEY",""),
+        repo=os.environ.get("GITHUB_REPOSITORY",""),
+        run_id=args.source_run_id)
+    # Never print source bytes, secret or URL query.
+    print("NOV15_OBSERVED_ORIGINALS_AUTHENTICATED_ENCRYPTION=TRUE")
+    print("NOV15_OFFICIAL_PROVENANCE_STILL_UNVERIFIED=TRUE")
+    return report
+
+if __name__=="__main__":
+    main()
