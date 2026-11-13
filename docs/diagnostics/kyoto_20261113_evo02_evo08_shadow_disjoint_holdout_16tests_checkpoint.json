@@ -1,0 +1,62 @@
+{
+  "schema": "kyoto_ai_20261113_evo02_evo08_to_p7_independent_shadow_milestone.v1",
+  "date_jst": "2026-11-13",
+  "branch": "jra-html-diagnostic-20261105",
+  "verified_head": "93005dd2930c1e6a6b71b1332dcc33b1478e71dc",
+  "milestone": "EVO02_EVO08_TRAINING_ONLY_DISCOVERY_TO_DISJOINT_P7_DUAL_AUDIT_LAB_ACCEPTED",
+  "previous_milestone": "P3_P7_HYBRID_SEALED_PAIRED_SHADOW_EVOLUTION_LAB_ACCEPTED",
+  "code": [
+    "diagnostics/p7_evo02_evo08_shadow_bridge.py",
+    "diagnostics/kyoto_f17_executable_lab_streams.py",
+    "tests/test_p7_evo02_evo08_shadow_bridge.py",
+    ".github/workflows/kyoto-ai-always-run-continuity.yml"
+  ],
+  "implemented": [
+    "Reuse existing immutable P7 LAB shadow journal, P3 four-family registry, pairwise quinella model frozen probabilities, P7 independent holdout research certification and research rollback guard",
+    "Derive EVO-02 same-frame/cross-frame weaknesses from per-race champion and challenger log loss, using only settled training history",
+    "Derive EVO-08 low-probability surprise-case IDs from champion's frozen probability of actually winning quinella, with no holdout labels in proposal",
+    "Reuse F17 executable LAB EVO02/EVO08 analysis as a shared aggregator rather than separate drifting duplicate logic",
+    "Only reference registered challenger MODIFIY/ADD/ENSEMBLE models, preserve model family and immutable registry anchor; no new algorithm weights claimed",
+    "Freeze training-data-driven hypothesis plan with SHA256, named registered model, predeclared comparison budget and timestamp after training results",
+    "Audit a separate 10+-race chronologically locked LAB holdout; reject reuse of training races and forecasts frozen before proposal lock",
+    "Use existing P7 independent Brier formula/sign-test lane and separate proper log-loss guarded rollback lane; require both for research shadow eligibility",
+    "Reject registry changed since plan, hash-altered proposal, wrong model, missing labels, leakage, reused races and fake official-source claims",
+    "Never auto deploy or write Turso/production; no real betting"
+  ],
+  "verification": {
+    "CI_run_id": 43353928861,
+    "CI_job_id": 131651305033,
+    "CI_result": "success",
+    "new_evo_bridge_tests": 16,
+    "new_evo_bridge_tests_passed": 16,
+    "other_CI": "success",
+    "real_JRA_get_count": 0,
+    "authentic_live_prediction_certified": false
+  },
+  "limits": [
+    "Weakness/novelty analyzes supplied frozen LAB model outputs and settled synthetic results, not official JRA",
+    "This stage selects and tests a *pre-registered* challenger; it does not autonomously train or synthesize genuinely new model code or features",
+    "Research independent Brier scorer is a distinct scoring path, not externally source-authenticated or signed auditor",
+    "Plan SHA256 is self-contained and not externally timestamped or WORM signed; full production promotion is blocked",
+    "Unseen holdout sample in regression fixture has synthetic labels; no live return/risk validation or paper-trading result is claimed",
+    "New-model strategy proposal still needs candidate construction engine and EVO-07 external/independently locked certification",
+    "Do not postpone P1/P6 real pre-race snapshot and settlement MVP for additional lab research"
+  ],
+  "fixed_progress": {
+    "research": "100% (32/32)",
+    "research_graduation": "100% (12/12)",
+    "major_groups": "100% (21/21)",
+    "independent_real_connection": "0/6",
+    "independent_operational": "0/100",
+    "independent_final20": "35/100",
+    "change": "0"
+  },
+  "next_milestone": "Build constrained candidate generation from training-only weakness/surprise evidence; validate the generated algorithm contract independently, freeze candidate version and time-series holdout before P7 decision, then connect only genuine separately authenticated pre-race JRA evidence as a later operational gate",
+  "protected": [
+    "main",
+    "Turso production",
+    "published Streamlit",
+    "secrets",
+    "real ticket purchase"
+  ]
+}
