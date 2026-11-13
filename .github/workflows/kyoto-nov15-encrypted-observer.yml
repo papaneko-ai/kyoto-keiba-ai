@@ -3,6 +3,12 @@ on:
   push:
     branches: [jra-html-diagnostic-20261105]
     paths: ['diagnostics/nov15_observation_explicit_activation.txt']
+  workflow_dispatch:
+    inputs:
+      confirmation:
+        description: 'Exact text NOV15-OBSERVE-TWO-ORIGINALS; one shot, do not rerun'
+        required: true
+        default: 'NO'
 permissions:
   contents: read
   actions: read
@@ -16,6 +22,7 @@ jobs:
     env:
       PYTHONPATH: .
       ARCHIVE_KEY: ${{ secrets.KYOTO_JRA_ARCHIVE_AES256_HEX }}
+      OBSERVER_CONFIRMATION: ${{ inputs.confirmation || '' }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -37,8 +44,9 @@ jobs:
           from pathlib import Path
           from urllib.request import Request,urlopen
           gate=Path("diagnostics/nov15_observation_explicit_activation.txt")
-          if not gate.is_file() or gate.is_symlink() or gate.read_text().strip()!="NOV15-OBSERVE-TWO-ORIGINALS":
-              raise SystemExit("NOV15_OBSERVATION_NOT_EXPLICITLY_ACTIVATED")
+          from diagnostics.kyoto_nov15_dispatch_guard import validate_activation
+          validate_activation(event_name=os.environ.get("GITHUB_EVENT_NAME", ""),
+              confirmation=os.environ.get("OBSERVER_CONFIRMATION", ""), gate_path=gate)
           if os.getenv("GITHUB_RUN_ATTEMPT")!="1":
               raise SystemExit("NOV15_OBSERVATION_RERUN_BLOCKED")
           from datetime import datetime,timezone
