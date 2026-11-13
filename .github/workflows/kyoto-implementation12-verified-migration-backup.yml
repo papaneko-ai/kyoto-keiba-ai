@@ -76,6 +76,8 @@ jobs:
                 "tests/test_p3_lab_calibration_audit.py",
                 "tests/test_p3_offline_model_tournament.py",
                 "tests/test_r06_pair_frame_fixed_acceptance.py",
+                "tests/test_r11_predata_freeze_acceptance.py",
+                "tests/test_r13_predata_durable_accounting_acceptance.py",
                 "diagnostics/p7_add_ensemble_candidate_constructor.py",
                 "tests/test_p7_add_ensemble_candidate_constructor.py",
                 "diagnostics/kyoto_nov15_capture_acceptance.py",
