@@ -121,6 +121,52 @@ class ObservationTests(unittest.TestCase):
     self.assertEqual(self.pacer.before_request.call_count,6)
     self.assertFalse(r["both_markets_verified"])
     self.assertEqual(accept_observation(self.root)["state"],"TWO_ORIGINALS_MATCH_RECEIPT_ONLY")
+ def test_eight_bounded_requests_follow_two_actual_odds_menu_actions(self):
+    import hashlib
+    race_anchor='<html><a href="/JRADB/accessD.html?CNAME=pw020aaa12%2F1220261115">京都 12R</a></html>'.encode("cp932")
+    racecard=("<html><a onclick=\"return doAction('/JRADB/accessO.html','pw15observed/AA')\">オッズ</a></html>").encode("cp932")
+    menu=("<html><title>オッズ</title>2026年11月15日"
+      "<a onclick=\"return doAction('/JRADB/accessO.html','pw15meeting/BB')\">京都 11月15日 開催</a></html>").encode("cp932")
+    meeting=("<html><title>オッズ</title>2026年11月15日 京都"
+      "<a onclick=\"return doAction('/JRADB/accessO.html','pw15race/CC')\">京都 12R</a></html>").encode("cp932")
+    markets=("<html><title>単勝・複勝オッズ JRA</title>"
+      "<a onclick=\"return doAction('/JRADB/accessO.html','pw154ou1008202605041220261115Z/BB')\">馬連</a>"
+      "<a onclick=\"return doAction('/JRADB/accessO.html','pw153ou1008202605041220261115Z/37')\">枠連</a></html>").encode("cp932")
+    class Eight(Stub):
+      def open(self,request,timeout=12):
+        self.urls.append((request.full_url,request.get_method(),request.data))
+        n=len(self.urls)
+        raw={1:self.selection,2:race_anchor,3:racecard,4:menu,5:meeting,6:markets}.get(n,b"<html>observed market raw</html>")
+        return R(request.full_url,raw)
+    provider=Eight()
+    r=observe(self.root,now_utc="2026-11-15T02:00:00Z",
+       opener=provider,allowed=True,include_observed_racecard=True,
+       include_observed_odds_menu=True)
+    self.assertEqual(r["http_requests_started"],8)
+    self.assertEqual(r["navigation_requests_started"],2)
+    self.assertEqual(r["market_requests_started"],2)
+    self.assertTrue(r["quinella_original_fetched"])
+    self.assertTrue(r["bracket_quinella_original_fetched"])
+    self.assertEqual([x[1] for x in provider.urls],["GET","GET","GET","POST","POST","POST","POST","POST"])
+    self.assertEqual(self.pacer.before_request.call_count,8)
+    self.assertFalse(r["both_markets_verified"])
+    self.assertEqual(accept_observation(self.root)["state"],"TWO_ORIGINALS_MATCH_RECEIPT_ONLY")
+ def test_tampered_intermediate_menu_original_fails(self):
+    race_anchor='<html><a href="/JRADB/accessD.html?CNAME=pw020aaa12%2F1220261115">京都 12R</a></html>'.encode("cp932")
+    racecard=("<html><a onclick=\"return doAction('/JRADB/accessO.html','pw15observed/AA')\">オッズ</a></html>").encode("cp932")
+    menu=("<html><title>オッズ</title>2026年11月15日"
+      "<a onclick=\"return doAction('/JRADB/accessO.html','pw15meeting/BB')\">京都 11月15日 開催</a></html>").encode("cp932")
+    class Five(Stub):
+      def open(self,request,timeout=12):
+        self.urls.append(request.full_url)
+        n=len(self.urls)
+        return R(request.full_url,{1:self.selection,2:race_anchor,3:racecard,4:menu}.get(n,b"<html>saved intermediate menu</html>"))
+    r=observe(self.root,now_utc="2026-11-15T02:00:00Z",opener=Five(),
+       allowed=True,include_observed_racecard=True,include_observed_odds_menu=True)
+    self.assertEqual(r["navigation_requests_started"],1)
+    (self.root/"official_odds_navigation_1.html").write_bytes(b"tamper")
+    with self.assertRaisesRegex(ObservationRejected,"navigation_original_digest_mismatch"):
+        accept_observation(self.root)
  def test_missing_odds_anchor_never_guesses_fourth_request(self):
     race_anchor='<html><a href="/JRADB/accessD.html?CNAME=pw020aaa12%2F1220261115">京都 12R</a></html>'.encode("cp932")
     class Three(Stub):
