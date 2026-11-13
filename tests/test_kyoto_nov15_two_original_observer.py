@@ -204,6 +204,33 @@ class ObservationTests(unittest.TestCase):
     path.write_text(json.dumps(receipt),encoding="utf8")
     with self.assertRaisesRegex(ObservationRejected,"unclaimed_racecard_metadata"):
         accept_observation(self.root)
+ def test_forged_meeting_url_rejected_despite_unchanged_source_sha(self):
+    import json
+    self.run_obs()
+    path=self.root/"receipt.json"
+    receipt=json.loads(path.read_text(encoding="utf8"))
+    receipt["observed_meeting_url"]="https://jra.jp/JRADB/accessD.html?CNAME=pw01evil20261115%2FX1"
+    path.write_text(json.dumps(receipt),encoding="utf8")
+    with self.assertRaisesRegex(ObservationRejected,"meeting_url_or_label_not_in_selection_original"):
+        accept_observation(self.root)
+ def test_forged_meeting_label_rejected(self):
+    import json
+    self.run_obs()
+    path=self.root/"receipt.json"
+    receipt=json.loads(path.read_text(encoding="utf8"))
+    receipt["meeting_label"]="京都 99回"
+    path.write_text(json.dumps(receipt),encoding="utf8")
+    with self.assertRaisesRegex(ObservationRejected,"meeting_url_or_label_not_in_selection_original"):
+        accept_observation(self.root)
+ def test_forged_official_selection_source_rejected(self):
+    import json
+    self.run_obs()
+    path=self.root/"receipt.json"
+    receipt=json.loads(path.read_text(encoding="utf8"))
+    receipt["selection_source"]="https://evil.invalid/"
+    path.write_text(json.dumps(receipt),encoding="utf8")
+    with self.assertRaisesRegex(ObservationRejected,"selection_source_or_date_invalid"):
+        accept_observation(self.root)
  def test_no_data_claims_real_racecard(self):
     self.run_obs()
     accepted=accept_observation(self.root)
