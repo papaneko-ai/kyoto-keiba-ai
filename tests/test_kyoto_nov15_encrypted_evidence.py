@@ -38,6 +38,14 @@ class CryptoTests(unittest.TestCase):
                      (self.raw/"official_racecard.html").read_bytes())
     self.assertNotIn(b"actual source fixture",
                      (self.enc/"originals.tar.gz.aesgcm").read_bytes())
+ def test_offline_race_index_roundtrip_always_encrypted(self):
+    payload=b'{"state":"OFFLINE_OBSERVED_LINKS_ONLY","racecard_originals_fetched":true}'
+    (self.raw/"observed_race_links.json").write_bytes(payload)
+    self.seal()
+    report=self.restore()
+    self.assertIn("observed_race_links.json",report["files"])
+    self.assertEqual((self.decrypted/"observed_race_links.json").read_bytes(),payload)
+    self.assertNotIn(payload,(self.enc/"originals.tar.gz.aesgcm").read_bytes())
  def test_no_plaintext_in_uploaded_output(self):
     self.seal()
     self.assertEqual({x.name for x in self.enc.iterdir()},
