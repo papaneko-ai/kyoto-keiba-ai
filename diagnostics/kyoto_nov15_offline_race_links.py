@@ -55,11 +55,28 @@ def derive_nov15_race_links(folder):
                            for r in results.values())):
                 raise OfflineRaceLinkRejected("saved_racecard_not_in_official_links")
             raw_race=(root/"official_racecard.html").read_bytes()
+            # Reuse the already-tested Kyoto PC racecard parser; this is
+            # offline structural diagnosis, NOT a source/cutoff certification.
+            from diagnostics.jra_multi_capture_20261106 import parse as pc_parse
+            try:
+                parsed_rows,parse_errors=pc_parse(
+                    raw_race,number,meeting_date="2026-11-15")
+            except (ValueError,TypeError,UnicodeError) as exc:
+                parsed_rows,parse_errors=[],["existing_pc_parser_rejected"]
+            parser_result={
+                "parser":"diagnostics.jra_multi_capture_20261106.parse",
+                "parser_meeting_date":"2026-11-15",
+                "parsed_runner_rows":len(parsed_rows),
+                "errors":parse_errors,
+                "structure_diagnostic_pass":bool(parsed_rows) and not parse_errors,
+                "official_roster_authenticated":False,
+                "independent_start_time_verified":False}
             observed_original={
                 "race_number":number,"url":url,
                 "sha256":hashlib.sha256(raw_race).hexdigest(),
                 "bytes":len(raw_race),
                 "captured_at_utc":receipt.get("racecard_captured_at_utc"),
+                "existing_parser_diagnostic":parser_result,
                 "state":"RAW_HTML_ONLY_NOT_ROSTER_OR_MARKET_VALIDATION"}
         return {"schema":"kyoto_nov15_offline_race_links.v1","race_day":DAY,
             "state":"OFFLINE_OBSERVED_LINKS_ONLY",
