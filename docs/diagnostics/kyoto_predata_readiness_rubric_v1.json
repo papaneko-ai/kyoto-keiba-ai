@@ -11,7 +11,10 @@
       "title": "真正原本受入契約のオフライン検証",
       "phase": "P1",
       "acceptance": "原本種別・SHA・UTC・欠損・重複・非真正表示を再現可能な入力契約で拒否する",
-      "automation": null
+      "automation": {
+        "suite": "test_r01_predata_source_contract_acceptance.py",
+        "tests": 15
+      }
     },
     {
       "id": "R02",
