@@ -1,0 +1,120 @@
+name: Kyoto Nov14 unattended encrypted official observer launcher
+on:
+  schedule:
+    - cron: '0 2 14 11 *'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: kyoto-nov14-source-acquisition-single-coordinator
+  cancel-in-progress: false
+jobs:
+  observed-only:
+    runs-on: ubuntu-latest
+    timeout-minutes: 7
+    env:
+      PYTHONPATH: .
+      KYOTO_TARGET_DAY: '20261114'
+      ARCHIVE_KEY: ${{ secrets.KYOTO_JRA_ARCHIVE_AES256_HEX }}
+      GITHUB_TOKEN: ${{ github.token }}
+    steps:
+      - name: Checkout fixed verified development source (never default branch code)
+        uses: actions/checkout@v4
+        with:
+          ref: 9fa967c70238668a47cab3b06bec85f44fdef1c6
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install parser and crypto
+        run: python -m pip install 'beautifulsoup4>=4.12,<5' 'cryptography>=43,<47'
+      - name: Verify new source acquisition and encryption regressions without JRA HTTP
+        run: |
+          set -euo pipefail
+          KYOTO_TARGET_DAY=20261115 python -m unittest discover -s tests -p 'test_kyoto_nov15_two_original_observer.py' -q
+          KYOTO_TARGET_DAY=20261115 python -m unittest discover -s tests -p 'test_kyoto_nov15_offline_race_links.py' -q
+          KYOTO_TARGET_DAY=20261115 python -m unittest discover -s tests -p 'test_kyoto_nov15_encrypted_evidence.py' -q
+      - name: Verify 14 November dynamic date and encrypted archive binding without HTTP
+        run: |
+          python - <<'PY'
+          from diagnostics.kyoto_nov15_two_original_observer import DAY,BEGIN,END
+          from diagnostics.kyoto_nov15_offline_race_links import DAY as LINKS_DAY
+          from diagnostics.kyoto_nov15_encrypted_evidence import DAY as CRYPTO_DAY
+          from datetime import datetime,timezone
+          assert DAY==LINKS_DAY==CRYPTO_DAY=="20261114"
+          assert BEGIN < datetime(2026,11,14,2,0,tzinfo=timezone.utc) < END
+          print("NOV14_SHARED_COLLECTOR_DATE_AND_ARCHIVE_BOUND")
+          PY
+      - name: Pre-HTTP date, source revision and encryption guard
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p nov14_unattended_evidence
+          python - <<'PY'
+          import os,re,subprocess
+          from datetime import datetime,timezone
+          from diagnostics.kyoto_nov15_two_original_observer import BEGIN,END
+          now=datetime.now(timezone.utc)
+          if os.environ.get("GITHUB_EVENT_NAME") not in ("schedule","workflow_dispatch"):
+              raise SystemExit("NOV14_UNEXPECTED_TRIGGER_NO_HTTP")
+          if now.strftime("%Y-%m-%d")!="2026-11-14" or not BEGIN <= now < END:
+              raise SystemExit("NOV14_OUTSIDE_FIXED_OBSERVATION_WINDOW_NO_HTTP")
+          if not re.fullmatch(r"[0-9a-fA-F]{64}",os.environ.get("ARCHIVE_KEY","")):
+              raise SystemExit("NOV14_ARCHIVE_SECRET_INVALID_NO_HTTP")
+          actual=subprocess.check_output(["git","rev-parse","HEAD"],text=True).strip()
+          if actual!="9fa967c70238668a47cab3b06bec85f44fdef1c6":
+              raise SystemExit("NOV14_SOURCE_REVISION_MISMATCH_NO_HTTP")
+          print("NOV14_UNATTENDED_OBSERVER_DATE_AND_KEY_GATES_PASS")
+          PY
+      - name: At most EIGHT bounded original-only official PC HTTP requests
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from datetime import datetime,timezone
+          from diagnostics.kyoto_nov15_two_original_observer import observe
+          r=observe("nov14_work_originals",
+                    now_utc=datetime.now(timezone.utc).isoformat(),allowed=True,
+                    include_observed_racecard=True,
+                    include_observed_odds_menu=True)
+          print("NOV14_OBSERVATION_STATE="+r["state"])
+          print("NOV14_ATTEMPTED_GET="+str(r["http_requests_started"]))
+          if r["state"] not in ("NOV14_MEETING_ORIGINALS_OBSERVED_NOT_RACECARD",
+                               "NOV14_RACECARD_ORIGINAL_OBSERVED_ROSTER_UNVERIFIED"):
+              raise SystemExit("NOV14_FAILED_CLOSED")
+          PY
+      - name: Verify and index observed race links offline before encrypted evidence sealing
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m diagnostics.kyoto_nov15_offline_race_links \
+            --originals nov14_work_originals \
+            --output nov14_work_originals/observed_race_links.json
+          echo NOV14_LINK_INDEX_FROM_SAVED_ORIGINALS_ONLY=TRUE
+      - name: Encrypt observation originals before artifact retention
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json,os,shutil
+          from pathlib import Path
+          from diagnostics.kyoto_nov15_encrypted_evidence import encrypt_evidence
+          source=Path("nov14_work_originals")
+          dest=Path("nov14_unattended_evidence")
+          if not source.is_dir():
+              (dest/"safe_stop.json").write_text(json.dumps({"state":"NO_CAPTURE_OR_PRE_HTTP_STOP","JRA_success":False})+"\n")
+          else:
+              shutil.rmtree(dest)
+              encrypt_evidence(source,dest,key_hex=os.environ["ARCHIVE_KEY"],
+                  repo=os.environ["GITHUB_REPOSITORY"],run_id=os.environ["GITHUB_RUN_ID"])
+              shutil.rmtree(source)
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: kyoto-nov14-unattended-encrypted-observation-${{ github.run_id }}
+          path: nov14_unattended_evidence/
+          retention-days: 30
+          if-no-files-found: error
