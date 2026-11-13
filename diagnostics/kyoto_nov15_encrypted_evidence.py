@@ -12,7 +12,7 @@ DAY=os.environ.get("KYOTO_TARGET_DAY","20261115")
 if not re.fullmatch(r"20[0-9]{6}",DAY):
     raise ValueError("race_day_invalid")
 
-FILES={"official_selection.html","official_meeting.html","official_racecard.html","official_odds_menu.html","official_odds_navigation_1.html","official_odds_navigation_2.html","official_quinella_odds.html","official_bracket_quinella_odds.html","observed_race_links.json","official_sp_navigation.html","official_sp_racecard.html","sp_receipt.json","pc_sp_comparison.json","receipt.json"}
+FILES={"official_selection.html","official_meeting.html","official_racecard.html","official_odds_menu.html","official_odds_navigation_1.html","official_odds_navigation_2.html","official_quinella_odds.html","official_bracket_quinella_odds.html","observed_race_links.json","official_sp_navigation.html","official_sp_racecard.html","official_sp_odds_menu.html","official_sp_odds_navigation_1.html","official_sp_odds_navigation_2.html","official_sp_quinella_odds.html","official_sp_bracket_quinella_odds.html","sp_receipt.json","pc_sp_comparison.json","receipt.json"}
 class EvidenceCryptoRejected(ValueError):pass
 
 def _key(s):
