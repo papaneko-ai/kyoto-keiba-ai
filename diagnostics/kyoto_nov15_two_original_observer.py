@@ -161,7 +161,17 @@ def accept_observation(folder):
         raw=path.read_bytes()
         if not 0<len(raw)<=LIMIT or hashlib.sha256(raw).hexdigest()!=receipt.get(prefix+"_sha256") or len(raw)!=receipt.get(prefix+"_bytes"):
             raise ObservationRejected("observed_original_digest_mismatch")
-    if receipt.get("racecard_original_fetched") is True:
+    has_racecard=receipt.get("racecard_original_fetched")
+    expected_state=("NOV15_RACECARD_ORIGINAL_OBSERVED_ROSTER_UNVERIFIED"
+                    if has_racecard is True else "NOV15_MEETING_ORIGINALS_OBSERVED_NOT_RACECARD")
+    if type(has_racecard) is not bool or receipt.get("state")!=expected_state:
+        raise ObservationRejected("observed_state_and_originals_inconsistent")
+    if has_racecard is False and (root/"official_racecard.html").exists():
+        raise ObservationRejected("unexpected_unclaimed_racecard_original")
+    if has_racecard is False and any(k in receipt for k in (
+        "racecard_sha256","racecard_bytes","observed_racecard_url","racecard_number")):
+        raise ObservationRejected("unclaimed_racecard_metadata_present")
+    if has_racecard is True:
         racecard=root/"official_racecard.html"
         if racecard.is_symlink() or not racecard.is_file():
             raise ObservationRejected("racecard_original_missing")
