@@ -15,23 +15,24 @@ class LauncherTests(unittest.TestCase):
         self.assertIn("test_kyoto_nov15_offline_race_links.py",self.s)
         self.assertIn("test_kyoto_nov15_encrypted_evidence.py",self.s)
         self.assertLess(self.s.index(marker),
-                        self.s.index("Pre-HTTP date, launch, key, revision"))
+                        self.s.index("Pre-HTTP date, source revision and encryption"))
         self.assertLess(self.s.index(marker),
                         self.s.index("At most EIGHT bounded original-only official PC HTTP requests"))
     def test_dependency_install_precedes_pre_http_imports(self):
         self.assertLess(self.s.index("name: Install parser and crypto"),
-                        self.s.index("name: Pre-HTTP date, launch, key, revision"))
-        self.assertLess(self.s.index("name: Pre-HTTP date, launch, key, revision"),
+                        self.s.index("name: Pre-HTTP date, source revision and encryption"))
+        self.assertLess(self.s.index("name: Pre-HTTP date, source revision and encryption"),
                         self.s.index("name: At most EIGHT bounded original-only official PC HTTP requests"))
     def test_offline_first_external_request_is_guarded(self):
         self.assertIn("from diagnostics.kyoto_nov15_two_original_observer import BEGIN,END",self.s)
-        self.assertIn("from diagnostics.kyoto_p1_github_attempt_history_gate import audit_previous_runs",self.s)
-    def test_date_and_no_rerun(self):
+        self.assertNotIn("from diagnostics.kyoto_p1_github_attempt_history_gate import audit_previous_runs",self.s)
+    def test_date_and_event_still_checked(self):
         self.assertIn('now.strftime("%Y-%m-%d")!="2026-11-15"',self.s)
-        self.assertIn('os.environ.get("GITHUB_RUN_ATTEMPT")!="1"',self.s)
+        self.assertNotIn('os.environ.get("GITHUB_RUN_ATTEMPT")!="1"',self.s)
         self.assertIn('os.environ.get("GITHUB_EVENT_NAME")!="schedule"',self.s)
-    def test_history_before_external_get(self):
-        self.assertLess(self.s.index("audit_previous_runs("),self.s.index("At most EIGHT bounded original-only official PC HTTP requests"))
+    def test_no_blanket_prior_attempt_permanent_ban(self):
+        self.assertNotIn("audit_previous_runs(",self.s)
+        self.assertNotIn("NOV15_NO_RERUN",self.s)
     def test_secret_is_checked_and_not_logged(self):
         self.assertIn("NOV15_ARCHIVE_SECRET_INVALID_NO_HTTP",self.s)
         self.assertIn("secrets.KYOTO_JRA_ARCHIVE_AES256_HEX",self.s)
