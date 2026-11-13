@@ -25,6 +25,17 @@ jobs:
         run: |
           python -m unittest -v tests.test_kyoto_p1_nov14_official_one_shot_nav
           python -m unittest -v tests.test_kyoto_p1_nov14_receipt_handoff
+      - name: Block Nov14 repeat GET after already-recorded failed one-shot
+        env:
+          PYTHONPATH: .
+        run: |
+          python - <<'PY'
+          from diagnostics.kyoto_nov14_attempt_guard import enforce_recorded_one_shot
+          state=enforce_recorded_one_shot()
+          print("NOV14_PRIOR_GET_ATTEMPT="+str(state["prior_attempted_GET"]))
+          if not state["allow_JRA_GET"]:
+              raise SystemExit("NOV14_ONE_SHOT_PREVIOUSLY_ATTEMPTED_NO_DUPLICATE_HTTP")
+          PY
       - name: ONE limited official JRA GET only for Nov14 Kyoto meeting link
         env:
           PYTHONPATH: .
