@@ -23,7 +23,7 @@ jobs:
       - name: Checkout fixed verified development source (never default branch code)
         uses: actions/checkout@v4
         with:
-          ref: b03c0a0543e65479832a01a590df94f3a28f2b92
+          ref: 8481954641125248470b84582eb31ca4df6d5c53
           persist-credentials: false
       - uses: actions/setup-python@v5
         with:
@@ -56,7 +56,7 @@ jobs:
           if not re.fullmatch(r"[0-9a-fA-F]{64}",os.environ.get("ARCHIVE_KEY","")):
               raise SystemExit("NOV15_ARCHIVE_SECRET_INVALID_NO_HTTP")
           actual=subprocess.check_output(["git","rev-parse","HEAD"],text=True).strip()
-          if actual!="b03c0a0543e65479832a01a590df94f3a28f2b92":
+          if actual!="8481954641125248470b84582eb31ca4df6d5c53":
               raise SystemExit("NOV15_SOURCE_REVISION_MISMATCH_NO_HTTP")
           print("NOV15_UNATTENDED_OBSERVER_DATE_AND_KEY_GATES_PASS")
           with open(os.environ["GITHUB_ENV"],"a",encoding="utf8") as e:
@@ -100,7 +100,8 @@ jobs:
           r=capture_verified_sp_seed(
               root,race_day=os.environ["KYOTO_TARGET_DAY"],
               race_number=12,source_url=os.environ["SP_INDEPENDENT_OFFICIAL_R12_URL"],
-              opener=build_opener(NoRedirect(),HTTPCookieProcessor(CookieJar())))
+              opener=build_opener(NoRedirect(),HTTPCookieProcessor(CookieJar())),
+              include_odds=True)
           report=compare_saved_pc_sp(root,race_day=os.environ["KYOTO_TARGET_DAY"])
           (root/"pc_sp_comparison.json").write_text(
               json.dumps(report,ensure_ascii=False,sort_keys=True,indent=2)+"\n",
