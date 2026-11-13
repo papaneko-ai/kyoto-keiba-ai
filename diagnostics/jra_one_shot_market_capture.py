@@ -618,12 +618,23 @@ def capture_hybrid(out, *, primary_channel, verified_start_utc, active_runners,
                 raise SourceChainError("channel_race_identity_conflict")
             if state=="SOURCE_FROZEN" and not result.get("pre_race_prices_accepted"):
                 raise SourceChainError("false_source_validation")
+            # A saved original can be useful for later repair even if the
+            # two-market validation did not succeed. Check on-disk bytes,
+            # not a claimed state flag, before recording availability.
+            saved=(channel_dir/"official_racecard.html")
+            has_saved_original=(saved.is_file() and not saved.is_symlink()
+                                and 0<saved.stat().st_size<=LIMIT)
             return dict(channel=channel, state=state,
                         accepted=state=="SOURCE_FROZEN",
+                        saved_racecard_original=has_saved_original,
                         reason=result.get("reason"),
                         receipt_path=str(channel_dir/"receipt.json"))
         except Exception as exc:
+            saved=(channel_dir/"official_racecard.html")
+            has_saved_original=(saved.is_file() and not saved.is_symlink()
+                                and 0<saved.stat().st_size<=LIMIT)
             return dict(channel=channel,state="CAPTURE_EXCEPTION",accepted=False,
+                        saved_racecard_original=has_saved_original,
                         reason=type(exc).__name__+":"+str(exc)[:160],
                         receipt_path=str(channel_dir/"receipt.json"))
     first=one(primary_channel)
@@ -687,6 +698,9 @@ def capture_hybrid(out, *, primary_channel, verified_start_utc, active_runners,
                  # A single valid channel remains useful saved source evidence.
                  # Never discard it merely because independent parity failed.
                  source_capture_usable_for_offline_analysis=selected is not None,
+                 saved_racecard_original_channels=[
+                     x["channel"] for x in outcomes
+                     if x.get("saved_racecard_original") is True],
                  failed_channel_receipts_retained=[
                      x["receipt_path"] for x in outcomes if not x["accepted"]],
                  pending_channel_repair=[
