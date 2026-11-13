@@ -37,6 +37,9 @@ class OfflineRaceLinksTests(unittest.TestCase):
     self.assertEqual(d["hybrid_experiment"]["state"],"INCOMPLETE_PC_ONLY_SP_MISSING")
     self.assertFalse(d["hybrid_experiment"]["full_hybrid_experiment_pass"])
     self.assertFalse(d["hybrid_experiment"]["SP"]["racecard_original_fetched"])
+    self.assertFalse(d["observed_odds_menu"]["original_fetched"])
+    self.assertFalse(d["observed_market_originals"]["quinella"]["original_fetched"])
+    self.assertFalse(d["observed_market_originals"]["bracket_quinella"]["price_matrix_verified"])
  def test_raw_racecard_source_evidence_propagates_without_market_claim(self):
     raw=source("<table><tr><td>saved unverified original</td></tr></table>")
     (self.root/"official_racecard.html").write_bytes(raw)
