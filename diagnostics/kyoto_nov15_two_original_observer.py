@@ -58,10 +58,10 @@ def _single_observed_racecard(meeting_original, meeting_url):
     for url,label,token in anchors:
         if DAY not in token:
             continue
-        match=re.search(r"(?<![0-9])0?([1-9]|1[0-2])\s*(?:R|レース)(?![0-9])",label,re.IGNORECASE)
+        match=re.search(r"(?<![0-9])(?:0?([1-9])|(1[0-2]))\s*(?:R|レース)(?![0-9])",label,re.IGNORECASE)
         if not match:
             continue
-        race=int(match.group(1))
+        race=int(match.group(1) or match.group(2))
         if f"{race:02d}{DAY}" not in token:
             continue
         choices.setdefault(race,set()).add(url)
