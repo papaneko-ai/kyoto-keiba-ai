@@ -3,7 +3,7 @@ import hashlib
 import unittest
 from unittest.mock import patch
 
-from diagnostics.jra_pc_sp_benchmark import assess_dual_channel_experiment
+from diagnostics.jra_pc_sp_benchmark import (assess_dual_channel_experiment, observed_sp_race_links_from_saved_navigation)
 
 PC_URL = "https://jra.jp/JRADB/accessD.html?CNAME=pw01abc0120261115%2FA1"
 SP_URL = "https://sp.jra.jp/JRADB/accessD.html?CNAME=sw01abc0120261115%2FB2"
@@ -37,6 +37,59 @@ def item(channel, *, captured="2026-11-15T02:00:00Z"):
         "official_link_independently_observed": True,
     }
 
+
+
+class IndependentSPNavigationTests(unittest.TestCase):
+    def original(self, links):
+        return ("<html>" + links + "</html>").encode("cp932")
+
+    def source(self, raw, **changes):
+        args=dict(navigation_original=raw,
+                  source_url="https://sp.jra.jp/JRADB/accessD.html?CNAME=sw01valid%2FA0",
+                  source_sha256=hashlib.sha256(raw).hexdigest(),
+                  race_day="20261115")
+        args.update(changes)
+        return observed_sp_race_links_from_saved_navigation(**args)
+
+    def test_independent_sp_links_are_original_observed(self):
+        raw=self.original('<a href="/JRADB/accessD.html?CNAME=sw01aa0120261115%2FA1">京都 1R</a>')
+        result=self.source(raw)
+        self.assertEqual(len(result["race_links"]),1)
+        self.assertEqual(result["race_links"][0]["race_number"],1)
+        self.assertEqual(result["channel"],"SP")
+        self.assertEqual(result["network_requests"],0)
+        self.assertFalse(result["official_sp_live_capture_achieved"])
+
+    def test_pc_link_cannot_substitute_for_sp(self):
+        raw=self.original('<a href="https://jra.jp/JRADB/accessD.html?CNAME=pw01aa0120261115%2FA1">京都 1R</a>')
+        self.assertEqual(self.source(raw)["race_links"],[])
+
+    def test_wrong_day_does_not_match(self):
+        raw=self.original('<a href="/JRADB/accessD.html?CNAME=sw01aa0120261114%2FA1">京都 1R</a>')
+        self.assertEqual(self.source(raw)["race_links"],[])
+
+    def test_sha_tamper_fails_closed(self):
+        raw=self.original("source")
+        with self.assertRaisesRegex(ValueError,"sp_navigation_sha_mismatch"):
+            self.source(raw,source_sha256="0"*64)
+
+    def test_duplicate_race_with_different_links_fails_closed(self):
+        raw=self.original(
+            '<a href="/JRADB/accessD.html?CNAME=sw01aa0120261115%2FA1">京都 1R</a>'
+            '<a href="/JRADB/accessD.html?CNAME=sw01bb0120261115%2FA2">京都 1R</a>')
+        with self.assertRaisesRegex(ValueError,"sp_observed_race_link_ambiguous"):
+            self.source(raw)
+
+    def test_wrong_host_source_not_accepted(self):
+        raw=self.original("source")
+        with self.assertRaisesRegex(ValueError,"sp_navigation_source_not_official"):
+            self.source(raw,source_url="https://jra.jp/JRADB/accessD.html?CNAME=pw01bad%2FA0")
+
+    def test_no_race_link_is_not_capture_success(self):
+        raw=self.original("<p>unpublished</p>")
+        result=self.source(raw)
+        self.assertEqual(result["race_links"],[])
+        self.assertFalse(result["pc_sp_parity_verified"])
 
 class StrictDualExperimentTests(unittest.TestCase):
     def run_gate(self, channels):
