@@ -10,7 +10,7 @@ from cryptography.exceptions import InvalidTag
 from diagnostics.kyoto_nov15_encrypted_evidence import _key,_aad,EvidenceCryptoRejected
 
 MAX_FILES=90
-MAX_FILE=1_500_000
+MAX_FILE=12_000_000  # frozen_source ZIP may contain several bounded 1.5MB originals
 MAX_TOTAL=40_000_000
 
 def encrypt_capture_directory(source,out,*,key_hex,repo,run_id):
