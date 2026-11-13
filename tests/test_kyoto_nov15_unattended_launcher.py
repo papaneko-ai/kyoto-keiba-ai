@@ -6,7 +6,7 @@ class LauncherTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls): cls.s=P.read_text(encoding="utf8")
     def test_pinned_source_and_no_default_checkout(self):
-        self.assertIn("ref: 9284b1bc694b7b695ad1ccb8f6d23c3b6d412a72",self.s)
+        self.assertIn("ref: f59114cb1b73049d075f89b1f1ff2a81e9ad649b",self.s)
         self.assertIn("NOV15_SOURCE_REVISION_MISMATCH_NO_HTTP",self.s)
     def test_dependency_install_precedes_pre_http_imports(self):
         self.assertLess(self.s.index("name: Install parser and crypto"),
