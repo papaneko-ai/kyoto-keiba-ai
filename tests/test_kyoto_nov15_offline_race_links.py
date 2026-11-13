@@ -50,9 +50,37 @@ class OfflineRaceLinksTests(unittest.TestCase):
     self.assertTrue(result["racecard_originals_fetched"])
     self.assertEqual(result["saved_racecard_original"]["sha256"],hashlib.sha256(raw).hexdigest())
     self.assertEqual(result["saved_racecard_original"]["race_number"],1)
+    self.assertEqual(result["saved_racecard_original"]["existing_parser_diagnostic"]["parser"],
+                     "diagnostics.jra_multi_capture_20261106.parse")
+    self.assertFalse(result["saved_racecard_original"]["existing_parser_diagnostic"]["structure_diagnostic_pass"])
     self.assertFalse(result["roster_verified"])
     self.assertFalse(result["quinella_market_verified"])
     self.assertFalse(result["bracket_market_verified"])
+ def test_existing_real_capture_parser_reused_for_date_locked_structure(self):
+    # Synthetic HTML only checks adapter integration; not 2026-11-15 proof.
+    race_raw=source(
+        "2026年11月15日 京都 1R"
+        "<table><tr><th class='horse'>馬名</th><th class='num'>馬番</th>"
+        "<th class='waku'>枠</th></tr>"
+        "<tr><td class='horse'><a href='/JRADB/accessU.html?CNAME=test'>馬A</a></td>"
+        "<td class='num'>1</td><td class='waku'><img alt='枠1'/></td></tr></table>")
+    (self.root/"official_racecard.html").write_bytes(race_raw)
+    path=self.root/"receipt.json"
+    r=json.loads(path.read_text(encoding="utf8"))
+    r.update({"state":"NOV15_RACECARD_ORIGINAL_OBSERVED_ROSTER_UNVERIFIED",
+              "racecard_original_fetched":True,
+              "racecard_number":1,"observed_racecard_url":RACE,
+              "racecard_sha256":hashlib.sha256(race_raw).hexdigest(),
+              "racecard_bytes":len(race_raw),
+              "racecard_captured_at_utc":"2026-11-15T02:00:03+00:00"})
+    path.write_text(json.dumps(r),encoding="utf8")
+    d=derive_nov15_race_links(self.root)
+    diagnosis=d["saved_racecard_original"]["existing_parser_diagnostic"]
+    self.assertTrue(diagnosis["structure_diagnostic_pass"])
+    self.assertEqual(diagnosis["parsed_runner_rows"],1)
+    self.assertFalse(diagnosis["official_roster_authenticated"])
+    self.assertFalse(d["quinella_market_verified"])
+    self.assertFalse(d["bracket_market_verified"])
  def test_forged_saved_racecard_url_rejected_even_with_matching_sha(self):
     raw=source("<html>source</html>")
     (self.root/"official_racecard.html").write_bytes(raw)
