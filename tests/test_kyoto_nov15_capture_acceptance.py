@@ -19,8 +19,15 @@ class CaptureAcceptTests(unittest.TestCase):
     for i,(filename,step) in enumerate(names.items()):
         raw=("SYNTHETIC_OFFLINE_"+step).encode("ascii")
         (self.root/filename).write_bytes(raw)
-        self.request.append({"step":step,"sha256":hashlib.sha256(raw).hexdigest(),"bytes":len(raw)})
+        self.request.append({"step":step,"sha256":hashlib.sha256(raw).hexdigest(),"bytes":len(raw),
+            "captured_at_utc":"2026-11-15T04:05:00+00:00",
+            "http_status":200,"method":"POST","requested_url":"https://jra.jp/JRADB/accessO.html",
+            "response_url":"https://jra.jp/JRADB/accessO.html"})
     self.doc={"race_id":"2026-11-15_KYOTO_11R","state":"SOURCE_FROZEN",
+              "schema_version":"jra_one_shot_market_capture.v1","channel":"PC",
+              "started_at_utc":"2026-11-15T04:00:00+00:00",
+              "ended_at_utc":"2026-11-15T04:06:00+00:00",
+              "verified_start_utc":"2026-11-15T06:40:00+00:00",
               "pre_race_prices_accepted":True,"prediction_ready":False,"training_ready":False,
               "market_receipt":{"classification":"VALIDATED_LIVE_MARKETS_NOT_PREDICTION_RELEASED"},
               "request_receipts":self.request}
@@ -75,5 +82,33 @@ class CaptureAcceptTests(unittest.TestCase):
         self.check()
  def test_replay_determinism(self):
     self.assertEqual(self.check(),self.check())
+ def test_market_captured_after_start_refused(self):
+    self.doc["request_receipts"][1]["captured_at_utc"]="2026-11-15T06:35:00Z"
+    self.save()
+    with self.assertRaisesRegex(CaptureAcceptanceRejected,"capture_market_not_prerace"):
+        self.check()
+ def test_missing_capture_time_refused(self):
+    del self.doc["request_receipts"][0]["captured_at_utc"];self.save()
+    with self.assertRaisesRegex(CaptureAcceptanceRejected,"capture_utc_invalid"):
+        self.check()
+ def test_capture_ended_after_cutoff_refused(self):
+    self.doc["ended_at_utc"]="2026-11-15T06:39:00Z";self.save()
+    with self.assertRaisesRegex(CaptureAcceptanceRejected,"capture_run_not_prerace"):
+        self.check()
+ def test_local_timezone_not_accepted_as_utc(self):
+    self.doc["request_receipts"][0]["captured_at_utc"]="2026-11-15T13:05:00+09:00";self.save()
+    with self.assertRaisesRegex(CaptureAcceptanceRejected,"capture_utc_invalid"):
+        self.check()
+ def test_changed_race_start_day_refused(self):
+    self.doc["verified_start_utc"]="2026-11-16T06:40:00Z";self.save()
+    with self.assertRaisesRegex(CaptureAcceptanceRejected,"capture_run_not_prerace"):
+        self.check()
+ def test_http_provenance_missing_refused(self):
+    self.doc["request_receipts"][0]["http_status"]=404;self.save()
+    with self.assertRaisesRegex(CaptureAcceptanceRejected,"capture_http_provenance_incomplete"):
+        self.check()
+ def test_valid_time_receipt_is_returned(self):
+    self.assertEqual(self.check()["time_receipt"]["verified_race_start_utc"],
+                     "2026-11-15T06:40:00+00:00")
 if __name__=="__main__":
  unittest.main()
