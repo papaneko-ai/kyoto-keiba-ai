@@ -62,7 +62,8 @@ def _single_observed_racecard(meeting_original, meeting_url):
         choices.setdefault(race,set()).add(url)
     if not choices:
         return None
-    race=min(choices)
+    # Prefer the latest numbered explicitly observed race; no start-time claim.
+    race=max(choices)
     if len(choices[race])!=1:
         raise ObservationRejected("ambiguous_same_race_official_link")
     return race,next(iter(choices[race]))
