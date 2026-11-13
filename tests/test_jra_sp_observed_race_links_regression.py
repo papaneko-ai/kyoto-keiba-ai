@@ -27,6 +27,20 @@ class ObservedSPRaceLinksTests(unittest.TestCase):
             race_day="20261115")
         self.assertEqual([x["race_number"] for x in result["race_links"]], [12])
 
+    def test_double_digit_races_10_and_11(self):
+        for number in (10, 11):
+            with self.subTest(race=number):
+                original = (
+                    '<html><a href="/JRADB/accessD.html?CNAME=sw020aaa'
+                    + str(number) + '%2F' + str(number) + '20261115">'
+                    + '京都 ' + str(number) + 'R</a></html>'
+                ).encode("cp932")
+                result = observed_sp_race_links_from_saved_navigation(
+                    original, source_url=SOURCE,
+                    source_sha256=hashlib.sha256(original).hexdigest(),
+                    race_day="20261115")
+                self.assertEqual([x["race_number"] for x in result["race_links"]], [number])
+
     def test_unobserved_race_link_is_not_invented(self):
         original = b"<html><body>Kyoto 1 R without anchor</body></html>"
         result = observed_sp_race_links_from_saved_navigation(
