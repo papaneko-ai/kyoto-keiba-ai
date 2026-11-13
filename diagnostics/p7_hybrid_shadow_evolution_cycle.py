@@ -76,6 +76,43 @@ def _validate_lineage(state):
                 raise ShadowCycleRejected("decision_unsettled_races")
             if data["settlement_sha256"]!=_hash([settled[r] for r in data["settled_races"]]):
                 raise ShadowCycleRejected("decision_settlement_mismatch")
+            if decisions or set(data["settled_races"])!=set(freezes) or len(set(data["settled_races"]))!=len(freezes):
+                raise ShadowCycleRejected("decision_reuses_or_omits_races")
+            decision=data["decision"]
+            if type(decision) is not dict or decision.get("status")!="RESEARCH_ONLY_NOT_DEPLOYED":
+                raise ShadowCycleRejected("decision_research_scope_invalid")
+            if (any(f["predictions"][0]["model_id"]!=decision.get("champion")
+                    or f["predictions"][1]["model_id"]!=decision.get("candidate")
+                    for f in freezes.values())):
+                raise ShadowCycleRejected("decision_model_pair_mismatch")
+            scored=[]
+            for race in data["settled_races"]:
+                f=freezes[race];winner=settled[race]["winning_pair"]
+                pp=f["predictions"]
+                probabilities=[]
+                for prediction in pp:
+                    matches=[q["probability"] for q in prediction["quinella"]
+                             if q["pair"]==winner]
+                    if len(matches)!=1 or type(matches[0]) not in (int,float) or not math.isfinite(matches[0]) or not 0<=matches[0]<=1:
+                        raise ShadowCycleRejected("frozen_prediction_not_replayable")
+                    probabilities.append(-math.log(max(matches[0],1e-15)))
+                scored.append({"race_id":race,"cutoff_utc":f["snapshot"]["cutoff_utc"],
+                               "pre_result_frozen":True,
+                               "champion_log_loss":probabilities[0],
+                               "candidate_log_loss":probabilities[1]})
+            try:
+                thresholds=decision["thresholds"]
+                recomputed=guard_research_champion(
+                    champion=decision["champion"],candidate=decision["candidate"],
+                    alternate=decision["alternate"],observations=scored,
+                    min_races=thresholds["min_races"],
+                    min_mean_improvement=thresholds["min_mean_improvement"],
+                    min_paired_win_fraction=thresholds["min_paired_win_fraction"],
+                    prior_decision_sha256=None)
+            except (KeyError,TypeError,ValueError) as exc:
+                raise ShadowCycleRejected("decision_recalculation_rejected") from exc
+            if recomputed!=decision:
+                raise ShadowCycleRejected("decision_not_reproducible_from_frozen_outcomes")
             decisions.append(data)
         else:
             raise ShadowCycleRejected("unknown_journal_event")
