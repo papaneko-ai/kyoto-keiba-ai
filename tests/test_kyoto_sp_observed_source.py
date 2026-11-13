@@ -95,6 +95,43 @@ class SPSourceTests(unittest.TestCase):
                     self.dir,race_day=day,race_number=num,
                     source_url=RACE,opener=self.opener)
         self.assertEqual(self.opener.urls,[])
+    def test_observed_sp_menu_and_both_market_originals(self):
+        from diagnostics.kyoto_sp_observed_source import capture_verified_sp_seed
+        from urllib.parse import parse_qs
+        racecard=(
+            '<html><a onclick="doAction(\\'/JRADB/accessO.html\\','
+            '\\'sw01oddsmenu20261115/AA\\')">オッズ</a></html>').encode("cp932")
+        menu=(
+            '<html><head><title>オッズ</title></head><body>'
+            '<a onclick="doAction(\\'/JRADB/accessO.html\\','
+            '\\'sw01market1220261115/AA\\')">馬連</a>'
+            '<a onclick="doAction(\\'/JRADB/accessO.html\\','
+            '\\'sw01bracket1220261115/BB\\')">枠連</a>'
+            '</body></html>').encode("cp932")
+        class Reply(FakeResponse):
+            def __init__(self,url,raw):
+                super().__init__(url)
+                self.raw=raw
+            def read(self,n):return self.raw
+        class Opener:
+            def __init__(self):self.queries=[]
+            def open(self,req,timeout):
+                token=parse_qs((req.data or b"").decode()).get("cname",[None])[0]
+                self.queries.append(token)
+                if token is None:return Reply(req.full_url,racecard)
+                if token.startswith("sw01oddsmenu"):return Reply(req.full_url,menu)
+                return Reply(req.full_url,b"<html>market original</html>")
+        client=Opener()
+        r=capture_verified_sp_seed(self.dir,race_day=DAY,race_number=12,
+                                   source_url=RACE,opener=client,include_odds=True)
+        self.assertTrue(r["racecard_fetched"])
+        self.assertEqual(r["sp_market_state"],
+                         "BOTH_RAW_MARKET_ORIGINALS_CAPTURED_UNVALIDATED")
+        self.assertEqual(r["network_requests_started"],4)
+        self.assertEqual(len(client.queries),4)
+        self.assertTrue((self.dir/"official_sp_quinella_odds.html").is_file())
+        self.assertTrue((self.dir/"official_sp_bracket_quinella_odds.html").is_file())
+        self.assertFalse(r["sp_odds_originals_verified"])
     def test_offline_comparison_no_originals(self):
         from diagnostics.kyoto_sp_observed_source import compare_saved_pc_sp
         self.dir.mkdir()
