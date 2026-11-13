@@ -1,0 +1,132 @@
+name: Kyoto Nov15 second-day PC original-observed one-shot diagnostic
+on:
+  workflow_dispatch:
+    inputs:
+      confirmation:
+        description: 'Exact text NOV15-ONE-SHOT-READ-ONLY (one dispatch per day, no rerun)'
+        required: true
+        default: 'NO'
+      race_spec_path:
+        description: 'Independently observed Nov15 PC race identity JSON in docs/diagnostics'
+        required: true
+      current_roster_path:
+        description: 'Same-race Nov15 numbered roster JSON in docs/diagnostics'
+        required: true
+      official_selection_original_path:
+        description: 'Saved JRA entry-selection HTML original in docs/diagnostics'
+        required: true
+      official_meeting_original_path:
+        description: 'Saved Nov15 Kyoto meeting HTML original in docs/diagnostics'
+        required: true
+      race_start_utc:
+        description: 'Independently checked Nov15 Kyoto race start (UTC with Z suffix)'
+        required: true
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: kyoto-20261115-separate-official-pc-one-shot
+  cancel-in-progress: false
+jobs:
+  nov15-bounded-diagnostic:
+    if: github.event.inputs.confirmation == 'NOV15-ONE-SHOT-READ-ONLY'
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    env:
+      PYTHONPATH: .
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      SPEC: ${{ inputs.race_spec_path }}
+      ROSTER: ${{ inputs.current_roster_path }}
+      OFFICIAL_SELECTION: ${{ inputs.official_selection_original_path }}
+      OFFICIAL_MEETING: ${{ inputs.official_meeting_original_path }}
+      START_UTC: ${{ inputs.race_start_utc }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install existing HTML parser only
+        run: python -m pip install 'beautifulsoup4>=4.12,<5'
+      - name: Before any JRA GET verify event identity, one attempt and original-observed Nov15 navigation
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p nov15_pc_one_shot
+          python - <<'PY'
+          import json,os,re,sys
+          from pathlib import Path
+          from urllib.request import Request,urlopen
+          from diagnostics.kyoto_nov14_nov15_second_day_handoff import classify_day14_capture
+
+          for key in ("SPEC","ROSTER","OFFICIAL_SELECTION","OFFICIAL_MEETING"):
+              p=os.environ[key]
+              if (not re.fullmatch(r"docs/diagnostics/[A-Za-z0-9_./-]+\\.(json|html)",p)
+                  or ".." in p.split("/") or not Path(p).is_file() or Path(p).is_symlink()):
+                  raise SystemExit("NOV15_SAVED_ORIGINAL_PATH_REQUIRED:"+key)
+          for key in ("SPEC","ROSTER"):
+              if not os.environ[key].endswith(".json"):
+                  raise SystemExit("NOV15_JSON_REQUIRED:"+key)
+          for key in ("OFFICIAL_SELECTION","OFFICIAL_MEETING"):
+              if not os.environ[key].endswith(".html"):
+                  raise SystemExit("NOV15_HTML_REQUIRED:"+key)
+          if (os.environ.get("GITHUB_RUN_ATTEMPT")!="1"
+              or os.environ.get("GITHUB_EVENT_NAME")!="workflow_dispatch"):
+              raise SystemExit("NOV15_NO_WORKFLOW_RERUN")
+          repo=os.environ["GITHUB_REPOSITORY"]
+          workflow="kyoto-nov15-second-day-observed-oneshot.yml"
+          url=f"https://api.github.com/repos/{repo}/actions/workflows/{workflow}/runs?event=workflow_dispatch&per_page=100"
+          request=Request(url,headers={
+              "Authorization":"Bearer "+os.environ["GITHUB_TOKEN"],
+              "Accept":"application/vnd.github+json",
+              "X-GitHub-Api-Version":"2022-11-28",
+              "User-Agent":"KyotoAI-Nov15-SingleTrialGuard"
+          })
+          with urlopen(request,timeout=12) as response:
+              runs=json.load(response).get("workflow_runs")
+          if not isinstance(runs,list) or len(runs)>=100:
+              raise SystemExit("NOV15_PRIOR_RUN_AUDIT_INCOMPLETE")
+          prior=[x["id"] for x in runs if str(x.get("id"))!=os.environ["GITHUB_RUN_ID"]]
+          if prior:
+              raise SystemExit("NOV15_PRIOR_DISPATCH_ALREADY_EXISTS_NO_REPEAT")
+          # This is a recorded, day14-only failure, not proof of day15 success.
+          incident=Path("docs/diagnostics/nov14_existing_attempt_safe_stop_20261113.md").read_text()
+          if "43142384975" not in incident or "attempted_GET=1" not in incident:
+              raise SystemExit("NOV14_INCIDENT_NOT_LOCKED")
+          state=classify_day14_capture({"attempted_GET":1,"status":"FAILED_CLOSED"})
+          assert state["nov14_retry_authorized"] is False
+          print("NOV14_EXISTING_ATTEMPT_NOT_REPEATED=TRUE")
+          print("NOV15_INDEPENDENT_RUN_CHECKED=TRUE")
+          print("JRA_GET_BEFORE_OFFLINE_EVIDENCE_GATES=0")
+          PY
+          python -m diagnostics.kyoto_nov14_nov15_second_day_handoff \
+            --spec "$SPEC" \
+            --roster "$ROSTER" \
+            --selection-original "$OFFICIAL_SELECTION" \
+            --meeting-original "$OFFICIAL_MEETING" \
+            --verified-start-utc "$START_UTC" \
+            --receipt-output nov15_pc_one_shot/nov15_preflight_receipt.json
+          python -m unittest -v tests.test_kyoto_nov14_nov15_second_day_handoff
+      - name: Single bounded Nov15 observed PC racecard and market fetch
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m diagnostics.jra_one_shot_market_capture \
+            --channel PC \
+            --verified-start-utc "$START_UTC" \
+            --active-roster-json "$ROSTER" \
+            --race-spec-json "$SPEC" \
+            --authorized-live-http \
+            --out nov15_pc_one_shot/captured
+          echo NOV15_SOURCE_ONLY_NOT_LIVE_CERTIFICATION=TRUE
+          echo NO_AUTOMATED_RETRY=TRUE
+          echo NO_REAL_BETS=TRUE
+      - name: Always preserve original receipts and reasons for safe-stop
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: kyoto-nov15-observed-pc-one-shot-${{ github.run_id }}
+          path: nov15_pc_one_shot/
+          retention-days: 30
+          if-no-files-found: warn
