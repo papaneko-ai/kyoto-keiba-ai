@@ -12,6 +12,8 @@ on:
       - 'tests/test_kyoto_predata_readiness.py'
       - 'tests/test_r10_risk_strategy_comparison_acceptance.py'
       - 'tests/test_r04_model_families_acceptance.py'
+      - 'tests/test_r14_evolution_integration_acceptance.py'
+      - 'diagnostics/p7_r14_evolution_integration_acceptance.py'
       - 'diagnostics/p3_r04_model_families_lab.py'
       - 'diagnostics/p5_r10_risk_strategy_comparison.py'
       - 'diagnostics/p3_r07_calibration_uncertainty_acceptance.py'
