@@ -1,0 +1,37 @@
+name: Kyoto targeted offline acquisition regressions
+on:
+  push:
+    branches:
+      - jra-html-diagnostic-20261105
+    paths:
+      - 'diagnostics/jra_pc_sp_benchmark.py'
+      - 'diagnostics/kyoto_nov15_two_original_observer.py'
+      - 'diagnostics/kyoto_nov15_offline_race_links.py'
+      - 'tests/test_jra_sp_observed_race_links_regression.py'
+      - 'tests/test_kyoto_nov15_two_original_observer.py'
+      - 'tests/test_kyoto_nov15_offline_race_links.py'
+      - '.github/workflows/kyoto-offline-targeted-regression.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  offline-only:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      PYTHONPATH: .
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install existing HTML parser only
+        run: python -m pip install 'beautifulsoup4>=4.12,<5'
+      - name: Run focused offline tests without JRA HTTP
+        run: |
+          python -m unittest -v \
+            tests.test_kyoto_nov15_two_original_observer \
+            tests.test_kyoto_nov15_offline_race_links \
+            tests.test_jra_sp_observed_race_links_regression
