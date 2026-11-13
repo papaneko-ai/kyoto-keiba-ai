@@ -181,6 +181,29 @@ class ObservationTests(unittest.TestCase):
     (self.root/"official_selection.html").unlink()
     with self.assertRaisesRegex(ObservationRejected,"original_missing"):
         accept_observation(self.root)
+ def test_forged_racecard_success_state_refused_without_original(self):
+    import json
+    self.run_obs()
+    path=self.root/"receipt.json"
+    receipt=json.loads(path.read_text(encoding="utf8"))
+    receipt["state"]="NOV15_RACECARD_ORIGINAL_OBSERVED_ROSTER_UNVERIFIED"
+    path.write_text(json.dumps(receipt),encoding="utf8")
+    with self.assertRaisesRegex(ObservationRejected,"state_and_originals_inconsistent"):
+        accept_observation(self.root)
+ def test_unclaimed_racecard_bytes_refused(self):
+    self.run_obs()
+    (self.root/"official_racecard.html").write_bytes(b"<html>unexpected</html>")
+    with self.assertRaisesRegex(ObservationRejected,"unexpected_unclaimed_racecard"):
+        accept_observation(self.root)
+ def test_forged_metadata_without_original_refused(self):
+    import json
+    self.run_obs()
+    path=self.root/"receipt.json"
+    receipt=json.loads(path.read_text(encoding="utf8"))
+    receipt["racecard_sha256"]="a"*64
+    path.write_text(json.dumps(receipt),encoding="utf8")
+    with self.assertRaisesRegex(ObservationRejected,"unclaimed_racecard_metadata"):
+        accept_observation(self.root)
  def test_no_data_claims_real_racecard(self):
     self.run_obs()
     accepted=accept_observation(self.root)
