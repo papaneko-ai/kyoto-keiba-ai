@@ -63,4 +63,44 @@ class FullCaptureSealTests(unittest.TestCase):
     d=json.loads(p.read_text());d["file_names"].append("../config.py")
     p.write_text(json.dumps(d))
     with self.assertRaises(EvidenceCryptoRejected):self.decrypt()
+ def _replace_encrypted_tar(self, members):
+    import io,tarfile,hashlib
+    from cryptography.hazmat.primitives.ciphers.aead import AESGCM
+    from diagnostics.kyoto_nov15_encrypted_evidence import _aad
+    self.encrypt()
+    raw=io.BytesIO()
+    with tarfile.open(fileobj=raw,mode="w:gz") as archive:
+        for name,data in members:
+            entry=tarfile.TarInfo(name);entry.size=len(data)
+            archive.addfile(entry,io.BytesIO(data))
+    manifest_path=self.dest/"manifest.json"
+    manifest=json.loads(manifest_path.read_text())
+    cipher=AESGCM(bytes.fromhex(KEY)).encrypt(bytes.fromhex(manifest["nonce_hex"]),
+       raw.getvalue(),_aad(REPO,"2134")+b"|FULL_CAPTURE")
+    (self.dest/"capture.tar.gz.aesgcm").write_bytes(cipher)
+    manifest["ciphertext_sha256"]=hashlib.sha256(cipher).hexdigest()
+    manifest_path.write_text(json.dumps(manifest))
+ def test_duplicate_archive_member_is_rejected(self):
+    names=["nov15_preflight_receipt.json","captured/official_racecard.html",
+           "captured/quinella_original.html","captured/bracket_quinella_original.html"]
+    self._replace_encrypted_tar([(names[0],b"1"),(names[0],b"2"),
+                                (names[2],b"3"),(names[3],b"4")])
+    with self.assertRaises(EvidenceCryptoRejected):self.decrypt()
+ def test_decompression_total_overflow_is_rejected(self):
+    names=["nov15_preflight_receipt.json","captured/official_racecard.html",
+           "captured/quinella_original.html","captured/bracket_quinella_original.html"]
+    self._replace_encrypted_tar([(n,b"0"*11_000_000) for n in names])
+    with self.assertRaises(EvidenceCryptoRejected):self.decrypt()
+ def test_symlink_ciphertext_is_rejected(self):
+    self.encrypt()
+    p=self.dest/"capture.tar.gz.aesgcm";p.unlink();p.symlink_to(self.source/"captured/official_racecard.html")
+    with self.assertRaises(EvidenceCryptoRejected):self.decrypt()
+ def test_duplicate_manifest_name_is_rejected(self):
+    self.encrypt();p=self.dest/"manifest.json";m=json.loads(p.read_text())
+    m["file_names"].append(m["file_names"][0]);p.write_text(json.dumps(m))
+    with self.assertRaises(EvidenceCryptoRejected):self.decrypt()
+ def test_invalid_nonce_is_rejected(self):
+    self.encrypt();p=self.dest/"manifest.json";m=json.loads(p.read_text())
+    m["nonce_hex"]="z"*24;p.write_text(json.dumps(m))
+    with self.assertRaises(EvidenceCryptoRejected):self.decrypt()
 if __name__=="__main__": unittest.main()
