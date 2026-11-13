@@ -71,6 +71,8 @@ jobs:
           python -m unittest discover -s tests -p 'test_p3_hybrid_prediction_contract.py' -v
           python -m unittest discover -s tests -p 'test_p3_offline_model_tournament.py' -v
           python -m unittest discover -s tests -p 'test_r06_pair_frame_fixed_acceptance.py' -v
+          python -m unittest discover -s tests -p 'test_r11_predata_freeze_acceptance.py' -v
+          python -m unittest discover -s tests -p 'test_r13_predata_durable_accounting_acceptance.py' -v
           python -m unittest discover -s tests -p 'test_p3_three_window_selection_lab.py' -v
           python -m unittest discover -s tests -p 'test_p3_lab_calibration_audit.py' -v
           python -m unittest discover -s tests -p 'test_p2_p3_p5_offline_feature_bridge.py' -v
@@ -90,12 +92,12 @@ jobs:
           from pathlib import Path
           r=json.loads(Path('/tmp/kyoto-predata-readiness.json').read_text(encoding='utf-8'))
           assert r['total_gates']==16
-          assert r['passed_gates']==5
-          assert r['completion_percent']==31.25
-          assert r['accepted_gate_ids']==['R03','R05','R06','R09','R12']
+          assert r['passed_gates']==7
+          assert r['completion_percent']==43.75
+          assert r['accepted_gate_ids']==['R03','R05','R06','R09','R11','R12','R13']
           assert not r['live_paper_trading_authorized']
           assert not r['revert_to_original_scoring_now']
-          print('PRE_DATA_READINESS_FIXED_GATE_PASS=5/16')
+          print('PRE_DATA_READINESS_FIXED_GATE_PASS=7/16')
           PY
       - uses: actions/upload-artifact@v4
         with:
