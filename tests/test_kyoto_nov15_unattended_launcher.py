@@ -12,7 +12,7 @@ class LauncherTests(unittest.TestCase):
         self.assertLess(self.s.index("name: Install parser and crypto"),
                         self.s.index("name: Pre-HTTP date, launch, key, revision"))
         self.assertLess(self.s.index("name: Pre-HTTP date, launch, key, revision"),
-                        self.s.index("name: At most SIX bounded original-only official PC HTTP requests"))
+                        self.s.index("name: At most EIGHT bounded original-only official PC HTTP requests"))
     def test_offline_first_external_request_is_guarded(self):
         self.assertIn("from diagnostics.kyoto_nov15_two_original_observer import BEGIN,END",self.s)
         self.assertIn("from diagnostics.kyoto_p1_github_attempt_history_gate import audit_previous_runs",self.s)
@@ -21,7 +21,7 @@ class LauncherTests(unittest.TestCase):
         self.assertIn('os.environ.get("GITHUB_RUN_ATTEMPT")!="1"',self.s)
         self.assertIn('os.environ.get("GITHUB_EVENT_NAME")!="schedule"',self.s)
     def test_history_before_external_get(self):
-        self.assertLess(self.s.index("audit_previous_runs("),self.s.index("At most SIX bounded original-only official PC HTTP requests"))
+        self.assertLess(self.s.index("audit_previous_runs("),self.s.index("At most EIGHT bounded original-only official PC HTTP requests"))
     def test_secret_is_checked_and_not_logged(self):
         self.assertIn("NOV15_ARCHIVE_SECRET_INVALID_NO_HTTP",self.s)
         self.assertIn("secrets.KYOTO_JRA_ARCHIVE_AES256_HEX",self.s)
@@ -39,7 +39,7 @@ class LauncherTests(unittest.TestCase):
     def test_observed_racecard_then_bounded_menu_and_market_originals(self):
         self.assertIn("include_observed_racecard=True",self.s)
         self.assertIn("include_observed_odds_menu=True",self.s)
-        self.assertIn("At most SIX bounded original-only official PC HTTP requests",self.s)
+        self.assertIn("At most EIGHT bounded original-only official PC HTTP requests",self.s)
         self.assertIn("NOV15_MEETING_ORIGINALS_OBSERVED_NOT_RACECARD",self.s)
         self.assertIn("NOV15_RACECARD_ORIGINAL_OBSERVED_ROSTER_UNVERIFIED",self.s)
     def test_no_market_claim_or_direct_wager(self):
