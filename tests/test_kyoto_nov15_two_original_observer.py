@@ -93,6 +93,34 @@ class ObservationTests(unittest.TestCase):
     self.assertIn(b"pw15verified%2FAB",provider.urls[3][2])
     self.assertEqual(self.pacer.before_request.call_count,4)
     self.assertEqual(accept_observation(self.root)["state"],"TWO_ORIGINALS_MATCH_RECEIPT_ONLY")
+ def test_six_source_requests_for_observed_quinella_and_bracket(self):
+    race_anchor='<html><a href="/JRADB/accessD.html?CNAME=pw020aaa12%2F1220261115">京都 12R</a></html>'.encode("cp932")
+    racecard=("<html><a onclick=\"return doAction('/JRADB/accessO.html','pw15observed/AA')\">オッズ</a></html>").encode("cp932")
+    market_menu=("<html><title>単勝・複勝オッズ JRA</title>"
+      "<a onclick=\"return doAction('/JRADB/accessO.html','pw154ou1008202605041220261115Z/BB')\">馬連</a>"
+      "<a onclick=\"return doAction('/JRADB/accessO.html','pw153ou1008202605041220261115Z/37')\">枠連</a></html>").encode("cp932")
+    class Six(Stub):
+      def open(self,request,timeout=12):
+        self.urls.append((request.full_url,request.get_method(),request.data))
+        n=len(self.urls)
+        content=(self.selection if n==1 else race_anchor if n==2 else
+                 racecard if n==3 else market_menu if n==4 else
+                 b"<html>synthetic market original</html>")
+        return R(request.full_url,content)
+    six=Six()
+    r=observe(self.root,now_utc="2026-11-15T02:00:00Z",opener=six,
+       allowed=True,include_observed_racecard=True,
+       include_observed_odds_menu=True)
+    self.assertEqual(r["http_requests_started"],6)
+    self.assertEqual(r["market_requests_started"],2)
+    self.assertTrue(r["quinella_original_fetched"])
+    self.assertTrue(r["bracket_quinella_original_fetched"])
+    self.assertTrue((self.root/"official_quinella_odds.html").is_file())
+    self.assertTrue((self.root/"official_bracket_quinella_odds.html").is_file())
+    self.assertEqual([req[1] for req in six.urls],["GET","GET","GET","POST","POST","POST"])
+    self.assertEqual(self.pacer.before_request.call_count,6)
+    self.assertFalse(r["both_markets_verified"])
+    self.assertEqual(accept_observation(self.root)["state"],"TWO_ORIGINALS_MATCH_RECEIPT_ONLY")
  def test_missing_odds_anchor_never_guesses_fourth_request(self):
     race_anchor='<html><a href="/JRADB/accessD.html?CNAME=pw020aaa12%2F1220261115">京都 12R</a></html>'.encode("cp932")
     class Three(Stub):
