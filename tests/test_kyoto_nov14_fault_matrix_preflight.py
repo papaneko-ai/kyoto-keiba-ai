@@ -18,7 +18,7 @@ from diagnostics.kyoto_nov14_attempt_guard import (
 
 WHEN=lambda:datetime(2026,11,13,1,0,tzinfo=timezone.utc)
 EARLY=lambda:datetime(2026,11,12,2,34,tzinfo=timezone.utc)
-PAST=lambda:datetime(2026,11,14,1,0,tzinfo=timezone.utc)
+PAST=lambda:datetime(2026,11,14,9,0,tzinfo=timezone.utc)
 LINK='<a href="/JRADB/accessD.html?CNAME=pw01dde0108202605030720261114%2FAA">5回京都3日</a>'
 def html(s):
     return ('<html><title>JRA</title><body>'+s+'</body></html>').encode('cp932')
@@ -119,6 +119,18 @@ class Nov14FaultMatrixTests(unittest.TestCase):
         self.assertEqual(receipt["status"],"FAILED_CLOSED")
         self.assertEqual(state["state"],"FAILED_OFFICIAL_CAPTURE_SAFE_STOP")
 
+    def test_invalid_encoding_source_is_saved_but_cannot_be_accepted(self):
+        import hashlib
+        with tempfile.TemporaryDirectory() as directory:
+            broken=b"<html>\\x81</html>"
+            stub=Stub(Reply(broken))
+            receipt=inspect_once(directory,opener=stub,clock=WHEN)
+            self.assertEqual(stub.calls,1)
+            self.assertEqual(receipt["status"],"FAILED_CLOSED")
+            self.assertEqual((Path(directory)/"official_selection.html").read_bytes(),broken)
+            self.assertEqual(receipt["source_sha256"],hashlib.sha256(broken).hexdigest())
+            state=assess_saved_selection(directory)
+            self.assertNotEqual(state["state"],"OFFICIAL_MEETING_LINK_OBSERVED_NOT_RACECARD")
     def test_oversize_page_failed_closed(self):
         stub=Stub(Reply(b"x"*(LIMIT+1)))
         receipt,state=self.run_capture(stub)
