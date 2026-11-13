@@ -93,7 +93,10 @@
       "title": "発走前凍結と改ざん検出",
       "phase": "P6",
       "acceptance": "モデル版・時点・原本・券種・金額を固定し遅延変更と二重確定を拒否する",
-      "automation": null
+      "automation": {
+        "suite": "test_r11_predata_freeze_acceptance.py",
+        "tests": 14
+      }
     },
     {
       "id": "R12",
@@ -110,7 +113,10 @@
       "title": "永続台帳・再起動・日次成績",
       "phase": "P6",
       "acceptance": "再起動・復元・二重登録・日次累積損益とドローダウンの整合を確認する",
-      "automation": null
+      "automation": {
+        "suite": "test_r13_predata_durable_accounting_acceptance.py",
+        "tests": 12
+      }
     },
     {
       "id": "R14",
