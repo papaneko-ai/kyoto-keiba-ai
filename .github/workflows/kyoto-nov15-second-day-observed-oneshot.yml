@@ -171,6 +171,7 @@ jobs:
             --verified-start-utc "$START_UTC" \
             --active-roster-json "$ROSTER" \
             --race-spec-json "$SPEC" \
+            --auto-repair-broken-pc-link \
             --authorized-live-http \
             --out nov15_pc_one_shot/captured
           python -m diagnostics.kyoto_nov15_capture_acceptance \
