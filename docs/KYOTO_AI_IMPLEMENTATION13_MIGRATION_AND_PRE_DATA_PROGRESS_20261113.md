@@ -1,44 +1,61 @@
-# 京都競馬AI｜実装13への引継ぎ・取得前準備固定進捗（2026-11-13）
+# 京都競馬AI開発・実装13｜完全移行指示・現状固定版
+作成日：2026-11-13
+対象：個人趣味プロジェクト `papaneko-ai/kyoto-keiba-ai`
+作業ブランチ：`jra-html-diagnostic-20261105`
+本書は旧版の途中状態（31.25%/CI実行中など）を整理し、**確定済み43.75%を移行基準値として一本化**する。最新HEADと同一SHAの最終CIは新セクション冒頭に再確認する。
 
-## 目的と最重要合意
-- 現在の専用優先目標は**JRA実データ取得前準備100%**。実データ取得の結果待ち、追加JRA HTTP GET、接続試験、現時点で利用不能な結果照合を理由にオフライン開発を止めない。
-- **固定分母16件**の独立受入項目（R01〜R16）を計算式「合格数/16×100」で評価。各項目のテスト、リグレッション、同一HEADのCI、復旧バックアップに裏付けのない加点は不可。前回・今回・増減・残り項目を毎回同じ並びで提示する。
-- 現在の基準値：**31.25%=5/16（R03,R05,R06,R09,R12合格）**。この移行作業で追加対象は**R11とR13**。両方の合否を最新HEAD CIで確認できた場合に限り**43.75%=7/16**。失敗時は合格と報告しない。
-- **取得前準備100%の独立認定時に、従来の正式20ゲート・実開催6項目・研究32項目を主指標に戻す**。既存正式値（研究100%, 32/32, 研究卒業100%, 21機能群100%, 実開催0/6, 実用下限0/100, 20ゲート35/100）は改変、混同、リセット禁止。
-- 新しいセクションが必要になりそうな時は**停止前にアラート**し、現HEAD・CI・Artifact・未合格・次工程を記録して移行。
-- `main`、本番Turso、Streamlit公開アプリ、Secrets、実購入と業務用Work/Codexは保護対象。開発は `jra-html-diagnostic-20261105` のみ。
+## 1. 新セクションの最重要命令
+1. 開始時は、**恒久規程** `docs/KYOTO_AI_PERMANENT_RESEARCH_REUSE_AND_SECTION_HANDOFF_POLICY.md` と、**二段階進捗合意** `docs/KYOTO_AI_PRE_DATA_READINESS_PROGRESS_AGREEMENT_20261113.md` を最初に実読する。これらのルールを再度ユーザーに指示してもらわない。
+2. **以前の研究成果と現行ソース・テスト・成功/失敗CI・復旧アーティファクトを実読**し、REUSE→REPAIR→INTEGRATE→NEWの順に検討して、同一機能を作り直さない。修理や局所改善は必須なら行う。古い研究台帳の「未実装」は今のコードの事実を保証しない。
+3. **取得前準備100%**に至るまで、原則としてJRA実取得の成否を待たず、オフラインで可能なP2～P8の実装・統合を推進する。
+4. **固定16項目R01～R16**、現状 **7/16=43.75%**、未認定9件。次の「大きな節目」はこの確定数値を、独立した受入テスト・同一HEAD CI・復旧バックアップで**43.75%より上昇**させること。分母や受入条件を勝手に変更しない。
+5. **取得前準備100%認定時に従来の正式評価基準へ復帰**する。旧認定を改変・リセット・流用しない。
+6. チャットが長くなって止まる前にアラートし、完全な移行パックを作ることは**セクション共通の恒久義務**。都度ユーザー指示を待たない。
 
-## 正本
-- 固定評価台帳：`docs/diagnostics/kyoto_predata_readiness_rubric_v1.json`。分母16および個々の受入条件は無断変更禁止。
-- 採点：`diagnostics/kyoto_predata_readiness.py`。生のテストケースを実行し、テスト本数と合格を検証。`tests/test_kyoto_predata_readiness.py`は採点機構の破壊試験。
-- 2段階管理合意：`docs/KYOTO_AI_PRE_DATA_READINESS_PROGRESS_AGREEMENT_20261113.md`。
-- 正式20ゲート：`docs/diagnostics/kyoto_final_completion_criteria_v1.json`、認定状態：`docs/diagnostics/kyoto_final_20_gate_verified_state_20261112.json`。
-- ALG01-13、P1-P8、EVO01-08と既存ハイブリッド進化、PC/SP独立照合、馬連/枠連、日次予算・見送り、発走前freezeと訂正照合は引き続き必須。
+## 2. 確定した定量評価（比較基準）
+|指標|前回|今回|増減|
+|---|---:|---:|---:|
+|取得前準備完成率|31.25%|**43.75%**|**+12.50pt**|
+|固定受入項目|16|16|0|
+|合格項目|5|**7**|+2|
+|未認定項目|11|**9**|-2|
 
-## 経過と完了したオフライン研究機能
-- P2勝馬・2着・敗退馬の条件発見、P3順序付き→馬連/枠連同枠確率の全組合せ、モデル5候補、train/validation/untouched三分割、確率較正、LAB市場と期待値。
-- P5研究用レース順位・使い切らない予算・100円単位・原則2点/最大3点・原則3R/最大4Rと見送り。
-- P6研究用freeze・改ざん検出・追記型永続台帳・速報/確定/返還/訂正・累積ROI/最大ドローダウン。P7のMODIFY/ADD/ENSEMBLE候補・独立監査・研究用復帰、P8新UIのプレビュー/モバイル幅・ローカル再起動試験。
-- **新規R11専用テスト** `tests/test_r11_predata_freeze_acceptance.py`（14件）：モデル版、原本SHA、オッズ、時刻、券種、金額の凍結・二重登録・改ざん・head衝突・結果状態退行を検査。
-- **新規R13専用テスト** `tests/test_r13_predata_durable_accounting_acceptance.py`（12件）：複数台帳の再起動読込、外部head固定、重複・切断・改ざん、訂正時の重複防止、日次損益・ROI・最大ドローダウン・モデル別成績を検査。
-- 同一HEADの継続CI `.github/workflows/kyoto-ai-always-run-continuity.yml` が採点器とR11/R13の試験を実行。更新された確定版バックアップ `.github/workflows/kyoto-implementation12-verified-migration-backup.yml` はGit履歴bundle、ソースZIP、SHA256を持つが**外部Turso/Secrets/JRA原本を含まない**。
+認定済: **R03** 勝馬/2着/敗退馬特徴発見、**R05** 学習・選択・未使用の三期間モデル選択、**R06** 馬連/枠連確率整合、**R09** 日次選択と100円配分、**R11** 発走前LAB凍結と改ざん検出、**R12** LAB確定払戻・返還・訂正採点、**R13** 永続LAB台帳と集計。
+未認定: **R01, R02, R04, R07, R08, R10, R14, R15, R16**。ファイルの存在だけで認定しない。全項目の固定受入条件は正本 `docs/diagnostics/kyoto_predata_readiness_rubric_v1.json`。
 
-## 検証の引継ぎ（重要）
-- このファイルを記載する時点で最新HEAD/CIの成否は作業中。**チャットに示される最終HEADをGitHubのブランチAPIから再確認し、そのSHAと同じCI RunおよびバックアップRunでSUCCESSかを必ず確認する**。以前の成功コミットを最新と取り違えない。
-- 直前に確定済みの認定：31.25%（5/16）。R11/R13は最新同一HEADで全体CI SUCCESSかつソースバックアップ SUCCESSを確認して初めて7/16認定。
-- 新規のモデル性能・JRA実開催成功・公式払戻とペーパートレード実証を偽装しない。R07の較正・不確実性はLAB少数例だけでは母数不足と判断し未認定のまま。
-- 新旧のテストを丸ごと繰り返し続けず、既存で成功済みの部品は参照し、落ちた箇所だけ根本原因を修復する。
+従来の独立指標は維持：研究・開発工程100%、固定32/32、研究卒業100%、主要21機能群組込100%、**実開催接続0/6、実用能力独立下限0/100、最終20ゲート35/100**。最終認定は7/20項目のオフライン範囲のみ（F07/F10/F11/F12/F16/F17/F18）。これらを真正なJRA運用成功と混同しない。
 
-## R11/R13の次に進める残タスク
-- R01原本受入、R02特徴量の欠損・未来情報、R04本格モデル群、R07較正区間・標本数、R08市場完全性、R10リスク戦略、R14進化統合、R15新スマホUI、R16全工程E2E/復旧。R11/R13が未認定ならそこも含める。
-- 「次の大きな節目まで」とは、取得前準備合格数が**前回確定値を超えること**。進捗率の変動がなく資料だけを増やしたら節目未達。
-- 取得前準備が100%になったら一時指標の更新を停止し、既存20ゲートを主軸に戻す。従来の進捗表と研究100%・正式35%バーを残す。
+## 3. 実際の保存成果と証拠（移行資料を更新する直前の確定スナップショット）
+- GitHub HEAD: `f1cc8f4fc41cdc4e69cbbde2880422abc3c591b7`。
+- 同一HEADの継続CI: **Run 43366298131 / Job 131691386631 = SUCCESS**（成功27ステップ）。採点Artifact `14009939983`。
+- 同一HEADのソース・Git履歴・SHA256復旧バックアップ: **Run 43366298055 / Job 131691386468 = SUCCESS**、Artifact `14010761080`（90日保持設定）。
+- **注意：本書を修正した新HEADのCIやバックアップは上記の「旧HEADの成功」と区別する。** 本書の更新・最終保存後の新HEAD/CI/backupが同一SHA SUCCESSかを確認し、ユーザーに実際の新しい値を提示すること。移行先でもHEADを再照合する。
+- バックアップはトラッキング済みソースZIP、Git bundle、SHA256SUMS、復元指示であり、**外部Turso本番DB、Secrets、JRA過去原本・GitHub Actionsに分散した外部成果物を含まない**。「完全バックアップ」を外部サービス全部の復元と誤認しない。
 
-## 次セクション移行の指示文
-「京都競馬AI開発・実装13として継続。まず本書と合意書、固定16項目台帳をGitHubの開発ブランチ最新HEADで実読し、最新CI・バックアップ・採点Artifactを照合。取得前準備の前回値は直前セクションで確認した実測値とし、固定16分母の未認定項目を証拠付きで合格させる次の大きな節目まで自律的に開発する。JRA実データ取得は待たず、main/Turso/Secrets/公開Streamlitを変更しない。セクションが重くなる前に移行アラートと資料を準備する。」
+## 4. 既存研究の正本・先行機能の再利用ルート
+- `docs/KYOTO_AI_ALGORITHM_REQUIREMENTS_REGISTER_v1_20261106.md` と `docs/KYOTO_AI_ALGORITHM_AND_EXECUTION_ROADMAP_20261106.md`：ALG01-13、P1-8、券種、時点、進行順。
+- `docs/KYOTO_AI_HYBRID_SELF_EVOLUTION_MODEL_ARCHITECTURE_20261112.md`：EVO01-08、MODIFY/ADD/ENSEMBLE/KEEP・ROLLBACK、独立監査。
+- `docs/diagnostics/kyoto_feature_reuse_inventory_v1.json`、`docs/diagnostics/kyoto_change_intent_v1.json` と `diagnostics/kyoto_development_preflight.py`：既存機能と修正の事前棚卸し。関連する実装とテストの**実読**が必要。
+- P2: `diagnostics/p2_first_second_feature_discovery_lab.py`、`diagnostics/p2_p3_p5_offline_feature_bridge.py`、既存P2三群発見系。
+- P3: `diagnostics/p3_offline_model_tournament.py`、`diagnostics/p3_three_window_selection_lab.py`、`diagnostics/p3_lab_calibration_audit.py`、`diagnostics/p3_p6_research_no_bet.py`。PL/Harville基準、5候補比較、三期間モデル選択、馬連120組/枠連同枠確率。Bolton–Chapman/Benter/ML混合は本格フィット済みと偽らない。
+- P4/P5: `diagnostics/p4_source_bound_model_ev_research.py`、`diagnostics/p5_source_bound_race_ranking_lab.py`、`diagnostics/p5_bounded_risk_capital_lab.py`、`diagnostics/p3_p5_p6_synthetic_day_lab.py`。馬連・枠連、市場EV、最大4R、最大3点、予算上限・見送り。
+- P6: `diagnostics/p6_source_bound_ranked_freeze_lab.py`、`diagnostics/p6_virtual_settlement_fixture_lab.py`、`diagnostics/p6_fixture_durable_ledger.py`、`diagnostics/p6_fixture_temporal_aggregate.py`。ハッシュ付き事前凍結、追記型台帳、訂正の差替え再計算、累積ROI/最大ドローダウン。固定受入 `tests/test_r11_predata_freeze_acceptance.py`（14件）、`tests/test_r13_predata_durable_accounting_acceptance.py`（12件）。
+- P7: `diagnostics/p7_hybrid_shadow_evolution_cycle.py`、`diagnostics/p7_evo_bounded_candidate_constructor.py`、`diagnostics/p7_add_ensemble_candidate_constructor.py` と認定済みF17/F18の研究監査。既存モデル生成・独立評価を作り直さずR14統合を優先。
+- P8: `diagnostics/kyoto_new_mobile_paper_ui.py`、`diagnostics/p8_uploaded_archive_shadow_app.py`、既存RG06モバイルChromiumテストとローカル再起動テスト。旧 `main/app.py` の設計/コードを流用しない。
+- 修理・再現・復旧履歴はGitHubの対象ファイルに紐づくコミット/テスト/CIで直接照合し、変更後の影響範囲だけ独立の回帰証拠を揃える。
 
-## 2026-11-13最終確定と恒久運用への訂正
+## 5. 次に進める実装の優先順位
+1. 未認定9項目のうち**R01/R08**の真正な原本に偽装できないオフライン受入契約・馬連/枠連市場完全性/時刻/欠落停止を既存P1/P4部品から再利用・統合。
+2. **R02**の発走前特徴量・欠損・未来漏洩、**R07**の較正母数/不確実性（少数合成レースの実績を過大評価しない）を検証。
+3. **R04**のモデル拡充、**R10**リスク戦略の比較、**R14**自己進化部品の全体統合、**R15**スマホの仮想収支までの操作、**R16**全工程の固定LAB E2E/復旧を進める。
+4. 目標は、実データ取得後に追加の大規模開発なしで安全な仮想投資稼働実験を開始できる**オフライン準備100%**。その後の真正実開催証拠による稼働認定は別基準。
 
-作成当初の**31.25%=5/16は移行作業開始時の旧基準値**であり、最終値ではない。**R11/R13は同一コミットのCIと復旧バックアップがSUCCESSとなり、取得前準備の確定値は43.75%=7/16、未認定9項目**。移行先は常にGitHub最新HEADと同SHAの実行記録を再確認する。進捗台帳の分母16を変更しない。
+## 6. 失敗防止・保護対象
+- 取得済み公式HTML（2026-10-31京都154頭、2026-11-07京都148頭・詳細96頭・過去走592件）、PC/SPリンク独立検証等の過去研究は記録を実読して再利用し、終了済みの結果・最終オッズを発走前時点データと誤認しない。新しいJRA GETが失敗しても取得前準備のオフライン作業は続ける。
+- 同一実行環境以外のTurso/SQLite接続・本番稼働の実証は未認定。ネットワークで許可を推定せず、取得原本の来歴とタイミングを実証する。
+- **保護**：`main`、本番Turso/Secrets、公開Streamlit、ユーザーの実馬券購入、業務Work/Codex。一切無承認変更しない。
+- 安全な進化のみ。自己進化候補を研究用の成功だけで本番へ自動採用しない。採用は未使用時系列と独立監査、劣化時復帰が必要。
+- **早期移行アラートは恒久運用**。セクションが重くなり停止・文脈誤認する前に警告と完全移行資料を自律作成する。
 
-**全セクション自動適用の恒久運用規程**: `docs/KYOTO_AI_PERMANENT_RESEARCH_REUSE_AND_SECTION_HANDOFF_POLICY.md` を必ず読むこと。ユーザーは以後、セクションごとに事前移行警告・過去研究の再利用確認を再指示する必要がない。既存研究台帳・既存機能棚卸し・最新CI・保存原本を先に直接調べ、REUSE/REPAIR/INTEGRATE/NEWを判別し、必要最小限の修正と未達の統合だけ実装する。セクションが長くなり停止する**前**にアラートと完全引継ぎパックを出す。
+## 7. 実装13開始指示（全文）
+> 京都競馬AI開発・実装13として、`papaneko-ai/kyoto-keiba-ai` の開発ブランチ `jra-html-diagnostic-20261105` で継続してください。まず `docs/KYOTO_AI_IMPLEMENTATION13_MIGRATION_AND_PRE_DATA_PROGRESS_20261113.md` と恒久運用規程、二段階進捗合意書、固定16評価台帳、研究正本、機能棚卸しをGitHubの**最新HEADで実読**し、当該HEADのCI/Job/Artifactと復旧バックアップがSUCCESSであるか照合してください。取得前準備の確定基準値は**43.75%=7/16**、未認定9項目（R01,R02,R04,R07,R08,R10,R14,R15,R16）です。次の節目は**43.75%を超える**こと。重複を避けて既存研究成果のREUSE/REPAIR/INTEGRATEを優先し、実データ取得待ちを理由に止めず、合格テスト・CI・復旧バックアップまで完了させてください。固定指標の前回/今回/増減と残作業を毎回報告し、取得前準備100%達成時は元の正式評価基準に戻してください。`main`、Turso本番、Secrets、公開Streamlit等は変更禁止です。セクションが長くなる**前に**ユーザーへ移行警告を出し、完全な引継ぎパックと開始指示を準備してください。この2つの恒久ルールは再指示不要です。
