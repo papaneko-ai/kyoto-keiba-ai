@@ -19,7 +19,9 @@ EXPECTED_DAY="20261114"
 # JRA FAQ: ordinary unnumbered entries announced Thursday after 16:00 JST.
 # Allow an additional 15 minutes for the official site to update.
 MIN_DISCOVERY_UTC=datetime(2026,11,12,7,15,tzinfo=timezone.utc)
-MAX_DISCOVERY_UTC=datetime(2026,11,14,0,0,tzinfo=timezone.utc)
+# Must agree with the race-day HTTP gate's exclusive upper bound.
+# Prior recorded Nov14 attempt stays independently blocked by workflow guard.
+MAX_DISCOVERY_UTC=datetime(2026,11,14,9,0,tzinfo=timezone.utc)
 class DiscoveryRejected(ValueError):pass
 class NoRedirect(HTTPRedirectHandler):
     def redirect_request(self,request,fp,code,msg,headers,newurl):
@@ -105,17 +107,20 @@ def inspect_once(directory,*,opener=None,clock=None,authorized_live_http=False):
                 raw=response.read(LIMIT+1)
             if status!=200 or final!=SOURCE or "html" not in ct.lower() or not 0<len(raw)<=LIMIT:
                 raise DiscoveryRejected("unverified_original_http_response")
-            summary=strict_link_from_official(raw)
+            # Preserve exact original before charset, HTML parser and anchor checks.
+            # Never discard a real valid-response original merely because parsing fails.
+            receipt["source_sha256"]=hashlib.sha256(raw).hexdigest()
+            receipt["source_bytes"]=len(raw)
+            receipt["source_captured_utc"]=now().isoformat()
             try:
                 with (destination/"official_selection.html").open("xb") as original:
                     original.write(raw)
             except FileExistsError as exc:
                 raise DiscoveryRejected("one_shot_original_already_exists") from exc
-            if hashlib.sha256((destination/"official_selection.html").read_bytes()).hexdigest()!=hashlib.sha256(raw).hexdigest():
+            if hashlib.sha256((destination/"official_selection.html").read_bytes()).hexdigest()!=receipt["source_sha256"]:
                 raise DiscoveryRejected("one_shot_original_write_corrupted")
+            summary=strict_link_from_official(raw)
             receipt.update(summary)
-            receipt["source_sha256"]=hashlib.sha256(raw).hexdigest()
-            receipt["source_bytes"]=len(raw)
             receipt["completed_utc"]=now().isoformat()
         except Exception as exc:
             receipt["status"]="FAILED_CLOSED"
