@@ -7,7 +7,7 @@ from __future__ import annotations
 from datetime import datetime, timezone
 from hashlib import sha256
 from pathlib import Path
-import json
+import json,time
 from diagnostics.jra_pc_sp_benchmark import observed_sp_race_links_from_saved_navigation
 from diagnostics.jra_one_shot_market_capture import http_fetch, RequestPacer, LIMIT
 
@@ -108,8 +108,10 @@ def capture_verified_sp_seed(originals, *, race_day, race_number, source_url,
              "pc_sp_parity_verified":False}
     shared_pacer=pacer or RequestPacer(min_gap_seconds=2.0)
     try:
+        request_start=time.monotonic()
         page=http_fetch(opener,"SP",source_url,
                         pacer=shared_pacer)
+        receipt["racecard_elapsed_ms"]=round((time.monotonic()-request_start)*1000,2)
         (root/"official_sp_racecard.html").write_bytes(page["raw"])
         receipt.update(state="SP_ORIGINAL_CAPTURED_NOT_ROSTER_VERIFIED",
                        racecard_fetched=True,
@@ -233,6 +235,18 @@ def compare_saved_pc_sp(originals, *, race_day):
                             sha256=receipt["racecard_sha256"])
         result["SP"].update(captured=True,runner_count=len(sp_parsed),
                             sha256=sp_receipt["racecard_sha256"])
+        result["PC"]["elapsed_ms"]=receipt.get("racecard_elapsed_ms")
+        result["SP"]["elapsed_ms"]=sp_receipt.get("racecard_elapsed_ms")
+        result["PC"]["bytes"]=len(pc.read_bytes())
+        result["SP"]["bytes"]=len(sp.read_bytes())
+        result["single_sample_speed_winner"]=(
+            "PC" if isinstance(result["PC"]["elapsed_ms"],(int,float))
+                    and isinstance(result["SP"]["elapsed_ms"],(int,float))
+                    and result["PC"]["elapsed_ms"]<result["SP"]["elapsed_ms"]
+            else "SP" if isinstance(result["PC"]["elapsed_ms"],(int,float))
+                    and isinstance(result["SP"]["elapsed_ms"],(int,float))
+                    and result["SP"]["elapsed_ms"]<result["PC"]["elapsed_ms"]
+            else None)
         result["full_roster_parity_verified"]=pc_parsed==sp_parsed
         result["state"]=("ROSTER_PARITY_MATCH" if pc_parsed==sp_parsed
                          else "ROSTER_PARITY_MISMATCH")
