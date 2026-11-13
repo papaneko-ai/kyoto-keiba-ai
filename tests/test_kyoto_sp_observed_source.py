@@ -67,4 +67,38 @@ class SPSourceTests(unittest.TestCase):
         with self.assertRaisesRegex(SPSourceError,"existing_or_invalid"):
             self.collect()
         self.assertEqual(self.opener.urls,[])
+    def test_verified_sp_seed_stored_exactly(self):
+        from diagnostics.kyoto_sp_observed_source import capture_verified_sp_seed
+        rec=capture_verified_sp_seed(
+            self.dir,race_day=DAY,race_number=12,source_url=RACE,
+            opener=self.opener)
+        self.assertTrue(rec["racecard_fetched"])
+        self.assertEqual(rec["racecard_sha256"],
+                         __import__("hashlib").sha256(
+                             b"<html>sp original fixture</html>").hexdigest())
+        self.assertEqual(self.opener.urls,[RACE])
+        self.assertEqual((self.dir/"official_sp_racecard.html").read_bytes(),
+                         b"<html>sp original fixture</html>")
+    def test_verified_sp_seed_rejects_pc_domain(self):
+        from diagnostics.kyoto_sp_observed_source import capture_verified_sp_seed
+        with self.assertRaisesRegex(SPSourceError,"sp_source_url_unverified"):
+            capture_verified_sp_seed(
+                self.dir,race_day=DAY,race_number=12,
+                source_url=RACE.replace("sp.jra.jp","jra.jp"),
+                opener=self.opener)
+        self.assertEqual(self.opener.urls,[])
+    def test_seed_requires_matching_date_and_race(self):
+        from diagnostics.kyoto_sp_observed_source import capture_verified_sp_seed
+        for day,num in (("20261114",12),(DAY,11)):
+            with self.assertRaisesRegex(SPSourceError,"sp_source_url_unverified"):
+                capture_verified_sp_seed(
+                    self.dir,race_day=day,race_number=num,
+                    source_url=RACE,opener=self.opener)
+        self.assertEqual(self.opener.urls,[])
+    def test_offline_comparison_no_originals(self):
+        from diagnostics.kyoto_sp_observed_source import compare_saved_pc_sp
+        self.dir.mkdir()
+        result=compare_saved_pc_sp(self.dir,race_day=DAY)
+        self.assertEqual(result["state"],"NEED_BOTH_ORIGINALS")
+        self.assertFalse(result["channel_preference_certified"])
 if __name__=="__main__":unittest.main()
