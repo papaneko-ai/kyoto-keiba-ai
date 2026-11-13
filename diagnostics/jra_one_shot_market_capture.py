@@ -642,8 +642,9 @@ def capture_hybrid(out, *, primary_channel, verified_start_utc, active_runners,
         "source_not_before_cutoff",
         "final_or_unpublished_original",
     )
-    # An HTTP 403/429, redirect, unauthorised origin, transport timeout,
-    # or identity/temporal refusal is NOT a transient channel error.
+    # HTTP 403/429, redirects, unauthorized origins or identity/temporal
+    # refusals must not trigger another host. Existing verified-channel
+    # fallback on transient transport timeout is deliberately preserved.
     # Preserve the failed source and stop rather than evading the refusal via
     # a second official host. Link-not-found (404/410) may use an
     # independently verified alternative under the existing one-shot policy.
@@ -651,7 +652,6 @@ def capture_hybrid(out, *, primary_channel, verified_start_utc, active_runners,
         "HTTP Error 403", "HTTP Error 429", "HTTPError:HTTP Error 403",
         "HTTPError:HTTP Error 429", "redirect_forbidden",
         "official_http_response_invalid", "invalid_target_origin",
-        "TimeoutError:", "timed out", "SSLError:", "ssl.",
         "LIVE_HTTP_NOT_AUTHORIZED", "race_spec_unverified",
         "permission", "unauthorized", "forbidden",
     )
