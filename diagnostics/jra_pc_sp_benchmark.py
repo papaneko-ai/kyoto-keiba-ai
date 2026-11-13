@@ -238,8 +238,9 @@ def assess_dual_channel_experiment(channels, frozen_snapshot, *,
   and BOTH byte-preserved racecards are required. This cannot certify odds.
   """
   from datetime import datetime
-  from urllib.parse import urlsplit,parse_qs
-  import re
+  from urllib.parse import urlsplit,parse_qs,urljoin
+  from bs4 import BeautifulSoup
+  import hashlib,re
   def utc(value):
     if type(value) is not str:
       raise ValueError("hybrid_timestamp_missing")
@@ -261,7 +262,23 @@ def assess_dual_channel_experiment(channels, frozen_snapshot, *,
       status[channel]={"state":"MISSING_OFFICIAL_ORIGINAL"}
       continue
     url=item.get("source_url")
-    observed=item.get("official_link_independently_observed") is True
+    # The flag alone is not evidence. Re-verify the exact official link
+    # against an independently retained navigation original and its SHA.
+    navigation=item.get("navigation_original")
+    parent=item.get("navigation_parent_url")
+    proof=(type(navigation) is bytes and 0<len(navigation)<=1_500_000
+           and item.get("navigation_sha256")==hashlib.sha256(navigation).hexdigest()
+           and type(parent) is str and
+           urlsplit(parent).scheme=="https" and
+           urlsplit(parent).hostname==host and
+           urlsplit(parent).port is None and
+           not urlsplit(parent).username and not urlsplit(parent).password)
+    if proof:
+      html=BeautifulSoup(navigation.decode("cp932",errors="replace"),"html.parser")
+      observed_links={urljoin(parent,a.get("href","").strip())
+                      for a in html.select("a[href]")
+                      if a.get("href","").strip()}
+      proof=url in observed_links
     try:
       u=urlsplit(url or "")
       q=parse_qs(u.query,strict_parsing=True)
@@ -272,7 +289,7 @@ def assess_dual_channel_experiment(channels, frozen_snapshot, *,
             set(q)=={"CNAME"} and len(q["CNAME"])==1 and
             re.fullmatch(r"[ps]w[A-Za-z0-9]+/[A-Za-z0-9]+",token) and
             token.startswith("pw" if channel=="PC" else "sw") and
-            meeting_date.replace("-","") in token and observed)
+            meeting_date.replace("-","") in token and proof)
     except (TypeError,ValueError,KeyError,IndexError):
       good=False
     status[channel]={"state":"OFFICIAL_LINK_OBSERVED" if good
