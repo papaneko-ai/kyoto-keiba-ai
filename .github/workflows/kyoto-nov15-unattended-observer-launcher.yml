@@ -54,11 +54,11 @@ jobs:
               repo=os.environ["GITHUB_REPOSITORY"],token=os.environ["GITHUB_TOKEN"],
               branch="main",current_run_id=os.environ["GITHUB_RUN_ID"],
               workflow_name="Kyoto Nov15 unattended encrypted official observer launcher",
-              http_step="At most THREE bounded original-only official PC HTTP GET")
+              http_step="At most FOUR bounded original-only official PC HTTP requests")
           print("NOV15_PRE_HTTP_HISTORY_CHECKED="+str(len(r["prior_zero_http_runs"])))
           print("NOV15_UNATTENDED_OBSERVER_DATE_AND_KEY_GATES_PASS")
           PY
-      - name: At most THREE bounded original-only official PC HTTP GET
+      - name: At most FOUR bounded original-only official PC HTTP requests
         shell: bash
         run: |
           set -euo pipefail
@@ -67,7 +67,8 @@ jobs:
           from diagnostics.kyoto_nov15_two_original_observer import observe
           r=observe("nov15_work_originals",
                     now_utc=datetime.now(timezone.utc).isoformat(),allowed=True,
-                    include_observed_racecard=True)
+                    include_observed_racecard=True,
+                    include_observed_odds_menu=True)
           print("NOV15_OBSERVATION_STATE="+r["state"])
           print("NOV15_ATTEMPTED_GET="+str(r["http_requests_started"]))
           if r["state"] not in ("NOV15_MEETING_ORIGINALS_OBSERVED_NOT_RACECARD",
