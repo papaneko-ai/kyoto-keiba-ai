@@ -161,7 +161,16 @@ def accept_observation(folder):
     if receipt.get("state") not in ("NOV15_MEETING_ORIGINALS_OBSERVED_NOT_RACECARD",
                                    "NOV15_RACECARD_ORIGINAL_OBSERVED_ROSTER_UNVERIFIED"):
         raise ObservationRejected("observation_not_successful")
-    # Reject forged market/roster success and impossible HTTP accounting.\n    # A saved PC-only observation cannot certify independent SP or markets.\n    if any(receipt.get(flag, False) is not False for flag in (\n        "real_racecard_verified", "both_markets_verified", "paper_trade_authorized")):\n        raise ObservationRejected("unverified_success_claim_in_observation")\n    expected_requests = 3 if receipt.get("racecard_original_fetched") is True else 2\n    if type(receipt.get("http_requests_started")) is not int or (\n        receipt["http_requests_started"] != expected_requests):\n        raise ObservationRejected("observation_http_count_inconsistent")\n    for filename,prefix in (("official_selection.html","selection"),
+    # Reject forged market/roster success and impossible HTTP accounting. 
+    # A saved PC-only observation cannot certify independent SP or markets.
+    if any(receipt.get(flag, False) is not False for flag in (
+        "real_racecard_verified", "both_markets_verified", "paper_trade_authorized")):
+        raise ObservationRejected("unverified_success_claim_in_observation")
+    expected_requests = 3 if receipt.get("racecard_original_fetched") is True else 2
+    if type(receipt.get("http_requests_started")) is not int or (
+        receipt["http_requests_started"] != expected_requests):
+        raise ObservationRejected("observation_http_count_inconsistent")
+    for filename,prefix in (("official_selection.html","selection"),
                             ("official_meeting.html","meeting")):
         path=root/filename
         if path.is_symlink() or not path.is_file():
