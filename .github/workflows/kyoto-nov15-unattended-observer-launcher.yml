@@ -54,11 +54,11 @@ jobs:
               repo=os.environ["GITHUB_REPOSITORY"],token=os.environ["GITHUB_TOKEN"],
               branch="main",current_run_id=os.environ["GITHUB_RUN_ID"],
               workflow_name="Kyoto Nov15 unattended encrypted official observer launcher",
-              http_step="At most FOUR bounded original-only official PC HTTP requests")
+              http_step="At most SIX bounded original-only official PC HTTP requests")
           print("NOV15_PRE_HTTP_HISTORY_CHECKED="+str(len(r["prior_zero_http_runs"])))
           print("NOV15_UNATTENDED_OBSERVER_DATE_AND_KEY_GATES_PASS")
           PY
-      - name: At most FOUR bounded original-only official PC HTTP requests
+      - name: At most SIX bounded original-only official PC HTTP requests
         shell: bash
         run: |
           set -euo pipefail
