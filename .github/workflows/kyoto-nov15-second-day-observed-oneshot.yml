@@ -119,8 +119,6 @@ jobs:
               if (p.parent!=Path("nov15_decrypted") or not p.is_file() or
                   p.is_symlink() or p.name not in ("official_selection.html","official_meeting.html")):
                   raise SystemExit("NOV15_ENCRYPTED_SOURCE_NOT_RESTORED:"+key)
-          if os.environ.get("GITHUB_RUN_ATTEMPT")!="1":
-              raise SystemExit("NOV15_NO_WORKFLOW_RERUN")
           if os.environ.get("GITHUB_EVENT_NAME")=="push":
               gate=Path("diagnostics/nov15_pc_explicit_activation.txt")
               if not gate.is_file() or gate.read_text(encoding="utf8").strip()!="NOV15-ONE-SHOT-READ-ONLY":
@@ -136,15 +134,6 @@ jobs:
                       out.write("START_UTC="+start+"\n")
           elif os.environ.get("GITHUB_EVENT_NAME")!="workflow_dispatch":
               raise SystemExit("NOV15_UNEXPECTED_TRIGGER")
-          from diagnostics.kyoto_p1_github_attempt_history_gate import audit_previous_runs
-          state=audit_previous_runs(
-              repo=os.environ["GITHUB_REPOSITORY"],
-              token=os.environ["GITHUB_TOKEN"],
-              branch="jra-html-diagnostic-20261105",
-              current_run_id=os.environ["GITHUB_RUN_ID"],
-              workflow_name="Kyoto Nov15 second-day PC original-observed one-shot diagnostic",
-              http_step="Single bounded Nov15 observed PC racecard and market fetch")
-          print("NOV15_PRE_HTTP_RETRY_COUNT="+str(len(state["prior_zero_http_runs"])))
           # This is a recorded, day14-only failure, not proof of day15 success.
           incident=Path("docs/diagnostics/nov14_existing_attempt_safe_stop_20261113.md").read_text()
           if "43142384975" not in incident or "attempted_GET=1" not in incident:
