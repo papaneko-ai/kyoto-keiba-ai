@@ -15,6 +15,7 @@ from diagnostics.kyoto_p1_nov14_official_one_shot_nav import (
 )
 from diagnostics.jra_official_link_repair import observed_links, LinkRepairRejected
 from diagnostics.jra_one_shot_market_capture import RequestPacer,exact_odds_action,http_fetch,SourceChainError
+from diagnostics.jra_official_market_navigation import find_market_links, MarketNavigationError
 
 DAY="20261115"
 BEGIN=datetime(2026,11,12,7,15,tzinfo=timezone.utc)
@@ -92,6 +93,7 @@ def observe(selection_root, *, now_utc, opener=None, allowed=False,
              "http_requests_started":0,"real_racecard_verified":False,
              "both_markets_verified":False,"paper_trade_authorized":False,
              "racecard_original_fetched":False,"odds_menu_original_fetched":False,
+             "market_requests_started":0,
              "started_at_utc":current.isoformat()}
     client=opener if opener is not None else build_opener(NoRedirect())
     # Reuse the established market-capture pacer across all bounded GETs.
@@ -164,6 +166,45 @@ def observe(selection_root, *, now_utc, opener=None, allowed=False,
                             receipt["odds_menu_original_fetched"]=True
                             _validate_saved_html_encoding(menu)
                             receipt["odds_menu_observation"]="RAW_OFFICIAL_MENU_NOT_PRICE_VALIDATED"
+                            # Only independently identified, direct official
+                            # 馬連/枠連 links from this exact menu may be used.
+                            # No navigation guesses, no extra GETs or retry.
+                            try:
+                                links=find_market_links(
+                                    menu,expected_race_day=DAY,
+                                    expected_race_number=race_number,
+                                    expected_host="jra.jp")
+                            except MarketNavigationError:
+                                receipt["market_observation"]="OFFICIAL_MARKET_LINKS_NOT_PRESENT_IN_MENU"
+                            else:
+                                receipt["market_observation"]="OFFICIAL_MARKET_LINKS_SEEN"
+                                for market in ("quinella","bracket_quinella"):
+                                    rec=links["markets"][market]
+                                    if receipt["http_requests_started"]>=6:
+                                        break
+                                    receipt["http_requests_started"]+=1
+                                    receipt["market_requests_started"]+=1
+                                    try:
+                                        page=http_fetch(
+                                            client,"PC",rec["official_post_url"],
+                                            cname=rec["cname"],
+                                            referer="https://jra.jp/JRADB/accessO.html",
+                                            pacer=request_pacer)
+                                        raw_market=page["raw"]
+                                        name="official_"+market+"_odds.html"
+                                        (root/name).write_bytes(raw_market)
+                                        receipt[market+"_sha256"]=page["sha256"]
+                                        receipt[market+"_bytes"]=page["bytes"]
+                                        receipt[market+"_captured_at_utc"]=page["captured_at_utc"]
+                                        receipt[market+"_action"]=rec["cname"]
+                                        receipt[market+"_original_fetched"]=True
+                                        _validate_saved_html_encoding(raw_market)
+                                    except Exception as market_error:
+                                        receipt[market+"_original_fetched"]=False
+                                        receipt[market+"_error_class"]=type(market_error).__name__
+                                        # Keep already acquired original files.
+                                        break
+
                         except Exception as exc:
                             receipt["odds_menu_observation"]="POST_FAILED_PRESERVE_RACECARD"
                             receipt["odds_menu_error"]=type(exc).__name__
@@ -202,8 +243,13 @@ def accept_observation(folder):
     menu_attempted=receipt.get("odds_menu_observation") in (
         "RAW_OFFICIAL_MENU_NOT_PRICE_VALIDATED",
         "POST_FAILED_PRESERVE_RACECARD")
-    expected_requests=(4 if menu_attempted else 3
+    expected_requests=((4+receipt.get("market_requests_started",0))
+                       if menu_attempted else 3
                        if receipt.get("racecard_original_fetched") is True else 2)
+    if (type(receipt.get("market_requests_started",0)) is not int
+        or not 0<=receipt.get("market_requests_started",0)<=2
+        or (not has_menu and receipt.get("market_requests_started",0)!=0)):
+        raise ObservationRejected("market_request_accounting_invalid")
     if type(receipt.get("http_requests_started")) is not int or (
         receipt["http_requests_started"] != expected_requests):
         raise ObservationRejected("observation_http_count_inconsistent")
@@ -295,6 +341,40 @@ def accept_observation(folder):
         "odds_menu_sha256","odds_menu_bytes","odds_menu_captured_at_utc",
         "odds_menu_action")):
         raise ObservationRejected("unclaimed_odds_menu_original")
+    if has_menu:
+        try:
+            observed_market_links=find_market_links(
+                (root/"official_odds_menu.html").read_bytes(),
+                expected_race_day=DAY,
+                expected_race_number=receipt["racecard_number"],
+                expected_host="jra.jp")
+        except (MarketNavigationError,KeyError):
+            observed_market_links=None
+        for market in ("quinella","bracket_quinella"):
+            name="official_"+market+"_odds.html"
+            p=root/name
+            if receipt.get(market+"_original_fetched") is True:
+                if observed_market_links is None or market not in observed_market_links["markets"]:
+                    raise ObservationRejected("market_action_not_original_observed")
+                if receipt.get(market+"_action")!=observed_market_links["markets"][market]["cname"]:
+                    raise ObservationRejected("market_action_mismatch")
+                if p.is_symlink() or not p.is_file():
+                    raise ObservationRejected("market_original_missing")
+                raw=p.read_bytes()
+                if (not 0<len(raw)<=LIMIT
+                    or hashlib.sha256(raw).hexdigest()!=receipt.get(market+"_sha256")
+                    or len(raw)!=receipt.get(market+"_bytes")):
+                    raise ObservationRejected("market_original_digest_mismatch")
+                try:
+                    stamp=datetime.fromisoformat(
+                        receipt[market+"_captured_at_utc"].replace("Z","+00:00"))
+                except (ValueError,TypeError,KeyError) as exc:
+                    raise ObservationRejected("market_capture_timestamp_invalid") from exc
+                if stamp.utcoffset()!=timezone.utc.utcoffset(None):
+                    raise ObservationRejected("market_capture_timestamp_not_utc")
+            elif p.exists() or any(k in receipt for k in (
+                market+"_sha256",market+"_bytes",market+"_captured_at_utc",market+"_action")):
+                raise ObservationRejected("unclaimed_market_original")
     return {"state":"TWO_ORIGINALS_MATCH_RECEIPT_ONLY",
             "day":DAY,"http_requests_started":receipt["http_requests_started"],
             "racecard_verified":False,"market_verified":False,
