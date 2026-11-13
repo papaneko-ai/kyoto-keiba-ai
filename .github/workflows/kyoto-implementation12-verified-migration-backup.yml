@@ -62,6 +62,8 @@ jobs:
                 "diagnostics/p2_p3_p5_offline_feature_bridge.py",
                 "diagnostics/p2_first_second_feature_discovery_lab.py",
                 "diagnostics/p3_p5_p6_synthetic_pipeline_lab.py",
+                "diagnostics/p3_p5_p6_synthetic_day_lab.py",
+                "tests/test_p3_p5_p6_synthetic_day_lab.py",
                 "tests/test_p3_p5_p6_synthetic_pipeline_lab.py",
                 "tests/test_p2_first_second_feature_discovery_lab.py",
                 "tests/test_p2_p3_p5_offline_feature_bridge.py",
