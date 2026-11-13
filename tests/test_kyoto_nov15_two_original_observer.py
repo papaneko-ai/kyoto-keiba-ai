@@ -97,6 +97,43 @@ class ObservationTests(unittest.TestCase):
     (self.root/"official_racecard.html").write_bytes(b"tampered")
     with self.assertRaisesRegex(ObservationRejected,"racecard_original_digest_mismatch"):
         accept_observation(self.root)
+ def test_selection_invalid_encoding_preserves_exact_original_before_failure(self):
+    import hashlib,json
+    broken=b"<html>\\x81</html>"
+    stub=Stub(selection=broken)
+    r=self.run_obs(stub)
+    self.assertEqual(r["state"],"FAILED_CLOSED")
+    self.assertEqual(len(stub.urls),1)
+    self.assertEqual((self.root/"official_selection.html").read_bytes(),broken)
+    self.assertEqual(r["selection_sha256"],hashlib.sha256(broken).hexdigest())
+    self.assertEqual(r["selection_bytes"],len(broken))
+    self.assertIn("selection_captured_at_utc",r)
+ def test_meeting_invalid_encoding_keeps_both_origins(self):
+    import hashlib
+    broken=b"<html>\\x81</html>"
+    stub=Stub(meeting=broken)
+    r=self.run_obs(stub)
+    self.assertEqual(r["state"],"FAILED_CLOSED")
+    self.assertEqual(len(stub.urls),2)
+    self.assertEqual((self.root/"official_selection.html").read_bytes(),ANCHOR)
+    self.assertEqual((self.root/"official_meeting.html").read_bytes(),broken)
+    self.assertEqual(r["meeting_sha256"],hashlib.sha256(broken).hexdigest())
+ def test_racecard_invalid_encoding_preserves_all_three_originals(self):
+    import hashlib
+    observed='<html><a href="/JRADB/accessD.html?CNAME=pw020aaa12%2F1220261115">京都 12R</a></html>'.encode("cp932")
+    class BrokenRace(Stub):
+      def open(self,request,timeout=12):
+        self.urls.append(request.full_url)
+        data=self.selection if len(self.urls)==1 else observed if len(self.urls)==2 else b"<html>\\x81</html>"
+        return R(request.full_url,data)
+    stub=BrokenRace()
+    r=observe(self.root,now_utc="2026-11-15T02:00:00Z",opener=stub,allowed=True,
+              include_observed_racecard=True)
+    self.assertEqual(r["state"],"FAILED_CLOSED")
+    self.assertEqual(len(stub.urls),3)
+    self.assertTrue(r["racecard_original_fetched"])
+    self.assertEqual((self.root/"official_racecard.html").read_bytes(),b"<html>\\x81</html>")
+    self.assertEqual(r["racecard_sha256"],hashlib.sha256(b"<html>\\x81</html>").hexdigest())
  def test_empty_unpublished_selection_stops_after_one(self):
     stub=Stub(selection=b"<html>NO KYOTO</html>")
     result=self.run_obs(stub)
