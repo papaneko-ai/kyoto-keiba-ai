@@ -15,6 +15,7 @@ import sys
 RUBRIC="docs/diagnostics/kyoto_predata_readiness_rubric_v1.json"
 CHECKS={
     "R01":("test_r01_predata_source_contract_acceptance.py",15),
+    "R02":("test_r02_prerace_feature_acceptance.py",24),
     "R03":("test_p2_first_second_feature_discovery_lab.py",12),
     "R05":("test_p3_three_window_selection_lab.py",13),
     "R06":("test_r06_pair_frame_fixed_acceptance.py",14),
