@@ -98,44 +98,20 @@ jobs:
         run: |
           set -euo pipefail
           python - <<'PY'
-          import hashlib,json,os,re,tarfile,io,secrets,shutil
+          import json,os,shutil
           from pathlib import Path
-          from cryptography.hazmat.primitives.ciphers.aead import AESGCM
+          from diagnostics.kyoto_nov15_encrypted_evidence import encrypt_evidence
           source=Path("nov15_work_originals")
-          out=Path("nov15_encrypted_evidence")
-          out.mkdir(exist_ok=True)
+          dest=Path("nov15_encrypted_evidence")
           if not source.is_dir():
-              (out/"safe_stop.json").write_text(json.dumps({"state":"NO_OFFICIAL_ORIGINALS",
-                                            "HTTP_success_not_proven":True})+"\n")
-              raise SystemExit("NO_ORIGINAL_EVIDENCE_TO_ENCRYPT")
-          keyhex=os.environ.get("ARCHIVE_KEY","")
-          if not re.fullmatch(r"[0-9a-fA-F]{64}",keyhex):
-              raise SystemExit("ENCRYPTION_SECRET_INVALID_PLAINTEXT_NOT_UPLOADED")
-          files=sorted(p for p in source.iterdir() if p.is_file() and not p.is_symlink())
-          names={p.name for p in files}
-          if not names <= {"official_selection.html","official_meeting.html","receipt.json"} or "receipt.json" not in names:
-              raise SystemExit("UNEXPECTED_EVIDENCE_FILES_FAIL_CLOSED")
-          contents=io.BytesIO()
-          with tarfile.open(fileobj=contents,mode="w:gz") as t:
-              for path in files:
-                  t.add(path,arcname=path.name,recursive=False)
-          aes=AESGCM(bytes.fromhex(keyhex))
-          nonce=secrets.token_bytes(12)
-          aad=(os.environ["GITHUB_REPOSITORY"]+"|"+os.environ["GITHUB_RUN_ID"]+"|20261115").encode()
-          ciphertext=aes.encrypt(nonce,contents.getvalue(),aad)
-          (out/"originals.tar.gz.aesgcm").write_bytes(ciphertext)
-          manifest={"schema":"kyoto_nov15_encrypted_source_artifact.v1",
-                    "day":"20261115",
-                    "run_id":os.environ["GITHUB_RUN_ID"],
-                    "nonce_hex":nonce.hex(),
-                    "aad_utf8":aad.decode(),
-                    "ciphertext_sha256":hashlib.sha256(ciphertext).hexdigest(),
-                    "plaintext_not_uploaded":True,
-                    "encryption":"AES-256-GCM"}
-          (out/"manifest.json").write_text(json.dumps(manifest,sort_keys=True,indent=2)+"\n")
+              dest.mkdir(exist_ok=True)
+              (dest/"safe_stop.json").write_text(json.dumps(
+                  {"state":"NO_OFFICIAL_ORIGINALS","HTTP_success_not_proven":True})+"\n")
+              raise SystemExit("NO_SOURCE_TO_ENCRYPT")
+          encrypt_evidence(source,dest,key_hex=os.environ["ARCHIVE_KEY"],
+              repo=os.environ["GITHUB_REPOSITORY"],run_id=os.environ["GITHUB_RUN_ID"])
           shutil.rmtree(source)
-          print("NOV15_ENCRYPTED_ARTIFACT_ONLY=TRUE")
-          PY
+          print("NOV15_AUTHENTICATED_ENCRYPTED_ARTIFACT_ONLY=TRUE")
       - uses: actions/upload-artifact@v4
         if: always()
         with:
