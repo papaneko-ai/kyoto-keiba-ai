@@ -118,9 +118,30 @@ def classify_day14_capture(artifact_receipt):
         raise SecondDayRejected("attempt_count_invalid")
     status=artifact_receipt.get("status")
     if status=="FAILED_CLOSED" and attempted==1:
+        # Evidence-derived triage, never a fabricated diagnosis. A previous
+        # run with no HTML original cannot prove what JRA actually published.
+        code=artifact_receipt.get("safe_error_code")
+        error_class=artifact_receipt.get("error_class")
+        categories={
+            "source_encoding_invalid":("HTML_ENCODING","REPLAY_CP932_PARSER_WITH_SAVED_BYTES"),
+            "ambiguous_current_kyoto_link":("DUPLICATE_MEETING_LINKS","REPLAY_LINK_UNIQUENESS_OFFLINE"),
+            "unofficial_meeting_link":("UNOFFICIAL_LINK","REVIEW_OBSERVED_ANCHORS_ONLY"),
+            "invalid_observed_meeting_token":("INVALID_CNAME","REVIEW_OBSERVED_TOKEN_OFFLINE"),
+            "unverified_original_http_response":("HTTP_RESPONSE_UNVERIFIED","CHECK_STATUS_CONTENT_TYPE_AND_REDIRECT"),
+            "any_redirect_disallowed":("REDIRECT","CHECK_REDIRECT_POLICY_AND_ORIGINAL_REQUEST"),
+        }
+        if code in categories:
+            category,action=categories[code]
+        elif error_class=="TimeoutError":
+            category,action="TRANSPORT_TIMEOUT","REVIEW_REQUEST_TIMING_AND_NO_RETRY_LIMIT"
+        elif error_class in ("HTTPError","URLError","ConnectionError"):
+            category,action="HTTP_OR_CONNECTION_FAILURE","REVIEW_REQUEST_FAILURE_RECEIPT"
+        else:
+            category,action="UNKNOWN_WITHOUT_HTTP_ORIGINAL","REVIEW_EXISTING_RECEIPT_AND_ERROR_CLASS_OFFLINE"
         return {"status":"DAY14_FAILED_PRESERVE_AND_DIAGNOSE",
-                "cause":"UNKNOWN_WITHOUT_HTTP_ORIGINAL",
-                "safe_action":"REVIEW_EXISTING_RECEIPT_AND_ERROR_CLASS_OFFLINE",
+                "cause":category,
+                "safe_action":action,
+                "evidence_incomplete_without_original":True,
                 "day15_separate_trial_permitted_in_principle":True,
                 "nov14_retry_authorized":False,"network_requests":0}
     if status=="OFFICIAL_NOV14_KYOTO_MEETING_LINK_OBSERVED" and attempted==1:
