@@ -71,7 +71,7 @@ def capture_observed_sp(out, *, navigation_original, navigation_url, race_day,
     return receipt
 
 def capture_verified_sp_seed(originals, *, race_day, race_number, source_url,
-                             opener, pacer=None):
+                             opener, pacer=None, include_odds=False):
     """Independently sourced official SP racecard, not a transformed PC URL.
 
     The seed must be observed outside the PC navigation chain (e.g. official
@@ -115,6 +115,10 @@ def capture_verified_sp_seed(originals, *, race_day, race_number, source_url,
                        racecard_sha256=page["sha256"],
                        racecard_bytes=page["bytes"],
                        racecard_captured_at_utc=page["captured_at_utc"])
+        if include_odds:
+            _capture_sp_observed_markets(
+                root,opener,page["raw"],source_url,race_day,
+                race_number,receipt,pacer or RequestPacer(min_gap_seconds=2.0))
     except Exception as exc:
         receipt["state"]="SP_HTTP_FAILED"
         receipt["error_class"]=type(exc).__name__
@@ -122,6 +126,79 @@ def capture_verified_sp_seed(originals, *, race_day, race_number, source_url,
         json.dumps(receipt,ensure_ascii=False,sort_keys=True,indent=2)+"\n",
         encoding="utf8")
     return receipt
+
+
+def _capture_sp_observed_markets(root, opener, racecard, referer,
+                                 day, number, receipt, pacer):
+    """Capture menu and both markets only through saved on-page SP actions."""
+    from types import SimpleNamespace
+    from diagnostics.jra_one_shot_market_capture import (
+        exact_odds_action,observed_next_market_action,SourceChainError)
+    from diagnostics.jra_official_market_navigation import (
+        find_market_links,MarketNavigationError)
+    receipt["sp_odds_originals_verified"]=False
+    try:
+        token=exact_odds_action(racecard,"SP")
+        seen={token}
+        receipt["network_requests_started"]+=1
+        page=http_fetch(opener,"SP","https://sp.jra.jp/JRADB/accessO.html",
+                        cname=token,referer=referer,pacer=pacer)
+        (root/"official_sp_odds_menu.html").write_bytes(page["raw"])
+        receipt["sp_odds_menu_sha256"]=page["sha256"]
+        receipt["sp_odds_menu_captured_at_utc"]=page["captured_at_utc"]
+        receipt["sp_odds_menu_action"]=token
+        menu=page["raw"]
+        links=None
+        spec=SimpleNamespace(race_day=day,race_number=number)
+        for idx in range(3):
+            visible=menu.decode("cp932",errors="replace")
+            if "最終オッズ" in visible or "オッズは未発表" in visible:
+                receipt["sp_market_state"]="FINAL_OR_UNPUBLISHED"
+                return
+            try:
+                links=find_market_links(
+                    menu,expected_race_day=day,
+                    expected_race_number=number,expected_host="sp.jra.jp")
+                if links["source_final_odds_detected"]:
+                    receipt["sp_market_state"]="FINAL_ODDS"
+                    return
+                break
+            except MarketNavigationError:
+                if idx==2:
+                    receipt["sp_market_state"]="NAVIGATION_NOT_OBSERVED"
+                    return
+                token=observed_next_market_action(menu,"SP",spec,step=idx)
+                if token in seen:
+                    receipt["sp_market_state"]="CYCLE_REJECTED"
+                    return
+                seen.add(token)
+                receipt["network_requests_started"]+=1
+                page=http_fetch(opener,"SP","https://sp.jra.jp/JRADB/accessO.html",
+                                cname=token,referer="https://sp.jra.jp/JRADB/accessO.html",
+                                pacer=pacer)
+                name=f"official_sp_odds_navigation_{idx+1}.html"
+                (root/name).write_bytes(page["raw"])
+                receipt[f"sp_odds_navigation_{idx+1}_sha256"]=page["sha256"]
+                receipt[f"sp_odds_navigation_{idx+1}_captured_at_utc"]=page["captured_at_utc"]
+                receipt[f"sp_odds_navigation_{idx+1}_action"]=token
+                menu=page["raw"]
+        if links is None:
+            return
+        for market in ("quinella","bracket_quinella"):
+            item=links["markets"][market]
+            receipt["network_requests_started"]+=1
+            page=http_fetch(opener,"SP",item["official_post_url"],
+                            cname=item["cname"],
+                            referer="https://sp.jra.jp/JRADB/accessO.html",
+                            pacer=pacer)
+            (root/f"official_sp_{market}_odds.html").write_bytes(page["raw"])
+            receipt[f"sp_{market}_sha256"]=page["sha256"]
+            receipt[f"sp_{market}_captured_at_utc"]=page["captured_at_utc"]
+            receipt[f"sp_{market}_action"]=item["cname"]
+        receipt["sp_market_state"]="BOTH_RAW_MARKET_ORIGINALS_CAPTURED_UNVALIDATED"
+    except Exception as exc:
+        receipt["sp_market_state"]="MARKET_PATH_UNAVAILABLE"
+        receipt["sp_market_error_class"]=type(exc).__name__
 
 
 def compare_saved_pc_sp(originals, *, race_day):
