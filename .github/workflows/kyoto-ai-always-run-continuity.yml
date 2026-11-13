@@ -21,7 +21,7 @@ jobs:
         with:
           python-version: '3.11'
       - name: Install existing PC/SP parser dependency
-        run: python -m pip install 'beautifulsoup4>=4.12,<5'
+        run: python -m pip install 'beautifulsoup4>=4.12,<5' 'cryptography>=43,<47'
       - name: Validate existing feature inventory and change intent
         run: python -m diagnostics.kyoto_development_preflight --root .
       - name: Regression tests for historical source and duplicates
@@ -61,6 +61,9 @@ jobs:
           python -m unittest discover -s tests -p 'test_kyoto_nov15_workflow_safety.py' -v
           python -m unittest discover -s tests -p 'test_kyoto_nov15_readiness_check.py' -v
           python -m unittest discover -s tests -p 'test_kyoto_nov15_capture_acceptance.py' -v
+          python -m unittest discover -s tests -p 'test_kyoto_nov15_two_original_observer.py' -v
+          python -m unittest discover -s tests -p 'test_kyoto_nov15_encrypted_evidence.py' -v
+          python -m unittest discover -s tests -p 'test_kyoto_nov15_full_capture_seal.py' -v
           python -m unittest discover -s tests -p 'test_p3_hybrid_prediction_contract.py' -v
       - name: Reject research-CI inflation of operational completion
         run: |
