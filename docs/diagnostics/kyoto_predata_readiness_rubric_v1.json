@@ -21,7 +21,10 @@
       "title": "発走前特徴量と欠損政策",
       "phase": "P2",
       "acceptance": "合意されたコース・距離・脚質・馬場・休養・騎手・馬の特徴を入力契約に固定し未来漏洩を拒否する",
-      "automation": null
+      "automation": {
+        "suite": "test_r02_prerace_feature_acceptance.py",
+        "tests": 24
+      }
     },
     {
       "id": "R03",
