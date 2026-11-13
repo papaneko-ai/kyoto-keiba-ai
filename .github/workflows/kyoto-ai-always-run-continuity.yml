@@ -88,6 +88,7 @@ jobs:
           python -m unittest discover -s tests -p 'test_r01_predata_source_contract_acceptance.py' -v
           python -m unittest discover -s tests -p 'test_r02_prerace_feature_acceptance.py' -v
           python -m unittest discover -s tests -p 'test_r07_calibration_uncertainty_acceptance.py' -v
+          python -m unittest discover -s tests -p 'test_r10_risk_strategy_comparison_acceptance.py' -v
           python -m unittest discover -s tests -p 'test_r08_full_market_predata_acceptance.py' -v
           python -m unittest discover -s tests -p 'test_kyoto_predata_readiness.py' -v
           python -m diagnostics.kyoto_predata_readiness --root . --out /tmp/kyoto-predata-readiness.json
@@ -96,12 +97,12 @@ jobs:
           from pathlib import Path
           r=json.loads(Path('/tmp/kyoto-predata-readiness.json').read_text(encoding='utf-8'))
           assert r['total_gates']==16
-          assert r['passed_gates']==11
-          assert r['completion_percent']==68.75
-          assert r['accepted_gate_ids']==['R01','R02','R03','R05','R06','R07','R08','R09','R11','R12','R13']
+          assert r['passed_gates']==12
+          assert r['completion_percent']==75.0
+          assert r['accepted_gate_ids']==['R01','R02','R03','R05','R06','R07','R08','R09','R10','R11','R12','R13']
           assert not r['live_paper_trading_authorized']
           assert not r['revert_to_original_scoring_now']
-          print('PRE_DATA_READINESS_FIXED_GATE_PASS=11/16')
+          print('PRE_DATA_READINESS_FIXED_GATE_PASS=12/16')
           PY
       - uses: actions/upload-artifact@v4
         with:
