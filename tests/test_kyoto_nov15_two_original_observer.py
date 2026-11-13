@@ -276,6 +276,24 @@ class ObservationTests(unittest.TestCase):
     path.write_text(json.dumps(receipt),encoding="utf8")
     with self.assertRaisesRegex(ObservationRejected,"meeting_url_or_label_not_in_selection_original"):
         accept_observation(self.root)
+ def test_mandatory_original_missing_utc_timestamp_rejected(self):
+    import json
+    self.run_obs()
+    path=self.root/"receipt.json"
+    receipt=json.loads(path.read_text(encoding="utf8"))
+    receipt.pop("selection_captured_at_utc",None)
+    path.write_text(json.dumps(receipt),encoding="utf8")
+    with self.assertRaisesRegex(ObservationRejected,"mandatory_original_capture_timestamp_missing"):
+        accept_observation(self.root)
+ def test_mandatory_original_non_utc_timestamp_rejected(self):
+    import json
+    self.run_obs()
+    path=self.root/"receipt.json"
+    receipt=json.loads(path.read_text(encoding="utf8"))
+    receipt["meeting_captured_at_utc"]="2026-11-15T11:00:00+09:00"
+    path.write_text(json.dumps(receipt),encoding="utf8")
+    with self.assertRaisesRegex(ObservationRejected,"mandatory_original_capture_timestamp_not_utc"):
+        accept_observation(self.root)
  def test_forged_meeting_label_rejected(self):
     import json
     self.run_obs()
