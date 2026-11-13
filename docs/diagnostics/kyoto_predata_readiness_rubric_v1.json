@@ -68,7 +68,10 @@
       "title": "較正と母数・不確実性評価",
       "phase": "P3",
       "acceptance": "対数損失・Brier・較正と十分な母数・区間を別期間で検証する",
-      "automation": null
+      "automation": {
+        "suite": "test_r07_calibration_uncertainty_acceptance.py",
+        "tests": 24
+      }
     },
     {
       "id": "R08",
