@@ -318,3 +318,72 @@ def assess_dual_channel_experiment(channels, frozen_snapshot, *,
                    else "DUAL_SOURCE_RACECARD_INCOMPLETE"),
           "prediction_ready":False,"training_ready":False,
           "network_requests":0}
+
+
+def observed_sp_race_links_from_saved_navigation(navigation_original, *,
+                                                 source_url, source_sha256,
+                                                 race_day):
+  """Offline-only SP navigation extraction; never extrapolate from PC tokens.
+
+  A saved SP-host navigation HTML original is required. Return only anchors
+  actually present in that original, with exact URL and source SHA evidence.
+  """
+  from urllib.parse import urlsplit,urljoin,parse_qs
+  from datetime import date
+  from bs4 import BeautifulSoup
+  from hashlib import sha256
+  if type(navigation_original) is not bytes or not 0<len(navigation_original)<=1_500_000:
+    raise ValueError("sp_navigation_original_invalid")
+  if sha256(navigation_original).hexdigest()!=source_sha256:
+    raise ValueError("sp_navigation_sha_mismatch")
+  if type(race_day) is not str or not re.fullmatch(r"20[0-9]{6}",race_day):
+    raise ValueError("sp_race_day_invalid")
+  try:
+    if date.fromisoformat(f"{race_day[:4]}-{race_day[4:6]}-{race_day[6:]}").strftime("%Y%m%d")!=race_day:
+      raise ValueError("sp_race_day_invalid")
+  except ValueError as exc:
+    raise ValueError("sp_race_day_invalid") from exc
+  src=urlsplit(source_url)
+  if (src.scheme!="https" or src.hostname!="sp.jra.jp" or
+      src.port is not None or src.username or src.password or src.fragment or
+      src.path!="/JRADB/accessD.html"):
+    raise ValueError("sp_navigation_source_not_official")
+  matches={}
+  soup=BeautifulSoup(navigation_original.decode("cp932",errors="replace"),"html.parser")
+  for anchor in soup.select("a[href]"):
+    href=anchor.get("href","").strip()
+    if not href or href.startswith(("#","javascript:")):continue
+    url=urljoin(source_url,href)
+    u=urlsplit(url)
+    try:
+      q=parse_qs(u.query,strict_parsing=True)
+      if (u.scheme!="https" or u.hostname!="sp.jra.jp" or u.port is not None
+          or u.username or u.password or u.path!="/JRADB/accessD.html"
+          or u.fragment or set(q)!={"CNAME"} or len(q["CNAME"])!=1):
+        continue
+      token=q["CNAME"][0]
+    except (ValueError,KeyError,IndexError):continue
+    if (not re.fullmatch(r"sw[A-Za-z0-9]+/[A-Za-z0-9]+",token)
+        or race_day not in token):continue
+    label=" ".join(anchor.get_text(" ",strip=True).split())
+    match=re.search(r"(?<![0-9])0?([1-9]|1[0-2])\\s*(?:R|レース)(?![0-9])",
+                    label,re.IGNORECASE)
+    if not match:continue
+    number=int(match.group(1))
+    if f"{number:02d}{race_day}" not in token:continue
+    if number in matches and matches[number]["url"]!=url:
+      raise ValueError("sp_observed_race_link_ambiguous")
+    matches[number]={"race_number":number,"url":url,"label":label}
+  return {
+      "schema":"kyoto_sp_independent_navigation_offline.v1",
+      "race_day":race_day,
+      "channel":"SP",
+      "source_url":source_url,
+      "source_sha256":source_sha256,
+      "race_links":[matches[x] for x in sorted(matches)],
+      "official_sp_navigation_original_verified_by_hash":True,
+      "official_sp_live_capture_achieved":False,
+      "sp_racecard_originals_captured":False,
+      "pc_sp_parity_verified":False,
+      "dual_market_verified":False,
+      "network_requests":0}
