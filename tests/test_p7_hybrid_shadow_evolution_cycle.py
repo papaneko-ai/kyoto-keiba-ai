@@ -152,7 +152,7 @@ class CycleTests(unittest.TestCase):
     lines=[json.loads(x) for x in self.path.read_text().splitlines()]
     lines[-1]["data"]["decision"]["decision"]="ROLLBACK_TO_RETAINED_CHAMPION"
     lines[-1]["event_sha256"]=_hash({k:v for k,v in lines[-1].items() if k!="event_sha256"})
-    self.path.write_text("\\n".join(json.dumps(x,sort_keys=True) for x in lines)+"\\n")
+    self.path.write_text("\n".join(json.dumps(x,sort_keys=True) for x in lines)+"\n")
     with self.assertRaisesRegex(ShadowCycleRejected,"decision_not_reproducible"):
         read_shadow(self.path)
  def test_zero_result_probability_clamped_finite(self):
