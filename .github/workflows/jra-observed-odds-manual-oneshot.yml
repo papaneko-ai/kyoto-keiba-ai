@@ -40,7 +40,7 @@ on:
 permissions:
   contents: read
 concurrency:
-  group: kyoto-official-odds-observed-manual-one-shot
+  group: kyoto-nov15-source-acquisition-single-coordinator
   cancel-in-progress: false
 jobs:
   verified-one-shot:
@@ -79,6 +79,8 @@ jobs:
                   raise SystemExit("EVIDENCE_FILE_NOT_FOUND")
           channels=("PC","SP") if os.environ["HYBRID"]=="true" else (os.environ["OBSERVED_CHANNEL"],)
           spec=ObservedRaceSpec(**json.loads(Path(os.environ["OBSERVED_SPEC"]).read_text(encoding="utf8"))).validate(require_channels=channels)
+          if spec.race_day=="20261115":
+              raise SystemExit("NOV15_RESERVED_FOR_DEDICATED_ENCRYPTED_CAPTURE_TO_PREVENT_DUPLICATE_HTTP")
           if not re.fullmatch(r"20\d{2}-\d\d-\d\dT\d\d:\d\d:\d\dZ",os.environ["OBSERVED_START"]):
               raise SystemExit("VERIFIED_START_UTC_REQUIRED")
           print("OFFLINE_SOURCE_SPEC_VALIDATED_FOR_DIAGNOSTIC_ONLY")
