@@ -71,6 +71,70 @@ class ObservationTests(unittest.TestCase):
     self.assertEqual(result["racecard_number"],12)
     self.assertEqual(len(stub.urls),3)
     self.assertEqual(accept_observation(self.root)["state"],"TWO_ORIGINALS_MATCH_RECEIPT_ONLY")
+ def test_fourth_request_uses_observed_pc_odds_post_only(self):
+    import hashlib
+    race_anchor='<html><a href="/JRADB/accessD.html?CNAME=pw020aaa12%2F1220261115">京都 12R</a></html>'.encode("cp932")
+    original=("<html><a onclick=\"return doAction('/JRADB/accessO.html','pw15verified/AB')\">オッズ</a></html>").encode("cp932")
+    menu=b"<html>official odds menu evidence only</html>"
+    class Four(Stub):
+      def open(self,request,timeout=12):
+        self.urls.append((request.full_url,request.get_method(),request.data))
+        n=len(self.urls)
+        return R(request.full_url,self.selection if n==1 else race_anchor if n==2 else original if n==3 else menu)
+    provider=Four()
+    result=observe(self.root,now_utc="2026-11-15T02:00:00Z",
+       opener=provider,allowed=True,include_observed_racecard=True,
+       include_observed_odds_menu=True)
+    self.assertEqual(result["http_requests_started"],4)
+    self.assertTrue(result["odds_menu_original_fetched"])
+    self.assertEqual(result["odds_menu_sha256"],hashlib.sha256(menu).hexdigest())
+    self.assertEqual(provider.urls[3][1],"POST")
+    self.assertEqual(provider.urls[3][0],"https://jra.jp/JRADB/accessO.html")
+    self.assertIn(b"pw15verified%2FAB",provider.urls[3][2])
+    self.assertEqual(self.pacer.before_request.call_count,4)
+    self.assertEqual(accept_observation(self.root)["state"],"TWO_ORIGINALS_MATCH_RECEIPT_ONLY")
+ def test_missing_odds_anchor_never_guesses_fourth_request(self):
+    race_anchor='<html><a href="/JRADB/accessD.html?CNAME=pw020aaa12%2F1220261115">京都 12R</a></html>'.encode("cp932")
+    class Three(Stub):
+      def open(self,request,timeout=12):
+        self.urls.append(request.full_url)
+        return R(request.full_url,self.selection if len(self.urls)==1 else race_anchor if len(self.urls)==2 else b"<html>NO ODDS LINK</html>")
+    provider=Three()
+    result=observe(self.root,now_utc="2026-11-15T02:00:00Z",
+       opener=provider,allowed=True,include_observed_racecard=True,
+       include_observed_odds_menu=True)
+    self.assertEqual(len(provider.urls),3)
+    self.assertFalse(result["odds_menu_original_fetched"])
+    self.assertEqual(accept_observation(self.root)["state"],"TWO_ORIGINALS_MATCH_RECEIPT_ONLY")
+ def test_fourth_post_failure_preserves_racecard_and_receipt(self):
+    race_anchor='<html><a href="/JRADB/accessD.html?CNAME=pw020aaa12%2F1220261115">京都 12R</a></html>'.encode("cp932")
+    original=("<html><a onclick=\"return doAction('/JRADB/accessO.html','pw15verified/AB')\">オッズ</a></html>").encode("cp932")
+    class FailFourth(Stub):
+      def open(self,request,timeout=12):
+        self.urls.append(request.full_url)
+        if len(self.urls)==4:raise OSError("offline simulated post failure")
+        return R(request.full_url,self.selection if len(self.urls)==1 else race_anchor if len(self.urls)==2 else original)
+    provider=FailFourth()
+    result=observe(self.root,now_utc="2026-11-15T02:00:00Z",
+       opener=provider,allowed=True,include_observed_racecard=True,
+       include_observed_odds_menu=True)
+    self.assertEqual(result["http_requests_started"],4)
+    self.assertEqual(result["state"],"NOV15_RACECARD_ORIGINAL_OBSERVED_ROSTER_UNVERIFIED")
+    self.assertFalse(result["odds_menu_original_fetched"])
+    self.assertTrue((self.root/"official_racecard.html").is_file())
+    self.assertEqual(accept_observation(self.root)["state"],"TWO_ORIGINALS_MATCH_RECEIPT_ONLY")
+ def test_tampered_saved_odds_menu_fails_closed(self):
+    race_anchor='<html><a href="/JRADB/accessD.html?CNAME=pw020aaa12%2F1220261115">京都 12R</a></html>'.encode("cp932")
+    original=("<html><a onclick=\"return doAction('/JRADB/accessO.html','pw15verified/AB')\">オッズ</a></html>").encode("cp932")
+    class Four(Stub):
+      def open(self,request,timeout=12):
+        self.urls.append(request.full_url)
+        return R(request.full_url,self.selection if len(self.urls)==1 else race_anchor if len(self.urls)==2 else original if len(self.urls)==3 else b"<html>odds menu</html>")
+    observe(self.root,now_utc="2026-11-15T02:00:00Z",opener=Four(),
+       allowed=True,include_observed_racecard=True,include_observed_odds_menu=True)
+    (self.root/"official_odds_menu.html").write_bytes(b"tamper")
+    with self.assertRaisesRegex(ObservationRejected,"odds_menu_original_digest_mismatch"):
+        accept_observation(self.root)
  def test_missing_third_original_utc_timestamp_is_rejected(self):
     import json
     race_anchor='<html><a href="/JRADB/accessD.html?CNAME=pw020aaa01%2F0120261115">京都 1R</a></html>'.encode("cp932")
