@@ -27,6 +27,7 @@ CHECKS={
     "R11":("test_r11_predata_freeze_acceptance.py",14),
     "R13":("test_r13_predata_durable_accounting_acceptance.py",12),
     "R14":("test_r14_evolution_integration_acceptance.py",20),
+    "R15":("test_r15_safe_mobile_acceptance.py",24),
     "R12":("test_p6_virtual_settlement_fixture_lab.py",18),
 }
 IDS=tuple(f"R{i:02d}" for i in range(1,17))
