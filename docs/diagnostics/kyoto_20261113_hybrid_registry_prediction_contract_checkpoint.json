@@ -1,0 +1,66 @@
+{
+  "schema": "kyoto_ai_20261113_hybrid_model_registry_prediction_contract_checkpoint.v1",
+  "date_jst": "2026-11-13",
+  "baseline_eod_head": "3e2e406b800c82acb7d5f18733ada8b3a02e2133",
+  "pre_work_head": "c83b1eed349ae01d9e66bc5723e00b30e57dbd23",
+  "scope": "First actual engineering milestone of agreed hybrid self-evolution model management architecture, research-only",
+  "milestone": "P3_P7_COMMON_MODEL_REGISTRY_AND_PAIR_PREDICTION_CONTRACT_LAB_ACCEPTED",
+  "new_source": [
+    "diagnostics/p7_hybrid_model_registry.py",
+    "diagnostics/p3_hybrid_prediction_contract.py"
+  ],
+  "new_tests": [
+    "tests/test_p7_hybrid_model_registry.py",
+    "tests/test_p3_hybrid_prediction_contract.py"
+  ],
+  "updated_workflows": [
+    ".github/workflows/kyoto-ai-always-run-continuity.yml"
+  ],
+  "implemented": [
+    "Append-only JSONL with deterministic SHA256 event chain, replay and serialized cooperating writer lock",
+    "BASELINE, MODIFY, ADD, ENSEMBLE immutable model version records with parent and feature schema compatibility",
+    "Bounded normalized ENSEMBLE weight contract; reject missing parents, duplicate versions and untrusted production scope",
+    "Common lab prediction contract for all four model families on identical source SHA256 and cutoff UTC",
+    "Complete quinella pair probabilities, derived bracket pair probabilities including same-frame logic and all probability normalization",
+    "Forbidden result labels and any nonlab source scope are rejected as model feature inputs",
+    "Research-only candidate registration; no authority to deploy or call genuine JRA data, no real market-origin authentication",
+    "Fixed 2026-11-12 milestone requirements preserved and no retroactive live certification"
+  ],
+  "verified": {
+    "run_id": 43337897227,
+    "job_id": 131598641865,
+    "head_sha": "14de75eee90f99659d48ca3a84f7e3e6d3b578d4",
+    "conclusion": "success",
+    "registry_tests": 16,
+    "prediction_contract_tests": 15,
+    "new_tests": 31,
+    "other_regressions": "success",
+    "actual_JRA_GET": 0,
+    "operational_independent_verified": "0/100",
+    "live_independent_verified": "0/6",
+    "research_verified": "100%"
+  },
+  "known_limitations": [
+    "Hash chain alone is tamper-evident only if head SHA is independently anchored, not an unforgeable external audit signature",
+    "No automatic model training, code generation, independent EVO07 candidate certification or active production model switch in this milestone",
+    "No externally authenticated real JRA feature source; inputs require explicit LAB_SYNTHETIC_ONLY scope",
+    "Independent cross-host concurrency and long-term Turso production persistence not tested"
+  ],
+  "fixed_progress": {
+    "research": "100% (32/32)",
+    "graduation": "100% (12/12)",
+    "major_functions": "100% (21/21)",
+    "live": "0/6",
+    "operational": "0/100",
+    "final20": "35/100",
+    "final20_change": 0
+  },
+  "next_milestone": "Use the registry and common prediction contract with existing P2 weakness/EVO08 discovery + P7 shadow holdout scorer; ensure externally independent promotion remains blocked until genuine evidence; then build version decision journal and deterministic rollback",
+  "protected": [
+    "main",
+    "Turso production",
+    "published Streamlit",
+    "real-money wagering"
+  ],
+  "source_jra_20261114": "No new GET initiated in this development milestone; existing Nov14 scheduled task/attempt history separate"
+}
