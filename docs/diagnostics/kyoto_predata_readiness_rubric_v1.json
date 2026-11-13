@@ -98,7 +98,10 @@
       "title": "リスク戦略の比較",
       "phase": "P5",
       "acceptance": "推定誤差・オッズ変動・最大損失・露出上限・集中投資とリスク戦略間の比較を検証する",
-      "automation": null
+      "automation": {
+        "suite": "test_r10_risk_strategy_comparison_acceptance.py",
+        "tests": 24
+      }
     },
     {
       "id": "R11",
