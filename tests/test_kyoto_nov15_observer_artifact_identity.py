@@ -7,6 +7,15 @@ class ArtifactIdentityTests(unittest.TestCase):
        "head_branch":"main","event":"schedule","created_at":"2026-11-15T02:00:01Z"}
     d.update(changes)
     return d
+ def test_workflow_uses_identity_checker_for_actual_artifact(self):
+    from pathlib import Path
+    wf=Path(".github/workflows/kyoto-nov15-second-day-observed-oneshot.yml").read_text(encoding="utf8")
+    self.assertIn('gh api "repos/$GITHUB_REPOSITORY/actions/runs/$OBSERVER_RUN"',wf)
+    self.assertIn("python -m diagnostics.kyoto_nov15_observer_artifact_identity",wf)
+    self.assertIn('--name "$OBSERVER_ARTIFACT"',wf)
+    self.assertLess(wf.index("NOV15_ARCHIVE_ENCRYPTION_SECRET_MISSING_NO_HTTP"),
+                    wf.index("OBSERVER_ARTIFACT="))
+    self.assertLess(wf.index("OBSERVER_ARTIFACT="),wf.index("gh run download"))
  def test_scheduled_launcher_name(self):
     self.assertEqual(artifact_name(self.r(),run_id="12345"),
       "kyoto-nov15-unattended-encrypted-observation-12345")
