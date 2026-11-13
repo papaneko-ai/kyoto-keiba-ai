@@ -15,11 +15,8 @@ on:
       current_roster_path:
         description: 'Same-race Nov15 numbered roster JSON in docs/diagnostics'
         required: true
-      official_selection_original_path:
-        description: 'Saved JRA entry-selection HTML original in docs/diagnostics'
-        required: true
-      official_meeting_original_path:
-        description: 'Saved Nov15 Kyoto meeting HTML original in docs/diagnostics'
+      observer_run_id:
+        description: 'Nov15 encrypted observation workflow run ID; original HTML stays out of public Git'
         required: true
       race_start_utc:
         description: 'Independently checked Nov15 Kyoto race start (UTC with Z suffix)'
@@ -40,8 +37,11 @@ jobs:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       SPEC: ${{ inputs.race_spec_path || 'docs/diagnostics/nov15_pc_observed_race_spec.json' }}
       ROSTER: ${{ inputs.current_roster_path || 'docs/diagnostics/nov15_pc_current_roster.json' }}
-      OFFICIAL_SELECTION: ${{ inputs.official_selection_original_path || 'docs/diagnostics/nov15_pc_official_selection.html' }}
-      OFFICIAL_MEETING: ${{ inputs.official_meeting_original_path || 'docs/diagnostics/nov15_pc_official_meeting.html' }}
+      OFFICIAL_SELECTION: nov15_decrypted/official_selection.html
+      OFFICIAL_MEETING: nov15_decrypted/official_meeting.html
+      ARCHIVE_KEY: ${{ secrets.KYOTO_JRA_ARCHIVE_AES256_HEX }}
+      OBSERVER_RUN: ${{ inputs.observer_run_id || '' }}
+      GH_TOKEN: ${{ github.token }}
       START_UTC: ${{ inputs.race_start_utc || '' }}
     steps:
       - uses: actions/checkout@v4
@@ -52,6 +52,43 @@ jobs:
           python-version: '3.11'
       - name: Install existing HTML parser only
         run: python -m pip install 'beautifulsoup4>=4.12,<5'
+      - name: Download and authenticate AES-GCM source originals from preceding observation run
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -z "$OBSERVER_RUN" ]; then
+            if [ ! -f docs/diagnostics/nov15_observer_run_id.txt ]; then
+              echo "NOV15_PRIOR_OBSERVER_RUN_REQUIRED_NO_HTTP"
+              exit 1
+            fi
+            OBSERVER_RUN="$(cat docs/diagnostics/nov15_observer_run_id.txt)"
+          fi
+          if ! [[ "$OBSERVER_RUN" =~ ^[0-9]+$ ]]; then
+            echo "NOV15_INVALID_OBSERVER_RUN_ID"
+            exit 1
+          fi
+          if ! [[ "$ARCHIVE_KEY" =~ ^[0-9a-fA-F]{64}$ ]]; then
+            echo "NOV15_ARCHIVE_ENCRYPTION_SECRET_MISSING_NO_HTTP"
+            exit 1
+          fi
+          mkdir -p nov15_encrypted_download
+          gh run download "$OBSERVER_RUN" \
+            --repo "$GITHUB_REPOSITORY" \
+            --name "kyoto-nov15-encrypted-observation-$OBSERVER_RUN" \
+            --dir nov15_encrypted_download
+          python -m diagnostics.kyoto_nov15_encrypted_evidence \
+            --decrypt \
+            --source nov15_encrypted_download \
+            --destination nov15_decrypted \
+            --source-run-id "$OBSERVER_RUN"
+          python - <<'PY'
+          from diagnostics.kyoto_nov15_two_original_observer import accept_observation
+          r=accept_observation("nov15_decrypted")
+          if r["state"]!="TWO_ORIGINALS_MATCH_RECEIPT_ONLY":
+              raise SystemExit("NOV15_OBSERVATION_ORIGINALS_INVALID")
+          print("NOV15_ENCRYPTED_OBSERVATION_ORIGINALS_RESTORED_FOR_THIS_RUN")
+          print("NOV15_NO_JRA_HTTP_DURING_SOURCE_TRANSFER")
+          PY
       - name: Before any JRA GET verify event identity, one attempt and original-observed Nov15 navigation
         shell: bash
         run: |
@@ -63,17 +100,16 @@ jobs:
           from urllib.request import Request,urlopen
           from diagnostics.kyoto_nov14_nov15_second_day_handoff import classify_day14_capture
 
-          for key in ("SPEC","ROSTER","OFFICIAL_SELECTION","OFFICIAL_MEETING"):
-              p=os.environ[key]
-              if (not re.fullmatch(r"docs/diagnostics/[A-Za-z0-9_./-]+\.(json|html)",p)
-                  or ".." in p.split("/") or not Path(p).is_file() or Path(p).is_symlink()):
-                  raise SystemExit("NOV15_SAVED_ORIGINAL_PATH_REQUIRED:"+key)
           for key in ("SPEC","ROSTER"):
-              if not os.environ[key].endswith(".json"):
-                  raise SystemExit("NOV15_JSON_REQUIRED:"+key)
+              p=os.environ[key]
+              if (not re.fullmatch(r"docs/diagnostics/[A-Za-z0-9_./-]+\.json",p)
+                  or ".." in p.split("/") or not Path(p).is_file() or Path(p).is_symlink()):
+                  raise SystemExit("NOV15_SAVED_RACE_IDENTITY_REQUIRED:"+key)
           for key in ("OFFICIAL_SELECTION","OFFICIAL_MEETING"):
-              if not os.environ[key].endswith(".html"):
-                  raise SystemExit("NOV15_HTML_REQUIRED:"+key)
+              p=Path(os.environ[key])
+              if (p.parent!=Path("nov15_decrypted") or not p.is_file() or
+                  p.is_symlink() or p.name not in ("official_selection.html","official_meeting.html")):
+                  raise SystemExit("NOV15_ENCRYPTED_SOURCE_NOT_RESTORED:"+key)
           if os.environ.get("GITHUB_RUN_ATTEMPT")!="1":
               raise SystemExit("NOV15_NO_WORKFLOW_RERUN")
           if os.environ.get("GITHUB_EVENT_NAME")=="push":
