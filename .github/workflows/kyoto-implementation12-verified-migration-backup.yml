@@ -6,6 +6,8 @@ on:
       - 'docs/KYOTO_AI_20261113_IMPLEMENTATION12_COMPLETE_MIGRATION_PACK.md'
       - 'docs/KYOTO_AI_20261113_IMPLEMENTATION12_START_INSTRUCTIONS.md'
       - 'docs/KYOTO_AI_IMPLEMENTATION13_MIGRATION_AND_PRE_DATA_PROGRESS_20261113.md'
+      - 'docs/KYOTO_AI_PERMANENT_RESEARCH_REUSE_AND_SECTION_HANDOFF_POLICY.md'
+      - 'docs/KYOTO_AI_PRE_DATA_READINESS_PROGRESS_AGREEMENT_20261113.md'
       - '.github/workflows/kyoto-implementation12-verified-migration-backup.yml'
   workflow_dispatch:
 permissions:
@@ -57,6 +59,7 @@ jobs:
                 "docs/KYOTO_AI_20261113_IMPLEMENTATION12_COMPLETE_MIGRATION_PACK.md",
                 "docs/KYOTO_AI_20261113_IMPLEMENTATION12_START_INSTRUCTIONS.md",
                 "docs/KYOTO_AI_IMPLEMENTATION13_MIGRATION_AND_PRE_DATA_PROGRESS_20261113.md",
+                "docs/KYOTO_AI_PERMANENT_RESEARCH_REUSE_AND_SECTION_HANDOFF_POLICY.md",
                 "docs/diagnostics/kyoto_20261113_generated_evo_candidate_16tests_checkpoint.json",
                 "diagnostics/p7_evo_bounded_candidate_constructor.py",
                 "diagnostics/p3_offline_model_tournament.py",
