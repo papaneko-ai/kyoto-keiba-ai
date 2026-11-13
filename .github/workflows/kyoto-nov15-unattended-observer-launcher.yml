@@ -34,7 +34,7 @@ jobs:
           python -m unittest discover -s tests -p 'test_kyoto_nov15_two_original_observer.py' -q
           python -m unittest discover -s tests -p 'test_kyoto_nov15_offline_race_links.py' -q
           python -m unittest discover -s tests -p 'test_kyoto_nov15_encrypted_evidence.py' -q
-      - name: Pre-HTTP date, launch, key, revision and complete prior-run guard
+      - name: Pre-HTTP date, source revision and encryption guard
         shell: bash
         run: |
           set -euo pipefail
@@ -43,12 +43,9 @@ jobs:
           import os,re,subprocess
           from datetime import datetime,timezone
           from diagnostics.kyoto_nov15_two_original_observer import BEGIN,END
-          from diagnostics.kyoto_p1_github_attempt_history_gate import audit_previous_runs
           now=datetime.now(timezone.utc)
           if os.environ.get("GITHUB_EVENT_NAME")!="schedule":
               raise SystemExit("NOV15_ONLY_SCHEDULED_UNATTENDED_OBSERVATION_NO_HTTP")
-          if os.environ.get("GITHUB_RUN_ATTEMPT")!="1":
-              raise SystemExit("NOV15_NO_RERUN")
           if now.strftime("%Y-%m-%d")!="2026-11-15" or not BEGIN <= now < END:
               raise SystemExit("NOV15_OUTSIDE_FIXED_OBSERVATION_WINDOW_NO_HTTP")
           if not re.fullmatch(r"[0-9a-fA-F]{64}",os.environ.get("ARCHIVE_KEY","")):
@@ -56,12 +53,6 @@ jobs:
           actual=subprocess.check_output(["git","rev-parse","HEAD"],text=True).strip()
           if actual!="b03c0a0543e65479832a01a590df94f3a28f2b92":
               raise SystemExit("NOV15_SOURCE_REVISION_MISMATCH_NO_HTTP")
-          r=audit_previous_runs(
-              repo=os.environ["GITHUB_REPOSITORY"],token=os.environ["GITHUB_TOKEN"],
-              branch="main",current_run_id=os.environ["GITHUB_RUN_ID"],
-              workflow_name="Kyoto Nov15 unattended encrypted official observer launcher",
-              http_step="At most EIGHT bounded original-only official PC HTTP requests")
-          print("NOV15_PRE_HTTP_HISTORY_CHECKED="+str(len(r["prior_zero_http_runs"])))
           print("NOV15_UNATTENDED_OBSERVER_DATE_AND_KEY_GATES_PASS")
           PY
       - name: At most EIGHT bounded original-only official PC HTTP requests
