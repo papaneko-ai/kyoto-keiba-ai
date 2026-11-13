@@ -51,9 +51,17 @@ class Nov15WorkflowSafetyTests(unittest.TestCase):
     self.assertIn('if: always()',self.s)
     self.assertIn('retention-days: 30',self.s)
     self.assertIn('nov15_preflight_receipt.json',self.s)
+ def test_plaintext_artifacts_never_uploaded(self):
+    self.assertIn('path: nov15_encrypted_capture/',self.s)
+    self.assertNotIn('path: nov15_pc_one_shot/',self.s)
+    self.assertIn('kyoto_nov15_full_capture_seal',self.s)
+ def test_prior_observation_artifact_is_authenticated(self):
+    self.assertIn('kyoto-nov15-encrypted-observation-',self.s)
+    self.assertIn('kyoto_nov15_encrypted_evidence',self.s)
+    self.assertIn('ARCHIVE_KEY',self.s)
  def test_racecard_links_are_not_hardcoded(self):
-    self.assertIn('nov15_pc_official_selection.html',self.s)
-    self.assertIn('nov15_pc_official_meeting.html',self.s)
+    self.assertIn('nov15_decrypted/official_selection.html',self.s)
+    self.assertIn('nov15_decrypted/official_meeting.html',self.s)
     self.assertNotIn('CNAME=pw',self.s)
  def test_only_dev_branch_dispatch_path(self):
     self.assertIn('branches: [jra-html-diagnostic-20261105]',self.s)
