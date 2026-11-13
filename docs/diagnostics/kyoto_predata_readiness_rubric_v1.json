@@ -161,7 +161,10 @@
       "title": "全工程オフラインE2E・復旧・完全バックアップ",
       "phase": "P2-P8",
       "acceptance": "単一の固定LAB入力で予測から進化まで一括試験し別環境復元と正確なHEADのCIバックアップを検証する",
-      "automation": null
+      "automation": {
+        "suite": "test_r16_full_offline_e2e_acceptance.py",
+        "tests": 22
+      }
     }
   ]
 }
