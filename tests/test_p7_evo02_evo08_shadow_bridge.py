@@ -96,6 +96,44 @@ class WeaknessSurpriseShadowBridgeTests(unittest.TestCase):
     p=self.train();self.hold(start=7,count=10)
     with self.assertRaisesRegex(ProposalRejected,"holdout_started_before_proposal_lock"):
         self.audit(p)
+ def test_holdout_forecast_frozen_before_locked_plan_refused(self):
+    p=self.train()
+    # All cutoffs occur later, but a falsified first freeze timestamp precedes
+    # the discovery lock and must not be used as a prospective validation.
+    from diagnostics.p7_hybrid_shadow_evolution_cycle import _append
+    snap=copy.deepcopy(self.base)
+    snap["race_id"]="LAB-EARLY-FREEZE"
+    snap["cutoff_utc"]=stamp(40)
+    snap["source_sha256"]=hashlib.sha256(b"early-frozen-source").hexdigest()
+    a=prediction("BASE",snap,.2);b=prediction("MOD",snap,.7)
+    freeze_lab_pair(self.holdout,self.registry,snap,a,b,
+        freeze_utc=stamp(14),expected_head=read_shadow(self.holdout)["head"])
+    for i in range(21,30):
+        snap=copy.deepcopy(self.base)
+        snap["race_id"]=f"LAB-PAIR-{i:04d}"
+        snap["cutoff_utc"]=stamp(i*2)
+        snap["source_sha256"]=hashlib.sha256(f"LAB-SOURCE-{i}".encode()).hexdigest()
+        a=prediction("BASE",snap,.2);b=prediction("MOD",snap,.7)
+        freeze_lab_pair(self.holdout,self.registry,snap,a,b,
+            freeze_utc=stamp(i*2-1),expected_head=read_shadow(self.holdout)["head"])
+    settle_lab_pair(self.holdout,"LAB-EARLY-FREEZE",[1,3],
+        outcome_utc=stamp(41),expected_head=read_shadow(self.holdout)["head"])
+    for i in range(21,30):
+        settle_lab_pair(self.holdout,f"LAB-PAIR-{i:04d}",[1,3],
+            outcome_utc=stamp(i*2+1),expected_head=read_shadow(self.holdout)["head"])
+    with self.assertRaisesRegex(ProposalRejected,"holdout_started_before_proposal_lock"):
+        self.audit(p)
+ def test_shared_f17_analysis_uses_only_settled_training(self):
+    from diagnostics.kyoto_f17_executable_lab_streams import summarize_frozen_evo02_evo08_errors
+    rows=[{"race_id":"LAB-ONE","cutoff_utc":stamp(2),
+        "result_utc":stamp(3),"error_category":"CROSS_FRAME",
+        "champion_loss":2.0,"challenger_loss":.4,
+        "champion_winning_pair_probability":.1}]
+    a=summarize_frozen_evo02_evo08_errors(rows,surprise_ceiling=.2)
+    self.assertEqual(a["evo02_priority"],"CROSS_FRAME")
+    self.assertEqual(a["evo08_surprise_cases"][0]["race_id"],"LAB-ONE")
+    with self.assertRaises(ValueError):
+        summarize_frozen_evo02_evo08_errors(rows+[rows[0]],surprise_ceiling=.2)
  def test_missing_holdout_outcome_refused(self):
     p=self.train()
     self.hold(count=9)
