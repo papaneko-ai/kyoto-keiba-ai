@@ -1,0 +1,80 @@
+name: Kyoto Implementation12 verified migration source and history backup
+on:
+  push:
+    branches: [jra-html-diagnostic-20261105]
+    paths:
+      - 'docs/KYOTO_AI_20261113_IMPLEMENTATION12_COMPLETE_MIGRATION_PACK.md'
+      - 'docs/KYOTO_AI_20261113_IMPLEMENTATION12_START_INSTRUCTIONS.md'
+      - '.github/workflows/kyoto-implementation12-verified-migration-backup.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  exact-commit-archive:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Create and verify tracked source ZIP and Git refs bundle
+        shell: bash
+        run: |
+          set -euo pipefail
+          root="$RUNNER_TEMP/kyoto-implementation12"
+          mkdir -p "$root"
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          test "$GITHUB_REF_NAME" = "jra-html-diagnostic-20261105"
+          git archive --format=zip --output="$root/tracked-repository-source.zip" HEAD
+          git bundle create "$root/git-history.bundle" --all
+          git bundle verify "$root/git-history.bundle"
+          unzip -t "$root/tracked-repository-source.zip" > "$root/ZIP_TEST_LOG.txt"
+          printf 'repository=papaneko-ai/kyoto-keiba-ai\nbranch=%s\nhead=%s\nrun_id=%s\nsource=tracked_files_only\nrun_attempt=%s\nretention_days=90\n' \
+            "$GITHUB_REF_NAME" "$GITHUB_SHA" "$GITHUB_RUN_ID" "$GITHUB_RUN_ATTEMPT" > "$root/RECOVERY_MANIFEST.txt"
+          printf '%s\n' "$GITHUB_SHA" > "$root/EXACT_SOURCE_HEAD.txt"
+          cat > "$root/RESTORE_INSTRUCTIONS.txt" <<'EOF'
+          KYOTO AI Implementation12 migration and source recovery
+          Verify: sha256sum -c SHA256SUMS.txt
+          Check:  unzip -t tracked-repository-source.zip
+          Git:    git bundle verify git-history.bundle
+          Restore the recorded branch from the bundle into a NEW directory.
+          Check the restored commit equals EXACT_SOURCE_HEAD.txt before any execution.
+          Do not overwrite protected main/Turso/Streamlit or configure real betting.
+          Not included: external Turso DB, GitHub/Streamlit Secrets, historical
+          JRA HTML stored as Actions artifacts, external provider settings.
+          Artifacts expire; save a copy independently if long-term recovery is needed.
+          EOF
+          sha256sum "$root/tracked-repository-source.zip" "$root/git-history.bundle" "$root/ZIP_TEST_LOG.txt" \
+            "$root/RECOVERY_MANIFEST.txt" "$root/EXACT_SOURCE_HEAD.txt" "$root/RESTORE_INSTRUCTIONS.txt" > "$root/SHA256SUMS.txt"
+          (cd "$root" && sha256sum -c SHA256SUMS.txt)
+          ROOT="$root" python - <<'PY'
+          import os,pathlib,zipfile
+          root=pathlib.Path(os.environ["ROOT"])
+          with zipfile.ZipFile(root/"tracked-repository-source.zip") as z:
+              required={
+                "docs/KYOTO_AI_20261113_IMPLEMENTATION12_COMPLETE_MIGRATION_PACK.md",
+                "docs/KYOTO_AI_20261113_IMPLEMENTATION12_START_INSTRUCTIONS.md",
+                "docs/diagnostics/kyoto_20261113_generated_evo_candidate_16tests_checkpoint.json",
+                "diagnostics/p7_evo_bounded_candidate_constructor.py",
+                "diagnostics/p7_hybrid_shadow_evolution_cycle.py",
+                ".github/workflows/kyoto-implementation12-verified-migration-backup.yml",
+                ".github/workflows/kyoto-ai-always-run-continuity.yml",
+              }
+              absent=required-set(z.namelist())
+              assert not absent, f"Missing migration requirements: {sorted(absent)}"
+              assert z.testzip() is None
+          assert (root/"EXACT_SOURCE_HEAD.txt").read_text().strip()==os.environ["GITHUB_SHA"]
+          print("MIGRATION_SOURCE_ZIP=VERIFIED")
+          print("MIGRATION_GIT_BUNDLE=VERIFIED")
+          print("MIGRATION_SHA256=VERIFIED")
+          print("MIGRATION_HEAD="+os.environ["GITHUB_SHA"])
+          print("JRA_EXTERNAL_GET=0")
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: kyoto-implementation12-exact-source-gitbundle-sha256-${{ github.run_id }}
+          path: ${{ runner.temp }}/kyoto-implementation12/
+          retention-days: 90
+          if-no-files-found: error
