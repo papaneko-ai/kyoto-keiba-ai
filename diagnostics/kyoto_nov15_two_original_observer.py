@@ -6,7 +6,7 @@ observed odds menu action. All bytes stay in the
 ephemeral workspace until encrypted; no roster or market authentication claim.
 """
 from __future__ import annotations
-import hashlib,json,re,os
+import hashlib,json,re,os,time
 from datetime import datetime, timezone, timedelta
 from urllib.request import Request,build_opener,HTTPCookieProcessor
 from http.cookiejar import CookieJar
@@ -141,7 +141,9 @@ def observe(selection_root, *, now_utc, opener=None, allowed=False,
                 receipt["observed_racecard_url"]=race_url
                 receipt["http_requests_started"]=3
                 request_pacer.before_request()
+                race_start=time.monotonic()
                 racecard=_read(client,race_url)
+                receipt["racecard_elapsed_ms"]=round((time.monotonic()-race_start)*1000,2)
                 receipt["racecard_captured_at_utc"]=datetime.now(timezone.utc).isoformat()
                 (root/"official_racecard.html").write_bytes(racecard)
                 receipt["racecard_sha256"]=hashlib.sha256(racecard).hexdigest()
