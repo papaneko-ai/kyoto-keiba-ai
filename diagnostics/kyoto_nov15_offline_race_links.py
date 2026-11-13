@@ -105,6 +105,26 @@ def derive_nov15_race_links(folder):
                 "captured_at_utc":receipt.get("racecard_captured_at_utc"),
                 "existing_parser_diagnostic":parser_result,
                 "state":"RAW_HTML_ONLY_NOT_ROSTER_OR_MARKET_VALIDATION"}
+        # Observation receipts have already been checked against saved
+        # original bytes by accept_observation; report collection separately
+        # from independently verified market prices.
+        observed_markets={}
+        for market,filename in (
+            ("quinella","official_quinella_odds.html"),
+            ("bracket_quinella","official_bracket_quinella_odds.html")):
+            captured_market=receipt.get(market+"_original_fetched") is True
+            observed_markets[market]={
+                "original_fetched":captured_market,
+                "sha256":receipt.get(market+"_sha256") if captured_market else None,
+                "captured_at_utc":receipt.get(market+"_captured_at_utc") if captured_market else None,
+                "price_matrix_verified":False}
+        observed_market_menu={
+            "original_fetched":receipt.get("odds_menu_original_fetched") is True,
+            "sha256":receipt.get("odds_menu_sha256")
+                      if receipt.get("odds_menu_original_fetched") else None,
+            "state":receipt.get("market_observation",
+                                receipt.get("odds_menu_observation","NOT_ATTEMPTED")),
+            "price_matrix_verified":False}
         return {"schema":"kyoto_nov15_offline_race_links.v1","race_day":DAY,
             "state":"OFFLINE_OBSERVED_LINKS_ONLY",
             "source_observation_validation":verification["state"],
@@ -113,6 +133,8 @@ def derive_nov15_race_links(folder):
             "observed_meeting_url":observed_meeting,
             "race_links":[results[n] for n in sorted(results)],
             "racecard_originals_fetched":captured,
+            "observed_odds_menu":observed_market_menu,
+            "observed_market_originals":observed_markets,
             "saved_racecard_original":observed_original,
             # The unattended observer currently captures PC only. Treat it
             # as usable source evidence, NEVER as a completed PC/SP experiment.
