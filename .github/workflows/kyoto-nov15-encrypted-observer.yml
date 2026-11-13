@@ -44,35 +44,16 @@ jobs:
           secret=os.environ.get("ARCHIVE_KEY","")
           if not re.fullmatch(r"[0-9a-fA-F]{64}",secret):
               raise SystemExit("NOV15_ENCRYPTED_ARCHIVE_SECRET_MISSING_OR_INVALID_NO_HTTP")
-          # Repository-level API avoids depending on workflow presence in main.
-          repo=os.environ["GITHUB_REPOSITORY"]
-          own="Kyoto Nov15 gated official links observation encrypted originals"
-          previous=[]
-          seen=False
-          complete=False
-          for page in range(1,26):
-              url=f"https://api.github.com/repos/{repo}/actions/runs?branch=jra-html-diagnostic-20261105&per_page=100&page={page}"
-              request=Request(url,headers={
-                  "Authorization":"Bearer "+os.environ["GITHUB_TOKEN"],
-                  "Accept":"application/vnd.github+json",
-                  "User-Agent":"KyotoAI-Nov15-SafeObserver"
-              })
-              with urlopen(request,timeout=12) as result:
-                  record=json.load(result)
-              runs=record.get("workflow_runs")
-              if not isinstance(runs,list):
-                  raise SystemExit("NOV15_OBSERVER_RUN_HISTORY_UNVERIFIED")
-              for r in runs:
-                  if r.get("name")==own:
-                      if str(r.get("id"))==os.environ["GITHUB_RUN_ID"]:
-                          seen=True
-                      else:
-                          previous.append(r.get("id"))
-              if len(runs)<100:
-                  complete=True
-                  break
-          if not complete or not seen or previous:
-              raise SystemExit("NOV15_OBSERVER_ALREADY_STARTED_OR_HISTORY_UNVERIFIED")
+          # Only completed failed runs with provably skipped HTTP steps can be retried.
+          from diagnostics.kyoto_p1_github_attempt_history_gate import audit_previous_runs
+          check=audit_previous_runs(
+              repo=os.environ["GITHUB_REPOSITORY"],
+              token=os.environ["GITHUB_TOKEN"],
+              branch="jra-html-diagnostic-20261105",
+              current_run_id=os.environ["GITHUB_RUN_ID"],
+              workflow_name="Kyoto Nov15 gated official links observation encrypted originals",
+              http_step="Up to TWO bounded observed official PC GET requests")
+          print("NOV15_PROVEN_ZERO_HTTP_PRIOR_FAILURES="+str(len(check["prior_zero_http_runs"])))
           print("NOV15_OBSERVER_AUTHORIZED_AFTER_RUN_AND_ENCRYPTION_GATES")
           PY
       - name: Up to TWO bounded observed official PC GET requests
