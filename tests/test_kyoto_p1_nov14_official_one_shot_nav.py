@@ -94,9 +94,28 @@ class Nov14NavigationTests(unittest.TestCase):
     opener=StubOpener(StubReply(html(GOOD)))
     with tempfile.TemporaryDirectory() as d:
         r=inspect_once(d,opener=opener,
-             clock=lambda:datetime(2026,11,14,1,0,tzinfo=timezone.utc))
+             clock=lambda:datetime(2026,11,14,9,0,tzinfo=timezone.utc))
         self.assertEqual(r["status"],"STALE_MEETING_DISCOVERY_NO_HTTP")
         self.assertEqual(opener.calls,0)
+ def test_nov14_after_nine_jst_is_not_stale_if_unused(self):
+    opener=StubOpener(StubReply(html(GOOD)))
+    with tempfile.TemporaryDirectory() as d:
+        r=inspect_once(d,opener=opener,
+            clock=lambda:datetime(2026,11,14,1,0,tzinfo=timezone.utc))
+        self.assertEqual(opener.calls,1)
+        self.assertEqual(r["status"],"OFFICIAL_NOV14_KYOTO_MEETING_LINK_OBSERVED")
+ def test_invalid_encoding_preserves_raw_source_and_sha(self):
+    import hashlib
+    from pathlib import Path
+    broken=b"<html>\\x81</html>"
+    opener=StubOpener(StubReply(broken))
+    with tempfile.TemporaryDirectory() as d:
+        r=inspect_once(d,opener=opener,clock=AFTER_PUBLICATION)
+        self.assertEqual(r["status"],"FAILED_CLOSED")
+        self.assertEqual(r["source_sha256"],hashlib.sha256(broken).hexdigest())
+        self.assertEqual(r["source_bytes"],len(broken))
+        self.assertIn("source_captured_utc",r)
+        self.assertEqual((Path(d)/"official_selection.html").read_bytes(),broken)
  def test_second_meeting_observation_preserves_exact_prior_original(self):
     from pathlib import Path
     opener=StubOpener(StubReply(html(GOOD)))
