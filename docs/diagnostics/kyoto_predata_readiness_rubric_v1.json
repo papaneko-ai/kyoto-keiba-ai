@@ -41,7 +41,10 @@
       "title": "複数モデルファミリーの正式実装",
       "phase": "P3",
       "acceptance": "単純基準・PL/Harville・Bolton-Chapman型・Benter型・ML混合の定義と推定を公平に比較する",
-      "automation": null
+      "automation": {
+        "suite": "test_r04_model_families_acceptance.py",
+        "tests": 24
+      }
     },
     {
       "id": "R05",
