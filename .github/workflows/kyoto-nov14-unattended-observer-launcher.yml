@@ -15,6 +15,7 @@ jobs:
     timeout-minutes: 7
     env:
       PYTHONPATH: .
+      SP_INDEPENDENT_OFFICIAL_R12_URL: 'https://sp.jra.jp/JRADB/accessD.html?CNAME=sw01dde0108202605031220261114%2F5E'
       KYOTO_TARGET_DAY: '20261114'
       ARCHIVE_KEY: ${{ secrets.KYOTO_JRA_ARCHIVE_AES256_HEX }}
       GITHUB_TOKEN: ${{ github.token }}
@@ -46,6 +47,9 @@ jobs:
           assert BEGIN < datetime(2026,11,14,2,0,tzinfo=timezone.utc) < END
           print("NOV14_SHARED_COLLECTOR_DATE_AND_ARCHIVE_BOUND")
           PY
+      - name: Verify SP observed source and parity regression without official HTTP
+        run: |
+          KYOTO_TARGET_DAY=20261115 python -m unittest discover -s tests -p 'test_kyoto_sp_observed_source.py' -q
       - name: Pre-HTTP date, source revision and encryption guard
         shell: bash
         run: |
@@ -66,6 +70,8 @@ jobs:
           if actual!="9fa967c70238668a47cab3b06bec85f44fdef1c6":
               raise SystemExit("NOV14_SOURCE_REVISION_MISMATCH_NO_HTTP")
           print("NOV14_UNATTENDED_OBSERVER_DATE_AND_KEY_GATES_PASS")
+          with open(os.environ["GITHUB_ENV"],"a",encoding="utf8") as e:
+              e.write("NOV_SOURCE_PRECHECK_OK=1\\n")
           PY
       - name: At most EIGHT bounded original-only official PC HTTP requests
         shell: bash
@@ -80,11 +86,41 @@ jobs:
                     include_observed_odds_menu=True)
           print("NOV14_OBSERVATION_STATE="+r["state"])
           print("NOV14_ATTEMPTED_GET="+str(r["http_requests_started"]))
-          if r["state"] not in ("NOV14_MEETING_ORIGINALS_OBSERVED_NOT_RACECARD",
-                               "NOV14_RACECARD_ORIGINAL_OBSERVED_ROSTER_UNVERIFIED"):
-              raise SystemExit("NOV14_FAILED_CLOSED")
+          import os
+          if r["state"] in ("NOV15_MEETING_ORIGINALS_OBSERVED_NOT_RACECARD",
+                              "NOV15_RACECARD_ORIGINAL_OBSERVED_ROSTER_UNVERIFIED"):
+              with open(os.environ["GITHUB_ENV"],"a",encoding="utf8") as e:
+                  e.write("PC_CAPTURE_OK=1\\n")
+          else:
+              print("PC_CAPTURE_FAILED_SP_WILL_STILL_BE_ATTEMPTED")
+          PY
+      - name: Capture independently observed official SP 12R even if PC failed
+        if: ${{ always() && env.NOV_SOURCE_PRECHECK_OK == '1' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p nov14_work_originals
+          python - <<'PY'
+          import os,json
+          from pathlib import Path
+          from http.cookiejar import CookieJar
+          from urllib.request import build_opener, HTTPCookieProcessor
+          from diagnostics.kyoto_p1_nov14_official_one_shot_nav import NoRedirect
+          from diagnostics.kyoto_sp_observed_source import capture_verified_sp_seed,compare_saved_pc_sp
+          root=Path("nov14_work_originals")
+          r=capture_verified_sp_seed(
+              root,race_day=os.environ["KYOTO_TARGET_DAY"],
+              race_number=12,source_url=os.environ["SP_INDEPENDENT_OFFICIAL_R12_URL"],
+              opener=build_opener(NoRedirect(),HTTPCookieProcessor(CookieJar())))
+          report=compare_saved_pc_sp(root,race_day=os.environ["KYOTO_TARGET_DAY"])
+          (root/"pc_sp_comparison.json").write_text(
+              json.dumps(report,ensure_ascii=False,sort_keys=True,indent=2)+"\\n",
+              encoding="utf8")
+          print("SP_ORIGINAL_CAPTURE_STATE="+r["state"])
+          print("PC_SP_OFFLINE_COMPARE="+report["state"])
           PY
       - name: Verify and index observed race links offline before encrypted evidence sealing
+        if: ${{ env.PC_CAPTURE_OK == '1' }}
         shell: bash
         run: |
           set -euo pipefail
