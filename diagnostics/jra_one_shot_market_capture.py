@@ -673,6 +673,14 @@ def capture_hybrid(out, *, primary_channel, verified_start_utc, active_runners,
                  race_id=spec.race_id, primary_channel=primary_channel,
                  route_basis=route_basis,
                  selected_channel=selected, attempts=outcomes,
+                 # A single valid channel remains useful saved source evidence.
+                 # Never discard it merely because independent parity failed.
+                 source_capture_usable_for_offline_analysis=selected is not None,
+                 failed_channel_receipts_retained=[
+                     x["receipt_path"] for x in outcomes if not x["accepted"]],
+                 pending_channel_repair=[
+                     x["channel"] for x in outcomes if not x["accepted"]],
+                 dual_channel_experiment_complete=dual_captured,
                  independent_crosscheck_requested=independent_crosscheck,
                  primary_semantic_conflict_blocked=unsafe_primary,
                  dual_independent_source_originals=dual_captured,
