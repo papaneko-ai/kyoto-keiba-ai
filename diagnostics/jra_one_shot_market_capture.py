@@ -642,7 +642,22 @@ def capture_hybrid(out, *, primary_channel, verified_start_utc, active_runners,
         "source_not_before_cutoff",
         "final_or_unpublished_original",
     )
-    unsafe_primary=any(x in (first.get("reason") or "") for x in terminal_conflicts)
+    # An HTTP 403/429, redirect, unauthorised origin, transport timeout,
+    # or identity/temporal refusal is NOT a transient channel error.
+    # Preserve the failed source and stop rather than evading the refusal via
+    # a second official host. Link-not-found (404/410) may use an
+    # independently verified alternative under the existing one-shot policy.
+    terminal_transport_conflicts=(
+        "HTTP Error 403", "HTTP Error 429", "HTTPError:HTTP Error 403",
+        "HTTPError:HTTP Error 429", "redirect_forbidden",
+        "official_http_response_invalid", "invalid_target_origin",
+        "TimeoutError:", "timed out", "SSLError:", "ssl.",
+        "LIVE_HTTP_NOT_AUTHORIZED", "race_spec_unverified",
+        "permission", "unauthorized", "forbidden",
+    )
+    first_reason=(first.get("reason") or "")
+    unsafe_primary=any(x in first_reason for x in
+                       terminal_conflicts+terminal_transport_conflicts)
     if not selected and first["state"] in fallback_allowed and not unsafe_primary:
         second=one(other)
         outcomes.append(second)
