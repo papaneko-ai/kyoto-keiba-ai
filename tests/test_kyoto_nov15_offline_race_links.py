@@ -62,6 +62,30 @@ class OfflineRaceLinksTests(unittest.TestCase):
     self.assertFalse(result["hybrid_experiment"]["full_hybrid_experiment_pass"])
     self.assertFalse(result["quinella_market_verified"])
     self.assertFalse(result["bracket_market_verified"])
+    self.assertEqual(result["saved_racecard_original"]["odds_navigation_handoff"]["state"],
+                     "OFFICIAL_ODDS_ACTION_MISSING_OR_AMBIGUOUS")
+ def test_official_odds_handoff_reuses_existing_action_parser(self):
+    action='<a onclick="return doAction(\'/JRADB/accessO.html\', \'pw15observed/AB\')">オッズ</a>'
+    raw=source("2026年11月15日 京都 1R "+action)
+    (self.root/"official_racecard.html").write_bytes(raw)
+    p=self.root/"receipt.json"
+    receipt=json.loads(p.read_text(encoding="utf8"))
+    receipt.update({"state":"NOV15_RACECARD_ORIGINAL_OBSERVED_ROSTER_UNVERIFIED",
+        "racecard_original_fetched":True,"http_requests_started":3,
+        "racecard_number":1,"observed_racecard_url":RACE,
+        "racecard_sha256":hashlib.sha256(raw).hexdigest(),
+        "racecard_bytes":len(raw),
+        "racecard_captured_at_utc":"2026-11-15T02:00:03+00:00"})
+    p.write_text(json.dumps(receipt),encoding="utf8")
+    result=derive_nov15_race_links(self.root)
+    handoff=result["saved_racecard_original"]["odds_navigation_handoff"]
+    self.assertEqual(handoff["state"],"ODDS_ACTION_OBSERVED_IN_SAVED_PC_RACECARD")
+    self.assertEqual(handoff["action_cname"],"pw15observed/AB")
+    self.assertEqual(handoff["official_menu_url"],
+                     "https://jra.jp/JRADB/accessO.html")
+    self.assertEqual(handoff["source_racecard_sha256"],hashlib.sha256(raw).hexdigest())
+    self.assertFalse(handoff["odds_original_fetched"])
+    self.assertEqual(handoff["network_requests"],0)
  def test_existing_real_capture_parser_reused_for_date_locked_structure(self):
     # Synthetic HTML only checks adapter integration; not 2026-11-15 proof.
     race_raw=source(
