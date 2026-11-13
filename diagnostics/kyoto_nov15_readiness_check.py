@@ -33,7 +33,7 @@ def readiness(root=".", *, clock_utc="2026-11-14T12:00:00Z", paths=None):
     originals={}
     for key,relative in items.items():
         if (type(relative) is not str or not re.fullmatch(
-            r"docs/diagnostics/[A-Za-z0-9_./-]+\\.(?:json|html|txt)",relative)
+            r"docs/diagnostics/[A-Za-z0-9_./-]+\.(?:json|html|txt)",relative)
             or ".." in relative.split("/")):
             invalid.append("UNSAFE_PATH:"+key)
             continue
@@ -61,7 +61,7 @@ def readiness(root=".", *, clock_utc="2026-11-14T12:00:00Z", paths=None):
     if not missing and not invalid:
         try:
             text=originals["start"].decode("utf8").strip()
-            if not re.fullmatch(r"2026-11-15T[0-2]\\d:[0-5]\\d:[0-5]\\dZ",text):
+            if not re.fullmatch(r"2026-11-15T[0-2]\d:[0-5]\d:[0-5]\dZ",text):
                 raise SecondDayRejected("verified_start_format_invalid")
             end=datetime.fromisoformat(text.replace("Z","+00:00"))
             if end <= now+timedelta(minutes=10):
