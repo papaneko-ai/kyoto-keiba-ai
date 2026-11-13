@@ -366,7 +366,7 @@ def observed_sp_race_links_from_saved_navigation(navigation_original, *,
     if (not re.fullmatch(r"sw[A-Za-z0-9]+/[A-Za-z0-9]+",token)
         or race_day not in token):continue
     label=" ".join(anchor.get_text(" ",strip=True).split())
-    match=re.search(r"(?<![0-9])0?([1-9]|1[0-2])\\s*(?:R|レース)(?![0-9])",
+    match=re.search(r"(?<![0-9])0?([1-9]|1[0-2])\s*(?:R|レース)(?![0-9])",
                     label,re.IGNORECASE)
     if not match:continue
     number=int(match.group(1))
