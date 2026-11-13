@@ -265,6 +265,24 @@ class ObservationTests(unittest.TestCase):
     path.write_text(json.dumps(receipt),encoding="utf8")
     with self.assertRaisesRegex(ObservationRejected,"selection_source_or_date_invalid"):
         accept_observation(self.root)
+ def test_forged_market_success_claim_rejected(self):
+    import json
+    self.run_obs()
+    path=self.root/"receipt.json"
+    receipt=json.loads(path.read_text(encoding="utf8"))
+    receipt["both_markets_verified"]=True
+    path.write_text(json.dumps(receipt),encoding="utf8")
+    with self.assertRaisesRegex(ObservationRejected,"unverified_success_claim"):
+        accept_observation(self.root)
+ def test_forged_http_count_rejected(self):
+    import json
+    self.run_obs()
+    path=self.root/"receipt.json"
+    receipt=json.loads(path.read_text(encoding="utf8"))
+    receipt["http_requests_started"]=3
+    path.write_text(json.dumps(receipt),encoding="utf8")
+    with self.assertRaisesRegex(ObservationRejected,"observation_http_count_inconsistent"):
+        accept_observation(self.root)
  def test_no_data_claims_real_racecard(self):
     self.run_obs()
     accepted=accept_observation(self.root)
