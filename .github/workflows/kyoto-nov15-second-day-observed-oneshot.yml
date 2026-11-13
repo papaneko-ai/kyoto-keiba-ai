@@ -127,55 +127,15 @@ jobs:
                       out.write("START_UTC="+start+"\n")
           elif os.environ.get("GITHUB_EVENT_NAME")!="workflow_dispatch":
               raise SystemExit("NOV15_UNEXPECTED_TRIGGER")
-          repo=os.environ["GITHUB_REPOSITORY"]
-          # Repository-level endpoint works even if this new workflow is not
-          # registered on the default branch. Query the entire development
-          # branch run history, not only the first 100 entries.
-          expected_name="Kyoto Nov15 second-day PC original-observed one-shot diagnostic"
-          expected_file="kyoto-nov15-second-day-observed-oneshot.yml"
-          known_other_capture_names={
-              "JRA observed PC-SP prereace odds one-shot (manual diagnostic only)",
-          }
-          prior=[]
-          current_seen=False
-          recent_other=[]
-          complete=False
-          for page in range(1,26):
-              url=(f"https://api.github.com/repos/{repo}/actions/runs"
-                   f"?branch=jra-html-diagnostic-20261105&per_page=100&page={page}")
-              request=Request(url,headers={
-                  "Authorization":"Bearer "+os.environ["GITHUB_TOKEN"],
-                  "Accept":"application/vnd.github+json",
-                  "X-GitHub-Api-Version":"2022-11-28",
-                  "User-Agent":"KyotoAI-Nov15-SingleTrialGuard"
-              })
-              with urlopen(request,timeout=12) as response:
-                  records=json.load(response).get("workflow_runs")
-              if not isinstance(records,list):
-                  raise SystemExit("NOV15_RUN_AUDIT_RESPONSE_INVALID")
-              for item in records:
-                  if not isinstance(item,dict) or "id" not in item:
-                      raise SystemExit("NOV15_RUN_AUDIT_ENTRY_INVALID")
-                  run_id=str(item["id"])
-                  name=item.get("name")
-                  path=item.get("path") or ""
-                  own=(name==expected_name or
-                       path.split("@",1)[0].endswith("/"+expected_file))
-                  if own:
-                      if run_id==os.environ["GITHUB_RUN_ID"]:
-                          current_seen=True
-                      else:
-                          prior.append(run_id)
-                  if (name in known_other_capture_names
-                      and (item.get("created_at") or "")>="2026-11-14T10:00:00Z"):
-                      recent_other.append(run_id)
-              if len(records)<100:
-                  complete=True
-                  break
-          if not complete or not current_seen:
-              raise SystemExit("NOV15_PRIOR_RUN_AUDIT_INCOMPLETE")
-          if prior or recent_other:
-              raise SystemExit("NOV15_PRIOR_DISPATCH_OR_OTHER_CAPTURE_ALREADY_EXISTS_NO_REPEAT")
+          from diagnostics.kyoto_p1_github_attempt_history_gate import audit_previous_runs
+          state=audit_previous_runs(
+              repo=os.environ["GITHUB_REPOSITORY"],
+              token=os.environ["GITHUB_TOKEN"],
+              branch="jra-html-diagnostic-20261105",
+              current_run_id=os.environ["GITHUB_RUN_ID"],
+              workflow_name="Kyoto Nov15 second-day PC original-observed one-shot diagnostic",
+              http_step="Single bounded Nov15 observed PC racecard and market fetch")
+          print("NOV15_PRE_HTTP_RETRY_COUNT="+str(len(state["prior_zero_http_runs"])))
           # This is a recorded, day14-only failure, not proof of day15 success.
           incident=Path("docs/diagnostics/nov14_existing_attempt_safe_stop_20261113.md").read_text()
           if "43142384975" not in incident or "attempted_GET=1" not in incident:
