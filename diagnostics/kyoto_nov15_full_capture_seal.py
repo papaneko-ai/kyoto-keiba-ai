@@ -6,6 +6,7 @@ from __future__ import annotations
 import hashlib,io,json,re,secrets,tarfile
 from pathlib import Path
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
+from cryptography.exceptions import InvalidTag
 from diagnostics.kyoto_nov15_encrypted_evidence import _key,_aad,EvidenceCryptoRejected
 
 MAX_FILES=90
@@ -86,7 +87,7 @@ def decrypt_capture_directory(source,out,*,key_hex,repo,run_id):
                 if not x.isfile() or x.size>MAX_FILE or x.name not in names:
                     raise EvidenceCryptoRejected("capture_unsafe_tar_member")
                 content[x.name]=archive.extractfile(x).read()
-    except (ValueError,tarfile.TarError,KeyError) as exc:
+    except (ValueError,tarfile.TarError,KeyError,InvalidTag) as exc:
         raise EvidenceCryptoRejected("capture_decryption_failed") from exc
     dst.mkdir()
     for name,raw in content.items():
