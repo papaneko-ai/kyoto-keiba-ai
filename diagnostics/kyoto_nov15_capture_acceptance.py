@@ -9,6 +9,7 @@ import argparse
 import hashlib
 import json
 import re
+from datetime import datetime,timezone,timedelta
 from pathlib import Path
 
 class CaptureAcceptanceRejected(ValueError):
@@ -17,6 +18,41 @@ class CaptureAcceptanceRejected(ValueError):
 EXPECTED={"official_racecard.html":"racecard",
           "quinella_original.html":"quinella",
           "bracket_quinella_original.html":"bracket_quinella"}
+
+def _utc(value, field):
+    if type(value) is not str or not (value.endswith("Z") or value.endswith("+00:00")):
+        raise CaptureAcceptanceRejected("capture_utc_invalid:"+field)
+    try:
+        parsed=datetime.fromisoformat(value.replace("Z","+00:00"))
+    except (ValueError,TypeError) as exc:
+        raise CaptureAcceptanceRejected("capture_utc_invalid:"+field) from exc
+    if parsed.utcoffset()!=timedelta(0):
+        raise CaptureAcceptanceRejected("capture_utc_invalid:"+field)
+    return parsed
+
+def _temporal_receipts(doc, by_step, expected_race_id):
+    if (doc.get("schema_version")!="jra_one_shot_market_capture.v1"
+        or doc.get("channel") not in ("PC","SP")):
+        raise CaptureAcceptanceRejected("capture_receipt_schema_or_channel_invalid")
+    start=_utc(doc.get("started_at_utc"),"started")
+    race_start=_utc(doc.get("verified_start_utc"),"race_start")
+    ended=_utc(doc.get("ended_at_utc"),"ended")
+    if (not start<=ended<race_start-timedelta(minutes=10)
+        or not expected_race_id.startswith(race_start.strftime("%Y-%m-%d")+"_" )):
+        raise CaptureAcceptanceRejected("capture_run_not_prerace")
+    for step,record in by_step.items():
+        if type(record) is not dict:
+            raise CaptureAcceptanceRejected("capture_step_invalid")
+        observed=_utc(record.get("captured_at_utc"),step)
+        if not start<=observed<=ended or observed>=race_start-timedelta(minutes=10):
+            raise CaptureAcceptanceRejected("capture_market_not_prerace:"+step)
+        if (record.get("http_status")!=200
+            or record.get("method") not in ("GET","POST")
+            or type(record.get("requested_url")) is not str
+            or type(record.get("response_url")) is not str):
+            raise CaptureAcceptanceRejected("capture_http_provenance_incomplete:"+step)
+    return {"run_start_utc":start.isoformat(),"run_end_utc":ended.isoformat(),
+            "verified_race_start_utc":race_start.isoformat()}
 
 def assess_saved_capture(root, *, expected_race_id):
     root=Path(root)
@@ -49,6 +85,7 @@ def assess_saved_capture(root, *, expected_race_id):
         if key in by_step:
             raise CaptureAcceptanceRejected("request_step_duplicate")
         by_step[key]=step
+    timing=_temporal_receipts(doc,by_step,expected_race_id)
     sources={}
     for filename,step in EXPECTED.items():
         p=root/filename
@@ -70,6 +107,7 @@ def assess_saved_capture(root, *, expected_race_id):
         "race_id":expected_race_id,
         "state":"OFFLINE_SOURCE_BYTES_MATCH_RECEIPT",
         "source_sha256":sources,
+        "time_receipt":timing,
         "independent_official_source_authenticated":False,
         "real_market_independently_verified":False,
         "prediction_ready":False,
