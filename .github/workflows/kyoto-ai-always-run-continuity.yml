@@ -86,6 +86,7 @@ jobs:
       - name: Independently measure immutable pre-JRA readiness gates
         run: |
           python -m unittest discover -s tests -p 'test_r01_predata_source_contract_acceptance.py' -v
+          python -m unittest discover -s tests -p 'test_r08_full_market_predata_acceptance.py' -v
           python -m unittest discover -s tests -p 'test_kyoto_predata_readiness.py' -v
           python -m diagnostics.kyoto_predata_readiness --root . --out /tmp/kyoto-predata-readiness.json
           python - <<'PY'
@@ -93,12 +94,12 @@ jobs:
           from pathlib import Path
           r=json.loads(Path('/tmp/kyoto-predata-readiness.json').read_text(encoding='utf-8'))
           assert r['total_gates']==16
-          assert r['passed_gates']==8
-          assert r['completion_percent']==50.0
-          assert r['accepted_gate_ids']==['R01','R03','R05','R06','R09','R11','R12','R13']
+          assert r['passed_gates']==9
+          assert r['completion_percent']==56.25
+          assert r['accepted_gate_ids']==['R01','R03','R05','R06','R08','R09','R11','R12','R13']
           assert not r['live_paper_trading_authorized']
           assert not r['revert_to_original_scoring_now']
-          print('PRE_DATA_READINESS_FIXED_GATE_PASS=8/16')
+          print('PRE_DATA_READINESS_FIXED_GATE_PASS=9/16')
           PY
       - uses: actions/upload-artifact@v4
         with:
