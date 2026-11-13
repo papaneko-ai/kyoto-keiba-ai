@@ -12,6 +12,8 @@ on:
       - tests/test_kyoto_nov15_dispatch_guard.py
       - .github/workflows/kyoto-nov15-unattended-observer-launcher.yml
       - tests/test_kyoto_nov15_unattended_launcher.py
+      - diagnostics/kyoto_race_day_http_gate.py
+      - tests/test_kyoto_race_day_http_gate.py
   workflow_dispatch:
 permissions:
   contents: read
@@ -42,7 +44,8 @@ jobs:
             tests.test_jra_one_shot_market_capture \
             tests.test_kyoto_nov15_dispatch_guard \
             tests.test_kyoto_nov15_secure_workflow_gates \
-            tests.test_kyoto_nov15_unattended_launcher 2>&1 | tee preflight_report/unittest.log
+            tests.test_kyoto_nov15_unattended_launcher \
+            tests.test_kyoto_race_day_http_gate 2>&1 | tee preflight_report/unittest.log
           python - <<'PY'
           import hashlib,json,os,pathlib
           tests=pathlib.Path("preflight_report/unittest.log").read_bytes()
