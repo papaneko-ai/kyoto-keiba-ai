@@ -5,13 +5,15 @@ Consumes two independently retained official HTML originals with matching
 capture receipt before extracting links. The raw originals remain immutable.
 """
 from __future__ import annotations
-import argparse,hashlib,json,re
+import argparse,hashlib,json,re,os
 from pathlib import Path
 from diagnostics.kyoto_nov15_two_original_observer import accept_observation
 from diagnostics.jra_official_link_repair import observed_links,OFFICIAL_ENTRY
 
 class OfflineRaceLinkRejected(ValueError):pass
-DAY="20261115"
+DAY=os.environ.get("KYOTO_TARGET_DAY","20261115")
+if not re.fullmatch(r"20[0-9]{6}",DAY):
+    raise ValueError("race_day_invalid")
 
 def derive_nov15_race_links(folder):
     root=Path(folder)
@@ -60,12 +62,12 @@ def derive_nov15_race_links(folder):
             from diagnostics.jra_multi_capture_20261106 import parse as pc_parse
             try:
                 parsed_rows,parse_errors=pc_parse(
-                    raw_race,number,meeting_date="2026-11-15")
+                    raw_race,number,meeting_date=DAY[:4]+"-"+DAY[4:6]+"-"+DAY[6:])
             except (ValueError,TypeError,UnicodeError) as exc:
                 parsed_rows,parse_errors=[],["existing_pc_parser_rejected"]
             parser_result={
                 "parser":"diagnostics.jra_multi_capture_20261106.parse",
-                "parser_meeting_date":"2026-11-15",
+                "parser_meeting_date":DAY[:4]+"-"+DAY[4:6]+"-"+DAY[6:],
                 "parsed_runner_rows":len(parsed_rows),
                 "errors":parse_errors,
                 "structure_diagnostic_pass":bool(parsed_rows) and not parse_errors,
