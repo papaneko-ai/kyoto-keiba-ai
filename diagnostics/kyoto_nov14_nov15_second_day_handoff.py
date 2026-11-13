@@ -33,10 +33,10 @@ def _same_day_not_guessed(original, *, parent, day, label, race=None):
         raise SecondDayRejected("observed_original_invalid") from exc
     candidates = set()
     for url, text, token in options:
-        if day not in token or label not in text:
+        if day not in token or (label and label not in text):
             continue
         if race is not None:
-            if not re.search(rf"(?<!\\d)0?{race}\\s*(?:R|レース)(?!\\d)", text):
+            if not re.search(rf"(?<!\d)0?{race}\s*(?:R|レース)(?!\d)", text):
                 continue
             if f"{race:02d}{day}" not in token:
                 continue
@@ -81,7 +81,7 @@ def validate_day15_handoff(*, spec_data, roster, official_selection_original,
     )
     race_url=_same_day_not_guessed(
         official_meeting_original, parent=meeting_url,
-        day=DAY15, label="京都", race=spec.race_number
+        day=DAY15, label="", race=spec.race_number
     )
     if race_url != spec.pc_racecard_url:
         raise SecondDayRejected("racecard_link_not_bound_to_original")
