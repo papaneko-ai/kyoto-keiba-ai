@@ -7,6 +7,8 @@ on:
       - 'diagnostics/kyoto_predata_readiness.py'
       - 'tests/test_r01_predata_source_contract_acceptance.py'
       - 'tests/test_r08_full_market_predata_acceptance.py'
+      - 'tests/test_r02_prerace_feature_acceptance.py'
+      - 'diagnostics/p2_prerace_feature_contract.py'
       - '.github/workflows/kyoto-ai-always-run-continuity.yml'
       - 'docs/KYOTO_AI_20261113_IMPLEMENTATION12_COMPLETE_MIGRATION_PACK.md'
       - 'docs/KYOTO_AI_20261113_IMPLEMENTATION12_START_INSTRUCTIONS.md'
