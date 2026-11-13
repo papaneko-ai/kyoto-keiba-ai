@@ -188,13 +188,17 @@ jobs:
           set -euo pipefail
           python -m diagnostics.jra_one_shot_market_capture \
             --channel PC \
+            --hybrid \
             --verified-start-utc "$START_UTC" \
             --active-roster-json "$ROSTER" \
             --race-spec-json "$SPEC" \
-            --auto-repair-broken-pc-link \
             --authorized-live-http \
             --out nov15_pc_one_shot/captured
+          # The existing hybrid runner falls back to SP once only when an
+          # independently observed SP URL is in the race spec. If no SP URL
+          # exists, collect PC original evidence without inventing one.
           python -m diagnostics.kyoto_nov15_capture_acceptance \
+            --hybrid \
             --directory nov15_pc_one_shot/captured \
             --spec "$SPEC"
           echo NOV15_SOURCE_ONLY_NOT_LIVE_CERTIFICATION=TRUE
