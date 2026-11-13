@@ -25,7 +25,7 @@ permissions:
   contents: read
   actions: read
 concurrency:
-  group: kyoto-20261115-separate-official-pc-one-shot
+  group: kyoto-nov15-source-acquisition-single-coordinator
   cancel-in-progress: false
 jobs:
   nov15-bounded-diagnostic:
@@ -51,7 +51,7 @@ jobs:
         with:
           python-version: '3.11'
       - name: Install existing HTML parser only
-        run: python -m pip install 'beautifulsoup4>=4.12,<5'
+        run: python -m pip install 'beautifulsoup4>=4.12,<5' 'cryptography>=43,<47'
       - name: Download and authenticate AES-GCM source originals from preceding observation run
         shell: bash
         run: |
@@ -216,11 +216,24 @@ jobs:
           echo NOV15_SOURCE_ONLY_NOT_LIVE_CERTIFICATION=TRUE
           echo NO_AUTOMATED_RETRY=TRUE
           echo NO_REAL_BETS=TRUE
-      - name: Always preserve original receipts and reasons for safe-stop
+      - name: Always encrypt complete capture receipts and source HTML before upload
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p nov15_pc_one_shot
+          if [ ! -f nov15_pc_one_shot/nov15_preflight_receipt.json ]; then
+            printf '{"state":"STOPPED_BEFORE_SOURCE_PREFLIGHT","no_real_source_claim":true}\n' > nov15_pc_one_shot/nov15_preflight_receipt.json
+          fi
+          python -m diagnostics.kyoto_nov15_full_capture_seal \
+            --source nov15_pc_one_shot \
+            --destination nov15_encrypted_capture
+          echo NOV15_NO_PLAINTEXT_SOURCE_ARTIFACT=TRUE
+      - name: Upload AES-GCM sealed originals and receipts only
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: kyoto-nov15-observed-pc-one-shot-${{ github.run_id }}
-          path: nov15_pc_one_shot/
+          name: kyoto-nov15-encrypted-capture-${{ github.run_id }}
+          path: nov15_encrypted_capture/
           retention-days: 30
           if-no-files-found: warn
