@@ -92,6 +92,26 @@ class SecondDayHandoffTests(unittest.TestCase):
  def test_day14_successful_link_does_not_mean_markets(self):
     v=classify_day14_capture({"attempted_GET":1,"status":"OFFICIAL_NOV14_KYOTO_MEETING_LINK_OBSERVED"})
     self.assertEqual(v["status"],"DAY14_MEETING_LINK_OBSERVED_ONLY")
+ def test_day14_timeout_triage_does_not_grant_retry(self):
+    x=classify_day14_capture({"attempted_GET":1,"status":"FAILED_CLOSED",
+                              "error_class":"TimeoutError"})
+    self.assertEqual(x["cause"],"TRANSPORT_TIMEOUT")
+    self.assertFalse(x["nov14_retry_authorized"])
+    self.assertTrue(x["evidence_incomplete_without_original"])
+ def test_day14_encoding_triage_action(self):
+    x=classify_day14_capture({"attempted_GET":1,"status":"FAILED_CLOSED",
+                              "safe_error_code":"source_encoding_invalid"})
+    self.assertEqual(x["cause"],"HTML_ENCODING")
+    self.assertIn("CP932",x["safe_action"])
+ def test_day14_ambiguous_link_triage_action(self):
+    x=classify_day14_capture({"attempted_GET":1,"status":"FAILED_CLOSED",
+                              "safe_error_code":"ambiguous_current_kyoto_link"})
+    self.assertEqual(x["cause"],"DUPLICATE_MEETING_LINKS")
+ def test_day14_unverified_response_does_not_mean_unpublished(self):
+    x=classify_day14_capture({"attempted_GET":1,"status":"FAILED_CLOSED",
+                              "safe_error_code":"unverified_original_http_response"})
+    self.assertEqual(x["cause"],"HTTP_RESPONSE_UNVERIFIED")
+    self.assertNotEqual(x["cause"],"NOT_YET_VISIBLE")
  def test_inconsistent_day14_receipt_not_accepted(self):
     with self.assertRaisesRegex(SecondDayRejected,"state_conflict"):
         classify_day14_capture({"attempted_GET":1,"status":"NOT_YET_VISIBLE"})
