@@ -112,6 +112,22 @@ class CaptureAcceptTests(unittest.TestCase):
     self.assertEqual(self.check()["time_receipt"]["verified_race_start_utc"],
                      "2026-11-15T06:40:00+00:00")
 
+class HybridWorkflowWiringTests(unittest.TestCase):
+ def test_market_one_shot_calls_existing_hybrid_capture_and_hybrid_gate(self):
+    wf=Path(".github/workflows/kyoto-nov15-second-day-observed-oneshot.yml").read_text(encoding="utf8")
+    self.assertIn("python -m diagnostics.jra_one_shot_market_capture",wf)
+    self.assertIn("--hybrid",wf)
+    self.assertIn("--channel PC",wf)
+    self.assertIn("python -m diagnostics.kyoto_nov15_capture_acceptance",wf)
+    self.assertNotIn("--auto-repair-broken-pc-link",wf)
+    self.assertIn("--spec \"$SPEC\"",wf)
+    self.assertIn("python -m diagnostics.kyoto_nov15_full_capture_seal",wf)
+ def test_market_one_shot_is_not_automatically_dispatched_by_observer(self):
+    wf=Path(".github/workflows/kyoto-nov15-second-day-observed-oneshot.yml").read_text(encoding="utf8")
+    self.assertIn("workflow_dispatch:",wf)
+    self.assertNotIn("workflow_run:",wf)
+    self.assertIn("NOV15-ONE-SHOT-READ-ONLY",wf)
+
 class HybridCaptureHandoffTests(unittest.TestCase):
  def setUp(self):
     temp=tempfile.TemporaryDirectory()
