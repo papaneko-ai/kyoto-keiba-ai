@@ -8,7 +8,8 @@ ephemeral workspace until encrypted; no roster or market authentication claim.
 from __future__ import annotations
 import hashlib,json,re
 from datetime import datetime, timezone
-from urllib.request import Request,build_opener
+from urllib.request import Request,build_opener,HTTPCookieProcessor
+from http.cookiejar import CookieJar
 from pathlib import Path
 from diagnostics.kyoto_p1_nov14_official_one_shot_nav import (
     SOURCE,LIMIT,NoRedirect
@@ -95,7 +96,9 @@ def observe(selection_root, *, now_utc, opener=None, allowed=False,
              "racecard_original_fetched":False,"odds_menu_original_fetched":False,
              "market_requests_started":0,
              "started_at_utc":current.isoformat()}
-    client=opener if opener is not None else build_opener(NoRedirect())
+    # Preserve official session cookies when following observed odds POST
+    # actions, reusing the capturer's existing no-redirect transport policy.
+    client=opener if opener is not None else build_opener(NoRedirect(),HTTPCookieProcessor(CookieJar()))
     # Reuse the established market-capture pacer across all bounded GETs.
     try:
         request_pacer=pacer if pacer is not None else RequestPacer(min_gap_seconds=2.0)
