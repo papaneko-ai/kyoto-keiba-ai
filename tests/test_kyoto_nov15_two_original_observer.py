@@ -47,6 +47,7 @@ class ObservationTests(unittest.TestCase):
                   allowed=True,include_observed_racecard=True)
     self.assertEqual(len(stub.urls),3)
     self.assertTrue(result["racecard_original_fetched"])
+    self.assertEqual(result["state"],"NOV15_RACECARD_ORIGINAL_OBSERVED_ROSTER_UNVERIFIED")
     self.assertEqual(result["http_requests_started"],3)
     self.assertFalse(result["both_markets_verified"])
     self.assertFalse(result["real_racecard_verified"])
