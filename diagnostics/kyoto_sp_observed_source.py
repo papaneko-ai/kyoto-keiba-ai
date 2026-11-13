@@ -106,9 +106,10 @@ def capture_verified_sp_seed(originals, *, race_day, race_number, source_url,
              "network_requests_started":1,
              "racecard_fetched":False,"market_verified":False,
              "pc_sp_parity_verified":False}
+    shared_pacer=pacer or RequestPacer(min_gap_seconds=2.0)
     try:
         page=http_fetch(opener,"SP",source_url,
-                        pacer=pacer or RequestPacer(min_gap_seconds=2.0))
+                        pacer=shared_pacer)
         (root/"official_sp_racecard.html").write_bytes(page["raw"])
         receipt.update(state="SP_ORIGINAL_CAPTURED_NOT_ROSTER_VERIFIED",
                        racecard_fetched=True,
