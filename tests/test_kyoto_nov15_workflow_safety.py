@@ -18,10 +18,13 @@ class Nov15WorkflowSafetyTests(unittest.TestCase):
     self.assertLess(self.s.index("validate"),self.s.index("--authorized-live-http")) if "validate" in self.s else self.assertLess(self.s.index("python -m diagnostics.kyoto_nov14_nov15_second_day_handoff"),self.s.index("--authorized-live-http"))
  def test_replay_attempt_blocked_before_network(self):
     self.assertIn('GITHUB_RUN_ATTEMPT',self.s)
-    self.assertIn('NOV15_PRIOR_DISPATCH_ALREADY_EXISTS_NO_REPEAT',self.s)
+    self.assertIn('NOV15_PRIOR_DISPATCH_OR_OTHER_CAPTURE_ALREADY_EXISTS_NO_REPEAT',self.s)
     self.assertLess(self.s.index('NOV15_PRIOR_DISPATCH_ALREADY_EXISTS_NO_REPEAT'),self.s.index('--authorized-live-http'))
  def test_fail_closed_git_hub_run_api(self):
     self.assertIn('NOV15_PRIOR_RUN_AUDIT_INCOMPLETE',self.s)
+    self.assertIn('current_seen',self.s)
+    self.assertIn('range(1,26)',self.s)
+    self.assertIn('known_other_capture_names',self.s)
     self.assertIn('urlopen(request,timeout=12)',self.s)
     self.assertIn('actions: read',self.s)
  def test_no_guessed_sp_urls(self):
