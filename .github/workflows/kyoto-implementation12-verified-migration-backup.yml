@@ -58,6 +58,8 @@ jobs:
                 "docs/diagnostics/kyoto_20261113_generated_evo_candidate_16tests_checkpoint.json",
                 "diagnostics/p7_evo_bounded_candidate_constructor.py",
                 "diagnostics/p3_offline_model_tournament.py",
+                "diagnostics/p3_three_window_selection_lab.py",
+                "tests/test_p3_three_window_selection_lab.py",
                 "diagnostics/p3_lab_calibration_audit.py",
                 "diagnostics/p2_p3_p5_offline_feature_bridge.py",
                 "diagnostics/p2_first_second_feature_discovery_lab.py",
