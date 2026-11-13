@@ -128,7 +128,7 @@ jobs:
             --meeting-original "$OFFICIAL_MEETING" \
             --verified-start-utc "$START_UTC" \
             --receipt-output nov15_pc_one_shot/nov15_preflight_receipt.json
-          python -m unittest -v tests.test_kyoto_nov14_nov15_second_day_handoff
+          python -m unittest discover -s tests -p 'test_kyoto_nov14_nov15_second_day_handoff.py' -v
       - name: Single bounded Nov15 observed PC racecard and market fetch
         shell: bash
         run: |
