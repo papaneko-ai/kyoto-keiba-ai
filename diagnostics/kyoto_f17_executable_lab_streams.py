@@ -114,3 +114,43 @@ def execute_streams(streams,race_ids):
       "surprise_errors":errors,"surprise_counterexample_ids":examples,
       "surprise_mean_error":math.fsum(errors)/len(errors)
     }
+
+
+def summarize_frozen_evo02_evo08_errors(rows, *, surprise_ceiling=0.15):
+    """Shared EVO02 weakness and EVO08 counterexample analysis over P7 frozen LAB results.
+
+    This does not construct features or look at unseen holdout observations.
+    All rows are already derived from settled immutable lab forecasts.
+    """
+    if (type(rows) is not list or not rows or
+        type(surprise_ceiling) not in (int,float) or
+        not math.isfinite(surprise_ceiling) or not 0<surprise_ceiling<1):
+        raise EVOStreamRejected("frozen_error_inputs_invalid")
+    keys={"race_id","cutoff_utc","result_utc","error_category",
+          "champion_loss","challenger_loss","champion_winning_pair_probability"}
+    groups={};surprises=[];ids=set()
+    for row in rows:
+        if type(row) is not dict or set(row)!=keys:
+            raise EVOStreamRejected("frozen_error_schema_invalid")
+        rid=row["race_id"];cat=row["error_category"]
+        if (type(rid) is not str or not rid.startswith("LAB-") or rid in ids
+            or cat not in ("SAME_FRAME","CROSS_FRAME")):
+            raise EVOStreamRejected("frozen_error_provenance_or_category_invalid")
+        ids.add(rid)
+        a=finite(row["champion_loss"]);b=finite(row["challenger_loss"])
+        p=finite(row["champion_winning_pair_probability"])
+        if a<0 or b<0 or not 0<=p<=1:
+            raise EVOStreamRejected("frozen_error_loss_or_probability_invalid")
+        groups.setdefault(cat,[]).append((a,b))
+        if p<=surprise_ceiling:
+            surprises.append({"race_id":rid,"probability":p,"category":cat})
+    summary=[{"category":key,"races":len(values),
+        "champion_mean_log_loss":math.fsum(a for a,b in values)/len(values),
+        "challenger_mean_log_loss":math.fsum(b for a,b in values)/len(values)}
+        for key,values in groups.items()]
+    summary.sort(key=lambda x:(-x["champion_mean_log_loss"],x["category"]))
+    surprises.sort(key=lambda x:(x["probability"],x["race_id"]))
+    return {"evo02_weakness_groups":summary,
+            "evo02_priority":summary[0]["category"],
+            "evo08_surprise_cases":surprises,
+            "evo08_surprise_ceiling":float(surprise_ceiling)}
