@@ -55,8 +55,15 @@ class PipelineLab(unittest.TestCase):
       receipts=[]
       for step,raw in raws.items():
           (captured/"captured"/files[step]).write_bytes(raw)
-          receipts.append({"step":step,"sha256":hashlib.sha256(raw).hexdigest(),"bytes":len(raw)})
+          receipts.append({"step":step,"sha256":hashlib.sha256(raw).hexdigest(),"bytes":len(raw),
+             "captured_at_utc":"2026-11-15T04:05:00Z","http_status":200,"method":"POST",
+             "requested_url":"https://jra.jp/JRADB/accessO.html",
+             "response_url":"https://jra.jp/JRADB/accessO.html"})
       doc={"race_id":SPEC["race_id"],"state":"SOURCE_FROZEN",
+           "schema_version":"jra_one_shot_market_capture.v1","channel":"PC",
+           "started_at_utc":"2026-11-15T04:00:00Z",
+           "ended_at_utc":"2026-11-15T04:06:00Z",
+           "verified_start_utc":START,
            "pre_race_prices_accepted":True,
            "market_receipt":{"classification":"VALIDATED_LIVE_MARKETS_NOT_PREDICTION_RELEASED"},
            "request_receipts":receipts,"prediction_ready":False,"training_ready":False}
