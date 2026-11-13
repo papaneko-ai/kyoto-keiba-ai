@@ -193,6 +193,16 @@ def accept_observation(folder):
     has_racecard=receipt.get("racecard_original_fetched")
     expected_state=("NOV15_RACECARD_ORIGINAL_OBSERVED_ROSTER_UNVERIFIED"
                     if has_racecard is True else "NOV15_MEETING_ORIGINALS_OBSERVED_NOT_RACECARD")
+    # A third original is evidence only when the capture receipt includes
+    # a UTC timestamp for that exact HTTP response.
+    if has_racecard is True:
+        captured_at=receipt.get("racecard_captured_at_utc")
+        try:
+            captured_time=datetime.fromisoformat(captured_at.replace("Z","+00:00"))
+        except (AttributeError,TypeError,ValueError) as exc:
+            raise ObservationRejected("racecard_capture_timestamp_missing") from exc
+        if captured_time.utcoffset()!=timezone.utc.utcoffset(None):
+            raise ObservationRejected("racecard_capture_timestamp_not_utc")
     if type(has_racecard) is not bool or receipt.get("state")!=expected_state:
         raise ObservationRejected("observed_state_and_originals_inconsistent")
     if has_racecard is False and (root/"official_racecard.html").exists():
