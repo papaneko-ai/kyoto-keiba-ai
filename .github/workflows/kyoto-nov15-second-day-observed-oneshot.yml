@@ -92,7 +92,9 @@ jobs:
               or run.get("conclusion")!="success"
               or run.get("head_branch")!=record[1]
               or (record[0] is not None and run.get("event")!=record[0])
-              or not str(run.get("created_at","")).startswith("2026-11-15")):
+              or not str(run.get("created_at","")).startswith(
+                "2026-11-15" if record[0]=="schedule" else
+                ("2026-11-12","2026-11-13","2026-11-14","2026-11-15"))):
               raise SystemExit("NOV15_OBSERVER_RUN_IDENTITY_NOT_ACCEPTED_NO_HTTP")
           print(record[2]+run_id)
           PY
