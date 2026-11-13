@@ -173,37 +173,9 @@ jobs:
             --race-spec-json "$SPEC" \
             --authorized-live-http \
             --out nov15_pc_one_shot/captured
-          python - <<'PY'
-          import hashlib,json
-          from pathlib import Path
-          root=Path("nov15_pc_one_shot/captured")
-          receipt=root/"receipt.json"
-          if not receipt.is_file() or receipt.is_symlink():
-              raise SystemExit("NOV15_CAPTURE_NO_RECEIPT_SAFE_FAIL")
-          data=json.loads(receipt.read_text(encoding="utf8"))
-          if data.get("race_id")!=json.loads(Path(__import__("os").environ["SPEC"]).read_text())["race_id"]:
-              raise SystemExit("NOV15_CAPTURE_WRONG_RACE_SAFE_FAIL")
-          if (data.get("state")!="SOURCE_FROZEN" or
-              data.get("pre_race_prices_accepted") is not True or
-              data.get("market_receipt",{}).get("classification")!="VALIDATED_LIVE_MARKETS_NOT_PREDICTION_RELEASED"):
-              raise SystemExit("NOV15_MARKETS_NOT_FROZEN_SAFE_FAIL:"+str(data.get("state")))
-          required=("official_racecard.html","quinella_original.html","bracket_quinella_original.html")
-          digests={}
-          for name in required:
-              p=root/name
-              if p.is_symlink() or not p.is_file() or not 0<p.stat().st_size<=1_500_000:
-                  raise SystemExit("NOV15_MARKET_OR_RACECARD_ORIGINAL_MISSING:"+name)
-              digests[name]=hashlib.sha256(p.read_bytes()).hexdigest()
-          receipts={item["step"]:item.get("sha256") for item in data["request_receipts"]
-                    if isinstance(item,dict) and isinstance(item.get("step"),str)}
-          for name,step in (("official_racecard.html","racecard"),
-                            ("quinella_original.html","quinella"),
-                            ("bracket_quinella_original.html","bracket_quinella")):
-              if digests[name]!=receipts.get(step):
-                  raise SystemExit("NOV15_ORIGINAL_DIGEST_RECEIPT_CONFLICT:"+name)
-          print("NOV15_PC_RACECARD_AND_BOTH_MARKETS_SOURCE_FROZEN=TRUE")
-          print("NOV15_SOURCE_ONLY_NOT_INDEPENDENT_LIVE_CERTIFICATION=TRUE")
-          PY
+          python -m diagnostics.kyoto_nov15_capture_acceptance \
+            --directory nov15_pc_one_shot/captured \
+            --spec "$SPEC"
           echo NOV15_SOURCE_ONLY_NOT_LIVE_CERTIFICATION=TRUE
           echo NO_AUTOMATED_RETRY=TRUE
           echo NO_REAL_BETS=TRUE
