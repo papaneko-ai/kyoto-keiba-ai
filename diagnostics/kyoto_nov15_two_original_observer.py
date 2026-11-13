@@ -1,7 +1,8 @@
 """Nov15 independent observed-link collection, with bounded zero-guess GETs.
 
 At most three paced requests: official selection, observed Kyoto meeting,
-and (when actually linked) one observed racecard. All bytes stay in the
+and (when linked) one racecard; optional fourth POST records its directly
+observed odds menu action. All bytes stay in the
 ephemeral workspace until encrypted; no roster or market authentication claim.
 """
 from __future__ import annotations
@@ -13,7 +14,7 @@ from diagnostics.kyoto_p1_nov14_official_one_shot_nav import (
     SOURCE,LIMIT,NoRedirect
 )
 from diagnostics.jra_official_link_repair import observed_links, LinkRepairRejected
-from diagnostics.jra_one_shot_market_capture import RequestPacer
+from diagnostics.jra_one_shot_market_capture import RequestPacer,exact_odds_action,http_fetch,SourceChainError
 
 DAY="20261115"
 BEGIN=datetime(2026,11,12,7,15,tzinfo=timezone.utc)
@@ -74,7 +75,7 @@ def _single_observed_racecard(meeting_original, meeting_url):
     return race,next(iter(choices[race]))
 
 def observe(selection_root, *, now_utc, opener=None, allowed=False,
-            include_observed_racecard=False, pacer=None):
+            include_observed_racecard=False, include_observed_odds_menu=False, pacer=None):
     root=Path(selection_root)
     if root.is_symlink() or root.exists() or not root.parent.is_dir():
         raise ObservationRejected("one_shot_output_existing_or_invalid")
@@ -90,7 +91,7 @@ def observe(selection_root, *, now_utc, opener=None, allowed=False,
              "day":DAY,"selection_source":SOURCE,"state":"STARTED",
              "http_requests_started":0,"real_racecard_verified":False,
              "both_markets_verified":False,"paper_trade_authorized":False,
-             "racecard_original_fetched":False,
+             "racecard_original_fetched":False,"odds_menu_original_fetched":False,
              "started_at_utc":current.isoformat()}
     client=opener if opener is not None else build_opener(NoRedirect())
     # Reuse the established market-capture pacer across all bounded GETs.
@@ -137,6 +138,37 @@ def observe(selection_root, *, now_utc, opener=None, allowed=False,
                 receipt["racecard_original_fetched"]=True
                 _validate_saved_html_encoding(racecard)
                 receipt["racecard_observation"]="ORIGINAL_BYTES_CAPTURED_NOT_ROSTER_AUTHENTICATED"
+                # The fourth request is allowed only when the racecard itself
+                # contains exactly one official odds POST action. This is
+                # raw menu evidence, NOT a certified pre-race price matrix.
+                if include_observed_odds_menu is True:
+                    try:
+                        token=exact_odds_action(racecard,"PC")
+                    except SourceChainError as exc:
+                        receipt["odds_menu_observation"]="NO_UNIQUE_OFFICIAL_ACTION"
+                        receipt["odds_menu_error"]=type(exc).__name__
+                    else:
+                        receipt["http_requests_started"]=4
+                        try:
+                            # Reuse existing POST, no redirect, host, size,
+                            # SHA256 and shared 2-second pacing.
+                            page=http_fetch(
+                                client,"PC","https://jra.jp/JRADB/accessO.html",
+                                cname=token,referer=race_url,pacer=request_pacer)
+                            menu=page["raw"]
+                            (root/"official_odds_menu.html").write_bytes(menu)
+                            receipt["odds_menu_sha256"]=page["sha256"]
+                            receipt["odds_menu_bytes"]=page["bytes"]
+                            receipt["odds_menu_captured_at_utc"]=page["captured_at_utc"]
+                            receipt["odds_menu_action"]=token
+                            receipt["odds_menu_original_fetched"]=True
+                            _validate_saved_html_encoding(menu)
+                            receipt["odds_menu_observation"]="RAW_OFFICIAL_MENU_NOT_PRICE_VALIDATED"
+                        except Exception as exc:
+                            receipt["odds_menu_observation"]="POST_FAILED_PRESERVE_RACECARD"
+                            receipt["odds_menu_error"]=type(exc).__name__
+                            # Retain PC original rather than treating a
+                            # failed odds menu as lost source data.
         # This is a link observation, not a prerace market, independent roster
         # or correctness proof for the content supplied by JRA.
         receipt["state"]=("NOV15_RACECARD_ORIGINAL_OBSERVED_ROSTER_UNVERIFIED"
@@ -166,7 +198,12 @@ def accept_observation(folder):
     if any(receipt.get(flag, False) is not False for flag in (
         "real_racecard_verified", "both_markets_verified", "paper_trade_authorized")):
         raise ObservationRejected("unverified_success_claim_in_observation")
-    expected_requests = 3 if receipt.get("racecard_original_fetched") is True else 2
+    has_menu=receipt.get("odds_menu_original_fetched") is True
+    menu_attempted=receipt.get("odds_menu_observation") in (
+        "RAW_OFFICIAL_MENU_NOT_PRICE_VALIDATED",
+        "POST_FAILED_PRESERVE_RACECARD")
+    expected_requests=(4 if menu_attempted else 3
+                       if receipt.get("racecard_original_fetched") is True else 2)
     if type(receipt.get("http_requests_started")) is not int or (
         receipt["http_requests_started"] != expected_requests):
         raise ObservationRejected("observation_http_count_inconsistent")
@@ -231,6 +268,33 @@ def accept_observation(folder):
                                          receipt["observed_meeting_url"])
         if observed != (receipt.get("racecard_number"),receipt.get("observed_racecard_url")):
             raise ObservationRejected("racecard_anchor_not_bound")
+    if has_menu:
+        p=root/"official_odds_menu.html"
+        if p.is_symlink() or not p.is_file():
+            raise ObservationRejected("odds_menu_original_missing")
+        raw=p.read_bytes()
+        if (not 0<len(raw)<=LIMIT
+            or hashlib.sha256(raw).hexdigest()!=receipt.get("odds_menu_sha256")
+            or len(raw)!=receipt.get("odds_menu_bytes")):
+            raise ObservationRejected("odds_menu_original_digest_mismatch")
+        try:
+            from diagnostics.jra_one_shot_market_capture import exact_odds_action
+            observed_token=exact_odds_action(
+                (root/"official_racecard.html").read_bytes(),"PC")
+        except SourceChainError as exc:
+            raise ObservationRejected("odds_menu_action_not_in_racecard") from exc
+        if observed_token!=receipt.get("odds_menu_action"):
+            raise ObservationRejected("odds_menu_action_not_bound")
+        try:
+            stamp=datetime.fromisoformat(receipt["odds_menu_captured_at_utc"].replace("Z","+00:00"))
+        except (ValueError,TypeError,KeyError) as exc:
+            raise ObservationRejected("odds_menu_timestamp_invalid") from exc
+        if stamp.utcoffset()!=timezone.utc.utcoffset(None):
+            raise ObservationRejected("odds_menu_timestamp_not_utc")
+    elif (root/"official_odds_menu.html").exists() or any(k in receipt for k in (
+        "odds_menu_sha256","odds_menu_bytes","odds_menu_captured_at_utc",
+        "odds_menu_action")):
+        raise ObservationRejected("unclaimed_odds_menu_original")
     return {"state":"TWO_ORIGINALS_MATCH_RECEIPT_ONLY",
             "day":DAY,"http_requests_started":receipt["http_requests_started"],
             "racecard_verified":False,"market_verified":False,
