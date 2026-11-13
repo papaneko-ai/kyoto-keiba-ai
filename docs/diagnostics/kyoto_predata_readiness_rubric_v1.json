@@ -141,7 +141,10 @@
       "title": "自己進化・独立採否とロールバック",
       "phase": "P7",
       "acceptance": "EVO01-08とMODIFY/ADD/ENSEMBLE候補の同条件監査、劣化検知・旧モデル復帰を統合する",
-      "automation": null
+      "automation": {
+        "suite": "test_r14_evolution_integration_acceptance.py",
+        "tests": 20
+      }
     },
     {
       "id": "R15",
