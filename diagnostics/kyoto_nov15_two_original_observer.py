@@ -13,6 +13,7 @@ from diagnostics.kyoto_p1_nov14_official_one_shot_nav import (
     SOURCE,LIMIT,NoRedirect
 )
 from diagnostics.jra_official_link_repair import observed_links, LinkRepairRejected
+from diagnostics.jra_one_shot_market_capture import RequestPacer
 
 DAY="20261115"
 BEGIN=datetime(2026,11,12,7,15,tzinfo=timezone.utc)
@@ -73,7 +74,7 @@ def _single_observed_racecard(meeting_original, meeting_url):
     return race,next(iter(choices[race]))
 
 def observe(selection_root, *, now_utc, opener=None, allowed=False,
-            include_observed_racecard=False):
+            include_observed_racecard=False, pacer=None):
     root=Path(selection_root)
     if root.is_symlink() or root.exists() or not root.parent.is_dir():
         raise ObservationRejected("one_shot_output_existing_or_invalid")
@@ -92,9 +93,14 @@ def observe(selection_root, *, now_utc, opener=None, allowed=False,
              "racecard_original_fetched":False,
              "started_at_utc":current.isoformat()}
     client=opener if opener is not None else build_opener(NoRedirect())
+    # Reuse the established market-capture pacer across all bounded GETs.
+    request_pacer=pacer if pacer is not None else RequestPacer(min_gap_seconds=2.0)
+    if not callable(getattr(request_pacer,"before_request",None)):
+        raise ObservationRejected("request_pacer_invalid")
     try:
         receipt["http_requests_started"]=1
-        selection=_read(client,SOURCE)
+        selection=request_pacer.before_request()
+        _read(client,SOURCE)
         receipt["selection_captured_at_utc"]=datetime.now(timezone.utc).isoformat()
         (root/"official_selection.html").write_bytes(selection)
         receipt["selection_sha256"]=hashlib.sha256(selection).hexdigest()
@@ -104,7 +110,8 @@ def observe(selection_root, *, now_utc, opener=None, allowed=False,
         receipt["observed_meeting_url"]=meeting_url
         receipt["meeting_label"]=meeting_label
         receipt["http_requests_started"]=2
-        meeting=_read(client,meeting_url)
+        meeting=request_pacer.before_request()
+        _read(client,meeting_url)
         receipt["meeting_captured_at_utc"]=datetime.now(timezone.utc).isoformat()
         (root/"official_meeting.html").write_bytes(meeting)
         receipt["meeting_sha256"]=hashlib.sha256(meeting).hexdigest()
@@ -121,7 +128,8 @@ def observe(selection_root, *, now_utc, opener=None, allowed=False,
                 receipt["racecard_number"]=race_number
                 receipt["observed_racecard_url"]=race_url
                 receipt["http_requests_started"]=3
-                racecard=_read(client,race_url)
+                racecard=request_pacer.before_request()
+                _read(client,race_url)
                 receipt["racecard_captured_at_utc"]=datetime.now(timezone.utc).isoformat()
                 (root/"official_racecard.html").write_bytes(racecard)
                 receipt["racecard_sha256"]=hashlib.sha256(racecard).hexdigest()
