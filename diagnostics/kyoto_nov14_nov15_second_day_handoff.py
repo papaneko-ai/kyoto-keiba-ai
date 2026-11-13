@@ -136,3 +136,44 @@ def classify_day14_capture(artifact_receipt):
                 "day15_separate_trial_permitted_in_principle":True,
                 "nov14_retry_authorized":False,"network_requests":0}
     raise SecondDayRejected("day14_receipt_state_conflict")
+
+def main(argv=None):
+    import argparse
+    import json
+    parser=argparse.ArgumentParser()
+    parser.add_argument("--spec",required=True)
+    parser.add_argument("--roster",required=True)
+    parser.add_argument("--selection-original",required=True)
+    parser.add_argument("--meeting-original",required=True)
+    parser.add_argument("--verified-start-utc",required=True)
+    parser.add_argument("--receipt-output",required=True)
+    args=parser.parse_args(argv)
+    def read_file(p):
+        path=Path(p)
+        if path.is_symlink() or not path.is_file():
+            raise SecondDayRejected("operator_source_file_invalid")
+        if path.stat().st_size>1_500_000:
+            raise SecondDayRejected("operator_source_size_exceeded")
+        return path.read_bytes()
+    try:
+        spec_data=json.loads(read_file(args.spec))
+        roster=json.loads(read_file(args.roster))
+    except (UnicodeError, ValueError, TypeError) as exc:
+        raise SecondDayRejected("operator_json_invalid") from exc
+    report=validate_day15_handoff(
+        spec_data=spec_data,roster=roster,
+        official_selection_original=read_file(args.selection_original),
+        official_meeting_original=read_file(args.meeting_original),
+        verified_start_utc=args.verified_start_utc)
+    destination=Path(args.receipt_output)
+    if destination.is_symlink() or destination.exists() or not destination.parent.is_dir():
+        raise SecondDayRejected("receipt_destination_not_new")
+    with destination.open("x",encoding="utf-8") as f:
+        json.dump(report,f,ensure_ascii=False,sort_keys=True,indent=2)
+        f.write("\n")
+    print("NOV15_OFFLINE_HANDOFF_VALIDATED_UNAUTHENTICATED=TRUE")
+    print("NOV15_JRA_GET_DURING_PREFLIGHT=0")
+    return report
+
+if __name__=="__main__":
+    main()
