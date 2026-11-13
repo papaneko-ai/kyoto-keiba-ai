@@ -85,11 +85,13 @@ def observe(selection_root, *, now_utc, opener=None, allowed=False,
              "day":DAY,"selection_source":SOURCE,"state":"STARTED",
              "http_requests_started":0,"real_racecard_verified":False,
              "both_markets_verified":False,"paper_trade_authorized":False,
-             "racecard_original_fetched":False}
+             "racecard_original_fetched":False,
+             "started_at_utc":current.isoformat()}
     client=opener if opener is not None else build_opener(NoRedirect())
     try:
         receipt["http_requests_started"]=1
         selection=_read(client,SOURCE)
+        receipt["selection_captured_at_utc"]=datetime.now(timezone.utc).isoformat()
         (root/"official_selection.html").write_bytes(selection)
         receipt["selection_sha256"]=hashlib.sha256(selection).hexdigest()
         receipt["selection_bytes"]=len(selection)
@@ -98,6 +100,7 @@ def observe(selection_root, *, now_utc, opener=None, allowed=False,
         receipt["meeting_label"]=meeting_label
         receipt["http_requests_started"]=2
         meeting=_read(client,meeting_url)
+        receipt["meeting_captured_at_utc"]=datetime.now(timezone.utc).isoformat()
         (root/"official_meeting.html").write_bytes(meeting)
         receipt["meeting_sha256"]=hashlib.sha256(meeting).hexdigest()
         receipt["meeting_bytes"]=len(meeting)
@@ -113,6 +116,7 @@ def observe(selection_root, *, now_utc, opener=None, allowed=False,
                 receipt["observed_racecard_url"]=race_url
                 receipt["http_requests_started"]=3
                 racecard=_read(client,race_url)
+                receipt["racecard_captured_at_utc"]=datetime.now(timezone.utc).isoformat()
                 (root/"official_racecard.html").write_bytes(racecard)
                 receipt["racecard_sha256"]=hashlib.sha256(racecard).hexdigest()
                 receipt["racecard_bytes"]=len(racecard)
@@ -126,6 +130,7 @@ def observe(selection_root, *, now_utc, opener=None, allowed=False,
         receipt["error_class"]=type(exc).__name__
         receipt["error_code"]=str(exc)[:160]
     finally:
+        receipt["ended_at_utc"]=datetime.now(timezone.utc).isoformat()
         (root/"receipt.json").write_text(json.dumps(receipt,ensure_ascii=False,
                                                       sort_keys=True,indent=2)+"\n",encoding="utf8")
     return receipt
