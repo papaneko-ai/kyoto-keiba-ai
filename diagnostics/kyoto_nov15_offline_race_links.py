@@ -42,6 +42,25 @@ def derive_nov15_race_links(folder):
             if race in results and results[race]["url"]!=url:
                 raise OfflineRaceLinkRejected("ambiguous_observed_race_link")
             results[race]={"race_number":race,"url":url,"official_anchor_label":label}
+        # A saved third HTML original is source evidence, not a certified
+        # numbered roster or a verified official start time.
+        captured=receipt.get("racecard_original_fetched") is True
+        observed_original=None
+        if captured:
+            number=receipt.get("racecard_number")
+            url=receipt.get("observed_racecard_url")
+            if (type(number) is not int or not 1<=number<=12
+                or type(url) is not str
+                or not any(r["race_number"]==number and r["url"]==url
+                           for r in results.values())):
+                raise OfflineRaceLinkRejected("saved_racecard_not_in_official_links")
+            raw_race=(root/"official_racecard.html").read_bytes()
+            observed_original={
+                "race_number":number,"url":url,
+                "sha256":hashlib.sha256(raw_race).hexdigest(),
+                "bytes":len(raw_race),
+                "captured_at_utc":receipt.get("racecard_captured_at_utc"),
+                "state":"RAW_HTML_ONLY_NOT_ROSTER_OR_MARKET_VALIDATION"}
         return {"schema":"kyoto_nov15_offline_race_links.v1","race_day":DAY,
             "state":"OFFLINE_OBSERVED_LINKS_ONLY",
             "source_observation_validation":verification["state"],
@@ -49,7 +68,8 @@ def derive_nov15_race_links(folder):
             "meeting_sha256":hashlib.sha256(meeting).hexdigest(),
             "observed_meeting_url":observed_meeting,
             "race_links":[results[n] for n in sorted(results)],
-            "racecard_originals_fetched":False,"roster_verified":False,
+            "racecard_originals_fetched":captured,
+            "saved_racecard_original":observed_original,"roster_verified":False,
             "start_times_verified":False,"quinella_market_verified":False,
             "bracket_market_verified":False,"http_requests":0}
     except OfflineRaceLinkRejected:raise
