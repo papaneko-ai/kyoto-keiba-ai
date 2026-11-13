@@ -115,4 +115,22 @@ class AddEnsembleResearchTests(unittest.TestCase):
         expected_head=read_shadow(self.holdout)["head"])
     with self.assertRaisesRegex(CandidateBuildRejected,"disjoint_complete_holdout_required"):
         audit_add_ensemble_holdout(p,self.training,self.holdout,self.registry)
+ def test_rehashing_proposal_cannot_change_code_identity(self):
+    from diagnostics.p7_hybrid_model_registry import _hash
+    self.train();p=self.construct()
+    p["model_specs"][0]["code_sha256"]="0"*64
+    p["proposal_sha256"]=_hash({k:v for k,v in p.items() if k!="proposal_sha256"})
+    s,b=self.prep(20)
+    with self.assertRaises(CandidateBuildRejected):
+        forecast_add_ensemble(p,self.registry,s,b)
+ def test_holdout_audit_rejects_modified_proposal(self):
+    self.train();p=self.construct();self.hold(p)
+    p["trial_count"]=1
+    with self.assertRaisesRegex(CandidateBuildRejected,"proposal_modified"):
+        audit_add_ensemble_holdout(p,self.training,self.holdout,self.registry)
+ def test_holdout_source_replay_remains_deterministic(self):
+    self.train();p=self.construct();self.hold(p)
+    a=audit_add_ensemble_holdout(p,self.training,self.holdout,self.registry)
+    b=audit_add_ensemble_holdout(p,self.training,self.holdout,self.registry)
+    self.assertEqual(a,b)
 if __name__=="__main__":unittest.main()
