@@ -1,0 +1,134 @@
+{
+  "schema": "kyoto_predata_readiness_rubric.v1",
+  "date": "2026-11-13",
+  "denominator": 16,
+  "scoring": "COUNT_OF_INDEPENDENTLY_TESTED_PASS_GATES_DIVIDED_BY_16; partial credit forbidden; 100 percent triggers return to existing seven fixed official metrics",
+  "eligibility": "OFFLINE_BEFORE_JRA_REAL_CAPTURE_ONLY; does not attest actual JRA authenticity or live use",
+  "frozen_rule": "Do not modify/reweight/remove gates; fork rubric version after explicit approval; no guessed completion",
+  "gates": [
+    {
+      "id": "R01",
+      "title": "真正原本受入契約のオフライン検証",
+      "phase": "P1",
+      "acceptance": "原本種別・SHA・UTC・欠損・重複・非真正表示を再現可能な入力契約で拒否する",
+      "automation": null
+    },
+    {
+      "id": "R02",
+      "title": "発走前特徴量と欠損政策",
+      "phase": "P2",
+      "acceptance": "合意されたコース・距離・脚質・馬場・休養・騎手・馬の特徴を入力契約に固定し未来漏洩を拒否する",
+      "automation": null
+    },
+    {
+      "id": "R03",
+      "title": "勝馬・2着馬・敗退馬の特徴発見",
+      "phase": "P2",
+      "acceptance": "三群の単独・交互作用を訓練のみで選択し別期間で反証する",
+      "automation": {
+        "suite": "test_p2_first_second_feature_discovery_lab.py",
+        "tests": 12
+      }
+    },
+    {
+      "id": "R04",
+      "title": "複数モデルファミリーの正式実装",
+      "phase": "P3",
+      "acceptance": "単純基準・PL/Harville・Bolton-Chapman型・Benter型・ML混合の定義と推定を公平に比較する",
+      "automation": null
+    },
+    {
+      "id": "R05",
+      "title": "独立三期間モデル選択",
+      "phase": "P3",
+      "acceptance": "訓練・選択検証・最終未使用を分離しモデル選択漏洩を拒否する",
+      "automation": {
+        "suite": "test_p3_three_window_selection_lab.py",
+        "tests": 13
+      }
+    },
+    {
+      "id": "R06",
+      "title": "馬連枠連全組合せ確率",
+      "phase": "P3",
+      "acceptance": "順序付き確率から馬連枠連を計算し同枠・確率総和を検証する",
+      "automation": null
+    },
+    {
+      "id": "R07",
+      "title": "較正と母数・不確実性評価",
+      "phase": "P3",
+      "acceptance": "対数損失・Brier・較正と十分な母数・区間を別期間で検証する",
+      "automation": null
+    },
+    {
+      "id": "R08",
+      "title": "全市場価格照合・EV計算",
+      "phase": "P4",
+      "acceptance": "馬連枠連価格の完全性・同時点・販売停止・取消・価格欠落を拒否する",
+      "automation": null
+    },
+    {
+      "id": "R09",
+      "title": "日次レース選択と100円資金配分",
+      "phase": "P5",
+      "acceptance": "原則3最大4R・原則2最大3点・使い切り不要・全見送りと予算制限を検証する",
+      "automation": {
+        "suite": "test_p3_p5_p6_synthetic_day_lab.py",
+        "tests": 14
+      }
+    },
+    {
+      "id": "R10",
+      "title": "リスク戦略の比較",
+      "phase": "P5",
+      "acceptance": "推定誤差・オッズ変動・最大損失・露出上限・集中投資とリスク戦略間の比較を検証する",
+      "automation": null
+    },
+    {
+      "id": "R11",
+      "title": "発走前凍結と改ざん検出",
+      "phase": "P6",
+      "acceptance": "モデル版・時点・原本・券種・金額を固定し遅延変更と二重確定を拒否する",
+      "automation": null
+    },
+    {
+      "id": "R12",
+      "title": "確定結果・払戻・返還・訂正採点",
+      "phase": "P6",
+      "acceptance": "速報と確定を区別し最終払戻と訂正を重複なく再計算する",
+      "automation": {
+        "suite": "test_p6_virtual_settlement_fixture_lab.py",
+        "tests": 18
+      }
+    },
+    {
+      "id": "R13",
+      "title": "永続台帳・再起動・日次成績",
+      "phase": "P6",
+      "acceptance": "再起動・復元・二重登録・日次累積損益とドローダウンの整合を確認する",
+      "automation": null
+    },
+    {
+      "id": "R14",
+      "title": "自己進化・独立採否とロールバック",
+      "phase": "P7",
+      "acceptance": "EVO01-08とMODIFY/ADD/ENSEMBLE候補の同条件監査、劣化検知・旧モデル復帰を統合する",
+      "automation": null
+    },
+    {
+      "id": "R15",
+      "title": "新スマホUIと安全停止",
+      "phase": "P8",
+      "acceptance": "開催日・券種・順位・予算・凍結・累積収支・進化履歴のタップ操作と欠損表示を統合する",
+      "automation": null
+    },
+    {
+      "id": "R16",
+      "title": "全工程オフラインE2E・復旧・完全バックアップ",
+      "phase": "P2-P8",
+      "acceptance": "単一の固定LAB入力で予測から進化まで一括試験し別環境復元と正確なHEADのCIバックアップを検証する",
+      "automation": null
+    }
+  ]
+}
