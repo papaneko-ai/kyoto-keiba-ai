@@ -1,0 +1,58 @@
+{
+  "schema": "kyoto_20261113_p3_p7_hybrid_shadow_evolution_lab_milestone.v1",
+  "created_jst": "2026-11-13",
+  "branch": "jra-html-diagnostic-20261105",
+  "verified_code_commit": "8c8b6e0c4b3386f684cb391c4986c9ebd02dac18",
+  "milestone": "P3_P7_HYBRID_SEALED_PAIRED_SHADOW_EVOLUTION_LAB_ACCEPTED",
+  "prior_milestone": "P3_P7_COMMON_MODEL_REGISTRY_AND_PAIR_PREDICTION_CONTRACT_LAB_ACCEPTED",
+  "implemented": [
+    "Reuse four-type P7 model registry (BASELINE/MODIFY/ADD/ENSEMBLE) and shared P3 quinella/bracket probability contract",
+    "Freeze champion and challenger on identical LAB race snapshot and cutoff before any result labels are accepted",
+    "Append-only hash-chained local journal with stale-head detection and cooperating writer lock",
+    "Accept separate later-result LAB winners only with strict race membership and cutoff chronology",
+    "Compute actual paired log loss -log(p) from frozen quinella pair predictions for same races",
+    "Reuse precommitted P7 mean gain, win-fraction and minimum paired-race gates for shadow-only decision",
+    "Record SHADOW_CANDIDATE_ELIGIBLE_FOR_INDEPENDENT_AUDIT or ROLLBACK_TO_RETAINED_CHAMPION in journal, with explicit no-deployment assertions",
+    "Recompute P7 decision from recorded frozen predictions and settled outcomes upon journal replay; reject altered verdict or duplicate evidence population"
+  ],
+  "new_code": [
+    "diagnostics/p7_hybrid_shadow_evolution_cycle.py",
+    "tests/test_p7_hybrid_shadow_evolution_cycle.py"
+  ],
+  "updated_ci": ".github/workflows/kyoto-ai-always-run-continuity.yml",
+  "verification": {
+    "CI_run_id": 43352810566,
+    "CI_job_id": 131647681101,
+    "CI_conclusion": "success",
+    "new_tests": 18,
+    "new_tests_passed": 18,
+    "other_regression_tests": "success",
+    "real_JRA_GET": 0,
+    "real_model_deploy": false
+  },
+  "limits": [
+    "Candidate models and probabilities are supplied by laboratory fixtures; this milestone does not train or generate new predictors",
+    "The stored outcomes are synthetic labels and are not authenticated JRA result records",
+    "The JSONL hash chain is tamper-evident only if its head is independently anchored; it is not a signed external audit",
+    "Decision to allow candidate for independent audit is not independent EVO-07 certification or real model promotion",
+    "No real paper-trading outcome, Turso registration, Streamlit production switch, or automatic rollback on real data",
+    "EVO-02 weakness diagnosis and EVO-08 surprise-driven candidate generation need subsequent integration"
+  ],
+  "fixed_progress": {
+    "research": "100% (32/32)",
+    "research_graduation": "100% (12/12)",
+    "main_groups": "100% (21/21)",
+    "live": "0/6",
+    "operational": "0/100",
+    "final20": "35/100",
+    "delta": "0"
+  },
+  "next_milestone": "Bind existing EVO-02/EVO-08 lab discovery to a frozen challenger proposal, recompute EVO-07 independent time-split validation and append signed or externally anchored shadow adoption/rollback decision, without deploying production model",
+  "protected": [
+    "main",
+    "Turso production",
+    "published Streamlit",
+    "Secrets",
+    "real ticket purchase"
+  ]
+}
