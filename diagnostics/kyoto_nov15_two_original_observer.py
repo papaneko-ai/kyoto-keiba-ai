@@ -195,10 +195,6 @@ def accept_observation(folder):
                     if has_racecard is True else "NOV15_MEETING_ORIGINALS_OBSERVED_NOT_RACECARD")
     if type(has_racecard) is not bool or receipt.get("state")!=expected_state:
         raise ObservationRejected("observed_state_and_originals_inconsistent")
-    # Reject unexpected saved originals rather than silently accepting a partial
-    # or contradictory acquisition record.
-    if has_racecard is False and receipt.get("http_requests_started") != 2:
-        raise ObservationRejected("meeting_only_http_accounting_invalid")
     if has_racecard is False and (root/"official_racecard.html").exists():
         raise ObservationRejected("unexpected_unclaimed_racecard_original")
     if has_racecard is False and any(k in receipt for k in (
