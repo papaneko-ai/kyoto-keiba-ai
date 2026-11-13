@@ -137,6 +137,11 @@ class GeneratedEvoCandidateTests(unittest.TestCase):
     s,b=self.prep(7)
     with self.assertRaisesRegex(CandidateBuildRejected,"holdout_not_after_plan_lock"):
         forecast_lab_generated(p,self.registry,s,b)
+ def test_cannot_understate_number_of_tried_model_candidates(self):
+    self.add_training();p=self.generate();self.build_holdout(p)
+    with self.assertRaisesRegex(CandidateBuildRejected,"holdout_limit_or_multiplicity_invalid"):
+        audit_generated_holdout(p,self.train_path,self.holdout_path,self.registry,
+                                comparison_count=1)
  def test_audit_requires_disjoint_ten_races(self):
     self.add_training();p=self.generate();self.build_holdout(p,count=9)
     with self.assertRaisesRegex(CandidateBuildRejected,"disjoint_complete_holdout_required"):
