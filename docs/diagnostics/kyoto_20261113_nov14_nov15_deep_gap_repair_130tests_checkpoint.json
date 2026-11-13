@@ -1,0 +1,64 @@
+{
+  "schema": "kyoto_20261113_p1_nov14_nov15_failure_gaps_repair_checkpoint.v1",
+  "date_jst": "2026-11-13",
+  "branch": "jra-html-diagnostic-20261105",
+  "verified_code_head": "d9ec68472c079ec5cc07154dd3d4d4b1d1881013",
+  "verified_ci": {
+    "run_id": 43345111049,
+    "job_id": 131622485118,
+    "conclusion": "success",
+    "focused_tests_passed": 130,
+    "focused_tests_failed": 0,
+    "actual_jra_http_requests_in_ci": 0
+  },
+  "remediated": [
+    "Official Nov15 selection and meeting observed-link discovery without synthesized CNAME, maximum 2 GET",
+    "Never commit observed JRA HTML plaintext to public repository; AES256-GCM encrypt observer/capture originals as Actions artifacts",
+    "Bind encrypted artifacts to repository and run ID; reject wrong key, nonce/authentication tag and path traversal",
+    "Decrypt observation into next guarded runner, bind exact Nov15 day/race/roster/start and PC-only original source chain",
+    "Fail Actions on unavailable or incomplete horse roster, both racecard/quinella/bracket originals and mismatched receipt SHA or bytes",
+    "Legacy manual capture refuses Nov15; coordinated observer and dedicated capture share branch-level concurrency group",
+    "Record prior Actions run GET-step state: retry only conclusively skipped HTTP step in a completed failed run",
+    "Block observer and market capture too-early or post-cutoff in the pre-HTTP workflow step",
+    "Report missing encrypted observer run-ID/spec/roster/start without calling JRA",
+    "End-to-end offline synthetic fixture validates observe/encrypt/decrypt/bind/capture acceptance/re-encrypt/decrypt"
+  ],
+  "files": [
+    "diagnostics/kyoto_nov15_two_original_observer.py",
+    "diagnostics/kyoto_nov15_encrypted_evidence.py",
+    "diagnostics/kyoto_nov15_full_capture_seal.py",
+    "diagnostics/kyoto_nov15_capture_acceptance.py",
+    "diagnostics/kyoto_p1_github_attempt_history_gate.py",
+    "diagnostics/kyoto_nov15_readiness_check.py",
+    ".github/workflows/kyoto-nov15-encrypted-observer.yml",
+    ".github/workflows/kyoto-nov15-second-day-observed-oneshot.yml",
+    ".github/workflows/jra-observed-odds-manual-oneshot.yml",
+    "tests/test_kyoto_nov15_two_stage_encrypted_pipeline_lab.py",
+    "tests/test_kyoto_p1_github_attempt_history_gate.py",
+    "docs/KYOTO_AI_20261113_SOURCE_FAILURE_GAPS_REMEDIATION_AND_REMAINING_GATES.md"
+  ],
+  "remaining_external_acceptance": [
+    "Nov14 prior official selection one-shot has one failed attempted GET Run 43142384975 and day14 complete prerelease acquisition is unproven",
+    "True Nov15 official HTML and race-specific roster, PC URL, start UTC have not yet been observed and independently certified",
+    "GitHub Actions Secret KYOTO_JRA_ARCHIVE_AES256_HEX requires user's secure setup; secrets are never supplied in chat",
+    "True GitHub Actions source-observer->encrypted artifact->market GET live chain has not been executed on official Nov15 HTML",
+    "Cross-host Streamlit/GitHub/Turso shared durable GET reservations have not been proven",
+    "Authentic JRA market publication, cutoff and real odds require prospective source bytes and cannot be proven by synthetic tests"
+  ],
+  "progress_unchanged": {
+    "research": "100% (32/32)",
+    "research_graduation": "100% (12/12)",
+    "major_function_integration": "100% (21/21)",
+    "real_live": "0/6",
+    "operational": "0/100",
+    "final20": "35/100"
+  },
+  "next_action": "First securely configure archive key; then independently observe actual Nov15 official source and race roster, run encrypted readiness preflight; do not create activation files or execute live GET without validated evidence and intended timing. Preserve Nov14 failed original receipt; do not simulate precutoff data after the fact.",
+  "protected": [
+    "main",
+    "Turso production",
+    "published Streamlit",
+    "existing Secrets",
+    "real tickets"
+  ]
+}
