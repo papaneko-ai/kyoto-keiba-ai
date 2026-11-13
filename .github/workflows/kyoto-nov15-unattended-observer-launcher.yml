@@ -21,7 +21,7 @@ jobs:
       - name: Checkout fixed verified development source (never default branch code)
         uses: actions/checkout@v4
         with:
-          ref: 4493457e1fb8c48baf289cbba754c0e94a9c42ec
+          ref: cdfd82348da33dd5e82ffa6bcfac63e55e414e8f
           persist-credentials: false
       - uses: actions/setup-python@v5
         with:
@@ -48,17 +48,17 @@ jobs:
           if not re.fullmatch(r"[0-9a-fA-F]{64}",os.environ.get("ARCHIVE_KEY","")):
               raise SystemExit("NOV15_ARCHIVE_SECRET_INVALID_NO_HTTP")
           actual=subprocess.check_output(["git","rev-parse","HEAD"],text=True).strip()
-          if actual!="4493457e1fb8c48baf289cbba754c0e94a9c42ec":
+          if actual!="cdfd82348da33dd5e82ffa6bcfac63e55e414e8f":
               raise SystemExit("NOV15_SOURCE_REVISION_MISMATCH_NO_HTTP")
           r=audit_previous_runs(
               repo=os.environ["GITHUB_REPOSITORY"],token=os.environ["GITHUB_TOKEN"],
               branch="main",current_run_id=os.environ["GITHUB_RUN_ID"],
               workflow_name="Kyoto Nov15 unattended encrypted official observer launcher",
-              http_step="At most two already-observed official PC HTTP GET")
+              http_step="At most THREE bounded original-only official PC HTTP GET")
           print("NOV15_PRE_HTTP_HISTORY_CHECKED="+str(len(r["prior_zero_http_runs"])))
           print("NOV15_UNATTENDED_OBSERVER_DATE_AND_KEY_GATES_PASS")
           PY
-      - name: At most two already-observed official PC HTTP GET
+      - name: At most THREE bounded original-only official PC HTTP GET
         shell: bash
         run: |
           set -euo pipefail
@@ -66,10 +66,12 @@ jobs:
           from datetime import datetime,timezone
           from diagnostics.kyoto_nov15_two_original_observer import observe
           r=observe("nov15_work_originals",
-                    now_utc=datetime.now(timezone.utc).isoformat(),allowed=True)
+                    now_utc=datetime.now(timezone.utc).isoformat(),allowed=True,
+                    include_observed_racecard=True)
           print("NOV15_OBSERVATION_STATE="+r["state"])
           print("NOV15_ATTEMPTED_GET="+str(r["http_requests_started"]))
-          if r["state"]!="NOV15_MEETING_ORIGINALS_OBSERVED_NOT_RACECARD":
+          if r["state"] not in ("NOV15_MEETING_ORIGINALS_OBSERVED_NOT_RACECARD",
+                               "NOV15_RACECARD_ORIGINAL_OBSERVED_ROSTER_UNVERIFIED"):
               raise SystemExit("NOV15_FAILED_CLOSED")
           PY
       - name: Encrypt observation originals before artifact retention
