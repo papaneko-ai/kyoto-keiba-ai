@@ -15,7 +15,8 @@ from diagnostics.kyoto_p1_nov14_official_one_shot_nav import (
     SOURCE,LIMIT,NoRedirect
 )
 from diagnostics.jra_official_link_repair import observed_links, LinkRepairRejected
-from diagnostics.jra_one_shot_market_capture import RequestPacer,exact_odds_action,http_fetch,SourceChainError
+from diagnostics.jra_one_shot_market_capture import (RequestPacer,exact_odds_action,http_fetch,SourceChainError,observed_next_market_action)
+from types import SimpleNamespace
 from diagnostics.jra_official_market_navigation import find_market_links, MarketNavigationError
 
 DAY="20261115"
@@ -94,7 +95,7 @@ def observe(selection_root, *, now_utc, opener=None, allowed=False,
              "http_requests_started":0,"real_racecard_verified":False,
              "both_markets_verified":False,"paper_trade_authorized":False,
              "racecard_original_fetched":False,"odds_menu_original_fetched":False,
-             "market_requests_started":0,
+             "market_requests_started":0,"navigation_requests_started":0,
              "started_at_utc":current.isoformat()}
     # Preserve official session cookies when following observed odds POST
     # actions, reusing the capturer's existing no-redirect transport policy.
@@ -169,48 +170,94 @@ def observe(selection_root, *, now_utc, opener=None, allowed=False,
                             receipt["odds_menu_original_fetched"]=True
                             _validate_saved_html_encoding(menu)
                             receipt["odds_menu_observation"]="RAW_OFFICIAL_MENU_NOT_PRICE_VALIDATED"
-                            # Only independently identified, direct official
-                            # 馬連/枠連 links from this exact menu may be used.
-                            # No navigation guesses, no extra GETs or retry.
-                            try:
-                                links=find_market_links(
-                                    menu,expected_race_day=DAY,
-                                    expected_race_number=race_number,
-                                    expected_host="jra.jp")
-                            except MarketNavigationError:
-                                receipt["market_observation"]="OFFICIAL_MARKET_LINKS_NOT_PRESENT_IN_MENU"
-                            else:
-                                if (links["source_final_odds_detected"] or
-                                    "オッズは未発表" in menu.decode("cp932",errors="replace")):
+                            # The existing JRA menu navigation adapter may
+                            # follow up to TWO actual on-page POST actions.
+                            # All navigation bytes and UTC/SHA are retained.
+                            # Never guess an action token or exceed 8 requests.
+                            links=None
+                            seen_actions={token}
+                            current_menu=menu
+                            observed_spec=SimpleNamespace(
+                                race_day=DAY,race_number=race_number)
+                            for nav_step in range(3):
+                                text=current_menu.decode("cp932",errors="replace")
+                                if "最終オッズ" in text or "オッズは未発表" in text:
                                     receipt["market_observation"]="FINAL_OR_UNPUBLISHED_NO_MORE_HTTP"
-                                else:
-                                    receipt["market_observation"]="OFFICIAL_MARKET_LINKS_SEEN"
-                                    for market in ("quinella","bracket_quinella"):
-                                        rec=links["markets"][market]
-                                        if receipt["http_requests_started"]>=6:
-                                            break
-                                        receipt["http_requests_started"]+=1
-                                        receipt["market_requests_started"]+=1
-                                        try:
-                                            page=http_fetch(
-                                                client,"PC",rec["official_post_url"],
-                                                cname=rec["cname"],
-                                                referer="https://jra.jp/JRADB/accessO.html",
-                                                pacer=request_pacer)
-                                            raw_market=page["raw"]
-                                            name="official_"+market+"_odds.html"
-                                            (root/name).write_bytes(raw_market)
-                                            receipt[market+"_sha256"]=page["sha256"]
-                                            receipt[market+"_bytes"]=page["bytes"]
-                                            receipt[market+"_captured_at_utc"]=page["captured_at_utc"]
-                                            receipt[market+"_action"]=rec["cname"]
-                                            receipt[market+"_original_fetched"]=True
-                                            _validate_saved_html_encoding(raw_market)
-                                        except Exception as market_error:
-                                            receipt[market+"_original_fetched"]=False
-                                            receipt[market+"_error_class"]=type(market_error).__name__
-                                            # Keep already acquired original files.
-                                            break
+                                    break
+                                try:
+                                    links=find_market_links(
+                                        current_menu,expected_race_day=DAY,
+                                        expected_race_number=race_number,
+                                        expected_host="jra.jp")
+                                    if links["source_final_odds_detected"]:
+                                        links=None
+                                        receipt["market_observation"]="FINAL_OR_UNPUBLISHED_NO_MORE_HTTP"
+                                    break
+                                except MarketNavigationError:
+                                    if nav_step>=2:
+                                        receipt["market_observation"]="MAX_TWO_OBSERVED_MENU_STEPS"
+                                        break
+                                    try:
+                                        action=observed_next_market_action(
+                                            current_menu,"PC",observed_spec,
+                                            step=nav_step)
+                                    except SourceChainError:
+                                        receipt["market_observation"]="NO_UNIQUE_OBSERVED_NEXT_MENU_ACTION"
+                                        break
+                                    if action in seen_actions:
+                                        receipt["market_observation"]="NAVIGATION_CYCLE_REJECTED"
+                                        break
+                                    seen_actions.add(action)
+                                    receipt["http_requests_started"]+=1
+                                    receipt["navigation_requests_started"]+=1
+                                    stage=nav_step+1
+                                    try:
+                                        page=http_fetch(
+                                            client,"PC","https://jra.jp/JRADB/accessO.html",
+                                            cname=action,
+                                            referer="https://jra.jp/JRADB/accessO.html",
+                                            pacer=request_pacer)
+                                        current_menu=page["raw"]
+                                        filename="official_odds_navigation_"+str(stage)+".html"
+                                        (root/filename).write_bytes(current_menu)
+                                        prefix="navigation_"+str(stage)
+                                        receipt[prefix+"_sha256"]=page["sha256"]
+                                        receipt[prefix+"_bytes"]=page["bytes"]
+                                        receipt[prefix+"_captured_at_utc"]=page["captured_at_utc"]
+                                        receipt[prefix+"_action"]=action
+                                        receipt[prefix+"_original_fetched"]=True
+                                        _validate_saved_html_encoding(current_menu)
+                                    except Exception as nav_error:
+                                        receipt["market_observation"]="NAVIGATION_POST_FAILED"
+                                        receipt["navigation_"+str(stage)+"_error_class"]=type(nav_error).__name__
+                                        break
+                            if links is not None:
+                                receipt["market_observation"]="OFFICIAL_MARKET_LINKS_SEEN"
+                                for market in ("quinella","bracket_quinella"):
+                                    rec=links["markets"][market]
+                                    if receipt["http_requests_started"]>=8:
+                                        break
+                                    receipt["http_requests_started"]+=1
+                                    receipt["market_requests_started"]+=1
+                                    try:
+                                        page=http_fetch(
+                                            client,"PC",rec["official_post_url"],
+                                            cname=rec["cname"],
+                                            referer="https://jra.jp/JRADB/accessO.html",
+                                            pacer=request_pacer)
+                                        raw_market=page["raw"]
+                                        name="official_"+market+"_odds.html"
+                                        (root/name).write_bytes(raw_market)
+                                        receipt[market+"_sha256"]=page["sha256"]
+                                        receipt[market+"_bytes"]=page["bytes"]
+                                        receipt[market+"_captured_at_utc"]=page["captured_at_utc"]
+                                        receipt[market+"_action"]=rec["cname"]
+                                        receipt[market+"_original_fetched"]=True
+                                        _validate_saved_html_encoding(raw_market)
+                                    except Exception as market_error:
+                                        receipt[market+"_original_fetched"]=False
+                                        receipt[market+"_error_class"]=type(market_error).__name__
+                                        break
 
                         except Exception as exc:
                             receipt["odds_menu_observation"]="POST_FAILED_PRESERVE_RACECARD"
@@ -250,12 +297,17 @@ def accept_observation(folder):
     menu_attempted=receipt.get("odds_menu_observation") in (
         "RAW_OFFICIAL_MENU_NOT_PRICE_VALIDATED",
         "POST_FAILED_PRESERVE_RACECARD")
-    expected_requests=((4+receipt.get("market_requests_started",0))
+    expected_requests=((4+receipt.get("navigation_requests_started",0)
+                         +receipt.get("market_requests_started",0))
                        if menu_attempted else 3
                        if receipt.get("racecard_original_fetched") is True else 2)
     if (type(receipt.get("market_requests_started",0)) is not int
         or not 0<=receipt.get("market_requests_started",0)<=2
-        or (not has_menu and receipt.get("market_requests_started",0)!=0)):
+        or type(receipt.get("navigation_requests_started",0)) is not int
+        or not 0<=receipt.get("navigation_requests_started",0)<=2
+        or (not has_menu and (
+            receipt.get("market_requests_started",0)!=0 or
+            receipt.get("navigation_requests_started",0)!=0))):
         raise ObservationRejected("market_request_accounting_invalid")
     if type(receipt.get("http_requests_started")) is not int or (
         receipt["http_requests_started"] != expected_requests):
