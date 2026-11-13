@@ -554,7 +554,7 @@ def capture_hybrid(out, *, primary_channel, verified_start_utc, active_runners,
     cutoff, permission and final-odds refusals are terminal, not fallback
     triggers. Distinct data from two channels are never merged by guesswork.
     """
-    spec=race_spec.validate()
+    spec=race_spec
     route_basis={"selection":"EXPLICIT","sampled_benchmark":False}
     if primary_channel=="AUTO":
         # Do not re-benchmark the public site. Replay the already accepted
@@ -575,6 +575,14 @@ def capture_hybrid(out, *, primary_channel, verified_start_utc, active_runners,
                      "sp_end_to_end_gain_pct":measured["sp_end_to_end_gain_pct"]}
     if primary_channel not in ("PC", "SP"):
         raise SourceChainError("invalid_primary_channel")
+    # A functioning official channel must not be blocked by the absence
+    # of the *other* independently observed link. Validate the usable path
+    # first; only attempt fallback after the other official link is known.
+    spec=spec.validate(require_channels=(primary_channel,))
+    other="SP" if primary_channel=="PC" else "PC"
+    other_url=spec.sp_racecard_url if other=="SP" else spec.pc_racecard_url
+    other_source_available=bool(other_url)
+
     if type(authorized_live_http) is not bool:
         raise SourceChainError("explicit_boolean_authorization_required")
     if type(independent_crosscheck) is not bool:
@@ -625,7 +633,6 @@ def capture_hybrid(out, *, primary_channel, verified_start_utc, active_runners,
                       "OFFICIAL_MENU_NEEDS_RACE_NAVIGATION",
                       "MARKETS_FAILED_VALIDATION"}
     selected=primary_channel if first["accepted"] else None
-    other="SP" if primary_channel=="PC" else "PC"
     # Do not camouflage a wrong identity, source-content contradiction or
     # unsafe market phase as a normal transient-channel failure.
     terminal_conflicts=(
@@ -658,12 +665,13 @@ def capture_hybrid(out, *, primary_channel, verified_start_utc, active_runners,
     first_reason=(first.get("reason") or "")
     unsafe_primary=any(x in first_reason for x in
                        terminal_conflicts+terminal_transport_conflicts)
-    if not selected and first["state"] in fallback_allowed and not unsafe_primary:
+    if (not selected and first["state"] in fallback_allowed
+            and not unsafe_primary and other_source_available):
         second=one(other)
         outcomes.append(second)
         if second["accepted"]:
             selected=other
-    elif selected and independent_crosscheck:
+    elif selected and independent_crosscheck and other_source_available:
         # Explicit diagnostic only. Each channel preserves separate originals,
         # individual UTC times and its own validated roster/market receipts.
         # Different-time market prices must NEVER be merged or called parity.
@@ -673,6 +681,9 @@ def capture_hybrid(out, *, primary_channel, verified_start_utc, active_runners,
                  race_id=spec.race_id, primary_channel=primary_channel,
                  route_basis=route_basis,
                  selected_channel=selected, attempts=outcomes,
+                 other_channel_link_observed=other_source_available,
+                 fallback_not_attempted_missing_official_link=(
+                     selected is None and not other_source_available),
                  # A single valid channel remains useful saved source evidence.
                  # Never discard it merely because independent parity failed.
                  source_capture_usable_for_offline_analysis=selected is not None,
