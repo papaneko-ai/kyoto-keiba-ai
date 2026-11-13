@@ -23,7 +23,13 @@ OBSERVED = "2026-11-15T02:04:00Z"
 
 def item(channel, *, captured="2026-11-15T02:00:00Z"):
     raw = ("saved-" + channel).encode()
+    target = PC_URL if channel == "PC" else SP_URL
+    parent = "https://" + ("jra.jp" if channel == "PC" else "sp.jra.jp") + "/JRADB/accessD.html"
+    nav = ("<html><a href='" + target + "'>京都1R</a></html>").encode("cp932")
     return {
+        "navigation_original": nav,
+        "navigation_sha256": hashlib.sha256(nav).hexdigest(),
+        "navigation_parent_url": parent,
         "raw": raw,
         "sha256": hashlib.sha256(raw).hexdigest(),
         "captured_utc": captured,
@@ -74,11 +80,19 @@ class StrictDualExperimentTests(unittest.TestCase):
 
     def test_sp_official_link_must_be_independently_observed(self):
         sp = item("SP")
-        sp["official_link_independently_observed"] = False
+        sp["navigation_original"] = b"<html>no SP official race link</html>"
         with patch("diagnostics.jra_pc_sp_benchmark.pc_rows", return_value=ROWS), \
              patch("diagnostics.jra_pc_sp_benchmark.sp_rows", return_value=ROWS):
             result = self.run_gate({"PC": item("PC"), "SP": sp})
         self.assertFalse(result["independently_observed_both_urls"])
+        self.assertFalse(result["dual_racecard_structure_parity"])
+
+    def test_broken_navigation_sha_blocks_hybrid(self):
+        sp = item("SP")
+        sp["navigation_sha256"] = "0" * 64
+        with patch("diagnostics.jra_pc_sp_benchmark.pc_rows", return_value=ROWS), \
+             patch("diagnostics.jra_pc_sp_benchmark.sp_rows", return_value=ROWS):
+            result = self.run_gate({"PC": item("PC"), "SP": sp})
         self.assertFalse(result["dual_racecard_structure_parity"])
 
     def test_sp_wrong_host_rejected(self):
