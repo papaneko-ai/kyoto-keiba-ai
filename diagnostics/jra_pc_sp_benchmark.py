@@ -228,3 +228,76 @@ def reconcile_saved_racecards(channels, frozen_snapshot, *, meeting_date, race, 
           "state":"OFFLINE_ROSTER_RECONCILED" if chosen else "BLOCKED",
           "official_live_odds_verified":False,
           "predictions_authorized":False,"network_requests":0}
+
+
+def assess_dual_channel_experiment(channels, frozen_snapshot, *,
+                                   meeting_date, race, cutoff_utc, observed_utc):
+  """Strict offline PC/SP original parity using the existing proven parsers.
+
+  Unlike single-channel fallback, BOTH independently observed official URLs
+  and BOTH byte-preserved racecards are required. This cannot certify odds.
+  """
+  from datetime import datetime
+  from urllib.parse import urlsplit,parse_qs
+  import re
+  def utc(value):
+    if type(value) is not str:
+      raise ValueError("hybrid_timestamp_missing")
+    try: stamp=datetime.fromisoformat(value.replace("Z","+00:00"))
+    except ValueError as exc: raise ValueError("hybrid_timestamp_invalid") from exc
+    if stamp.tzinfo is None or stamp.utcoffset().total_seconds()!=0:
+      raise ValueError("hybrid_timestamp_not_utc")
+    return stamp
+  if type(channels) is not dict or set(channels)-{"PC","SP"}:
+    raise ValueError("hybrid_channels_invalid")
+  # Reuse historical original-byte SHA, cutoff and runner comparison.
+  result=reconcile_saved_racecards(channels,frozen_snapshot,
+      meeting_date=meeting_date,race=race,cutoff_utc=cutoff_utc,
+      observed_utc=observed_utc)
+  status={}
+  for channel,host in (("PC","jra.jp"),("SP","sp.jra.jp")):
+    item=channels.get(channel)
+    if item is None:
+      status[channel]={"state":"MISSING_OFFICIAL_ORIGINAL"}
+      continue
+    url=item.get("source_url")
+    observed=item.get("official_link_independently_observed") is True
+    try:
+      u=urlsplit(url or "")
+      q=parse_qs(u.query,strict_parsing=True)
+      token=q["CNAME"][0]
+      good=(u.scheme=="https" and u.hostname==host and
+            u.port is None and not u.username and not u.password and
+            not u.fragment and u.path=="/JRADB/accessD.html" and
+            set(q)=={"CNAME"} and len(q["CNAME"])==1 and
+            re.fullmatch(r"[ps]w[A-Za-z0-9]+/[A-Za-z0-9]+",token) and
+            token.startswith("pw" if channel=="PC" else "sw") and
+            meeting_date.replace("-","") in token and observed)
+    except (TypeError,ValueError,KeyError,IndexError):
+      good=False
+    status[channel]={"state":"OFFICIAL_LINK_OBSERVED" if good
+                     else "OFFICIAL_LINK_NOT_INDEPENDENTLY_PROVEN"}
+  dual_links=all(status[c]["state"]=="OFFICIAL_LINK_OBSERVED"
+                 for c in ("PC","SP"))
+  both_match=all(result["sources"][c]["status"]=="MATCH"
+                 for c in ("PC","SP"))
+  times_ok=False
+  if both_match and dual_links:
+    a=utc(channels["PC"]["captured_utc"])
+    b=utc(channels["SP"]["captured_utc"])
+    times_ok=abs((a-b).total_seconds())<=900
+  parity=bool(dual_links and both_match and times_ok)
+  return {"schema":"kyoto_p1_pc_sp_independent_hybrid_experiment.v1",
+          "race_date":meeting_date,"race_number":race,
+          "channel_links":status,
+          "channel_rosters":result["sources"],
+          "independently_observed_both_urls":dual_links,
+          "both_saved_racecards_match_verified_reference":both_match,
+          "time_delta_within_15_minutes":times_ok,
+          "dual_racecard_structure_parity":parity,
+          "dual_market_originals_verified":False,
+          "full_hybrid_experiment_pass":False,
+          "state":("DUAL_RACECARDS_OFFLINE_MATCH_MARKETS_PENDING" if parity
+                   else "DUAL_SOURCE_RACECARD_INCOMPLETE"),
+          "prediction_ready":False,"training_ready":False,
+          "network_requests":0}
