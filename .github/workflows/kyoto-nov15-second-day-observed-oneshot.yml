@@ -62,7 +62,7 @@ jobs:
 
           for key in ("SPEC","ROSTER","OFFICIAL_SELECTION","OFFICIAL_MEETING"):
               p=os.environ[key]
-              if (not re.fullmatch(r"docs/diagnostics/[A-Za-z0-9_./-]+\\.(json|html)",p)
+              if (not re.fullmatch(r"docs/diagnostics/[A-Za-z0-9_./-]+\.(json|html)",p)
                   or ".." in p.split("/") or not Path(p).is_file() or Path(p).is_symlink()):
                   raise SystemExit("NOV15_SAVED_ORIGINAL_PATH_REQUIRED:"+key)
           for key in ("SPEC","ROSTER"):
