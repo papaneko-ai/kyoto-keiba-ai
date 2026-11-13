@@ -109,6 +109,26 @@ def forecast_add_ensemble(proposal,registry_path,snapshot,baseline):
     if (registry["head"]!=proposal["registry_head_sha256"] or
         [registry["models"].get(x["model_id"]) for x in proposal["model_specs"]]!=proposal["model_specs"]):
         raise CandidateBuildRejected("registry_changed")
+    cfg=proposal["config"]
+    add_spec,ens_spec=proposal["model_specs"]
+    if (cfg.get("formula")!="LAB_ADD_TEMPERATURE_BLEND_V1"
+        or cfg.get("trial_count")!=TRIAL_COUNT
+        or proposal.get("trial_count")!=TRIAL_COUNT
+        or cfg.get("training_head_sha256")!=proposal.get("training_head_sha256")
+        or any(m.get("code_sha256")!=CODE_SHA for m in (add_spec,ens_spec))
+        or add_spec.get("configuration_sha256")!=_hash({"cfg":cfg,"kind":"ADD"})
+        or ens_spec.get("configuration_sha256")!=_hash({"cfg":cfg,"kind":"ENSEMBLE"})
+        or add_spec.get("kind")!="ADD" or ens_spec.get("kind")!="ENSEMBLE"
+        or add_spec.get("parents")!=[proposal["baseline_id"]]
+        or ens_spec.get("parents")!=[proposal["baseline_id"],proposal["add_id"]]
+        or add_spec.get("model_id")!=proposal["add_id"]
+        or ens_spec.get("model_id")!=proposal["ensemble_id"]):
+        raise CandidateBuildRejected("generated_model_provenance_invalid")
+    w=cfg.get("ensemble_weight_bps")
+    expected_weight=w if w is not None else 5000
+    if (type(expected_weight) is not int or expected_weight not in (*WEIGHTS,5000)
+        or ens_spec.get("weights_bps")!=[10000-expected_weight,expected_weight]):
+        raise CandidateBuildRejected("ensemble_weights_modified")
     check_lab_prediction(registry_path,snapshot,baseline)
     if baseline["model_id"]!=proposal["baseline_id"] or _utc(snapshot["cutoff_utc"])<=_utc(proposal["plan_locked_utc"]):
         raise CandidateBuildRejected("wrong_baseline_or_cutoff")
@@ -129,6 +149,10 @@ def audit_add_ensemble_holdout(proposal,training_path,holdout_path,registry_path
                                min_races=10,comparison_count=TRIAL_COUNT):
     if type(comparison_count) is not int or comparison_count<TRIAL_COUNT or type(min_races) is not int or min_races<10:
         raise CandidateBuildRejected("multiplicity_understated")
+    if type(proposal) is not dict or proposal.get("schema")!="kyoto_lab_add_ensemble_generated.v1":
+        raise CandidateBuildRejected("proposal_required")
+    if _hash({k:v for k,v in proposal.items() if k!="proposal_sha256"})!=proposal.get("proposal_sha256"):
+        raise CandidateBuildRejected("proposal_modified")
     training=read_shadow(training_path);held=read_shadow(holdout_path)
     if training["head"]!=proposal["training_head_sha256"]:
         raise CandidateBuildRejected("training_changed")
