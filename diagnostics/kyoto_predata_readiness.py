@@ -22,6 +22,7 @@ CHECKS={
     "R07":("test_r07_calibration_uncertainty_acceptance.py",24),
     "R08":("test_r08_full_market_predata_acceptance.py",24),
     "R09":("test_p3_p5_p6_synthetic_day_lab.py",14),
+    "R10":("test_r10_risk_strategy_comparison_acceptance.py",24),
     "R11":("test_r11_predata_freeze_acceptance.py",14),
     "R13":("test_r13_predata_durable_accounting_acceptance.py",12),
     "R12":("test_p6_virtual_settlement_fixture_lab.py",18),
