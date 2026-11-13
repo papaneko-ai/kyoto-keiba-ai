@@ -34,6 +34,9 @@ class OfflineRaceLinksTests(unittest.TestCase):
     self.assertEqual(d["http_requests"],0)
     self.assertFalse(d["start_times_verified"])
     self.assertFalse(d["roster_verified"])
+    self.assertEqual(d["hybrid_experiment"]["state"],"INCOMPLETE_PC_ONLY_SP_MISSING")
+    self.assertFalse(d["hybrid_experiment"]["full_hybrid_experiment_pass"])
+    self.assertFalse(d["hybrid_experiment"]["SP"]["racecard_original_fetched"])
  def test_raw_racecard_source_evidence_propagates_without_market_claim(self):
     raw=source("<table><tr><td>saved unverified original</td></tr></table>")
     (self.root/"official_racecard.html").write_bytes(raw)
@@ -54,6 +57,9 @@ class OfflineRaceLinksTests(unittest.TestCase):
                      "diagnostics.jra_multi_capture_20261106.parse")
     self.assertFalse(result["saved_racecard_original"]["existing_parser_diagnostic"]["structure_diagnostic_pass"])
     self.assertFalse(result["roster_verified"])
+    self.assertTrue(result["hybrid_experiment"]["PC"]["racecard_original_fetched"])
+    self.assertFalse(result["hybrid_experiment"]["dual_racecard_parity_verified"])
+    self.assertFalse(result["hybrid_experiment"]["full_hybrid_experiment_pass"])
     self.assertFalse(result["quinella_market_verified"])
     self.assertFalse(result["bracket_market_verified"])
  def test_existing_real_capture_parser_reused_for_date_locked_structure(self):
