@@ -1,5 +1,6 @@
 """Nov15 two-original observation mock transport, no JRA network."""
 import tempfile, unittest
+from unittest.mock import Mock,patch
 from pathlib import Path
 from diagnostics.kyoto_nov15_two_original_observer import (
     observe,accept_observation,ObservationRejected,DAY,SOURCE)
@@ -25,6 +26,11 @@ class ObservationTests(unittest.TestCase):
     self.temp=tempfile.TemporaryDirectory()
     self.addCleanup(self.temp.cleanup)
     self.root=Path(self.temp.name)/"one-shot"
+    self.pacer=Mock()
+    pace_patch=patch("diagnostics.kyoto_nov15_two_original_observer.RequestPacer",
+                     return_value=self.pacer)
+    pace_patch.start()
+    self.addCleanup(pace_patch.stop)
  def run_obs(self,opener=None,allowed=True,now="2026-11-14T09:00:00Z"):
     return observe(self.root,now_utc=now,opener=opener or Stub(),allowed=allowed)
  def test_two_requests_are_actual_observed_links_only(self):
@@ -52,6 +58,26 @@ class ObservationTests(unittest.TestCase):
     self.assertFalse(result["both_markets_verified"])
     self.assertFalse(result["real_racecard_verified"])
     self.assertEqual(accept_observation(self.root)["state"],"TWO_ORIGINALS_MATCH_RECEIPT_ONLY")
+ def test_reuses_existing_pacer_before_each_of_three_observed_gets(self):
+    race_anchor='<html><a href="/JRADB/accessD.html?CNAME=pw020aaa01%2F0120261115">京都 1R</a></html>'.encode("cp932")
+    class Three(Stub):
+      def open(self,request,timeout=12):
+        self.urls.append(request.full_url)
+        return R(request.full_url,self.selection if len(self.urls)==1 else
+                 race_anchor if len(self.urls)==2 else b"<html>racecard</html>")
+    opener=Three()
+    r=observe(self.root,now_utc="2026-11-15T02:00:00Z",
+              opener=opener,allowed=True,include_observed_racecard=True)
+    self.assertEqual(r["http_requests_started"],3)
+    self.assertEqual(len(opener.urls),3)
+    self.assertEqual(self.pacer.before_request.call_count,3)
+ def test_pacer_failure_prevents_even_first_get(self):
+    opener=Stub()
+    self.pacer.before_request.side_effect=RuntimeError("pacer_failure")
+    r=self.run_obs(opener)
+    self.assertEqual(r["state"],"FAILED_CLOSED")
+    self.assertEqual(len(opener.urls),0)
+    self.assertEqual(r["http_requests_started"],1)
  def test_every_captured_original_has_utc_timestamp(self):
     import json
     race_anchor='<html><a href="/JRADB/accessD.html?CNAME=pw020aaa01%2F0120261115">京都 1R</a></html>'.encode("cp932")
