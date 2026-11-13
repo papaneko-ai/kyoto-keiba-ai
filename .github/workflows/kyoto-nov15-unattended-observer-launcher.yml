@@ -15,6 +15,7 @@ jobs:
     timeout-minutes: 7
     env:
       PYTHONPATH: .
+      KYOTO_TARGET_DAY: '20261115'
       SP_INDEPENDENT_OFFICIAL_R12_URL: 'https://sp.jra.jp/JRADB/accessD.html?CNAME=sw01dde0108202605041220261115%2F8E'
       ARCHIVE_KEY: ${{ secrets.KYOTO_JRA_ARCHIVE_AES256_HEX }}
       GITHUB_TOKEN: ${{ github.token }}
