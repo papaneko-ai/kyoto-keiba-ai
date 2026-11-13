@@ -6,8 +6,8 @@ observed odds menu action. All bytes stay in the
 ephemeral workspace until encrypted; no roster or market authentication claim.
 """
 from __future__ import annotations
-import hashlib,json,re
-from datetime import datetime, timezone
+import hashlib,json,re,os
+from datetime import datetime, timezone, timedelta
 from urllib.request import Request,build_opener,HTTPCookieProcessor
 from http.cookiejar import CookieJar
 from pathlib import Path
@@ -19,9 +19,14 @@ from diagnostics.jra_one_shot_market_capture import (RequestPacer,exact_odds_act
 from types import SimpleNamespace
 from diagnostics.jra_official_market_navigation import find_market_links, MarketNavigationError
 
-DAY="20261115"
-BEGIN=datetime(2026,11,12,7,15,tzinfo=timezone.utc)
-END=datetime(2026,11,15,4,0,tzinfo=timezone.utc)
+# Default preserves the established Nov15 observer. The new scheduled
+# collector passes the target race date explicitly, without copying logic.
+DAY=os.environ.get("KYOTO_TARGET_DAY","20261115")
+if not re.fullmatch(r"20[0-9]{6}",DAY):
+    raise ValueError("race_day_invalid")
+_TARGET=datetime.strptime(DAY,"%Y%m%d").replace(tzinfo=timezone.utc)
+BEGIN=_TARGET-timedelta(days=3)+timedelta(hours=7,minutes=15)
+END=_TARGET+timedelta(hours=4)
 
 class ObservationRejected(ValueError): pass
 
