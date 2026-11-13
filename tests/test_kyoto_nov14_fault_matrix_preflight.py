@@ -122,7 +122,7 @@ class Nov14FaultMatrixTests(unittest.TestCase):
     def test_invalid_encoding_source_is_saved_but_cannot_be_accepted(self):
         import hashlib
         with tempfile.TemporaryDirectory() as directory:
-            broken=b"<html>\\x81</html>"
+            broken=b"<html>\x81</html>"
             stub=Stub(Reply(broken))
             receipt=inspect_once(directory,opener=stub,clock=WHEN)
             self.assertEqual(stub.calls,1)
