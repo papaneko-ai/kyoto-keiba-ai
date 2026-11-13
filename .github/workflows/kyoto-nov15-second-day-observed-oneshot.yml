@@ -74,31 +74,8 @@ jobs:
           mkdir -p nov15_encrypted_download
           # Identify the actual observation workflow. Do not guess artifact names or
           # permit another run to masquerade as the trusted source.
-          OBSERVER_METADATA="$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$OBSERVER_RUN")"
-          OBSERVER_ARTIFACT="$(OBSERVER_METADATA="$OBSERVER_METADATA" python - <<'PY'
-          import json,os
-          from datetime import datetime,timezone
-          run=json.loads(os.environ["OBSERVER_METADATA"])
-          run_id=os.environ["OBSERVER_RUN"]
-          expected={
-            "Kyoto Nov15 unattended encrypted official observer launcher":
-              ("schedule","main","kyoto-nov15-unattended-encrypted-observation-"),
-            "Kyoto Nov15 gated official links observation encrypted originals":
-              (None,"jra-html-diagnostic-20261105","kyoto-nov15-encrypted-observation-"),
-          }
-          record=expected.get(run.get("name"))
-          if (record is None or str(run.get("id"))!=run_id
-              or run.get("status")!="completed"
-              or run.get("conclusion")!="success"
-              or run.get("head_branch")!=record[1]
-              or (record[0] is not None and run.get("event")!=record[0])
-              or not str(run.get("created_at","")).startswith(
-                "2026-11-15" if record[0]=="schedule" else
-                ("2026-11-12","2026-11-13","2026-11-14","2026-11-15"))):
-              raise SystemExit("NOV15_OBSERVER_RUN_IDENTITY_NOT_ACCEPTED_NO_HTTP")
-          print(record[2]+run_id)
-          PY
-          )"
+          OBSERVER_ARTIFACT="$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$OBSERVER_RUN" | \
+            python -m diagnostics.kyoto_nov15_observer_artifact_identity --run-id "$OBSERVER_RUN")"
           gh run download "$OBSERVER_RUN" \
             --repo "$GITHUB_REPOSITORY" \
             --name "$OBSERVER_ARTIFACT" \
