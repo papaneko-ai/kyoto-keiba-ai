@@ -150,6 +150,21 @@ jobs:
             START_UTC="$(cat docs/diagnostics/nov15_pc_verified_start_utc.txt)"
             export START_UTC
           fi
+          python - <<'PY'
+          import json,os
+          from datetime import datetime,timezone,timedelta
+          from pathlib import Path
+          from diagnostics.jra_one_shot_market_capture import ObservedRaceSpec
+          from diagnostics.jra_odds_source_archive import aware_utc
+          spec=ObservedRaceSpec(**json.loads(Path(os.environ["SPEC"]).read_text(encoding="utf8"))).validate(require_channels=("PC",))
+          now=datetime.now(timezone.utc)
+          start=aware_utc(os.environ["START_UTC"])
+          opening=aware_utc(spec.normal_sales_open_utc)
+          if (now < opening or now >= start-timedelta(minutes=10) or
+              start.astimezone(__import__("zoneinfo").ZoneInfo("Asia/Tokyo")).strftime("%Y%m%d")!="20261115"):
+              raise SystemExit("NOV15_PC_OUTSIDE_MARKET_WINDOW_NO_HTTP_RETRY_SAFE")
+          print("NOV15_MARKET_WINDOW_PRE_GET_ACCEPTED")
+          PY
           python -m diagnostics.kyoto_nov14_nov15_second_day_handoff \
             --spec "$SPEC" \
             --roster "$ROSTER" \
