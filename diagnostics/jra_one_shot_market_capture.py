@@ -727,7 +727,11 @@ if __name__=="__main__":
         p.error("--independent-crosscheck requires --hybrid")
     if args.authorized_live_http and not args.race_spec_json:
         p.error('--authorized-live-http requires independently observed --race-spec-json')
-    channels=("PC","SP") if args.hybrid else (args.channel,)
+    # Hybrid may start from one independently confirmed source, keeping the
+    # other unobserved until it is available. AUTO keeps both-source preflight
+    # because the primary selection comes from historical measurement.
+    channels=(("PC","SP") if args.hybrid and args.channel=="AUTO"
+              else (args.channel,))
     spec=(ObservedRaceSpec(**json.loads(Path(args.race_spec_json).read_text(encoding="utf8"))).validate(
              require_channels=channels)
           if args.race_spec_json else DEFAULT_RACE_SPEC.validate(require_channels=channels))
