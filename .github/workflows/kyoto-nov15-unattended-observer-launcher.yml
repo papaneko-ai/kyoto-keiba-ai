@@ -44,8 +44,8 @@ jobs:
           from datetime import datetime,timezone
           from diagnostics.kyoto_nov15_two_original_observer import BEGIN,END
           now=datetime.now(timezone.utc)
-          if os.environ.get("GITHUB_EVENT_NAME")!="schedule":
-              raise SystemExit("NOV15_ONLY_SCHEDULED_UNATTENDED_OBSERVATION_NO_HTTP")
+          if os.environ.get("GITHUB_EVENT_NAME") not in ("schedule","workflow_dispatch"):
+              raise SystemExit("NOV15_UNEXPECTED_TRIGGER_NO_HTTP")
           if now.strftime("%Y-%m-%d")!="2026-11-15" or not BEGIN <= now < END:
               raise SystemExit("NOV15_OUTSIDE_FIXED_OBSERVATION_WINDOW_NO_HTTP")
           if not re.fullmatch(r"[0-9a-fA-F]{64}",os.environ.get("ARCHIVE_KEY","")):
