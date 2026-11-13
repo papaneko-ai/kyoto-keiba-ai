@@ -5,7 +5,7 @@ the selection original. All bytes stay in volatile workflow workspace until
 encrypted; never claim racecard or market authenticity from a meeting link.
 """
 from __future__ import annotations
-import hashlib,json
+import hashlib,json,re
 from datetime import datetime, timezone
 from urllib.request import Request,build_opener
 from pathlib import Path
@@ -43,7 +43,32 @@ def _read(opener, url):
         raise ObservationRejected("html_encoding_invalid") from exc
     return raw
 
-def observe(selection_root, *, now_utc, opener=None, allowed=False):
+def _single_observed_racecard(meeting_original, meeting_url):
+    """Only actual racecard anchor, uniquely matched. Never synthesize a CNAME."""
+    try:
+        anchors=observed_links(meeting_original,meeting_url)
+    except (LinkRepairRejected,UnicodeError) as exc:
+        raise ObservationRejected("observed_racecard_links_invalid") from exc
+    choices={}
+    for url,label,token in anchors:
+        if DAY not in token:
+            continue
+        match=re.search(r"(?<![0-9])0?([1-9]|1[0-2])\\s*(?:R|レース)(?![0-9])",label,re.IGNORECASE)
+        if not match:
+            continue
+        race=int(match.group(1))
+        if f"{race:02d}{DAY}" not in token:
+            continue
+        choices.setdefault(race,set()).add(url)
+    if not choices:
+        return None
+    race=min(choices)
+    if len(choices[race])!=1:
+        raise ObservationRejected("ambiguous_same_race_official_link")
+    return race,next(iter(choices[race]))
+
+def observe(selection_root, *, now_utc, opener=None, allowed=False,
+            include_observed_racecard=False):
     root=Path(selection_root)
     if root.is_symlink() or root.exists() or not root.parent.is_dir():
         raise ObservationRejected("one_shot_output_existing_or_invalid")
@@ -58,7 +83,8 @@ def observe(selection_root, *, now_utc, opener=None, allowed=False):
     receipt={"schema":"kyoto_nov15_observed_link_capture.v1",
              "day":DAY,"selection_source":SOURCE,"state":"STARTED",
              "http_requests_started":0,"real_racecard_verified":False,
-             "both_markets_verified":False,"paper_trade_authorized":False}
+             "both_markets_verified":False,"paper_trade_authorized":False,
+             "racecard_original_fetched":False}
     client=opener if opener is not None else build_opener(NoRedirect())
     try:
         receipt["http_requests_started"]=1
@@ -74,6 +100,23 @@ def observe(selection_root, *, now_utc, opener=None, allowed=False):
         (root/"official_meeting.html").write_bytes(meeting)
         receipt["meeting_sha256"]=hashlib.sha256(meeting).hexdigest()
         receipt["meeting_bytes"]=len(meeting)
+        # Optional third request is restricted to an exact observed race URL.
+        # This is raw source capture, never a roster/start/odds certification.
+        if include_observed_racecard is True:
+            observed=_single_observed_racecard(meeting,meeting_url)
+            if observed is None:
+                receipt["racecard_observation"]="NOT_IN_OFFICIAL_MEETING_ORIGINAL"
+            else:
+                race_number,race_url=observed
+                receipt["racecard_number"]=race_number
+                receipt["observed_racecard_url"]=race_url
+                receipt["http_requests_started"]=3
+                racecard=_read(client,race_url)
+                (root/"official_racecard.html").write_bytes(racecard)
+                receipt["racecard_sha256"]=hashlib.sha256(racecard).hexdigest()
+                receipt["racecard_bytes"]=len(racecard)
+                receipt["racecard_original_fetched"]=True
+                receipt["racecard_observation"]="ORIGINAL_BYTES_CAPTURED_NOT_ROSTER_AUTHENTICATED"
         # This is a link observation, not a prerace market, independent roster
         # or correctness proof for the content supplied by JRA.
         receipt["state"]="NOV15_MEETING_ORIGINALS_OBSERVED_NOT_RACECARD"
@@ -102,6 +145,17 @@ def accept_observation(folder):
         raw=path.read_bytes()
         if not 0<len(raw)<=LIMIT or hashlib.sha256(raw).hexdigest()!=receipt.get(prefix+"_sha256") or len(raw)!=receipt.get(prefix+"_bytes"):
             raise ObservationRejected("observed_original_digest_mismatch")
+    if receipt.get("racecard_original_fetched") is True:
+        racecard=root/"official_racecard.html"
+        if racecard.is_symlink() or not racecard.is_file():
+            raise ObservationRejected("racecard_original_missing")
+        raw=racecard.read_bytes()
+        if not 0<len(raw)<=LIMIT or hashlib.sha256(raw).hexdigest()!=receipt.get("racecard_sha256") or len(raw)!=receipt.get("racecard_bytes"):
+            raise ObservationRejected("racecard_original_digest_mismatch")
+        observed=_single_observed_racecard((root/"official_meeting.html").read_bytes(),
+                                         receipt["observed_meeting_url"])
+        if observed != (receipt.get("racecard_number"),receipt.get("observed_racecard_url")):
+            raise ObservationRejected("racecard_anchor_not_bound")
     return {"state":"TWO_ORIGINALS_MATCH_RECEIPT_ONLY",
             "day":DAY,"http_requests_started":receipt["http_requests_started"],
             "racecard_verified":False,"market_verified":False,
