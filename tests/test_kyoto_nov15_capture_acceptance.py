@@ -5,7 +5,8 @@ import json
 import tempfile
 import unittest
 from pathlib import Path
-from diagnostics.kyoto_nov15_capture_acceptance import assess_saved_capture,CaptureAcceptanceRejected
+from diagnostics.kyoto_nov15_capture_acceptance import assess_saved_capture,assess_saved_hybrid_capture,CaptureAcceptanceRejected
+from unittest.mock import patch
 
 class CaptureAcceptTests(unittest.TestCase):
  def setUp(self):
@@ -110,5 +111,61 @@ class CaptureAcceptTests(unittest.TestCase):
  def test_valid_time_receipt_is_returned(self):
     self.assertEqual(self.check()["time_receipt"]["verified_race_start_utc"],
                      "2026-11-15T06:40:00+00:00")
+
+class HybridCaptureHandoffTests(unittest.TestCase):
+ def setUp(self):
+    temp=tempfile.TemporaryDirectory()
+    self.addCleanup(temp.cleanup)
+    self.root=Path(temp.name)
+    self.race="2026-11-15_KYOTO_11R"
+ def save(self,selected,attempts,**changes):
+    doc={"schema":"jra_pc_sp_one_shot_failover.v1",
+         "race_id":self.race,"selected_channel":selected,
+         "state":"SOURCE_ONLY_FALLBACK" if selected=="SP" else "SOURCE_ONLY_PRIMARY",
+         "attempts":attempts}
+    doc.update(changes)
+    (self.root/"hybrid_receipt.json").write_text(json.dumps(doc))
+ def attempt(self,channel,accepted=False):
+    return {"channel":channel,"accepted":accepted,
+            "state":"SOURCE_FROZEN" if accepted else "CAPTURE_BLOCKED"}
+ def check(self):
+    return assess_saved_hybrid_capture(self.root,expected_race_id=self.race)
+ def test_pc_selected_calls_existing_original_gate(self):
+    self.save("PC",[self.attempt("PC",True)])
+    with patch("diagnostics.kyoto_nov15_capture_acceptance.assess_saved_capture",
+               return_value={"state":"OFFLINE_SOURCE_BYTES_MATCH_RECEIPT"}) as gate:
+        r=self.check()
+    gate.assert_called_once_with(self.root/"pc",expected_race_id=self.race)
+    self.assertEqual(r["selected_channel"],"PC")
+    self.assertFalse(r["independent_official_source_authenticated"])
+ def test_sp_fallback_calls_existing_original_gate(self):
+    self.save("SP",[self.attempt("PC"),self.attempt("SP",True)])
+    with patch("diagnostics.kyoto_nov15_capture_acceptance.assess_saved_capture",
+               return_value={"state":"OFFLINE_SOURCE_BYTES_MATCH_RECEIPT"}) as gate:
+        r=self.check()
+    gate.assert_called_once_with(self.root/"sp",expected_race_id=self.race)
+    self.assertEqual(r["selected_channel"],"SP")
+    self.assertFalse(r["market_value_parity_verified"])
+ def test_both_failed_never_release(self):
+    self.save(None,[self.attempt("PC"),self.attempt("SP")],state="SAFE_STOP")
+    with self.assertRaisesRegex(CaptureAcceptanceRejected,"hybrid_no_valid_selected_channel"):
+        self.check()
+ def test_mismatched_selected_state_rejected(self):
+    self.save("SP",[self.attempt("PC"),self.attempt("SP")])
+    with self.assertRaisesRegex(CaptureAcceptanceRejected,"hybrid_selected_source_not_frozen"):
+        self.check()
+ def test_forged_race_id_rejected(self):
+    self.save("PC",[self.attempt("PC",True)],race_id="2026-11-14_KYOTO_11R")
+    with self.assertRaisesRegex(CaptureAcceptanceRejected,"hybrid_race_identity_conflict"):
+        self.check()
+ def test_duplicate_channel_attempt_rejected(self):
+    self.save("PC",[self.attempt("PC",True),self.attempt("PC",True)])
+    with self.assertRaisesRegex(CaptureAcceptanceRejected,"hybrid_no_valid_selected_channel"):
+        self.check()
+ def test_selected_source_without_original_receipt_is_not_success(self):
+    self.save("SP",[self.attempt("PC"),self.attempt("SP",True)])
+    with self.assertRaisesRegex(CaptureAcceptanceRejected,"capture_folder_invalid"):
+        self.check()
+
 if __name__=="__main__":
  unittest.main()
