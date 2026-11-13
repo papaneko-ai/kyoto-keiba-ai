@@ -71,6 +71,14 @@ class ObservationTests(unittest.TestCase):
     self.assertEqual(r["http_requests_started"],3)
     self.assertEqual(len(opener.urls),3)
     self.assertEqual(self.pacer.before_request.call_count,3)
+ def test_invalid_pacer_rejected_without_http_and_keeps_receipt(self):
+    opener=Stub()
+    result=observe(self.root,now_utc="2026-11-15T02:00:00Z",
+                   opener=opener,allowed=True,pacer=object())
+    self.assertEqual(result["state"],"FAILED_CLOSED")
+    self.assertEqual(result["http_requests_started"],0)
+    self.assertEqual(len(opener.urls),0)
+    self.assertTrue((self.root/"receipt.json").is_file())
  def test_pacer_failure_prevents_even_first_get(self):
     opener=Stub()
     self.pacer.before_request.side_effect=RuntimeError("pacer_failure")
