@@ -58,6 +58,7 @@ jobs:
           python -m unittest discover -s tests -p 'test_p7_hybrid_model_registry.py' -v
           python -m unittest discover -s tests -p 'test_kyoto_nov14_fault_matrix_preflight.py' -v
           python -m unittest discover -s tests -p 'test_kyoto_nov14_nov15_second_day_handoff.py' -v
+          python -m unittest discover -s tests -p 'test_kyoto_nov15_workflow_safety.py' -v
           python -m unittest discover -s tests -p 'test_p3_hybrid_prediction_contract.py' -v
       - name: Reject research-CI inflation of operational completion
         run: |
