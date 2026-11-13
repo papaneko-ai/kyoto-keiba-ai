@@ -107,7 +107,7 @@ class Nov14NavigationTests(unittest.TestCase):
  def test_invalid_encoding_preserves_raw_source_and_sha(self):
     import hashlib
     from pathlib import Path
-    broken=b"<html>\\x81</html>"
+    broken=b"<html>\x81</html>"
     opener=StubOpener(StubReply(broken))
     with tempfile.TemporaryDirectory() as d:
         r=inspect_once(d,opener=opener,clock=AFTER_PUBLICATION)
