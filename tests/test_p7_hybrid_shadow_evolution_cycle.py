@@ -140,6 +140,21 @@ class CycleTests(unittest.TestCase):
     self.assertEqual(before,read_shadow(self.path))
     self.assertEqual(len(scored),4)
     self.assertTrue(all(s["champion_log_loss"]>s["candidate_log_loss"] for s in scored))
+ def test_same_settled_races_cannot_be_decided_twice(self):
+    self.setup_four()
+    self.decide()
+    with self.assertRaisesRegex(ShadowCycleRejected,"decision_reuses_or_omits_races"):
+        self.decide()
+ def test_recomputed_verdict_detects_even_rehashed_forgery(self):
+    from diagnostics.p7_hybrid_model_registry import _hash
+    self.setup_four()
+    self.decide()
+    lines=[json.loads(x) for x in self.path.read_text().splitlines()]
+    lines[-1]["data"]["decision"]["decision"]="ROLLBACK_TO_RETAINED_CHAMPION"
+    lines[-1]["event_sha256"]=_hash({k:v for k,v in lines[-1].items() if k!="event_sha256"})
+    self.path.write_text("\\n".join(json.dumps(x,sort_keys=True) for x in lines)+"\\n")
+    with self.assertRaisesRegex(ShadowCycleRejected,"decision_not_reproducible"):
+        read_shadow(self.path)
  def test_zero_result_probability_clamped_finite(self):
     self.freeze(1,candidate=0.0)
     self.settle(1)
