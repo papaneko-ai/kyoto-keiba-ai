@@ -37,11 +37,15 @@ def _read(opener, url):
     if (status!=200 or location!=url or "html" not in content_type.lower()
         or not 0<len(raw)<=LIMIT):
         raise ObservationRejected("unverified_http_response")
+    # Preserve response bytes before checking text encoding or page structure.
+    # The caller writes and hashes this raw original before parsing.
+    return raw
+
+def _validate_saved_html_encoding(raw):
     try:
         raw.decode("cp932",errors="strict")
     except UnicodeError as exc:
-        raise ObservationRejected("html_encoding_invalid") from exc
-    return raw
+        raise ObservationRejected("html_encoding_invalid_after_original_preserved") from exc
 
 def _single_observed_racecard(meeting_original, meeting_url):
     """Only actual racecard anchor, uniquely matched. Never synthesize a CNAME."""
@@ -95,6 +99,7 @@ def observe(selection_root, *, now_utc, opener=None, allowed=False,
         (root/"official_selection.html").write_bytes(selection)
         receipt["selection_sha256"]=hashlib.sha256(selection).hexdigest()
         receipt["selection_bytes"]=len(selection)
+        _validate_saved_html_encoding(selection)
         meeting_url,meeting_label=_parse_kyoto(selection,SOURCE)
         receipt["observed_meeting_url"]=meeting_url
         receipt["meeting_label"]=meeting_label
@@ -104,6 +109,7 @@ def observe(selection_root, *, now_utc, opener=None, allowed=False,
         (root/"official_meeting.html").write_bytes(meeting)
         receipt["meeting_sha256"]=hashlib.sha256(meeting).hexdigest()
         receipt["meeting_bytes"]=len(meeting)
+        _validate_saved_html_encoding(meeting)
         # Optional third request is restricted to an exact observed race URL.
         # This is raw source capture, never a roster/start/odds certification.
         if include_observed_racecard is True:
@@ -121,6 +127,7 @@ def observe(selection_root, *, now_utc, opener=None, allowed=False,
                 receipt["racecard_sha256"]=hashlib.sha256(racecard).hexdigest()
                 receipt["racecard_bytes"]=len(racecard)
                 receipt["racecard_original_fetched"]=True
+                _validate_saved_html_encoding(racecard)
                 receipt["racecard_observation"]="ORIGINAL_BYTES_CAPTURED_NOT_ROSTER_AUTHENTICATED"
         # This is a link observation, not a prerace market, independent roster
         # or correctness proof for the content supplied by JRA.
