@@ -1,0 +1,62 @@
+{
+  "schema": "kyoto_ai_20261113_14_15_contingency_implementation_checkpoint.v1",
+  "date_jst": "2026-11-13",
+  "branch": "jra-html-diagnostic-20261105",
+  "milestone": "P1_NOV14_FAILURE_DIAGNOSIS_TO_NOV15_SEPARATE_GUARDED_ONE_SHOT_IMPLEMENTED_LAB_ACCEPTED",
+  "files": [
+    "diagnostics/kyoto_nov14_nov15_second_day_handoff.py",
+    "tests/test_kyoto_nov14_nov15_second_day_handoff.py",
+    "tests/test_kyoto_nov15_workflow_safety.py",
+    ".github/workflows/kyoto-nov15-second-day-observed-oneshot.yml",
+    ".github/workflows/kyoto-ai-always-run-continuity.yml",
+    "docs/KYOTO_AI_20261113_NOV14_NOV15_TWO_STAGE_REAL_CAPTURE_IMPLEMENTATION.md"
+  ],
+  "verification": {
+    "full_continuity_ci_run": 43340766111,
+    "job_id": 131608194084,
+    "tested_commit": "a2e38a7fd1500e466eba7a435fff6948f9af0d2d",
+    "conclusion": "success",
+    "day14_day15_handoff_tests": 24,
+    "workflow_preflight_safety_tests": 12,
+    "new_tests_passed": 36,
+    "real_JRA_HTTP_this_development": 0,
+    "real_nov15_market_original_authenticated": false
+  },
+  "requirements": [
+    "Nov14 remains distinct: old 43142384975 FAILED_CLOSED attempted one GET, reactivation blocked",
+    "Nov14 failure classifier never invents original or claims precise root cause without supporting receipt",
+    "Nov15 stored JRA selection + Kyoto meeting HTML original anchor chain must independently agree with PC racecard observed URL",
+    "Existing ObservedRaceSpec race-date, roster, normal sales time, pre-cutoff checks reused",
+    "One separate Nov15 workflow-dispatch or explicit push activation; no ordinary push-triggered JRA capture",
+    "GitHub prior runs, run attempt, concurrency guard and current race evidence checked before any official GET; fail closed if audit unreachable",
+    "PC-first source-only capture uses existing market collector, independent SP URL is not guessed",
+    "Do not pass JRA original market prices or result receipts from Nov14 to Nov15",
+    "Save immutable source-only receipts to 30-day Actions artifact; no wager execution"
+  ],
+  "remaining_nonclaims": [
+    "No observed 2026-11-15 official original is supplied or authenticated yet",
+    "No unattended automatic 2026-11-15 capture without source preparation and explicit manual activation is enabled",
+    "Workflow is only present on development branch; manual workflow_dispatch availability may depend on default branch, hence push activation alternative",
+    "Stored operator HTML claims need independent source authentication in live P1 gate before operational certification",
+    "Day14 2026-11-12 failed early attempt cannot be converted into a valid pre-publication original",
+    "Cross-workflow host-wide deduplication against all other unrelated manual capture workflows has not been proven",
+    "Research offline approval is not live JRA performance certification"
+  ],
+  "fixed_progress": {
+    "research": "100% (32/32)",
+    "research_graduation": "100% (12/12)",
+    "major_function_integration": "100% (21/21)",
+    "real_live": "0/6",
+    "operational": "0/100",
+    "final20": "35/100",
+    "credit_change": 0
+  },
+  "protected": [
+    "main",
+    "Turso production",
+    "published Streamlit",
+    "Secrets",
+    "real tickets"
+  ],
+  "next_step": "Obtain genuinely observed Nov15 official selection/meeting/racecard/roster and independently checked start UTC; provide inputs; execute one explicitly authorized PC-only bounded diagnostic on Nov15; audit raw bytes+SHA+markets+timing without certifying on code alone"
+}
