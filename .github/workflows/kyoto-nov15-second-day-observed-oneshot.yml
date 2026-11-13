@@ -1,5 +1,8 @@
 name: Kyoto Nov15 second-day PC original-observed one-shot diagnostic
 on:
+  push:
+    branches: [jra-html-diagnostic-20261105]
+    paths: ['diagnostics/nov15_pc_explicit_activation.txt']
   workflow_dispatch:
     inputs:
       confirmation:
@@ -29,17 +32,17 @@ concurrency:
   cancel-in-progress: false
 jobs:
   nov15-bounded-diagnostic:
-    if: github.event.inputs.confirmation == 'NOV15-ONE-SHOT-READ-ONLY'
+    if: github.event_name == 'push' || github.event.inputs.confirmation == 'NOV15-ONE-SHOT-READ-ONLY'
     runs-on: ubuntu-latest
     timeout-minutes: 8
     env:
       PYTHONPATH: .
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      SPEC: ${{ inputs.race_spec_path }}
-      ROSTER: ${{ inputs.current_roster_path }}
-      OFFICIAL_SELECTION: ${{ inputs.official_selection_original_path }}
-      OFFICIAL_MEETING: ${{ inputs.official_meeting_original_path }}
-      START_UTC: ${{ inputs.race_start_utc }}
+      SPEC: ${{ inputs.race_spec_path || 'docs/diagnostics/nov15_pc_observed_race_spec.json' }}
+      ROSTER: ${{ inputs.current_roster_path || 'docs/diagnostics/nov15_pc_current_roster.json' }}
+      OFFICIAL_SELECTION: ${{ inputs.official_selection_original_path || 'docs/diagnostics/nov15_pc_official_selection.html' }}
+      OFFICIAL_MEETING: ${{ inputs.official_meeting_original_path || 'docs/diagnostics/nov15_pc_official_meeting.html' }}
+      START_UTC: ${{ inputs.race_start_utc || '' }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -71,12 +74,26 @@ jobs:
           for key in ("OFFICIAL_SELECTION","OFFICIAL_MEETING"):
               if not os.environ[key].endswith(".html"):
                   raise SystemExit("NOV15_HTML_REQUIRED:"+key)
-          if (os.environ.get("GITHUB_RUN_ATTEMPT")!="1"
-              or os.environ.get("GITHUB_EVENT_NAME")!="workflow_dispatch"):
+          if os.environ.get("GITHUB_RUN_ATTEMPT")!="1":
               raise SystemExit("NOV15_NO_WORKFLOW_RERUN")
+          if os.environ.get("GITHUB_EVENT_NAME")=="push":
+              gate=Path("diagnostics/nov15_pc_explicit_activation.txt")
+              if not gate.is_file() or gate.read_text(encoding="utf8").strip()!="NOV15-ONE-SHOT-READ-ONLY":
+                  raise SystemExit("NOV15_PUSH_EXPLICIT_ACTIVATION_MISSING")
+              if not os.environ["START_UTC"]:
+                  settings=Path("docs/diagnostics/nov15_pc_verified_start_utc.txt")
+                  if not settings.is_file():
+                      raise SystemExit("NOV15_VERIFIED_START_NOT_PROVIDED")
+                  start=settings.read_text(encoding="utf8").strip()
+                  if not re.fullmatch(r"2026-11-15T[0-2]\\d:[0-5]\\d:[0-5]\\dZ",start):
+                      raise SystemExit("NOV15_START_UTC_FILE_INVALID")
+                  with open(os.environ["GITHUB_ENV"],"a",encoding="utf8") as out:
+                      out.write("START_UTC="+start+"\\n")
+          elif os.environ.get("GITHUB_EVENT_NAME")!="workflow_dispatch":
+              raise SystemExit("NOV15_UNEXPECTED_TRIGGER")
           repo=os.environ["GITHUB_REPOSITORY"]
           workflow="kyoto-nov15-second-day-observed-oneshot.yml"
-          url=f"https://api.github.com/repos/{repo}/actions/workflows/{workflow}/runs?event=workflow_dispatch&per_page=100"
+          url=f"https://api.github.com/repos/{repo}/actions/workflows/{workflow}/runs?per_page=100"
           request=Request(url,headers={
               "Authorization":"Bearer "+os.environ["GITHUB_TOKEN"],
               "Accept":"application/vnd.github+json",
