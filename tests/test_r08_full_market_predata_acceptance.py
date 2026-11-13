@@ -5,11 +5,11 @@ from itertools import combinations
 from diagnostics.jra_p1_offline_handoff import export_bundle
 from diagnostics.p4_source_bound_model_ev_research import compare_source_market_to_frozen_model
 from diagnostics.p4_temporal_market_controls import TemporalMarketRejected
-from test_p1_three_original_content_binding import StrictThreeOriginalContentTests, market_html, NOW
+import test_p1_three_original_content_binding as binding
 
 class R08FullMarketAcceptance(unittest.TestCase):
     def setUp(self):
-        f=StrictThreeOriginalContentTests(methodName='test_all_three_originals_match')
+        f=binding.StrictThreeOriginalContentTests(methodName='test_all_three_originals_match')
         f.setUp()
         self.addCleanup(f.doCleanups)
         self.fixture=f
@@ -27,8 +27,8 @@ class R08FullMarketAcceptance(unittest.TestCase):
         f.set_original(0,(roster+'</table></body></html>').encode('cp932'))
         q=[' '.join([str(i)]+[f'{j} {2+i+j:.1f}' for j in range(i+1,17)]) for i in range(1,16)]
         b=[' '.join(f'{j} {3+i+j:.1f}' for j in range(i,9)) for i in range(1,9)]
-        f.set_original(1,market_html('馬連オッズ','umaren',q))
-        f.set_original(2,market_html('枠連オッズ','waku',b))
+        f.set_original(1,binding.market_html('馬連オッズ','umaren',q))
+        f.set_original(2,binding.market_html('枠連オッズ','waku',b))
         self.model={'provenance':'LAB_SYNTHETIC_ONLY','race_date':'2026-11-14',
             'race_number':1,'venue':'京都','frozen_utc':'2026-11-13T04:00:00Z',
             'cutoff_utc':'2026-11-14T04:50:00Z',
@@ -39,9 +39,9 @@ class R08FullMarketAcceptance(unittest.TestCase):
         m=copy.deepcopy(self.model)
         if mutate:mutate(s)
         if model_mutate:model_mutate(m)
-        bundle=export_bundle(self.fixture.manifest,self.fixture.root,observed_utc=NOW)
+        bundle=export_bundle(self.fixture.manifest,self.fixture.root,observed_utc=binding.NOW)
         return compare_source_market_to_frozen_model(bundle=bundle,snapshot=s,
-            observed_utc=NOW,channel='PC',frozen_model=m,**opts)
+            observed_utc=binding.NOW,channel='PC',frozen_model=m,**opts)
     def reject(self,mutate=None,model_mutate=None,**opts):
         with self.assertRaises(ValueError):self.check(mutate,model_mutate,**opts)
     def test_full_16_horse_120_pair_and_36_bracket_pair_ev(self):
