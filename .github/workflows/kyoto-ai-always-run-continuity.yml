@@ -64,6 +64,7 @@ jobs:
           python -m unittest discover -s tests -p 'test_kyoto_nov15_two_original_observer.py' -v
           python -m unittest discover -s tests -p 'test_kyoto_nov15_encrypted_evidence.py' -v
           python -m unittest discover -s tests -p 'test_kyoto_nov15_full_capture_seal.py' -v
+          python -m unittest discover -s tests -p 'test_kyoto_nov15_secure_workflow_gates.py' -v
           python -m unittest discover -s tests -p 'test_p3_hybrid_prediction_contract.py' -v
       - name: Reject research-CI inflation of operational completion
         run: |
