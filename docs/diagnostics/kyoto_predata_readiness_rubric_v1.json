@@ -52,7 +52,10 @@
       "title": "馬連枠連全組合せ確率",
       "phase": "P3",
       "acceptance": "順序付き確率から馬連枠連を計算し同枠・確率総和を検証する",
-      "automation": null
+      "automation": {
+        "suite": "test_r06_pair_frame_fixed_acceptance.py",
+        "tests": 14
+      }
     },
     {
       "id": "R07",
