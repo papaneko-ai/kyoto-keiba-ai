@@ -98,16 +98,8 @@ class SPSourceTests(unittest.TestCase):
     def test_observed_sp_menu_and_both_market_originals(self):
         from diagnostics.kyoto_sp_observed_source import capture_verified_sp_seed
         from urllib.parse import parse_qs
-        racecard=(
-            '<html><a onclick="doAction(\\'/JRADB/accessO.html\\','
-            '\\'sw01oddsmenu20261115/AA\\')">オッズ</a></html>').encode("cp932")
-        menu=(
-            '<html><head><title>オッズ</title></head><body>'
-            '<a onclick="doAction(\\'/JRADB/accessO.html\\','
-            '\\'sw01market1220261115/AA\\')">馬連</a>'
-            '<a onclick="doAction(\\'/JRADB/accessO.html\\','
-            '\\'sw01bracket1220261115/BB\\')">枠連</a>'
-            '</body></html>').encode("cp932")
+        racecard="""<html><a onclick="doAction('/JRADB/accessO.html','sw01oddsmenu20261115/AA')">オッズ</a></html>""".encode("cp932")
+        menu="""<html><head><title>オッズ</title></head><body><a onclick="doAction('/JRADB/accessO.html','sw01market1220261115/AA')">馬連</a><a onclick="doAction('/JRADB/accessO.html','sw01bracket1220261115/BB')">枠連</a></body></html>""".encode("cp932")
         class Reply(FakeResponse):
             def __init__(self,url,raw):
                 super().__init__(url)
