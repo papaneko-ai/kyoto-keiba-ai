@@ -4,9 +4,13 @@ Secret is provided only at runtime. Neither key nor plaintext gets committed.
 This is not source authenticity; original claims remain separately audited.
 """
 from __future__ import annotations
-import hashlib,io,json,re,secrets,tarfile
+import hashlib,io,json,re,secrets,tarfile,os
 from pathlib import Path
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
+
+DAY=os.environ.get("KYOTO_TARGET_DAY","20261115")
+if not re.fullmatch(r"20[0-9]{6}",DAY):
+    raise ValueError("race_day_invalid")
 
 FILES={"official_selection.html","official_meeting.html","official_racecard.html","official_odds_menu.html","official_odds_navigation_1.html","official_odds_navigation_2.html","official_quinella_odds.html","official_bracket_quinella_odds.html","observed_race_links.json","receipt.json"}
 class EvidenceCryptoRejected(ValueError):pass
@@ -19,7 +23,7 @@ def _key(s):
 def _aad(repo,run_id):
     if not re.fullmatch(r"[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+",repo) or not str(run_id).isdigit():
         raise EvidenceCryptoRejected("repo_or_run_invalid")
-    return (repo+"|"+str(run_id)+"|20261115").encode("ascii")
+    return (repo+"|"+str(run_id)+"|"+DAY).encode("ascii")
 
 def encrypt_evidence(source,out,*,key_hex,repo,run_id):
     key=_key(key_hex);aad=_aad(repo,run_id)
@@ -43,7 +47,7 @@ def encrypt_evidence(source,out,*,key_hex,repo,run_id):
     out.mkdir()
     (out/"originals.tar.gz.aesgcm").write_bytes(sealed)
     manifest={"schema":"kyoto_nov15_encrypted_artifact.v1",
-              "repo":repo,"run_id":str(run_id),"day":"20261115",
+              "repo":repo,"run_id":str(run_id),"day":DAY,
               "nonce_hex":nonce.hex(),"ciphertext_sha256":hashlib.sha256(sealed).hexdigest(),
               "file_names":sorted(p.name for p in files),
               "encryption":"AES-256-GCM","plaintext_uploaded":False}
@@ -62,7 +66,7 @@ def decrypt_evidence(source,out,*,key_hex,repo,run_id):
         raise EvidenceCryptoRejected("encrypted_artifact_missing") from exc
     if (m.get("schema")!="kyoto_nov15_encrypted_artifact.v1"
         or m.get("repo")!=repo or m.get("run_id")!=str(run_id)
-        or m.get("day")!="20261115" or m.get("encryption")!="AES-256-GCM"
+        or m.get("day")!=DAY or m.get("encryption")!="AES-256-GCM"
         or m.get("plaintext_uploaded") is not False
         or not isinstance(m.get("file_names"),list)
         or not set(m["file_names"])<=FILES
