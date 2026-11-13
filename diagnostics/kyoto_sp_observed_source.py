@@ -119,7 +119,7 @@ def capture_verified_sp_seed(originals, *, race_day, race_number, source_url,
         receipt["state"]="SP_HTTP_FAILED"
         receipt["error_class"]=type(exc).__name__
     (root/"sp_receipt.json").write_text(
-        json.dumps(receipt,ensure_ascii=False,sort_keys=True,indent=2)+"\\n",
+        json.dumps(receipt,ensure_ascii=False,sort_keys=True,indent=2)+"\n",
         encoding="utf8")
     return receipt
 
