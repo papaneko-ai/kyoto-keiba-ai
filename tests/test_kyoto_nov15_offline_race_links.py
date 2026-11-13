@@ -43,7 +43,7 @@ class OfflineRaceLinksTests(unittest.TestCase):
     path=self.root/"receipt.json"
     r=json.loads(path.read_text(encoding="utf8"))
     r.update({"state":"NOV15_RACECARD_ORIGINAL_OBSERVED_ROSTER_UNVERIFIED",
-              "racecard_original_fetched":True,
+              "racecard_original_fetched":True,"http_requests_started":3,
               "racecard_number":1,"observed_racecard_url":RACE,
               "racecard_sha256":hashlib.sha256(raw).hexdigest(),
               "racecard_bytes":len(raw),
@@ -74,7 +74,7 @@ class OfflineRaceLinksTests(unittest.TestCase):
     path=self.root/"receipt.json"
     r=json.loads(path.read_text(encoding="utf8"))
     r.update({"state":"NOV15_RACECARD_ORIGINAL_OBSERVED_ROSTER_UNVERIFIED",
-              "racecard_original_fetched":True,
+              "racecard_original_fetched":True,"http_requests_started":3,
               "racecard_number":1,"observed_racecard_url":RACE,
               "racecard_sha256":hashlib.sha256(race_raw).hexdigest(),
               "racecard_bytes":len(race_raw),
@@ -93,7 +93,7 @@ class OfflineRaceLinksTests(unittest.TestCase):
     path=self.root/"receipt.json"
     r=json.loads(path.read_text(encoding="utf8"))
     r.update({"state":"NOV15_RACECARD_ORIGINAL_OBSERVED_ROSTER_UNVERIFIED",
-              "racecard_original_fetched":True,
+              "racecard_original_fetched":True,"http_requests_started":3,
               "racecard_number":1,"observed_racecard_url":"https://jra.jp/JRADB/accessD.html?CNAME=pw020abc01%2F0120261115",
               "racecard_sha256":hashlib.sha256(raw).hexdigest(),
               "racecard_bytes":len(raw)})
