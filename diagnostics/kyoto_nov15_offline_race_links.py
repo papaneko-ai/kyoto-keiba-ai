@@ -71,7 +71,34 @@ def derive_nov15_race_links(folder):
                 "structure_diagnostic_pass":bool(parsed_rows) and not parse_errors,
                 "official_roster_authenticated":False,
                 "independent_start_time_verified":False}
+            # Carry an exact observed odds-navigation action forward rather
+            # than stopping after HTML capture or inventing a market CNAME.
+            # Reuse the established market capturer, offline (zero GET).
+            from diagnostics.jra_one_shot_market_capture import exact_odds_action
+            try:
+                action=exact_odds_action(raw_race,"PC")
+                odds_handoff={
+                    "state":"ODDS_ACTION_OBSERVED_IN_SAVED_PC_RACECARD",
+                    "channel":"PC",
+                    "source_racecard_sha256":hashlib.sha256(raw_race).hexdigest(),
+                    "source_racecard_url":url,
+                    "source_captured_at_utc":receipt.get("racecard_captured_at_utc"),
+                    "action_cname":action,
+                    "official_menu_url":"https://jra.jp/JRADB/accessO.html",
+                    "odds_original_fetched":False,
+                    "market_values_verified":False,
+                    "network_requests":0}
+            except (ValueError,TypeError) as exc:
+                odds_handoff={
+                    "state":"OFFICIAL_ODDS_ACTION_MISSING_OR_AMBIGUOUS",
+                    "channel":"PC",
+                    "source_racecard_sha256":hashlib.sha256(raw_race).hexdigest(),
+                    "failure_class":type(exc).__name__,
+                    "odds_original_fetched":False,
+                    "market_values_verified":False,
+                    "network_requests":0}
             observed_original={
+                "odds_navigation_handoff":odds_handoff,
                 "race_number":number,"url":url,
                 "sha256":hashlib.sha256(raw_race).hexdigest(),
                 "bytes":len(raw_race),
