@@ -124,7 +124,9 @@ def observe(selection_root, *, now_utc, opener=None, allowed=False,
                 receipt["racecard_observation"]="ORIGINAL_BYTES_CAPTURED_NOT_ROSTER_AUTHENTICATED"
         # This is a link observation, not a prerace market, independent roster
         # or correctness proof for the content supplied by JRA.
-        receipt["state"]="NOV15_MEETING_ORIGINALS_OBSERVED_NOT_RACECARD"
+        receipt["state"]=("NOV15_RACECARD_ORIGINAL_OBSERVED_ROSTER_UNVERIFIED"
+                          if receipt["racecard_original_fetched"] else
+                          "NOV15_MEETING_ORIGINALS_OBSERVED_NOT_RACECARD")
     except Exception as exc:
         receipt["state"]="FAILED_CLOSED"
         receipt["error_class"]=type(exc).__name__
@@ -141,7 +143,8 @@ def accept_observation(folder):
         receipt=json.loads((root/"receipt.json").read_text(encoding="utf8"))
     except (OSError,ValueError) as exc:
         raise ObservationRejected("receipt_missing") from exc
-    if receipt.get("state")!="NOV15_MEETING_ORIGINALS_OBSERVED_NOT_RACECARD":
+    if receipt.get("state") not in ("NOV15_MEETING_ORIGINALS_OBSERVED_NOT_RACECARD",
+                                   "NOV15_RACECARD_ORIGINAL_OBSERVED_ROSTER_UNVERIFIED"):
         raise ObservationRejected("observation_not_successful")
     for filename,prefix in (("official_selection.html","selection"),
                             ("official_meeting.html","meeting")):
