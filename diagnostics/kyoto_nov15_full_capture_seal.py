@@ -59,9 +59,16 @@ def decrypt_capture_directory(source,out,*,key_hex,repo,run_id):
     src=Path(source);dst=Path(out)
     if src.is_symlink() or not src.is_dir() or dst.exists() or not dst.parent.is_dir():
         raise EvidenceCryptoRejected("encrypted_capture_input_or_output_invalid")
+    manifest_path=src/"manifest.json"
+    ciphertext_path=src/"capture.tar.gz.aesgcm"
+    if (manifest_path.is_symlink() or ciphertext_path.is_symlink()
+        or not manifest_path.is_file() or not ciphertext_path.is_file()
+        or not 0<manifest_path.stat().st_size<=100_000
+        or not 16<ciphertext_path.stat().st_size<=MAX_TOTAL+1_000_000):
+        raise EvidenceCryptoRejected("encrypted_capture_file_unsafe")
     try:
-        m=json.loads((src/"manifest.json").read_text())
-        sealed=(src/"capture.tar.gz.aesgcm").read_bytes()
+        m=json.loads(manifest_path.read_text())
+        sealed=ciphertext_path.read_bytes()
     except (OSError,ValueError) as exc:
         raise EvidenceCryptoRejected("encrypted_capture_artifact_missing") from exc
     names=m.get("file_names")
@@ -74,19 +81,31 @@ def decrypt_capture_directory(source,out,*,key_hex,repo,run_id):
             r"[A-Za-z0-9_.-]+(?:/[A-Za-z0-9_.-]+)*",n) or
             ".." in n.split("/") for n in names) or
         "nov15_preflight_receipt.json" not in names or
+        len(names)!=len(set(names)) or
+        not isinstance(m.get("nonce_hex"),str) or
+        not re.fullmatch(r"[0-9a-f]{24}",m["nonce_hex"]) or
         hashlib.sha256(sealed).hexdigest()!=m.get("ciphertext_sha256")):
         raise EvidenceCryptoRejected("capture_manifest_tampered")
     try:
         payload=AESGCM(key).decrypt(bytes.fromhex(m["nonce_hex"]),sealed,aad)
         with tarfile.open(fileobj=io.BytesIO(payload),mode="r:gz") as archive:
             members=archive.getmembers()
-            if sorted(x.name for x in members)!=sorted(names):
+            if (len(members)!=len(names) or
+                len({x.name for x in members})!=len(members) or
+                sorted(x.name for x in members)!=sorted(names) or
+                sum(x.size for x in members)>MAX_TOTAL):
                 raise EvidenceCryptoRejected("capture_archive_inventory_mismatch")
             content={}
             for x in members:
                 if not x.isfile() or x.size>MAX_FILE or x.name not in names:
                     raise EvidenceCryptoRejected("capture_unsafe_tar_member")
-                content[x.name]=archive.extractfile(x).read()
+                stream=archive.extractfile(x)
+                if stream is None:
+                    raise EvidenceCryptoRejected("capture_member_unreadable")
+                raw=stream.read(x.size+1)
+                if len(raw)!=x.size:
+                    raise EvidenceCryptoRejected("capture_member_size_mismatch")
+                content[x.name]=raw
     except (ValueError,tarfile.TarError,KeyError,InvalidTag) as exc:
         raise EvidenceCryptoRejected("capture_decryption_failed") from exc
     dst.mkdir()
