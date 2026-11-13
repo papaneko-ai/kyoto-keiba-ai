@@ -207,6 +207,66 @@ class ExistingHybridOddsTests(unittest.TestCase):
    saved=json.loads((pathlib.Path(d)/"hybrid_receipt.json").read_text())
    self.assertEqual(saved,result)
   return result,calls
+ def test_pc_primary_only_without_sp_url_preserves_capture(self):
+  from dataclasses import replace
+  from diagnostics.jra_one_shot_market_capture import capture_hybrid
+  spec=replace(self.spec,sp_racecard_url="")
+  called=[]
+  def stub(out,**kwargs):
+   called.append(kwargs["channel"])
+   return {"channel":"PC","race_id":spec.race_id,
+           "state":"SOURCE_FROZEN","pre_race_prices_accepted":True}
+  with tempfile.TemporaryDirectory() as d:
+   r=capture_hybrid(d,primary_channel="PC",
+     verified_start_utc="2026-11-07T06:45:00Z",
+     active_runners=self.runners,race_spec=spec,capture_fn=stub)
+  self.assertEqual(called,["PC"])
+  self.assertEqual(r["selected_channel"],"PC")
+  self.assertTrue(r["source_capture_usable_for_offline_analysis"])
+  self.assertFalse(r["other_channel_link_observed"])
+  self.assertFalse(r["dual_channel_experiment_complete"])
+ def test_missing_sp_link_never_triggers_guessed_fallback(self):
+  from dataclasses import replace
+  from diagnostics.jra_one_shot_market_capture import capture_hybrid
+  spec=replace(self.spec,sp_racecard_url="")
+  called=[]
+  def stub(out,**kwargs):
+   called.append(kwargs["channel"])
+   return {"channel":"PC","race_id":spec.race_id,
+           "state":"CAPTURE_BLOCKED","pre_race_prices_accepted":False,
+           "reason":"TimeoutError:timed out"}
+  with tempfile.TemporaryDirectory() as d:
+   r=capture_hybrid(d,primary_channel="PC",
+     verified_start_utc="2026-11-07T06:45:00Z",
+     active_runners=self.runners,race_spec=spec,capture_fn=stub)
+  self.assertEqual(called,["PC"])
+  self.assertTrue(r["fallback_not_attempted_missing_official_link"])
+  self.assertIsNone(r["selected_channel"])
+ def test_sp_only_source_capture_without_pc_url(self):
+  from dataclasses import replace
+  from diagnostics.jra_one_shot_market_capture import capture_hybrid
+  spec=replace(self.spec,pc_racecard_url="")
+  called=[]
+  def stub(out,**kwargs):
+   called.append(kwargs["channel"])
+   return {"channel":"SP","race_id":spec.race_id,
+           "state":"SOURCE_FROZEN","pre_race_prices_accepted":True}
+  with tempfile.TemporaryDirectory() as d:
+   r=capture_hybrid(d,primary_channel="SP",
+     verified_start_utc="2026-11-07T06:45:00Z",
+     active_runners=self.runners,race_spec=spec,capture_fn=stub)
+  self.assertEqual(called,["SP"])
+  self.assertEqual(r["selected_channel"],"SP")
+  self.assertTrue(r["source_capture_usable_for_offline_analysis"])
+ def test_primary_link_missing_refuses_http(self):
+  from dataclasses import replace
+  from diagnostics.jra_one_shot_market_capture import capture_hybrid
+  spec=replace(self.spec,pc_racecard_url="")
+  with tempfile.TemporaryDirectory() as d:
+   with self.assertRaisesRegex(SourceChainError,"required_observed_racecard_url_missing"):
+    capture_hybrid(d,primary_channel="PC",
+     verified_start_utc="2026-11-07T06:45:00Z",
+     active_runners=self.runners,race_spec=spec,capture_fn=lambda *args,**kw:None)
  def test_primary_success_no_duplicate_sp(self):
   r,calls=self.run_hybrid(states={"PC":"SOURCE_FROZEN"})
   self.assertEqual(calls,["PC"])
