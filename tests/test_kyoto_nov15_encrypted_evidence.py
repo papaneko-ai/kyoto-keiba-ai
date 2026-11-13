@@ -29,6 +29,15 @@ class CryptoTests(unittest.TestCase):
     self.assertTrue(x["authentication_tag_verified"])
     self.assertEqual((self.decrypted/"official_selection.html").read_bytes(),
                      (self.raw/"official_selection.html").read_bytes())
+ def test_observed_racecard_third_original_is_encrypted_and_restored(self):
+    (self.raw/"official_racecard.html").write_bytes(b"<html>actual source fixture</html>")
+    self.seal()
+    result=self.restore()
+    self.assertIn("official_racecard.html",result["files"])
+    self.assertEqual((self.decrypted/"official_racecard.html").read_bytes(),
+                     (self.raw/"official_racecard.html").read_bytes())
+    self.assertNotIn(b"actual source fixture",
+                     (self.enc/"originals.tar.gz.aesgcm").read_bytes())
  def test_no_plaintext_in_uploaded_output(self):
     self.seal()
     self.assertEqual({x.name for x in self.enc.iterdir()},
