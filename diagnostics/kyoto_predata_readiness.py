@@ -16,6 +16,7 @@ RUBRIC="docs/diagnostics/kyoto_predata_readiness_rubric_v1.json"
 CHECKS={
     "R03":("test_p2_first_second_feature_discovery_lab.py",12),
     "R05":("test_p3_three_window_selection_lab.py",13),
+    "R06":("test_r06_pair_frame_fixed_acceptance.py",14),
     "R09":("test_p3_p5_p6_synthetic_day_lab.py",14),
     "R12":("test_p6_virtual_settlement_fixture_lab.py",18),
 }
