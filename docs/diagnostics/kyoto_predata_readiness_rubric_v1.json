@@ -151,7 +151,10 @@
       "title": "新スマホUIと安全停止",
       "phase": "P8",
       "acceptance": "開催日・券種・順位・予算・凍結・累積収支・進化履歴のタップ操作と欠損表示を統合する",
-      "automation": null
+      "automation": {
+        "suite": "test_r15_safe_mobile_acceptance.py",
+        "tests": 24
+      }
     },
     {
       "id": "R16",
