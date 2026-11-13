@@ -1,0 +1,100 @@
+name: Kyoto Nov15 unattended encrypted official observer launcher
+on:
+  schedule:
+    - cron: '0 2 15 11 *'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: kyoto-nov15-source-acquisition-single-coordinator
+  cancel-in-progress: false
+jobs:
+  observed-only:
+    runs-on: ubuntu-latest
+    timeout-minutes: 7
+    env:
+      PYTHONPATH: .
+      ARCHIVE_KEY: ${{ secrets.KYOTO_JRA_ARCHIVE_AES256_HEX }}
+      GITHUB_TOKEN: ${{ github.token }}
+    steps:
+      - name: Checkout fixed verified development source (never default branch code)
+        uses: actions/checkout@v4
+        with:
+          ref: 4493457e1fb8c48baf289cbba754c0e94a9c42ec
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Pre-HTTP date, launch, key, revision and complete prior-run guard
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p nov15_unattended_evidence
+          python - <<'PY'
+          import os,re,subprocess
+          from datetime import datetime,timezone
+          from diagnostics.kyoto_nov15_two_original_observer import BEGIN,END
+          from diagnostics.kyoto_p1_github_attempt_history_gate import audit_previous_runs
+          now=datetime.now(timezone.utc)
+          if os.environ.get("GITHUB_EVENT_NAME")!="schedule":
+              raise SystemExit("NOV15_ONLY_SCHEDULED_UNATTENDED_OBSERVATION_NO_HTTP")
+          if os.environ.get("GITHUB_RUN_ATTEMPT")!="1":
+              raise SystemExit("NOV15_NO_RERUN")
+          if now.strftime("%Y-%m-%d")!="2026-11-15" or not BEGIN <= now < END:
+              raise SystemExit("NOV15_OUTSIDE_FIXED_OBSERVATION_WINDOW_NO_HTTP")
+          if not re.fullmatch(r"[0-9a-fA-F]{64}",os.environ.get("ARCHIVE_KEY","")):
+              raise SystemExit("NOV15_ARCHIVE_SECRET_INVALID_NO_HTTP")
+          actual=subprocess.check_output(["git","rev-parse","HEAD"],text=True).strip()
+          if actual!="4493457e1fb8c48baf289cbba754c0e94a9c42ec":
+              raise SystemExit("NOV15_SOURCE_REVISION_MISMATCH_NO_HTTP")
+          r=audit_previous_runs(
+              repo=os.environ["GITHUB_REPOSITORY"],token=os.environ["GITHUB_TOKEN"],
+              branch="main",current_run_id=os.environ["GITHUB_RUN_ID"],
+              workflow_name="Kyoto Nov15 unattended encrypted official observer launcher",
+              http_step="At most two already-observed official PC HTTP GET")
+          print("NOV15_PRE_HTTP_HISTORY_CHECKED="+str(len(r["prior_zero_http_runs"])))
+          print("NOV15_UNATTENDED_OBSERVER_DATE_AND_KEY_GATES_PASS")
+          PY
+      - name: Install parser and crypto
+        run: python -m pip install 'beautifulsoup4>=4.12,<5' 'cryptography>=43,<47'
+      - name: At most two already-observed official PC HTTP GET
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from datetime import datetime,timezone
+          from diagnostics.kyoto_nov15_two_original_observer import observe
+          r=observe("nov15_work_originals",
+                    now_utc=datetime.now(timezone.utc).isoformat(),allowed=True)
+          print("NOV15_OBSERVATION_STATE="+r["state"])
+          print("NOV15_ATTEMPTED_GET="+str(r["http_requests_started"]))
+          if r["state"]!="NOV15_MEETING_ORIGINALS_OBSERVED_NOT_RACECARD":
+              raise SystemExit("NOV15_FAILED_CLOSED")
+          PY
+      - name: Encrypt observation originals before artifact retention
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json,os,shutil
+          from pathlib import Path
+          from diagnostics.kyoto_nov15_encrypted_evidence import encrypt_evidence
+          source=Path("nov15_work_originals")
+          dest=Path("nov15_unattended_evidence")
+          if not source.is_dir():
+              (dest/"safe_stop.json").write_text(json.dumps({"state":"NO_CAPTURE_OR_PRE_HTTP_STOP","JRA_success":False})+"\n")
+          else:
+              shutil.rmtree(dest)
+              encrypt_evidence(source,dest,key_hex=os.environ["ARCHIVE_KEY"],
+                  repo=os.environ["GITHUB_REPOSITORY"],run_id=os.environ["GITHUB_RUN_ID"])
+              shutil.rmtree(source)
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: kyoto-nov15-unattended-encrypted-observation-${{ github.run_id }}
+          path: nov15_unattended_evidence/
+          retention-days: 30
+          if-no-files-found: error
