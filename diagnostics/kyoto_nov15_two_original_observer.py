@@ -161,6 +161,18 @@ def accept_observation(folder):
         raw=path.read_bytes()
         if not 0<len(raw)<=LIMIT or hashlib.sha256(raw).hexdigest()!=receipt.get(prefix+"_sha256") or len(raw)!=receipt.get(prefix+"_bytes"):
             raise ObservationRejected("observed_original_digest_mismatch")
+    # Verify the actual selection-to-meeting provenance chain, not merely
+    # separately hashed originals paired with a claimed meeting URL.
+    if receipt.get("selection_source")!=SOURCE or receipt.get("day")!=DAY:
+        raise ObservationRejected("selection_source_or_date_invalid")
+    try:
+        observed_meeting_url,observed_meeting_label=_parse_kyoto(
+            (root/"official_selection.html").read_bytes(),SOURCE)
+    except ObservationRejected as exc:
+        raise ObservationRejected("selection_meeting_original_link_invalid") from exc
+    if (receipt.get("observed_meeting_url")!=observed_meeting_url or
+        receipt.get("meeting_label")!=observed_meeting_label):
+        raise ObservationRejected("meeting_url_or_label_not_in_selection_original")
     has_racecard=receipt.get("racecard_original_fetched")
     expected_state=("NOV15_RACECARD_ORIGINAL_OBSERVED_ROSTER_UNVERIFIED"
                     if has_racecard is True else "NOV15_MEETING_ORIGINALS_OBSERVED_NOT_RACECARD")
