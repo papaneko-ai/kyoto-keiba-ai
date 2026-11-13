@@ -55,7 +55,7 @@ class SecondDayHandoffTests(unittest.TestCase):
     with self.assertRaisesRegex(SecondDayRejected,"racecard_link_not_bound"):
         self.handoff(spec_data=spec,roster=roster)
  def test_duplicate_meeting_anchor_fails(self):
-    s=SEL.replace(b"</body>",b'<a href="/JRADB/accessD.html?CNAME=pw01meet20261115%2FX2">京都 15日</a></body>')
+    s=SEL.replace(b"</body>",'<a href="/JRADB/accessD.html?CNAME=pw01meet20261115%2FX2">京都 15日</a></body>'.encode("cp932"))
     with self.assertRaisesRegex(SecondDayRejected,"ambiguous"):
         self.handoff(official_selection_original=s)
  def test_race_label_missing_fails(self):
