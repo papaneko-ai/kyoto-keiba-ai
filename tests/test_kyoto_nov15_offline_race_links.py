@@ -34,6 +34,38 @@ class OfflineRaceLinksTests(unittest.TestCase):
     self.assertEqual(d["http_requests"],0)
     self.assertFalse(d["start_times_verified"])
     self.assertFalse(d["roster_verified"])
+ def test_raw_racecard_source_evidence_propagates_without_market_claim(self):
+    raw=source("<table><tr><td>saved unverified original</td></tr></table>")
+    (self.root/"official_racecard.html").write_bytes(raw)
+    path=self.root/"receipt.json"
+    r=json.loads(path.read_text(encoding="utf8"))
+    r.update({"state":"NOV15_RACECARD_ORIGINAL_OBSERVED_ROSTER_UNVERIFIED",
+              "racecard_original_fetched":True,
+              "racecard_number":1,"observed_racecard_url":RACE,
+              "racecard_sha256":hashlib.sha256(raw).hexdigest(),
+              "racecard_bytes":len(raw),
+              "racecard_captured_at_utc":"2026-11-15T02:00:03+00:00"})
+    path.write_text(json.dumps(r),encoding="utf8")
+    result=derive_nov15_race_links(self.root)
+    self.assertTrue(result["racecard_originals_fetched"])
+    self.assertEqual(result["saved_racecard_original"]["sha256"],hashlib.sha256(raw).hexdigest())
+    self.assertEqual(result["saved_racecard_original"]["race_number"],1)
+    self.assertFalse(result["roster_verified"])
+    self.assertFalse(result["quinella_market_verified"])
+    self.assertFalse(result["bracket_market_verified"])
+ def test_forged_saved_racecard_url_rejected_even_with_matching_sha(self):
+    raw=source("<html>source</html>")
+    (self.root/"official_racecard.html").write_bytes(raw)
+    path=self.root/"receipt.json"
+    r=json.loads(path.read_text(encoding="utf8"))
+    r.update({"state":"NOV15_RACECARD_ORIGINAL_OBSERVED_ROSTER_UNVERIFIED",
+              "racecard_original_fetched":True,
+              "racecard_number":1,"observed_racecard_url":"https://jra.jp/JRADB/accessD.html?CNAME=pw020abc01%2F0120261115",
+              "racecard_sha256":hashlib.sha256(raw).hexdigest(),
+              "racecard_bytes":len(raw)})
+    path.write_text(json.dumps(r),encoding="utf8")
+    with self.assertRaises((OfflineRaceLinkRejected,ValueError)):
+        derive_nov15_race_links(self.root)
  def test_tampered_meeting_rejected(self):
     (self.root/"official_meeting.html").write_bytes(b"tamper")
     with self.assertRaises(OfflineRaceLinkRejected):derive_nov15_race_links(self.root)
