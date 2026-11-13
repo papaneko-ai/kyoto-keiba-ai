@@ -51,6 +51,19 @@ class ObservationTests(unittest.TestCase):
     self.assertFalse(result["both_markets_verified"])
     self.assertFalse(result["real_racecard_verified"])
     self.assertEqual(accept_observation(self.root)["state"],"TWO_ORIGINALS_MATCH_RECEIPT_ONLY")
+ def test_every_captured_original_has_utc_timestamp(self):
+    import json
+    race_anchor='<html><a href="/JRADB/accessD.html?CNAME=pw020aaa01%2F0120261115">京都 1R</a></html>'.encode("cp932")
+    class Three(Stub):
+      def open(self,request,timeout=12):
+        self.urls.append(request.full_url)
+        return R(request.full_url,self.selection if len(self.urls)==1 else race_anchor if len(self.urls)==2 else b"<html>racecard</html>")
+    result=observe(self.root,now_utc="2026-11-15T02:00:00Z",opener=Three(),allowed=True,
+                   include_observed_racecard=True)
+    for key in ("started_at_utc","selection_captured_at_utc",
+                "meeting_captured_at_utc","racecard_captured_at_utc","ended_at_utc"):
+        self.assertIn(key,result)
+        self.assertTrue(result[key].endswith("+00:00"))
  def test_no_observed_race_means_only_two_gets(self):
     stub=Stub()
     result=observe(self.root,now_utc="2026-11-15T02:00:00Z",opener=stub,
