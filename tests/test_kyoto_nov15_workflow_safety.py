@@ -27,6 +27,10 @@ class Nov15WorkflowSafetyTests(unittest.TestCase):
     self.assertIn('known_other_capture_names',self.s)
     self.assertIn('urlopen(request,timeout=12)',self.s)
     self.assertIn('actions: read',self.s)
+ def test_known_404_410_pc_link_repair_is_bounded(self):
+    self.assertIn("--auto-repair-broken-pc-link",self.s)
+    self.assertIn("--channel PC",self.s)
+    self.assertIn("python -m diagnostics.kyoto_nov15_capture_acceptance",self.s)
  def test_no_guessed_sp_urls(self):
     self.assertIn('--channel PC',self.s)
     self.assertNotIn('--channel SP',self.s)
