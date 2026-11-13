@@ -22,6 +22,7 @@ class OfflineRaceLinksTests(unittest.TestCase):
     (self.root/"official_meeting.html").write_bytes(meeting)
     (self.root/"receipt.json").write_text(json.dumps({
       "state":"NOV15_MEETING_ORIGINALS_OBSERVED_NOT_RACECARD",
+      "selection_source":OFFICIAL_ENTRY,"day":DAY,"racecard_original_fetched":False,
       "observed_meeting_url":MEETING,"meeting_label":"京都 20261115",
       "selection_sha256":hashlib.sha256(selection).hexdigest(),"selection_bytes":len(selection),
       "meeting_sha256":hashlib.sha256(meeting).hexdigest(),"meeting_bytes":len(meeting),
