@@ -99,8 +99,8 @@ def observe(selection_root, *, now_utc, opener=None, allowed=False,
         raise ObservationRejected("request_pacer_invalid")
     try:
         receipt["http_requests_started"]=1
-        selection=request_pacer.before_request()
-        _read(client,SOURCE)
+        request_pacer.before_request()
+        selection=_read(client,SOURCE)
         receipt["selection_captured_at_utc"]=datetime.now(timezone.utc).isoformat()
         (root/"official_selection.html").write_bytes(selection)
         receipt["selection_sha256"]=hashlib.sha256(selection).hexdigest()
@@ -110,8 +110,8 @@ def observe(selection_root, *, now_utc, opener=None, allowed=False,
         receipt["observed_meeting_url"]=meeting_url
         receipt["meeting_label"]=meeting_label
         receipt["http_requests_started"]=2
-        meeting=request_pacer.before_request()
-        _read(client,meeting_url)
+        request_pacer.before_request()
+        meeting=_read(client,meeting_url)
         receipt["meeting_captured_at_utc"]=datetime.now(timezone.utc).isoformat()
         (root/"official_meeting.html").write_bytes(meeting)
         receipt["meeting_sha256"]=hashlib.sha256(meeting).hexdigest()
@@ -128,8 +128,8 @@ def observe(selection_root, *, now_utc, opener=None, allowed=False,
                 receipt["racecard_number"]=race_number
                 receipt["observed_racecard_url"]=race_url
                 receipt["http_requests_started"]=3
-                racecard=request_pacer.before_request()
-                _read(client,race_url)
+                request_pacer.before_request()
+                racecard=_read(client,race_url)
                 receipt["racecard_captured_at_utc"]=datetime.now(timezone.utc).isoformat()
                 (root/"official_racecard.html").write_bytes(racecard)
                 receipt["racecard_sha256"]=hashlib.sha256(racecard).hexdigest()
