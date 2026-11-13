@@ -29,6 +29,14 @@ jobs:
           python-version: '3.11'
       - name: Install existing HTML parser only
         run: python -m pip install 'beautifulsoup4>=4.12,<5'
+      - name: Compile changed Python modules before tests
+        run: |
+          python -m py_compile diagnostics/kyoto_nov15_two_original_observer.py
+          python -m py_compile diagnostics/kyoto_nov15_offline_race_links.py
+          python -m py_compile diagnostics/jra_pc_sp_benchmark.py
+          python -m py_compile tests/test_kyoto_nov15_two_original_observer.py
+          python -m py_compile tests/test_kyoto_nov15_offline_race_links.py
+          python -m py_compile tests/test_jra_sp_observed_race_links_regression.py
       - name: Run focused offline tests without JRA HTTP
         run: |
           python -m unittest discover -s tests -p 'test_kyoto_nov15_two_original_observer.py' -v
