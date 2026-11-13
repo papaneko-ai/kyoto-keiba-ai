@@ -177,33 +177,37 @@ def observe(selection_root, *, now_utc, opener=None, allowed=False,
                             except MarketNavigationError:
                                 receipt["market_observation"]="OFFICIAL_MARKET_LINKS_NOT_PRESENT_IN_MENU"
                             else:
-                                receipt["market_observation"]="OFFICIAL_MARKET_LINKS_SEEN"
-                                for market in ("quinella","bracket_quinella"):
-                                    rec=links["markets"][market]
-                                    if receipt["http_requests_started"]>=6:
-                                        break
-                                    receipt["http_requests_started"]+=1
-                                    receipt["market_requests_started"]+=1
-                                    try:
-                                        page=http_fetch(
-                                            client,"PC",rec["official_post_url"],
-                                            cname=rec["cname"],
-                                            referer="https://jra.jp/JRADB/accessO.html",
-                                            pacer=request_pacer)
-                                        raw_market=page["raw"]
-                                        name="official_"+market+"_odds.html"
-                                        (root/name).write_bytes(raw_market)
-                                        receipt[market+"_sha256"]=page["sha256"]
-                                        receipt[market+"_bytes"]=page["bytes"]
-                                        receipt[market+"_captured_at_utc"]=page["captured_at_utc"]
-                                        receipt[market+"_action"]=rec["cname"]
-                                        receipt[market+"_original_fetched"]=True
-                                        _validate_saved_html_encoding(raw_market)
-                                    except Exception as market_error:
-                                        receipt[market+"_original_fetched"]=False
-                                        receipt[market+"_error_class"]=type(market_error).__name__
-                                        # Keep already acquired original files.
-                                        break
+                                if (links["source_final_odds_detected"] or
+                                    "オッズは未発表" in menu.decode("cp932",errors="replace")):
+                                    receipt["market_observation"]="FINAL_OR_UNPUBLISHED_NO_MORE_HTTP"
+                                else:
+                                    receipt["market_observation"]="OFFICIAL_MARKET_LINKS_SEEN"
+                                    for market in ("quinella","bracket_quinella"):
+                                        rec=links["markets"][market]
+                                        if receipt["http_requests_started"]>=6:
+                                            break
+                                        receipt["http_requests_started"]+=1
+                                        receipt["market_requests_started"]+=1
+                                        try:
+                                            page=http_fetch(
+                                                client,"PC",rec["official_post_url"],
+                                                cname=rec["cname"],
+                                                referer="https://jra.jp/JRADB/accessO.html",
+                                                pacer=request_pacer)
+                                            raw_market=page["raw"]
+                                            name="official_"+market+"_odds.html"
+                                            (root/name).write_bytes(raw_market)
+                                            receipt[market+"_sha256"]=page["sha256"]
+                                            receipt[market+"_bytes"]=page["bytes"]
+                                            receipt[market+"_captured_at_utc"]=page["captured_at_utc"]
+                                            receipt[market+"_action"]=rec["cname"]
+                                            receipt[market+"_original_fetched"]=True
+                                            _validate_saved_html_encoding(raw_market)
+                                        except Exception as market_error:
+                                            receipt[market+"_original_fetched"]=False
+                                            receipt[market+"_error_class"]=type(market_error).__name__
+                                            # Keep already acquired original files.
+                                            break
 
                         except Exception as exc:
                             receipt["odds_menu_observation"]="POST_FAILED_PRESERVE_RACECARD"
