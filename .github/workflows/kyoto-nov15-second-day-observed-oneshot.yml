@@ -93,6 +93,11 @@ jobs:
           print("NOV15_ENCRYPTED_OBSERVATION_ORIGINALS_RESTORED_FOR_THIS_RUN")
           print("NOV15_NO_JRA_HTTP_DURING_SOURCE_TRANSFER")
           PY
+          mkdir -p nov15_pc_one_shot
+          python -m diagnostics.kyoto_nov15_offline_race_links \
+            --originals nov15_decrypted \
+            --output nov15_pc_one_shot/observed_race_links.json
+          echo NOV15_RACE_LINK_EVIDENCE_OFFLINE_ONLY=TRUE
       - name: Before any JRA GET verify event identity, one attempt and original-observed Nov15 navigation
         shell: bash
         run: |
