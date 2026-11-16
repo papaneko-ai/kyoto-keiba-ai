@@ -71,6 +71,26 @@ class InterruptionAndPacingTests(unittest.TestCase):
         self.assertTrue(source.exists())
         self.assertFalse((self.root/"sealed"/"originals.tar.gz.aesgcm").exists())
 
+    def test_consecutive_sp_requests_are_never_less_than_two_seconds_apart(self):
+        from diagnostics.jra_one_shot_market_capture import RequestPacer
+        clock=[0.0]
+        attempted=[]
+        def now():
+            return clock[0]
+        def sleep(seconds):
+            self.assertGreaterEqual(seconds,0)
+            clock[0]+=seconds
+        throttle=RequestPacer(min_gap_seconds=2.0,clock=now,sleep=sleep)
+        # Same instance traverses independent navigation, racecard, odds
+        # menu and the two market fetches without resetting its last request.
+        for stage in ("navigation","racecard","odds_menu","quinella","bracket_quinella"):
+            throttle.before_request()
+            attempted.append((stage,clock[0]))
+            clock[0]+=0.15
+        self.assertEqual(len(attempted),5)
+        for (_,previous),(_,following) in zip(attempted,attempted[1:]):
+            self.assertGreaterEqual(round(following-previous,6),2.0)
+
     def test_known_sp_url_receives_shared_pacer(self):
         seen=[]
         def capture_sp(root,*,pacer,**kwargs):
