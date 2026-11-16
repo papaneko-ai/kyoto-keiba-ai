@@ -1,0 +1,48 @@
+name: Kyoto Nov21-22 capture release preflight no official HTTP
+on:
+  push:
+    branches: [jra-html-diagnostic-20261105]
+    paths:
+      - 'diagnostics/kyoto_weekend_capture.py'
+      - 'tests/test_kyoto_weekend_capture.py'
+      - '.github/workflows/kyoto-weekend-20261121-22-preflight.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  weekend-rehearsal:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    env:
+      PYTHONPATH: .
+      KYOTO_TARGET_DAY: '20261121'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install existing parser and authenticated crypto
+        run: python -m pip install 'beautifulsoup4>=4.12,<5' 'cryptography>=43,<47'
+      - name: Real-workflow modules offline acceptance and bounded transport regression
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p weekend_preflight_proof
+          python -m unittest -v tests.test_kyoto_weekend_capture tests.test_kyoto_safe_stop_artifact tests.test_kyoto_sp_observed_source tests.test_kyoto_nov15_offline_race_links 2>&1 | tee weekend_preflight_proof/tests.log
+      - name: Record checked version and hash of offline test log
+        if: always()
+        shell: bash
+        run: |
+          mkdir -p weekend_preflight_proof
+          git rev-parse HEAD > weekend_preflight_proof/head.txt
+          sha256sum weekend_preflight_proof/tests.log > weekend_preflight_proof/tests.sha256 || true
+      - name: Retain full dry-run evidence whether successful or not
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: kyoto-nov21-22-preflight-${{ github.run_id }}
+          path: weekend_preflight_proof/
+          if-no-files-found: error
+          retention-days: 30
