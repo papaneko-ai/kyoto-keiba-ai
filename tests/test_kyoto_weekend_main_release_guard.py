@@ -5,7 +5,7 @@ from pathlib import Path
 
 WF=Path(".github/workflows/kyoto-20261121-22-two-source-production-observer.yml")
 REG=Path("docs/diagnostics/KYOTO_20261116_INDEPENDENT_RELEASE_BLOCKERS.json")
-PIN="980365257e2bbe4b5b44d63f708a6ce761cf1ad5"
+PIN="d40b003e8704e2c8da13b5971830abbcd5561ddf"
 
 class SourceOnlyReleaseAcceptance(unittest.TestCase):
     @classmethod
@@ -39,6 +39,10 @@ class SourceOnlyReleaseAcceptance(unittest.TestCase):
         self.assertIn("run: sleep 3",sp)
         self.assertLess(sp.index("run: sleep 3"),
                         sp.index("Independently verified SP link, otherwise record zero-request stop"))
+
+    def test_both_lanes_verify_exact_12r_before_any_jra_http(self):
+        self.assertEqual(self.workflow.count("tests.test_kyoto_weekend_race_parity"),2)
+        self.assertEqual(self.ledger["required_approval"]["approved_commit_sha"],PIN)
 
     def test_both_schedules_and_no_global_hard_block(self):
         self.assertIn("cron: '5 2 21 11 *'",self.workflow)

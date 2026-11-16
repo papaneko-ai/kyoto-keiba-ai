@@ -1,0 +1,38 @@
+{
+  "schema": "kyoto_five_fixed_pre_experiment_criteria.v1",
+  "collector_sha": "d40b003e8704e2c8da13b5971830abbcd5561ddf",
+  "scope": "Nov21/22 Kyoto original source-only acquisition, not prediction or real-result proof",
+  "conditions": [
+    {
+      "id": "C1",
+      "description": "14/15 pre-HTTP timestamp regression and safe-stop directory repair"
+    },
+    {
+      "id": "C2",
+      "description": "PC/SP official 12R link selection, sequential rate-pacing and failover"
+    },
+    {
+      "id": "C3",
+      "description": "Original SHA256 UTC and interruption-proof AES artifact seal/restore"
+    },
+    {
+      "id": "C4",
+      "description": "21st result diagnosis, 22nd independent start and extended official SP fallback"
+    },
+    {
+      "id": "C5",
+      "description": "Pinned source, active schedules, valid encryption secret, reviewed override and recovery ZIP"
+    }
+  ],
+  "historical_fail_runs": [
+    43547344697,
+    43669118231
+  ],
+  "collector_dev_preflight_run": 43805494867,
+  "backup": {
+    "run_id": 43805649211,
+    "artifact_id": 14198436409,
+    "size_bytes": 4803325
+  },
+  "live_external_result_excluded": true
+}

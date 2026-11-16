@@ -4,7 +4,7 @@
   "status": "OBSERVATION_ONLY_CANDIDATE_OFFLINE_VERIFIED",
   "policy": "Read-only official-source observation is eligible after destructive offline regressions and exact source SHA; not a claim of official retrieval or prediction readiness. Never permit real wagers or use incomplete/final/post-start odds for predictions.",
   "production_workflow": ".github/workflows/kyoto-20261121-22-two-source-production-observer.yml",
-  "production_observer_pinned_sha": "980365257e2bbe4b5b44d63f708a6ce761cf1ad5",
+  "production_observer_pinned_sha": "d40b003e8704e2c8da13b5971830abbcd5561ddf",
   "issues": [
     {
       "id": "KW-001",
@@ -66,7 +66,7 @@
   ],
   "required_approval": {
     "status": "SOURCE_OBSERVATION_ONLY",
-    "approved_commit_sha": "980365257e2bbe4b5b44d63f708a6ce761cf1ad5",
+    "approved_commit_sha": "d40b003e8704e2c8da13b5971830abbcd5561ddf",
     "receipt": "OFFLINE_FAULT_INJECTION_AND_E2E_43797680491",
     "independent_source_recheck": false,
     "full_e2e_test": true,
@@ -86,9 +86,11 @@
     "day21_artifact_decrypt_sha_utc_automated": true,
     "day22_prevalidated_sp_navigation_fallback": true,
     "day22_fallback_source_only_not_guaranteed_success": true,
-    "last_offline_preflight_run": 43804330420,
+    "last_offline_preflight_run": 43805494867,
     "sequential_pc_sp_http": true,
     "previous_nov14_nov15_pre_http_errors_reproduced_in_historical_tests": true,
-    "odds_navigation_sha_utc_covered": true
+    "odds_navigation_sha_utc_covered": true,
+    "pre_experiment_backup_run_id": 43805649211,
+    "five_fixed_criteria_manifest": "docs/diagnostics/KYOTO_PREPARATION_FIVE_CONDITIONS_20261116.json"
   }
 }

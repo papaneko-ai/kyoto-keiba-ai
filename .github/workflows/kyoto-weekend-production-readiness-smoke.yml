@@ -7,6 +7,8 @@ on:
       - '.github/workflows/kyoto-20261121-22-two-source-production-observer.yml'
       - 'docs/diagnostics/KYOTO_20261116_INDEPENDENT_RELEASE_BLOCKERS.json'
       - 'tests/test_kyoto_weekend_main_release_guard.py'
+      - 'tests/test_kyoto_preparation_five_conditions.py'
+      - 'docs/diagnostics/KYOTO_PREPARATION_FIVE_CONDITIONS_20261116.json'
       - 'docs/diagnostics/KYOTO_PREDICTABLE_FAILURE_MATRIX_20261116.json'
   workflow_dispatch:
 permissions:
@@ -91,7 +93,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: 980365257e2bbe4b5b44d63f708a6ce761cf1ad5
+          ref: d40b003e8704e2c8da13b5971830abbcd5561ddf
           persist-credentials: false
       - uses: actions/setup-python@v5
         with:
@@ -102,10 +104,10 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p pinned_collector_proof
-          test "$(git rev-parse HEAD)" = "980365257e2bbe4b5b44d63f708a6ce761cf1ad5"
-          KYOTO_TARGET_DAY=20261121 python -m unittest -v tests.test_kyoto_weekend_interruption_and_pacing tests.test_kyoto_weekend_end_to_end tests.test_kyoto_weekend_day21_artifact_triage tests.test_kyoto_weekend_postflight tests.test_kyoto_weekend_production_workflow tests.test_kyoto_weekend_capture tests.test_kyoto_weekend_sp_discovery 2>&1 | tee pinned_collector_proof/new_cases.log
-          KYOTO_TARGET_DAY=20261115 python -m unittest -v tests.test_kyoto_nov15_two_original_observer tests.test_kyoto_sp_observed_source tests.test_kyoto_nov15_encrypted_evidence 2>&1 | tee pinned_collector_proof/history.log
-          KYOTO_TARGET_DAY=20261122 python -m unittest -v tests.test_kyoto_weekend_sp_discovery tests.test_kyoto_nov15_encrypted_evidence tests.test_kyoto_weekend_postflight tests.test_kyoto_weekend_day21_triage tests.test_kyoto_weekend_day21_artifact_triage 2>&1 | tee pinned_collector_proof/sunday_fallback.log
+          test "$(git rev-parse HEAD)" = "d40b003e8704e2c8da13b5971830abbcd5561ddf"
+          KYOTO_TARGET_DAY=20261121 python -m unittest -v tests.test_kyoto_weekend_interruption_and_pacing tests.test_kyoto_weekend_race_parity tests.test_kyoto_safe_stop_artifact tests.test_kyoto_weekend_end_to_end tests.test_kyoto_weekend_day21_artifact_triage tests.test_kyoto_weekend_postflight tests.test_kyoto_weekend_production_workflow tests.test_kyoto_weekend_capture tests.test_kyoto_weekend_sp_discovery 2>&1 | tee pinned_collector_proof/new_cases.log
+          KYOTO_TARGET_DAY=20261115 python -m unittest -v tests.test_kyoto_nov15_two_original_observer tests.test_kyoto_nov15_offline_race_links tests.test_kyoto_sp_observed_source tests.test_kyoto_nov15_encrypted_evidence 2>&1 | tee pinned_collector_proof/history.log
+          KYOTO_TARGET_DAY=20261122 python -m unittest -v tests.test_kyoto_weekend_sp_discovery tests.test_kyoto_weekend_handoff_workflow tests.test_kyoto_nov15_encrypted_evidence tests.test_kyoto_weekend_postflight tests.test_kyoto_weekend_day21_triage tests.test_kyoto_weekend_day21_artifact_triage 2>&1 | tee pinned_collector_proof/sunday_fallback.log
           git rev-parse HEAD > pinned_collector_proof/collector_sha.txt
           sha256sum pinned_collector_proof/*.log > pinned_collector_proof/testlogs.sha256
           python -m unittest -v tests.test_kyoto_predictable_failure_gate 2>&1 | tee pinned_collector_proof/coverage_integrity.log
@@ -127,4 +129,62 @@ jobs:
           name: kyoto-pinned-collector-regressions-${{ github.run_id }}
           path: pinned_collector_proof/
           if-no-files-found: error
+          retention-days: 30
+  five-condition-pre-experiment-acceptance:
+    if: always()
+    needs: [source-only-main-policy, pre-weekend-settings-hazard-check, pinned-collector-fault-rehearsal]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      SOURCE_CONTRACT: ${{ needs.source-only-main-policy.result }}
+      SETTINGS_GATE: ${{ needs.pre-weekend-settings-hazard-check.result }}
+      FROZEN_COLLECTOR: ${{ needs.pinned-collector-fault-rehearsal.result }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Evaluate the five fixed conditions and actual upstream CI outcomes
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p five_condition_evidence
+          python -m unittest -v tests.test_kyoto_preparation_five_conditions 2>&1 | tee five_condition_evidence/static_contract_tests.log
+          python - <<'PY'
+          import json,os,subprocess
+          from datetime import datetime,timezone
+          from pathlib import Path
+          policy=json.loads(Path("docs/diagnostics/KYOTO_PREPARATION_FIVE_CONDITIONS_20261116.json").read_text())
+          jobs={"source-only-main-policy":os.getenv("SOURCE_CONTRACT"),
+                "pre-weekend-settings-hazard-check":os.getenv("SETTINGS_GATE"),
+                "pinned-collector-fault-rehearsal":os.getenv("FROZEN_COLLECTOR")}
+          green=all(x=="success" for x in jobs.values())
+          items=[{"id":x["id"],"verified":green,"description":x["description"]}
+                 for x in policy["conditions"]]
+          observed={"schema":"kyoto_fixed_five_preparation_receipt.v1",
+                    "utc":datetime.now(timezone.utc).isoformat(),
+                    "main_sha":subprocess.check_output(["git","rev-parse","HEAD"],text=True).strip(),
+                    "collector_sha":policy["pinned_collector_sha"],
+                    "prerequisite_job_conclusions":jobs,
+                    "criteria_total":len(items),
+                    "criteria_verified":sum(x["verified"] for x in items),
+                    "pre_experiment_percent":round(100*sum(x["verified"] for x in items)/len(items)),
+                    "not_real_live_jra_success":True,
+                    "not_prediction_release":True,"conditions":items}
+          Path("five_condition_evidence/receipt.json").write_text(json.dumps(observed,indent=2,sort_keys=True)+"\n")
+          print("FIXED_PREPARATION_CRITERIA="+str(observed["criteria_verified"])+"/"+str(observed["criteria_total"]))
+          print("PRE_EXPERIMENT_PREPARATION_PERCENT="+str(observed["pre_experiment_percent"]))
+          if len(items)!=5 or not green:
+              raise SystemExit("FIXED_FIVE_PREPARATION_GATES_NOT_VERIFIED")
+          PY
+          sha256sum five_condition_evidence/receipt.json > five_condition_evidence/receipt.sha256
+      - name: Retain five-condition evidence receipt
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: kyoto-five-fixed-criteria-${{ github.run_id }}
+          path: five_condition_evidence/
+          if-no-files-found: warn
           retention-days: 30

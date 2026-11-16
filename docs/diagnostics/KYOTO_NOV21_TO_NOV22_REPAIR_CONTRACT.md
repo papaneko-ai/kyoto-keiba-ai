@@ -1,6 +1,6 @@
 # Kyoto Nov21/22 read-only source recovery contract
 
-Validated immutable source SHA: `980365257e2bbe4b5b44d63f708a6ce761cf1ad5`.
+Validated immutable source SHA: `d40b003e8704e2c8da13b5971830abbcd5561ddf`.
 
 ## Day21 (2026-11-21)
 - Source-only independent PC/SP collection; evidence AES-GCM encrypted; no prediction or purchase authorization.
@@ -24,4 +24,7 @@ No unconditional claim of successful Day22 data retrieval is made. This contract
 - GitHub Actions logs of 2026-11-14 Run 43547344697 and 2026-11-15 Run 43669118231 both show five pre-HTTP source-timestamp fixture errors, followed by absent safe-stop destination and no artifact. Historical timestamp/negative fixtures and safe-stop directory creation are covered in release tests.
 - PC and SP remain distinct source collectors but execute sequentially to prevent simultaneous JRA HTTP from separate jobs. SP executes after PC failure by an explicit always condition, with a three-second network spacing step.
 - PC and SP intermediate market navigation pages are now included in postflight SHA256/UTC rows. Decrypted market evidence is only counted as fully preserved when both originals have independent SHA256 and UTC records.
-- Offline acceptance evidence: source commit 980365257e2bbe4b5b44d63f708a6ce761cf1ad5, run 43804330420 (code) and 43804425506 (scheduled workflow contract), both successful. Live source remains unverified.
+- Offline acceptance evidence: source commit d40b003e8704e2c8da13b5971830abbcd5561ddf, run 43804330420 (code) and 43804425506 (scheduled workflow contract), both successful. Live source remains unverified.
+
+## Final weekend race-identity prevention
+PC and SP both target exact observed Kyoto 12R. Source evidence stores the explicitly *local* KYOTO:date:12 key and postflight rejects conflicting observed race number. Same-day test isolation, fixed collector d40b003e8704e2c8da13b5971830abbcd5561ddf, source preflight 43805494867, backup run 43805649211.
