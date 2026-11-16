@@ -36,7 +36,7 @@ class ProductionWorkflowContract(unittest.TestCase):
         self.assertEqual(self.s.count("PREVIOUS_WORKFLOW_RUN_ON_TARGET_DAY_NO_HTTP"),2)
         self.assertEqual(self.s.count("RUN_HISTORY_UNVERIFIED_NO_HTTP"),2)
         self.assertEqual(self.s.count("SAME_DAY_HISTORY_NEEDS_PAGINATION_NO_HTTP"),2)
-        self.assertEqual(self.s.count("created="+target),2)
+        self.assertEqual(self.s.count('"?created="+target'),2)
         self.assertEqual(self.s.count("ENCRYPTION_KEY_REQUIRED_NO_HTTP"),2)
         self.assertEqual(self.s.count("SOURCE_REVISION_MISMATCH_NO_HTTP"),2)
         self.assertIn("concurrency:",self.s)
