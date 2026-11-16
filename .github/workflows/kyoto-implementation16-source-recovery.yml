@@ -1,4 +1,4 @@
-name: Kyoto Nov21-22 predictable-failure-prevention verified source recovery
+name: Kyoto 20261116 source-first FMEA coverage recovery archive
 on:
   push:
     branches: [jra-html-diagnostic-20261105]
