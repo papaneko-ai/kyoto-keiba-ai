@@ -64,9 +64,11 @@ def inspect(root:Path, ledger:dict, *, verify_git:bool=True) -> dict:
     if not isinstance(risks,list) or {x.get("id") for x in risks}!=KNOWN_RISKS:
         raise AuditCoverageRejected("known_predictable_risk_missing_or_added_without_review")
     actual=set()
+    class_methods=set()
+    dynamic_import_markers=[]
     source_sha={}
     files={s["source"] for s in surfaces}
-    if len(files)!=7:
+    if len(files)!=20:
         raise AuditCoverageRejected("source_module_inventory_incomplete")
     for file in files:
         path=root/file
@@ -77,6 +79,16 @@ def inspect(root:Path, ledger:dict, *, verify_git:bool=True) -> dict:
         try: tree=ast.parse(raw,filename=file)
         except SyntaxError as exc:
             raise AuditCoverageRejected("critical_source_not_parseable") from exc
+        for node in tree.body:
+            if isinstance(node,ast.ClassDef):
+                for child in node.body:
+                    if isinstance(child,(ast.FunctionDef,ast.AsyncFunctionDef)):
+                        class_methods.add(f"{file}:{node.name}.{child.name}")
+        for node in ast.walk(tree):
+            if isinstance(node,ast.Call) and isinstance(node.func,ast.Name) and node.func.id=="__import__":
+                dynamic_import_markers.append(file)
+            elif isinstance(node,ast.Call) and isinstance(node.func,ast.Attribute) and node.func.attr=="import_module":
+                dynamic_import_markers.append(file)
         names=[n.name for n in tree.body if isinstance(n,(ast.FunctionDef,ast.AsyncFunctionDef))]
         if len(names)!=len(set(names)):
             raise AuditCoverageRejected("duplicate_function_name")
@@ -134,6 +146,10 @@ def inspect(root:Path, ledger:dict, *, verify_git:bool=True) -> dict:
         "source_commit":baseline,
         "source_sha256":source_sha,
         "critical_modules":len(files),
+        "class_methods_discovered_but_not_yet_independently_reviewed":len(class_methods),
+        "class_method_paths_not_yet_reviewed":sorted(class_methods),
+        "dynamic_import_sites":sorted(set(dynamic_import_markers)),
+        "top_level_functions_not_yet_independently_reviewed":len([s for s in surfaces if s.get("review_status")=="UNREVIEWED_INDEPENDENT_FMEA"]),
         "reachable_local_diagnostics_modules":len(all_reachable),
         "additional_reachable_modules_not_yet_reviewed":len(imported_not_yet_reviewed),
         "additional_reachable_module_paths":imported_not_yet_reviewed,
@@ -167,6 +183,8 @@ def main():
     print(f"INDEPENDENT_AST_SURFACES={result['top_level_functions_discovered']}/{result['top_level_functions_registered']}")
     print(f"NEW_PREDICTABLE_RISKS={result['additional_predictable_failure_families']}")
     print(f"UNREVIEWED_REACHABLE_MODULES={result['additional_reachable_modules_not_yet_reviewed']}")
+    print(f"UNREVIEWED_TOP_LEVEL_FUNCTIONS={result['top_level_functions_not_yet_independently_reviewed']}")
+    print(f"UNREVIEWED_CLASS_METHODS={result['class_methods_discovered_but_not_yet_independently_reviewed']}")
     for name in result["additional_reachable_module_paths"]:
         print("UNREVIEWED_DEPENDENCY="+name)
     print(f"UNRESOLVED_HIGH={result['high_severity_unresolved']}")
