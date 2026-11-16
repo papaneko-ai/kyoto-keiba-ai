@@ -17,6 +17,8 @@ on:
       - 'tests/test_kyoto_predictable_failure_gate.py'
       - 'tests/test_kyoto_reverse_fmea_gate.py'
       - 'tests/test_kyoto_weekend_race_parity.py'
+      - 'tests/test_kyoto_weekend_retry_guard.py'
+      - 'diagnostics/kyoto_weekend_retry_guard.py'
       - 'diagnostics/kyoto_reverse_fmea_gate.py'
       - 'docs/diagnostics/KYOTO_REVERSE_FMEA_GAP_REGISTER_20261116.json'
       - 'diagnostics/kyoto_predictable_failure_gate.py'
@@ -61,7 +63,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          KYOTO_TARGET_DAY=20261121 python -m unittest -v tests.test_kyoto_weekend_race_parity 2>&1 | tee weekend_preflight_proof/race_parity.log
+          KYOTO_TARGET_DAY=20261121 python -m unittest -v tests.test_kyoto_weekend_retry_guard tests.test_kyoto_weekend_race_parity 2>&1 | tee weekend_preflight_proof/race_parity.log
       - name: Independently check matrix omissions and execute all 30 foreseeable-failure cases
         shell: bash
         run: |
