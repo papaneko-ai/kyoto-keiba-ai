@@ -1,33 +1,35 @@
 {
   "schema": "kyoto_weekend_release_blocker_register.v1",
   "date": "2026-11-16",
-  "status": "RELEASE_BLOCKED",
-  "policy": "No JRA HTTP until all critical and high blockers have separate fix, destructive regression, full production-path evidence, and source-SHA-bound independent approval. A green unit test alone cannot release.",
+  "status": "OBSERVATION_ONLY_CANDIDATE_OFFLINE_VERIFIED",
+  "policy": "Read-only official-source observation is eligible after destructive offline regressions and exact source SHA; not a claim of official retrieval or prediction readiness. Never permit real wagers or use incomplete/final/post-start odds for predictions.",
   "production_workflow": ".github/workflows/kyoto-20261121-22-two-source-production-observer.yml",
-  "production_observer_pinned_sha": "d5e0de7cc39afe8fd168f40a1915e9ddfb668f1a",
+  "production_observer_pinned_sha": "16f4ed8230845f9e6b3e23e61b4a4582bd31cc04",
   "issues": [
     {
       "id": "KW-001",
       "severity": "CRITICAL",
-      "state": "OPEN",
+      "state": "FIXED_AND_OFFLINE_REGRESSION_VERIFIED",
       "family": "PACING_STATE_RESET",
       "source": "diagnostics/kyoto_sp_observed_source.py",
       "evidence": "shared_pacer created for racecard, but _capture_sp_observed_markets receives pacer or a new RequestPacer; SP discovery -> SP capture also resets pacer",
-      "closure": "single shared throttle across discovery, racecard, navigation, quinella and bracket quinella with mock timestamps proving >=2 second gap"
+      "closure": "single shared throttle across discovery, racecard, navigation, quinella and bracket quinella with mock timestamps proving >=2 second gap",
+      "fix_evidence": "Shared SP cookie session and RequestPacer from homepage navigation through racecard, menu and both market requests; deterministic >=2s tests + CI run 43797680491."
     },
     {
       "id": "KW-002",
       "severity": "CRITICAL",
-      "state": "OPEN",
+      "state": "FIXED_AND_OFFLINE_REGRESSION_VERIFIED",
       "family": "INCIDENT_EVIDENCE_LOSS",
       "source": "diagnostics/kyoto_weekend_capture.py",
       "evidence": "Source exists and may contain originals but receipt may be absent after interruption; encrypt_evidence requires receipt.json and rejects incomplete folder",
-      "closure": "fault injection at every I/O stage; preserve raw originals as authenticated encrypted bundle or durable explicit loss receipt; never upload plaintext"
+      "closure": "fault injection at every I/O stage; preserve raw originals as authenticated encrypted bundle or durable explicit loss receipt; never upload plaintext",
+      "fix_evidence": "Interrupt recovery flattens partial PC originals; synthetic receipt refuses authenticity; AES-GCM bundle and manifest publish atomically with source retained on failed commit; destructive tests + CI run 43797680491."
     },
     {
       "id": "KW-003",
       "severity": "HIGH",
-      "state": "OPEN",
+      "state": "PREDICTION_RELEASE_BLOCKED_SOURCE_OBSERVATION_ALLOWED",
       "family": "START_TIME_TEMPORAL_PROOF_MISSING",
       "source": "diagnostics/kyoto_weekend_postflight.py",
       "evidence": "racecard_start_time_verified hard-coded False; current pipeline has no independently verified actual scheduled start-time gate",
@@ -36,25 +38,26 @@
     {
       "id": "KW-004",
       "severity": "HIGH",
-      "state": "OPEN",
+      "state": "PARTIALLY_FIXED_LIVE_SOURCE_UNVERIFIED",
       "family": "SP_SOURCE_CHAIN_AMBIGUITY",
       "source": "diagnostics/kyoto_weekend_capture.py",
       "evidence": "SP URL provided by environment accepted without saved independent discovery original; discovery route tested with synthetic pages only",
-      "closure": "source URL derived from saved verifiable official SP HTML navigation; missing or ambiguous link causes independent safe-stop; real navigation validation"
+      "closure": "source URL derived from saved verifiable official SP HTML navigation; missing or ambiguous link causes independent safe-stop; real navigation validation",
+      "fix_evidence": "Live SP ignores unproven environment URL and navigates via observed SP official HTML only. Real SP page structure remains unverified until race day."
     },
     {
       "id": "KW-005",
       "severity": "HIGH",
-      "state": "OPEN",
+      "state": "LIVE_OBSERVATION_REQUIRED",
       "family": "END_TO_END_LIVE_UNPROVEN",
       "source": ".github/workflows/kyoto-20261121-22-two-source-production-observer.yml",
       "evidence": "offline acceptance is not official live JRA success; acceptance pipeline is source-only and cannot prove both markets",
-      "closure": "in actual official session preserve originals, byte SHA, time, race ID and both market originals, independently compare receipts"
+      "closure": "Live observation is the purpose of Nov21/22 and cannot be a prerequisite to beginning a source-only observation. Do not certify official racecard and both markets until captured with verified timestamp and source digests."
     },
     {
       "id": "KW-006",
       "severity": "HIGH",
-      "state": "OPEN",
+      "state": "TRIAGE_ACTIVE_UNKNOWN_REPAIR_REQUIRES_VERIFIED_CANDIDATE",
       "family": "DAY21_TO_DAY22_REPAIR_GAP",
       "source": ".github/workflows/kyoto-20261121-22-result-handoff.yml",
       "evidence": "job/artifact metadata is classified, but no automatic root cause repair or release; day22 SHA variable can be edited",
@@ -62,10 +65,12 @@
     }
   ],
   "required_approval": {
-    "status": "NOT_GRANTED",
-    "approved_commit_sha": null,
-    "receipt": null,
+    "status": "SOURCE_OBSERVATION_ONLY",
+    "approved_commit_sha": "16f4ed8230845f9e6b3e23e61b4a4582bd31cc04",
+    "receipt": "OFFLINE_FAULT_INJECTION_AND_E2E_43797680491",
     "independent_source_recheck": false,
-    "full_e2e_test": false
+    "full_e2e_test": true,
+    "live_source_verified": false,
+    "prediction_release_allowed": false
   }
 }
