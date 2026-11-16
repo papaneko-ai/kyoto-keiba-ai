@@ -145,6 +145,43 @@ def capture(day: str, channel: str, output: str, *, live: bool,
     return out
 
 
+def _preserve_interrupted_originals(src: Path, day: str) -> None:
+    """Flatten an interrupted PC capture without rewriting saved evidence.
+
+    Nested observer receipt is retained separately when a wrapper failure
+    receipt already exists. All provenance claims remain explicitly unverified.
+    """
+    nested=src / "pc_originals"
+    if nested.exists() or nested.is_symlink():
+        if nested.is_symlink() or not nested.is_dir():
+            raise ValueError("unsafe_interrupted_pc_source")
+        for item in sorted(nested.iterdir()):
+            if item.is_symlink() or not item.is_file():
+                raise ValueError("unsafe_interrupted_pc_entry")
+            target=src / ("observer_partial_receipt.json" if item.name=="receipt.json"
+                          else item.name)
+            if target.exists() or target.is_symlink():
+                raise ValueError("interrupted_original_collision")
+            item.rename(target)
+        nested.rmdir()
+    if not (src / "receipt.json").exists():
+        from hashlib import sha256
+        files={}
+        for item in sorted(src.iterdir()):
+            if item.is_symlink() or not item.is_file():
+                raise ValueError("unsafe_interrupted_source_entry")
+            raw=item.read_bytes()
+            files[item.name]={"sha256":sha256(raw).hexdigest(),"bytes":len(raw)}
+        _write_receipt(src,{
+            "schema":"kyoto_interrupted_source_evidence.v1","day":day,
+            "state":"PARTIAL_OR_INTERRUPTED_CAPTURE_UNAUTHENTICATED",
+            "source_verified":False,"both_markets_verified":False,
+            "prediction_ready":False,"actual_http_attempts":"UNKNOWN",
+            "original_files_observed":files,
+            "saved_at_utc":datetime.now(timezone.utc).isoformat(),
+        })
+
+
 def seal(day: str, source: str, destination: str, *, key: str, repo: str,
          run_id: str):
     """Encrypt all gathered bytes, including a failed capture receipt.
@@ -162,6 +199,7 @@ def seal(day: str, source: str, destination: str, *, key: str, repo: str,
     # The existing crypto's day binding derives from target-day environment.
     if os.getenv("KYOTO_TARGET_DAY") != day:
         raise ValueError("crypto_day_binding_invalid")
+    _preserve_interrupted_originals(src,day)
     from diagnostics.kyoto_nov15_encrypted_evidence import encrypt_evidence
     result = encrypt_evidence(src,dst,key_hex=key,repo=repo,run_id=run_id)
     shutil.rmtree(src)
