@@ -45,7 +45,7 @@ class ProductionWorkflowContract(unittest.TestCase):
         self.assertEqual(self.s.count("if: always()"),6)
         self.assertEqual(self.s.count("--seal-only"),2)
         self.assertEqual(self.s.count("tests.test_kyoto_weekend_end_to_end"),2)
-        self.assertEqual(self.s.count("kyoto_weekend_postflight"),2)
+        self.assertEqual(self.s.count("kyoto_weekend_postflight"),4)
         self.assertIn("path: pc_sealed/",self.s)
         self.assertIn("path: sp_sealed/",self.s)
         self.assertNotIn("path: pc_raw/",self.s)
