@@ -145,6 +145,8 @@ def observe(selection_root, *, now_utc, opener=None, allowed=False,
             else:
                 race_number,race_url=observed
                 receipt["racecard_number"]=race_number
+                # Local composite identity, not an official JRA race-ID claim.
+                receipt["local_observed_race_key"]=f"KYOTO:{DAY}:{race_number:02d}"
                 receipt["observed_racecard_url"]=race_url
                 receipt["http_requests_started"]=3
                 request_pacer.before_request()
