@@ -29,6 +29,20 @@ class OfflineRaceLinksTests(unittest.TestCase):
       "selection_captured_at_utc":"2026-11-15T02:00:01+00:00",
       "meeting_captured_at_utc":"2026-11-15T02:00:02+00:00",
       "http_requests_started":2}),encoding="utf8")
+ def test_missing_mandatory_original_timestamp_rejected(self):
+    path=self.root/"receipt.json"
+    saved=json.loads(path.read_text(encoding="utf8"))
+    saved.pop("selection_captured_at_utc")
+    path.write_text(json.dumps(saved),encoding="utf8")
+    with self.assertRaisesRegex(OfflineRaceLinkRejected,"originals_or_receipt_inconsistent"):
+        derive_nov15_race_links(self.root)
+ def test_non_utc_original_timestamp_rejected(self):
+    path=self.root/"receipt.json"
+    saved=json.loads(path.read_text(encoding="utf8"))
+    saved["meeting_captured_at_utc"]="2026-11-15T11:00:02+09:00"
+    path.write_text(json.dumps(saved),encoding="utf8")
+    with self.assertRaisesRegex(OfflineRaceLinkRejected,"originals_or_receipt_inconsistent"):
+        derive_nov15_race_links(self.root)
  def test_observed_race_link_only(self):
     d=derive_nov15_race_links(self.root)
     self.assertEqual(d["race_links"][0]["race_number"],1)
