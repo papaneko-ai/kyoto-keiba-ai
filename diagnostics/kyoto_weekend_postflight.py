@@ -48,6 +48,8 @@ def check_originals(root, *, day, channel):
                 ("official_meeting.html","meeting"),
                 ("official_racecard.html","racecard"),
                 ("official_odds_menu.html","odds_menu"),
+                ("official_odds_navigation_1.html","navigation_1"),
+                ("official_odds_navigation_2.html","navigation_2"),
                 ("official_quinella_odds.html","quinella"),
                 ("official_bracket_quinella_odds.html","bracket_quinella")):
                 path=root/basename
@@ -72,6 +74,8 @@ def check_originals(root, *, day, channel):
                 raise ValueError("sp_day_channel_mismatch")
             for name,key in (("official_sp_racecard.html","racecard"),
                              ("official_sp_odds_menu.html","sp_odds_menu"),
+                             ("official_sp_odds_navigation_1.html","sp_odds_navigation_1"),
+                             ("official_sp_odds_navigation_2.html","sp_odds_navigation_2"),
                              ("official_sp_quinella_odds.html","sp_quinella"),
                              ("official_sp_bracket_quinella_odds.html","sp_bracket_quinella")):
                 path=root/name
