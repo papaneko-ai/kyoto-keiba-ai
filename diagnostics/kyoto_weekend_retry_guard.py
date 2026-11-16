@@ -7,6 +7,7 @@ concurrency serializes execution; both schedule slots are bounded and finite.
 import argparse
 import os
 
+ADVANCE={"20261121":"5 1 21 11 *","20261122":"10 1 22 11 *"}
 PRIMARY={"20261121":"5 2 21 11 *","20261122":"10 2 22 11 *"}
 BACKUP={"20261121":"50 2 21 11 *","20261122":"55 2 22 11 *"}
 CAPTURE_STEPS=("Capture official PC observed originals",
@@ -19,7 +20,7 @@ def evaluate(day,run_id,event,cron,runs,jobs_by_run):
         raise RetryGuardRejected("RUN_HISTORY_UNVERIFIED_NO_HTTP")
     if event not in ("schedule","workflow_dispatch"):
         raise RetryGuardRejected("INVALID_EVENT_NO_HTTP")
-    if event=="schedule" and cron not in (PRIMARY[day],BACKUP[day]):
+    if event=="schedule" and cron not in (ADVANCE[day],PRIMARY[day],BACKUP[day]):
         raise RetryGuardRejected("UNEXPECTED_CRON_NO_HTTP")
     if len(runs)>100:
         raise RetryGuardRejected("SAME_DAY_HISTORY_NEEDS_PAGINATION_NO_HTTP")
@@ -28,6 +29,8 @@ def evaluate(day,run_id,event,cron,runs,jobs_by_run):
     # success can mean safe-stop with no official originals or incomplete odds.
     # Same-day GitHub concurrency is the actual overlapping-network guard.
     previous=[r for r in runs if str(r.get("id"))!=str(run_id)]
+    if event=="schedule" and cron==ADVANCE[day]:
+        return "ADVANCE_ALLOWED_WITHOUT_GUARANTEED_MARKET_AVAILABILITY"
     if event=="schedule" and cron==BACKUP[day]:
         return ("BACKUP_ALLOWED_AFTER_PRIOR_RUN" if previous
                 else "BACKUP_ALLOWED_MISSING_PRIMARY")
