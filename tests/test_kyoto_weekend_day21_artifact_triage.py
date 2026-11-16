@@ -17,7 +17,7 @@ class ActualEvidenceTriage(unittest.TestCase):
     self.root=Path(t.name)
     self.source=self.root/"raw";self.source.mkdir()
     self.out=self.root/"sealed"
- def sealed(self,*,tamper=False,valid_postflight=True,both=False):
+ def sealed(self,*,tamper=False,valid_postflight=True,both=False,market_rows=True):
     raw=b"<html>offline mocked racecard</html>"
     name="official_sp_racecard.html"
     (self.source/name).write_bytes(raw)
@@ -29,7 +29,7 @@ class ActualEvidenceTriage(unittest.TestCase):
     if valid_postflight:
         rows=[{"filename":name,"sha256":("0"*64 if tamper else hashlib.sha256(raw).hexdigest()),
                "captured_at_utc":"2026-11-21T02:10:00+00:00"}]
-        if both:
+        if both and market_rows:
             for market in ("official_sp_quinella_odds.html","official_sp_bracket_quinella_odds.html"):
                 body=(self.source/market).read_bytes()
                 rows.append({"filename":market,"sha256":hashlib.sha256(body).hexdigest(),
@@ -60,11 +60,12 @@ class ActualEvidenceTriage(unittest.TestCase):
     self.assertFalse(r["official_live_market_accepted"])
     self.assertFalse(r["prediction_ready"])
  def test_both_files_without_independent_source_rows_do_not_claim_complete_market_evidence(self):
-    self.sealed(both=True)
-    # The new dedicated regression is constructed below by deleting the
-    # original verification before sealing, not by changing authenticated
-    # bytes after sealing.
-    self.assertTrue(self.check()["both_raw_market_originals_sha_utc_verified"])
+    self.sealed(both=True,market_rows=False)
+    result=self.check()
+    self.assertTrue(result["both_raw_market_originals_present"])
+    self.assertFalse(result["both_raw_market_originals_sha_utc_verified"])
+    self.assertEqual(result["state"],"MARKET_ORIGINALS_PRESENT_BUT_NOT_SHA_UTC_VERIFIED")
+    self.assertFalse(result["prediction_ready"])
  def test_corrupted_source_sha_rejected(self):
     self.sealed(tamper=True)
     r=self.check()
