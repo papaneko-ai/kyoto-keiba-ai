@@ -42,6 +42,35 @@ class PostflightTests(unittest.TestCase):
             "racecard_captured_at_utc":"2026-11-21T11:00:00+09:00"}))
         self.assertFalse(check_originals(self.root,day=self.day,channel="SP")["source_verified"])
 
+    def test_sp_intermediate_market_navigation_sha_utc_accept_and_tamper(self):
+        raw=b"<html>observed odds navigation</html>"
+        name="official_sp_odds_navigation_1.html"
+        (self.root/name).write_bytes(raw)
+        (self.root/"sp_receipt.json").write_text(json.dumps({
+            "day":self.day,"channel":"SP",
+            "sp_odds_navigation_1_sha256":hashlib.sha256(raw).hexdigest(),
+            "sp_odds_navigation_1_captured_at_utc":"2026-11-21T02:09:00+00:00"}))
+        ok=check_originals(self.root,day=self.day,channel="SP")
+        self.assertTrue(ok["source_verified"])
+        self.assertEqual([r["filename"] for r in ok["source_rows"]],[name])
+        (self.root/name).write_bytes(b"tampered")
+        bad=check_originals(self.root,day=self.day,channel="SP")
+        self.assertFalse(bad["source_verified"])
+        self.assertEqual(bad["state"],"SP_PROVENANCE_REJECTED")
+
+    def test_pc_market_navigation_is_in_postflight_rows(self):
+        name="official_odds_navigation_2.html"
+        (self.root/name).write_bytes(b"example saved navigation")
+        (self.root/"receipt.json").write_text(json.dumps({
+            "day":self.day,
+            "navigation_2_captured_at_utc":"2026-11-21T02:09:00+00:00"}))
+        with patch("diagnostics.kyoto_nov15_two_original_observer.accept_observation",
+                   return_value={"state":"TWO_ORIGINALS_MATCH_RECEIPT_ONLY"}):
+            r=check_originals(self.root,day=self.day,channel="PC")
+        self.assertTrue(r["source_verified"])
+        self.assertIn(name,[row["filename"] for row in r["source_rows"]])
+        self.assertFalse(r["both_markets_verified"])
+
     def test_sp_discovery_hash_tamper_rejected(self):
         raw=b"<html>offline SP homepage</html>"
         (self.root/"official_sp_discovery_1.html").write_bytes(raw)
