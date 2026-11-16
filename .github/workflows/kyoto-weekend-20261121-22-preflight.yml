@@ -13,6 +13,9 @@ on:
       - 'tests/test_kyoto_weekend_end_to_end.py'
       - 'tests/test_kyoto_weekend_interruption_and_pacing.py'
       - 'tests/test_kyoto_predictable_failure_gate.py'
+      - 'tests/test_kyoto_reverse_fmea_gate.py'
+      - 'diagnostics/kyoto_reverse_fmea_gate.py'
+      - 'docs/diagnostics/KYOTO_REVERSE_FMEA_GAP_REGISTER_20261116.json'
       - 'diagnostics/kyoto_predictable_failure_gate.py'
       - 'docs/diagnostics/KYOTO_PREDICTABLE_FAILURE_MATRIX_20261116.json'
       - 'diagnostics/kyoto_sp_observed_source.py'
@@ -57,6 +60,13 @@ jobs:
           python -m unittest -v tests.test_kyoto_predictable_failure_gate 2>&1 | tee weekend_preflight_proof/coverage_gate_selftests.log
           python -m diagnostics.kyoto_predictable_failure_gate --report weekend_preflight_proof/predictable_failure_execution.json 2>&1 | tee weekend_preflight_proof/coverage_execution.log
           sha256sum weekend_preflight_proof/coverage_gate_selftests.log weekend_preflight_proof/coverage_execution.log weekend_preflight_proof/predictable_failure_execution.json > weekend_preflight_proof/coverage_evidence_sha256.txt
+      - name: Independently enumerate real source functions and freeze unresolved FMEA gaps
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m unittest -v tests.test_kyoto_reverse_fmea_gate 2>&1 | tee weekend_preflight_proof/reverse_fmea_guard_tests.log
+          python -m diagnostics.kyoto_reverse_fmea_gate --report weekend_preflight_proof/reverse_fmea_report.json 2>&1 | tee weekend_preflight_proof/reverse_fmea_execution.log
+          sha256sum weekend_preflight_proof/reverse_fmea_guard_tests.log weekend_preflight_proof/reverse_fmea_execution.log weekend_preflight_proof/reverse_fmea_report.json > weekend_preflight_proof/reverse_fmea_evidence_sha256.txt
       - name: Record checked version and hash of offline test log
         if: always()
         shell: bash
