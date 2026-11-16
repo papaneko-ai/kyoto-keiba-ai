@@ -19,6 +19,18 @@ class SourceFirstCoverageTests(unittest.TestCase):
         self.assertEqual(r["additional_predictable_failure_families"],20)
         self.assertGreater(r["high_severity_unresolved"],0)
         self.assertIs(r["completeness_demonstrated"],False)
+    def test_transitive_source_dependencies_are_enumerated_not_ignored(self):
+        from diagnostics.kyoto_reverse_fmea_gate import reachable_local_modules
+        seed={item["source"] for item in self.doc["surfaces"]}
+        seen=reachable_local_modules(ROOT,seed)
+        self.assertTrue(seed.issubset(seen))
+        self.assertGreater(len(seen),len(seed),
+                           "No imported module outside the manually selected seven was found; verify import analysis")
+        result=inspect(ROOT,self.doc)
+        self.assertEqual(result["additional_reachable_modules_not_yet_reviewed"],
+                         len(seen-seed))
+        self.assertIs(result["completeness_demonstrated"],False)
+
     def test_function_omission_rejected(self):
         d=copy.deepcopy(self.doc)
         d["surfaces"].pop()
