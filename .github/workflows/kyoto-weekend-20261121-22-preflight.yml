@@ -16,6 +16,7 @@ on:
       - 'tests/test_kyoto_weekend_interruption_and_pacing.py'
       - 'tests/test_kyoto_predictable_failure_gate.py'
       - 'tests/test_kyoto_reverse_fmea_gate.py'
+      - 'tests/test_kyoto_weekend_race_parity.py'
       - 'diagnostics/kyoto_reverse_fmea_gate.py'
       - 'docs/diagnostics/KYOTO_REVERSE_FMEA_GAP_REGISTER_20261116.json'
       - 'diagnostics/kyoto_predictable_failure_gate.py'
@@ -56,6 +57,11 @@ jobs:
           KYOTO_TARGET_DAY=20261121 python -m unittest -v tests.test_kyoto_weekend_capture tests.test_kyoto_safe_stop_artifact tests.test_kyoto_weekend_production_workflow tests.test_kyoto_weekend_sp_discovery tests.test_kyoto_weekend_day21_triage tests.test_kyoto_weekend_day21_artifact_triage tests.test_kyoto_weekend_postflight tests.test_kyoto_weekend_handoff_workflow tests.test_kyoto_weekend_end_to_end tests.test_kyoto_weekend_interruption_and_pacing 2>&1 | tee weekend_preflight_proof/tests.log
           KYOTO_TARGET_DAY=20261115 python -m unittest -v tests.test_kyoto_sp_observed_source tests.test_kyoto_nov15_offline_race_links 2>&1 | tee -a weekend_preflight_proof/tests.log
           KYOTO_TARGET_DAY=20261122 python -m unittest -v tests.test_kyoto_nov15_encrypted_evidence tests.test_kyoto_weekend_sp_discovery tests.test_kyoto_weekend_postflight tests.test_kyoto_weekend_day21_triage 2>&1 | tee -a weekend_preflight_proof/tests.log
+      - name: Prove actual weekend PC and SP target same Kyoto 12R, not 11R
+        shell: bash
+        run: |
+          set -euo pipefail
+          KYOTO_TARGET_DAY=20261121 python -m unittest -v tests.test_kyoto_weekend_race_parity 2>&1 | tee weekend_preflight_proof/race_parity.log
       - name: Independently check matrix omissions and execute all 30 foreseeable-failure cases
         shell: bash
         run: |
