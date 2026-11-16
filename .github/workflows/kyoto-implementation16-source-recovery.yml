@@ -1,4 +1,4 @@
-name: Kyoto Nov21-22 post-repair immutable source history recovery backup
+name: Kyoto Nov21-22 predictable-failure-prevention verified source recovery
 on:
   push:
     branches: [jra-html-diagnostic-20261105]
