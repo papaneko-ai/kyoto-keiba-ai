@@ -77,19 +77,14 @@ def capture(day: str, channel: str, output: str, *, live: bool,
                 root / "pc_originals", now_utc=datetime.now(timezone.utc).isoformat(),
                 opener=opener, allowed=True, include_observed_racecard=True,
                 include_observed_odds_menu=True)
-            # Preserve only actual observed originals and a separate summary receipt.
+            # Preserve the full observer receipt with every actual SHA, URL and
+            # UTC timestamp. A separate summary is returned to the job log only.
             out = _no_claim(day, channel, result["state"],
                             observed_http_requests_started=result["http_requests_started"],
                             captured_originals=bool(result.get("selection_sha256")))
-            _write_receipt(root, out)
             for original in (root / "pc_originals").iterdir():
-                if original.name == "receipt.json":
-                    # The original observer's receipt is preserved as the canonical receipt.
-                    # The summary stays in the separate job log, not as duplicate source claim.
-                    continue
                 if original.is_file():
                     original.rename(root / original.name)
-            (root / "pc_originals" / "receipt.json").unlink()
             (root / "pc_originals").rmdir()
             return out
         except Exception as exc:
