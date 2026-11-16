@@ -1,0 +1,955 @@
+{
+  "schema": "kyoto_fmea_reverse_coverage_v1",
+  "reference_day": "2026-11-16",
+  "source_branch": "jra-html-diagnostic-20261105",
+  "source_commit": "fd0d3ec7f3f85aa65c7205301e8ae10b39c98089",
+  "scope": "Nov21/22 production official-source observation and handoff; not forecast market acceptance",
+  "extraction_policy": "Static transitive diagnostics import closure of 7 source entry modules, all top-level functions registered and locked by source Git blob; newly imported modules and newly added functions require inventory expansion. Class-method and runtime dynamic imports are independently declared separate pending scopes.",
+  "surfaces": [
+    {
+      "source": "diagnostics/kyoto_weekend_capture.py",
+      "function": "validate_day",
+      "phase": "scheduler_to_capture",
+      "review_required": true,
+      "source_sha_status": "BIND_TO_CI_CHECKOUT",
+      "review_status": "SOURCE_READ_FMEA_OPEN_GAPS"
+    },
+    {
+      "source": "diagnostics/kyoto_weekend_capture.py",
+      "function": "_write_receipt",
+      "phase": "scheduler_to_capture",
+      "review_required": true,
+      "source_sha_status": "BIND_TO_CI_CHECKOUT",
+      "review_status": "SOURCE_READ_FMEA_OPEN_GAPS"
+    },
+    {
+      "source": "diagnostics/kyoto_weekend_capture.py",
+      "function": "_no_claim",
+      "phase": "scheduler_to_capture",
+      "review_required": true,
+      "source_sha_status": "BIND_TO_CI_CHECKOUT",
+      "review_status": "SOURCE_READ_FMEA_OPEN_GAPS"
+    },
+    {
+      "source": "diagnostics/kyoto_weekend_capture.py",
+      "function": "capture",
+      "phase": "scheduler_to_capture",
+      "review_required": true,
+      "source_sha_status": "BIND_TO_CI_CHECKOUT",
+      "review_status": "SOURCE_READ_FMEA_OPEN_GAPS"
+    },
+    {
+      "source": "diagnostics/kyoto_weekend_capture.py",
+      "function": "_preserve_interrupted_originals",
+      "phase": "scheduler_to_capture",
+      "review_required": true,
+      "source_sha_status": "BIND_TO_CI_CHECKOUT",
+      "review_status": "SOURCE_READ_FMEA_OPEN_GAPS"
+    },
+    {
+      "source": "diagnostics/kyoto_weekend_capture.py",
+      "function": "seal",
+      "phase": "scheduler_to_capture",
+      "review_required": true,
+      "source_sha_status": "BIND_TO_CI_CHECKOUT",
+      "review_status": "SOURCE_READ_FMEA_OPEN_GAPS"
+    },
+    {
+      "source": "diagnostics/kyoto_weekend_capture.py",
+      "function": "main",
+      "phase": "scheduler_to_capture",
+      "review_required": true,
+      "source_sha_status": "BIND_TO_CI_CHECKOUT",
+      "review_status": "SOURCE_READ_FMEA_OPEN_GAPS"
+    },
+    {
+      "source": "diagnostics/kyoto_weekend_sp_discovery.py",
+      "function": "official_sp_anchors",
+      "phase": "official_link_navigation",
+      "review_required": true,
+      "source_sha_status": "BIND_TO_CI_CHECKOUT",
+      "review_status": "SOURCE_READ_FMEA_OPEN_GAPS"
+    },
+    {
+      "source": "diagnostics/kyoto_weekend_sp_discovery.py",
+      "function": "discover",
+      "phase": "official_link_navigation",
+      "review_required": true,
+      "source_sha_status": "BIND_TO_CI_CHECKOUT",
+      "review_status": "SOURCE_READ_FMEA_OPEN_GAPS"
+    },
+    {
+      "source": "diagnostics/kyoto_weekend_postflight.py",
+      "function": "_utc",
+      "phase": "provenance_and_timestamp",
+      "review_required": true,
+      "source_sha_status": "BIND_TO_CI_CHECKOUT",
+      "review_status": "SOURCE_READ_FMEA_OPEN_GAPS"
+    },
+    {
+      "source": "diagnostics/kyoto_weekend_postflight.py",
+      "function": "check_originals",
+      "phase": "provenance_and_timestamp",
+      "review_required": true,
+      "source_sha_status": "BIND_TO_CI_CHECKOUT",
+      "review_status": "SOURCE_READ_FMEA_OPEN_GAPS"
+    },
+    {
+      "source": "diagnostics/kyoto_weekend_postflight.py",
+      "function": "main",
+      "phase": "provenance_and_timestamp",
+      "review_required": true,
+      "source_sha_status": "BIND_TO_CI_CHECKOUT",
+      "review_status": "SOURCE_READ_FMEA_OPEN_GAPS"
+    },
+    {
+      "source": "diagnostics/kyoto_weekend_day21_triage.py",
+      "function": "classify",
+      "phase": "first_to_second_day",
+      "review_required": true,
+      "source_sha_status": "BIND_TO_CI_CHECKOUT",
+      "review_status": "SOURCE_READ_FMEA_OPEN_GAPS"
+    },
+    {
+      "source": "diagnostics/kyoto_weekend_day21_triage.py",
+      "function": "main",
+      "phase": "first_to_second_day",
+      "review_required": true,
+      "source_sha_status": "BIND_TO_CI_CHECKOUT",
+      "review_status": "SOURCE_READ_FMEA_OPEN_GAPS"
+    },
+    {
+      "source": "diagnostics/kyoto_nov15_two_original_observer.py",
+      "function": "_parse_kyoto",
+      "phase": "pc_original_http_capture",
+      "review_required": true,
+      "source_sha_status": "BIND_TO_CI_CHECKOUT",
+      "review_status": "SOURCE_READ_FMEA_OPEN_GAPS"
+    },
+    {
+      "source": "diagnostics/kyoto_nov15_two_original_observer.py",
+      "function": "_read",
+      "phase": "pc_original_http_capture",
+      "review_required": true,
+      "source_sha_status": "BIND_TO_CI_CHECKOUT",
+      "review_status": "SOURCE_READ_FMEA_OPEN_GAPS"
+    },
+    {
+      "source": "diagnostics/kyoto_nov15_two_original_observer.py",
+      "function": "_validate_saved_html_encoding",
+      "phase": "pc_original_http_capture",
+      "review_required": true,
+      "source_sha_status": "BIND_TO_CI_CHECKOUT",
+      "review_status": "SOURCE_READ_FMEA_OPEN_GAPS"
+    },
+    {
+      "source": "diagnostics/kyoto_nov15_two_original_observer.py",
+      "function": "_single_observed_racecard",
+      "phase": "pc_original_http_capture",
+      "review_required": true,
+      "source_sha_status": "BIND_TO_CI_CHECKOUT",
+      "review_status": "SOURCE_READ_FMEA_OPEN_GAPS"
+    },
+    {
+      "source": "diagnostics/kyoto_nov15_two_original_observer.py",
+      "function": "observe",
+      "phase": "pc_original_http_capture",
+      "review_required": true,
+      "source_sha_status": "BIND_TO_CI_CHECKOUT",
+      "review_status": "SOURCE_READ_FMEA_OPEN_GAPS"
+    },
+    {
+      "source": "diagnostics/kyoto_nov15_two_original_observer.py",
+      "function": "accept_observation",
+      "phase": "pc_original_http_capture",
+      "review_required": true,
+      "source_sha_status": "BIND_TO_CI_CHECKOUT",
+      "review_status": "SOURCE_READ_FMEA_OPEN_GAPS"
+    },
+    {
+      "source": "diagnostics/kyoto_sp_observed_source.py",
+      "function": "capture_observed_sp",
+      "phase": "sp_original_http_capture",
+      "review_required": true,
+      "source_sha_status": "BIND_TO_CI_CHECKOUT",
+      "review_status": "SOURCE_READ_FMEA_OPEN_GAPS"
+    },
+    {
+      "source": "diagnostics/kyoto_sp_observed_source.py",
+      "function": "capture_verified_sp_seed",
+      "phase": "sp_original_http_capture",
+      "review_required": true,
+      "source_sha_status": "BIND_TO_CI_CHECKOUT",
+      "review_status": "SOURCE_READ_FMEA_OPEN_GAPS"
+    },
+    {
+      "source": "diagnostics/kyoto_sp_observed_source.py",
+      "function": "_capture_sp_observed_markets",
+      "phase": "sp_original_http_capture",
+      "review_required": true,
+      "source_sha_status": "BIND_TO_CI_CHECKOUT",
+      "review_status": "SOURCE_READ_FMEA_OPEN_GAPS"
+    },
+    {
+      "source": "diagnostics/kyoto_sp_observed_source.py",
+      "function": "compare_saved_pc_sp",
+      "phase": "sp_original_http_capture",
+      "review_required": true,
+      "source_sha_status": "BIND_TO_CI_CHECKOUT",
+      "review_status": "SOURCE_READ_FMEA_OPEN_GAPS"
+    },
+    {
+      "source": "diagnostics/kyoto_nov15_encrypted_evidence.py",
+      "function": "_key",
+      "phase": "authenticated_evidence_storage",
+      "review_required": true,
+      "source_sha_status": "BIND_TO_CI_CHECKOUT",
+      "review_status": "SOURCE_READ_FMEA_OPEN_GAPS"
+    },
+    {
+      "source": "diagnostics/kyoto_nov15_encrypted_evidence.py",
+      "function": "_aad",
+      "phase": "authenticated_evidence_storage",
+      "review_required": true,
+      "source_sha_status": "BIND_TO_CI_CHECKOUT",
+      "review_status": "SOURCE_READ_FMEA_OPEN_GAPS"
+    },
+    {
+      "source": "diagnostics/kyoto_nov15_encrypted_evidence.py",
+      "function": "encrypt_evidence",
+      "phase": "authenticated_evidence_storage",
+      "review_required": true,
+      "source_sha_status": "BIND_TO_CI_CHECKOUT",
+      "review_status": "SOURCE_READ_FMEA_OPEN_GAPS"
+    },
+    {
+      "source": "diagnostics/kyoto_nov15_encrypted_evidence.py",
+      "function": "decrypt_evidence",
+      "phase": "authenticated_evidence_storage",
+      "review_required": true,
+      "source_sha_status": "BIND_TO_CI_CHECKOUT",
+      "review_status": "SOURCE_READ_FMEA_OPEN_GAPS"
+    },
+    {
+      "source": "diagnostics/kyoto_nov15_encrypted_evidence.py",
+      "function": "main",
+      "phase": "authenticated_evidence_storage",
+      "review_required": true,
+      "source_sha_status": "BIND_TO_CI_CHECKOUT",
+      "review_status": "SOURCE_READ_FMEA_OPEN_GAPS"
+    },
+    {
+      "source": "diagnostics/jra_benchmark_acceptance.py",
+      "function": "_read",
+      "phase": "transitively_imported_support",
+      "review_required": true,
+      "review_status": "UNREVIEWED_INDEPENDENT_FMEA",
+      "source_sha_status": "FROZEN_GIT_BLOB"
+    },
+    {
+      "source": "diagnostics/jra_benchmark_acceptance.py",
+      "function": "_snapshot",
+      "phase": "transitively_imported_support",
+      "review_required": true,
+      "review_status": "UNREVIEWED_INDEPENDENT_FMEA",
+      "source_sha_status": "FROZEN_GIT_BLOB"
+    },
+    {
+      "source": "diagnostics/jra_benchmark_acceptance.py",
+      "function": "audit_report",
+      "phase": "transitively_imported_support",
+      "review_required": true,
+      "review_status": "UNREVIEWED_INDEPENDENT_FMEA",
+      "source_sha_status": "FROZEN_GIT_BLOB"
+    },
+    {
+      "source": "diagnostics/jra_benchmark_acceptance.py",
+      "function": "main",
+      "phase": "transitively_imported_support",
+      "review_required": true,
+      "review_status": "UNREVIEWED_INDEPENDENT_FMEA",
+      "source_sha_status": "FROZEN_GIT_BLOB"
+    },
+    {
+      "source": "diagnostics/jra_market_integrity_gate.py",
+      "function": "utc",
+      "phase": "transitively_imported_support",
+      "review_required": true,
+      "review_status": "UNREVIEWED_INDEPENDENT_FMEA",
+      "source_sha_status": "FROZEN_GIT_BLOB"
+    },
+    {
+      "source": "diagnostics/jra_market_integrity_gate.py",
+      "function": "normal_sales_open",
+      "phase": "transitively_imported_support",
+      "review_required": true,
+      "review_status": "UNREVIEWED_INDEPENDENT_FMEA",
+      "source_sha_status": "FROZEN_GIT_BLOB"
+    },
+    {
+      "source": "diagnostics/jra_market_integrity_gate.py",
+      "function": "publication_status",
+      "phase": "transitively_imported_support",
+      "review_required": true,
+      "review_status": "UNREVIEWED_INDEPENDENT_FMEA",
+      "source_sha_status": "FROZEN_GIT_BLOB"
+    },
+    {
+      "source": "diagnostics/jra_market_integrity_gate.py",
+      "function": "check",
+      "phase": "transitively_imported_support",
+      "review_required": true,
+      "review_status": "UNREVIEWED_INDEPENDENT_FMEA",
+      "source_sha_status": "FROZEN_GIT_BLOB"
+    },
+    {
+      "source": "diagnostics/jra_market_source_chain.py",
+      "function": "_html_race_identity",
+      "phase": "transitively_imported_support",
+      "review_required": true,
+      "review_status": "UNREVIEWED_INDEPENDENT_FMEA",
+      "source_sha_status": "FROZEN_GIT_BLOB"
+    },
+    {
+      "source": "diagnostics/jra_market_source_chain.py",
+      "function": "audit_source_originals",
+      "phase": "transitively_imported_support",
+      "review_required": true,
+      "review_status": "UNREVIEWED_INDEPENDENT_FMEA",
+      "source_sha_status": "FROZEN_GIT_BLOB"
+    },
+    {
+      "source": "diagnostics/jra_multi_capture_20261106.py",
+      "function": "clock",
+      "phase": "transitively_imported_support",
+      "review_required": true,
+      "review_status": "UNREVIEWED_INDEPENDENT_FMEA",
+      "source_sha_status": "FROZEN_GIT_BLOB"
+    },
+    {
+      "source": "diagnostics/jra_multi_capture_20261106.py",
+      "function": "parse",
+      "phase": "transitively_imported_support",
+      "review_required": true,
+      "review_status": "UNREVIEWED_INDEPENDENT_FMEA",
+      "source_sha_status": "FROZEN_GIT_BLOB"
+    },
+    {
+      "source": "diagnostics/jra_multi_capture_20261106.py",
+      "function": "capture",
+      "phase": "transitively_imported_support",
+      "review_required": true,
+      "review_status": "UNREVIEWED_INDEPENDENT_FMEA",
+      "source_sha_status": "FROZEN_GIT_BLOB"
+    },
+    {
+      "source": "diagnostics/jra_odds_matrix_parser.py",
+      "function": "parse_matrix",
+      "phase": "transitively_imported_support",
+      "review_required": true,
+      "review_status": "UNREVIEWED_INDEPENDENT_FMEA",
+      "source_sha_status": "FROZEN_GIT_BLOB"
+    },
+    {
+      "source": "diagnostics/jra_odds_source_archive.py",
+      "function": "aware_utc",
+      "phase": "transitively_imported_support",
+      "review_required": true,
+      "review_status": "UNREVIEWED_INDEPENDENT_FMEA",
+      "source_sha_status": "FROZEN_GIT_BLOB"
+    },
+    {
+      "source": "diagnostics/jra_odds_source_archive.py",
+      "function": "validate_receipt",
+      "phase": "transitively_imported_support",
+      "review_required": true,
+      "review_status": "UNREVIEWED_INDEPENDENT_FMEA",
+      "source_sha_status": "FROZEN_GIT_BLOB"
+    },
+    {
+      "source": "diagnostics/jra_odds_source_archive.py",
+      "function": "freeze_once",
+      "phase": "transitively_imported_support",
+      "review_required": true,
+      "review_status": "UNREVIEWED_INDEPENDENT_FMEA",
+      "source_sha_status": "FROZEN_GIT_BLOB"
+    },
+    {
+      "source": "diagnostics/jra_official_link_repair.py",
+      "function": "observed_links",
+      "phase": "transitively_imported_support",
+      "review_required": true,
+      "review_status": "UNREVIEWED_INDEPENDENT_FMEA",
+      "source_sha_status": "FROZEN_GIT_BLOB"
+    },
+    {
+      "source": "diagnostics/jra_official_link_repair.py",
+      "function": "unique_observed",
+      "phase": "transitively_imported_support",
+      "review_required": true,
+      "review_status": "UNREVIEWED_INDEPENDENT_FMEA",
+      "source_sha_status": "FROZEN_GIT_BLOB"
+    },
+    {
+      "source": "diagnostics/jra_official_link_repair.py",
+      "function": "repair_pc_racecard",
+      "phase": "transitively_imported_support",
+      "review_required": true,
+      "review_status": "UNREVIEWED_INDEPENDENT_FMEA",
+      "source_sha_status": "FROZEN_GIT_BLOB"
+    },
+    {
+      "source": "diagnostics/jra_official_market_navigation.py",
+      "function": "find_market_links",
+      "phase": "transitively_imported_support",
+      "review_required": true,
+      "review_status": "UNREVIEWED_INDEPENDENT_FMEA",
+      "source_sha_status": "FROZEN_GIT_BLOB"
+    },
+    {
+      "source": "diagnostics/jra_one_shot_market_capture.py",
+      "function": "verified_roster_from_snapshot",
+      "phase": "transitively_imported_support",
+      "review_required": true,
+      "review_status": "UNREVIEWED_INDEPENDENT_FMEA",
+      "source_sha_status": "FROZEN_GIT_BLOB"
+    },
+    {
+      "source": "diagnostics/jra_one_shot_market_capture.py",
+      "function": "verify_live_racecard_roster",
+      "phase": "transitively_imported_support",
+      "review_required": true,
+      "review_status": "UNREVIEWED_INDEPENDENT_FMEA",
+      "source_sha_status": "FROZEN_GIT_BLOB"
+    },
+    {
+      "source": "diagnostics/jra_one_shot_market_capture.py",
+      "function": "exact_odds_action",
+      "phase": "transitively_imported_support",
+      "review_required": true,
+      "review_status": "UNREVIEWED_INDEPENDENT_FMEA",
+      "source_sha_status": "FROZEN_GIT_BLOB"
+    },
+    {
+      "source": "diagnostics/jra_one_shot_market_capture.py",
+      "function": "observed_next_market_action",
+      "phase": "transitively_imported_support",
+      "review_required": true,
+      "review_status": "UNREVIEWED_INDEPENDENT_FMEA",
+      "source_sha_status": "FROZEN_GIT_BLOB"
+    },
+    {
+      "source": "diagnostics/jra_one_shot_market_capture.py",
+      "function": "http_fetch",
+      "phase": "transitively_imported_support",
+      "review_required": true,
+      "review_status": "UNREVIEWED_INDEPENDENT_FMEA",
+      "source_sha_status": "FROZEN_GIT_BLOB"
+    },
+    {
+      "source": "diagnostics/jra_one_shot_market_capture.py",
+      "function": "prepare_empty_original_directory",
+      "phase": "transitively_imported_support",
+      "review_required": true,
+      "review_status": "UNREVIEWED_INDEPENDENT_FMEA",
+      "source_sha_status": "FROZEN_GIT_BLOB"
+    },
+    {
+      "source": "diagnostics/jra_one_shot_market_capture.py",
+      "function": "persist_original_once",
+      "phase": "transitively_imported_support",
+      "review_required": true,
+      "review_status": "UNREVIEWED_INDEPENDENT_FMEA",
+      "source_sha_status": "FROZEN_GIT_BLOB"
+    },
+    {
+      "source": "diagnostics/jra_one_shot_market_capture.py",
+      "function": "persist_receipt_once",
+      "phase": "transitively_imported_support",
+      "review_required": true,
+      "review_status": "UNREVIEWED_INDEPENDENT_FMEA",
+      "source_sha_status": "FROZEN_GIT_BLOB"
+    },
+    {
+      "source": "diagnostics/jra_one_shot_market_capture.py",
+      "function": "capture",
+      "phase": "transitively_imported_support",
+      "review_required": true,
+      "review_status": "UNREVIEWED_INDEPENDENT_FMEA",
+      "source_sha_status": "FROZEN_GIT_BLOB"
+    },
+    {
+      "source": "diagnostics/jra_one_shot_market_capture.py",
+      "function": "capture_hybrid",
+      "phase": "transitively_imported_support",
+      "review_required": true,
+      "review_status": "UNREVIEWED_INDEPENDENT_FMEA",
+      "source_sha_status": "FROZEN_GIT_BLOB"
+    },
+    {
+      "source": "diagnostics/jra_pc_sp_benchmark.py",
+      "function": "pc_urls",
+      "phase": "transitively_imported_support",
+      "review_required": true,
+      "review_status": "UNREVIEWED_INDEPENDENT_FMEA",
+      "source_sha_status": "FROZEN_GIT_BLOB"
+    },
+    {
+      "source": "diagnostics/jra_pc_sp_benchmark.py",
+      "function": "frozen",
+      "phase": "transitively_imported_support",
+      "review_required": true,
+      "review_status": "UNREVIEWED_INDEPENDENT_FMEA",
+      "source_sha_status": "FROZEN_GIT_BLOB"
+    },
+    {
+      "source": "diagnostics/jra_pc_sp_benchmark.py",
+      "function": "fetch_once",
+      "phase": "transitively_imported_support",
+      "review_required": true,
+      "review_status": "UNREVIEWED_INDEPENDENT_FMEA",
+      "source_sha_status": "FROZEN_GIT_BLOB"
+    },
+    {
+      "source": "diagnostics/jra_pc_sp_benchmark.py",
+      "function": "sp_rows",
+      "phase": "transitively_imported_support",
+      "review_required": true,
+      "review_status": "UNREVIEWED_INDEPENDENT_FMEA",
+      "source_sha_status": "FROZEN_GIT_BLOB"
+    },
+    {
+      "source": "diagnostics/jra_pc_sp_benchmark.py",
+      "function": "pc_rows",
+      "phase": "transitively_imported_support",
+      "review_required": true,
+      "review_status": "UNREVIEWED_INDEPENDENT_FMEA",
+      "source_sha_status": "FROZEN_GIT_BLOB"
+    },
+    {
+      "source": "diagnostics/jra_pc_sp_benchmark.py",
+      "function": "benchmark",
+      "phase": "transitively_imported_support",
+      "review_required": true,
+      "review_status": "UNREVIEWED_INDEPENDENT_FMEA",
+      "source_sha_status": "FROZEN_GIT_BLOB"
+    },
+    {
+      "source": "diagnostics/jra_pc_sp_benchmark.py",
+      "function": "reconcile_saved_racecards",
+      "phase": "transitively_imported_support",
+      "review_required": true,
+      "review_status": "UNREVIEWED_INDEPENDENT_FMEA",
+      "source_sha_status": "FROZEN_GIT_BLOB"
+    },
+    {
+      "source": "diagnostics/jra_pc_sp_benchmark.py",
+      "function": "assess_dual_channel_experiment",
+      "phase": "transitively_imported_support",
+      "review_required": true,
+      "review_status": "UNREVIEWED_INDEPENDENT_FMEA",
+      "source_sha_status": "FROZEN_GIT_BLOB"
+    },
+    {
+      "source": "diagnostics/jra_pc_sp_benchmark.py",
+      "function": "observed_sp_race_links_from_saved_navigation",
+      "phase": "transitively_imported_support",
+      "review_required": true,
+      "review_status": "UNREVIEWED_INDEPENDENT_FMEA",
+      "source_sha_status": "FROZEN_GIT_BLOB"
+    },
+    {
+      "source": "diagnostics/jra_source_router.py",
+      "function": "_timestamp",
+      "phase": "transitively_imported_support",
+      "review_required": true,
+      "review_status": "UNREVIEWED_INDEPENDENT_FMEA",
+      "source_sha_status": "FROZEN_GIT_BLOB"
+    },
+    {
+      "source": "diagnostics/jra_source_router.py",
+      "function": "_latency",
+      "phase": "transitively_imported_support",
+      "review_required": true,
+      "review_status": "UNREVIEWED_INDEPENDENT_FMEA",
+      "source_sha_status": "FROZEN_GIT_BLOB"
+    },
+    {
+      "source": "diagnostics/jra_source_router.py",
+      "function": "decide",
+      "phase": "transitively_imported_support",
+      "review_required": true,
+      "review_status": "UNREVIEWED_INDEPENDENT_FMEA",
+      "source_sha_status": "FROZEN_GIT_BLOB"
+    },
+    {
+      "source": "diagnostics/jra_source_router.py",
+      "function": "source_bytes_comparison",
+      "phase": "transitively_imported_support",
+      "review_required": true,
+      "review_status": "UNREVIEWED_INDEPENDENT_FMEA",
+      "source_sha_status": "FROZEN_GIT_BLOB"
+    },
+    {
+      "source": "diagnostics/kyoto_p1_nov14_official_one_shot_nav.py",
+      "function": "strict_link_from_official",
+      "phase": "transitively_imported_support",
+      "review_required": true,
+      "review_status": "UNREVIEWED_INDEPENDENT_FMEA",
+      "source_sha_status": "FROZEN_GIT_BLOB"
+    },
+    {
+      "source": "diagnostics/kyoto_p1_nov14_official_one_shot_nav.py",
+      "function": "inspect_once",
+      "phase": "transitively_imported_support",
+      "review_required": true,
+      "review_status": "UNREVIEWED_INDEPENDENT_FMEA",
+      "source_sha_status": "FROZEN_GIT_BLOB"
+    },
+    {
+      "source": "diagnostics/kyoto_safe_stop_artifact.py",
+      "function": "record_pre_http_stop",
+      "phase": "transitively_imported_support",
+      "review_required": true,
+      "review_status": "UNREVIEWED_INDEPENDENT_FMEA",
+      "source_sha_status": "FROZEN_GIT_BLOB"
+    }
+  ],
+  "risks": [
+    {
+      "id": "GAP-01",
+      "severity": "BLOCKER",
+      "name": "PC/SP race identity drift",
+      "failure_mode": "PC observes largest available race; SP hard-codes race 12. Cross-lane equivalence is not guaranteed.",
+      "affected_surfaces": [
+        "kyoto_nov15_two_original_observer.py:_single_observed_racecard",
+        "kyoto_weekend_capture.py:capture"
+      ],
+      "release_scope": "source_only",
+      "identified_by": "independent_source_first_fmea",
+      "test_proven": false,
+      "remediated": false,
+      "required_evidence": "separate negative test + actual source bytes or documented simulated failure + independent recheck"
+    },
+    {
+      "id": "GAP-02",
+      "severity": "BLOCKER",
+      "name": "SP link candidate overfilter",
+      "failure_mode": "Matching requires token embedding 12+day and literal Kyoto label; actual official SP link format is unverified.",
+      "affected_surfaces": [
+        "kyoto_weekend_sp_discovery.py:discover",
+        "kyoto_sp_observed_source.py:capture_verified_sp_seed"
+      ],
+      "release_scope": "live_recon",
+      "identified_by": "independent_source_first_fmea",
+      "test_proven": false,
+      "remediated": false,
+      "required_evidence": "separate negative test + actual source bytes or documented simulated failure + independent recheck"
+    },
+    {
+      "id": "GAP-03",
+      "severity": "BLOCKER",
+      "name": "SP navigation horizon",
+      "failure_mode": "Only three SP pages can be followed; real menus may be deeper or multi-branch.",
+      "affected_surfaces": [
+        "kyoto_weekend_sp_discovery.py:discover",
+        "kyoto_weekend_capture.py:capture"
+      ],
+      "release_scope": "live_recon",
+      "identified_by": "independent_source_first_fmea",
+      "test_proven": false,
+      "remediated": false,
+      "required_evidence": "separate negative test + actual source bytes or documented simulated failure + independent recheck"
+    },
+    {
+      "id": "GAP-04",
+      "severity": "BLOCKER",
+      "name": "Prestart cut-off not bound to race",
+      "failure_mode": "UTC source time and scheduled start time do not have an independently authenticated joint proof.",
+      "affected_surfaces": [
+        "kyoto_weekend_postflight.py:check_originals",
+        "kyoto_nov15_two_original_observer.py:observe"
+      ],
+      "release_scope": "prediction_only",
+      "identified_by": "independent_source_first_fmea",
+      "test_proven": false,
+      "remediated": false,
+      "required_evidence": "separate negative test + actual source bytes or documented simulated failure + independent recheck"
+    },
+    {
+      "id": "GAP-05",
+      "severity": "BLOCKER",
+      "name": "Markets not qualified for prediction",
+      "failure_mode": "Market HTML capture has raw originals but no final verified odds matrices, market timestamps or both market acceptance.",
+      "affected_surfaces": [
+        "kyoto_sp_observed_source.py:_capture_sp_observed_markets",
+        "kyoto_nov15_two_original_observer.py:observe"
+      ],
+      "release_scope": "prediction_only",
+      "identified_by": "independent_source_first_fmea",
+      "test_proven": false,
+      "remediated": false,
+      "required_evidence": "separate negative test + actual source bytes or documented simulated failure + independent recheck"
+    },
+    {
+      "id": "GAP-06",
+      "severity": "BLOCKER",
+      "name": "No common cross-job pacing",
+      "failure_mode": "PC and SP jobs use separate RequestPacers and could contact official JRA concurrently.",
+      "affected_surfaces": [
+        "kyoto_weekend_capture.py:capture",
+        "kyoto_nov15_two_original_observer.py:observe"
+      ],
+      "release_scope": "source_only",
+      "identified_by": "independent_source_first_fmea",
+      "test_proven": false,
+      "remediated": false,
+      "required_evidence": "separate negative test + actual source bytes or documented simulated failure + independent recheck"
+    },
+    {
+      "id": "GAP-07",
+      "severity": "BLOCKER",
+      "name": "Partial source with unexpected file not sealed",
+      "failure_mode": "Safeguarded encrypted file whitelist can reject a partially captured or unexpected file, leaving artifact absent.",
+      "affected_surfaces": [
+        "kyoto_weekend_capture.py:seal",
+        "kyoto_nov15_encrypted_evidence.py:encrypt_evidence"
+      ],
+      "release_scope": "source_only",
+      "identified_by": "independent_source_first_fmea",
+      "test_proven": false,
+      "remediated": false,
+      "required_evidence": "separate negative test + actual source bytes or documented simulated failure + independent recheck"
+    },
+    {
+      "id": "GAP-08",
+      "severity": "BLOCKER",
+      "name": "Crash before seal step kills artifact salvage",
+      "failure_mode": "SIGKILL, runner failure or timeout can terminate job before upload-always recovery completes.",
+      "affected_surfaces": [
+        "kyoto_weekend_capture.py:seal",
+        "kyoto_nov15_encrypted_evidence.py:encrypt_evidence"
+      ],
+      "release_scope": "source_only",
+      "identified_by": "independent_source_first_fmea",
+      "test_proven": false,
+      "remediated": false,
+      "required_evidence": "separate negative test + actual source bytes or documented simulated failure + independent recheck"
+    },
+    {
+      "id": "GAP-09",
+      "severity": "OPEN",
+      "name": "Per-run duplicate checks miss reservation races",
+      "failure_mode": "Concurrent schedule and dispatch may inspect history before both are visible; GitHub job concurrency group is day-dependent.",
+      "affected_surfaces": [
+        "kyoto_weekend_capture.py:validate_day",
+        "kyoto_weekend_day21_triage.py:classify"
+      ],
+      "release_scope": "source_only",
+      "identified_by": "independent_source_first_fmea",
+      "test_proven": false,
+      "remediated": false,
+      "required_evidence": "separate negative test + actual source bytes or documented simulated failure + independent recheck"
+    },
+    {
+      "id": "GAP-10",
+      "severity": "OPEN",
+      "name": "Workflow scheduling delay past window",
+      "failure_mode": "Cron does not guarantee starting before hardcoded UTC window closes.",
+      "affected_surfaces": [
+        "kyoto_weekend_capture.py:validate_day",
+        "kyoto_nov15_two_original_observer.py:observe"
+      ],
+      "release_scope": "source_only",
+      "identified_by": "independent_source_first_fmea",
+      "test_proven": false,
+      "remediated": false,
+      "required_evidence": "separate negative test + actual source bytes or documented simulated failure + independent recheck"
+    },
+    {
+      "id": "GAP-11",
+      "severity": "OPEN",
+      "name": "Cross-run evidence is not durable",
+      "failure_mode": "Action Artifacts retained 30 days; all significant observations need longer-lived recoverable evidence.",
+      "affected_surfaces": [
+        "kyoto_nov15_encrypted_evidence.py:encrypt_evidence",
+        "kyoto_weekend_day21_triage.py:classify"
+      ],
+      "release_scope": "post_run",
+      "identified_by": "independent_source_first_fmea",
+      "test_proven": false,
+      "remediated": false,
+      "required_evidence": "separate negative test + actual source bytes or documented simulated failure + independent recheck"
+    },
+    {
+      "id": "GAP-12",
+      "severity": "OPEN",
+      "name": "Day21 handoff does not open encrypted artifact",
+      "failure_mode": "Triage classifies success by artifact metadata without decrypting source originals, SHA and observed market content.",
+      "affected_surfaces": [
+        "kyoto_weekend_day21_triage.py:classify",
+        "kyoto_weekend_postflight.py:check_originals"
+      ],
+      "release_scope": "post_run",
+      "identified_by": "independent_source_first_fmea",
+      "test_proven": false,
+      "remediated": false,
+      "required_evidence": "separate negative test + actual source bytes or documented simulated failure + independent recheck"
+    },
+    {
+      "id": "GAP-13",
+      "severity": "OPEN",
+      "name": "Day22 promoted code has only passing CI, no root fix proof",
+      "failure_mode": "Matching SHA and green CI do not establish that specific day21 root cause has been fixed and independently checked.",
+      "affected_surfaces": [
+        "kyoto_weekend_day21_triage.py:classify",
+        "kyoto_weekend_capture.py:main"
+      ],
+      "release_scope": "day22",
+      "identified_by": "independent_source_first_fmea",
+      "test_proven": false,
+      "remediated": false,
+      "required_evidence": "separate negative test + actual source bytes or documented simulated failure + independent recheck"
+    },
+    {
+      "id": "GAP-14",
+      "severity": "OPEN",
+      "name": "SP odds navigation original omission",
+      "failure_mode": "Postflight validates core SP pages but not every SP odds navigation intermediate original and receipt field.",
+      "affected_surfaces": [
+        "kyoto_weekend_postflight.py:check_originals",
+        "kyoto_sp_observed_source.py:_capture_sp_observed_markets"
+      ],
+      "release_scope": "post_run",
+      "identified_by": "independent_source_first_fmea",
+      "test_proven": false,
+      "remediated": false,
+      "required_evidence": "separate negative test + actual source bytes or documented simulated failure + independent recheck"
+    },
+    {
+      "id": "GAP-15",
+      "severity": "OPEN",
+      "name": "PC odds navigation original omission",
+      "failure_mode": "Postflight does not independently account for every PC odds navigation HTML and its recorded hash or UTC.",
+      "affected_surfaces": [
+        "kyoto_weekend_postflight.py:check_originals",
+        "kyoto_nov15_two_original_observer.py:accept_observation"
+      ],
+      "release_scope": "post_run",
+      "identified_by": "independent_source_first_fmea",
+      "test_proven": false,
+      "remediated": false,
+      "required_evidence": "separate negative test + actual source bytes or documented simulated failure + independent recheck"
+    },
+    {
+      "id": "GAP-16",
+      "severity": "OPEN",
+      "name": "Partial capture labels zero-request incorrectly",
+      "failure_mode": "Pre-HTTP stop is inferred from absent source directory, but a request could begin before folder creation or persist outside expected path.",
+      "affected_surfaces": [
+        "kyoto_weekend_capture.py:seal",
+        "kyoto_weekend_day21_triage.py:classify"
+      ],
+      "release_scope": "source_only",
+      "identified_by": "independent_source_first_fmea",
+      "test_proven": false,
+      "remediated": false,
+      "required_evidence": "separate negative test + actual source bytes or documented simulated failure + independent recheck"
+    },
+    {
+      "id": "GAP-17",
+      "severity": "OPEN",
+      "name": "Third-party dependency version drift",
+      "failure_mode": "Runtime installs bounded but unpinned parser/crypto dependency versions which can change between simulated and weekend runs.",
+      "affected_surfaces": [
+        "kyoto_weekend_capture.py:main",
+        "kyoto_nov15_encrypted_evidence.py:encrypt_evidence"
+      ],
+      "release_scope": "source_only",
+      "identified_by": "independent_source_first_fmea",
+      "test_proven": false,
+      "remediated": false,
+      "required_evidence": "separate negative test + actual source bytes or documented simulated failure + independent recheck"
+    },
+    {
+      "id": "GAP-18",
+      "severity": "OPEN",
+      "name": "Cross-day handoff API inaccessible or incomplete",
+      "failure_mode": "GitHub list APIs are restricted by pagination, permissions and transient error handling; cannot assume retrieval of all jobs/artifacts.",
+      "affected_surfaces": [
+        "kyoto_weekend_day21_triage.py:classify",
+        "kyoto_weekend_capture.py:main"
+      ],
+      "release_scope": "day22",
+      "identified_by": "independent_source_first_fmea",
+      "test_proven": false,
+      "remediated": false,
+      "required_evidence": "separate negative test + actual source bytes or documented simulated failure + independent recheck"
+    },
+    {
+      "id": "GAP-19",
+      "severity": "OPEN",
+      "name": "PC observed largest available race, ignores earlier race markets",
+      "failure_mode": "Observer prefers highest numbered meeting link regardless of whether pre-race odds are released and useful.",
+      "affected_surfaces": [
+        "kyoto_nov15_two_original_observer.py:_single_observed_racecard",
+        "kyoto_weekend_capture.py:capture"
+      ],
+      "release_scope": "source_only",
+      "identified_by": "independent_source_first_fmea",
+      "test_proven": false,
+      "remediated": false,
+      "required_evidence": "separate negative test + actual source bytes or documented simulated failure + independent recheck"
+    },
+    {
+      "id": "GAP-20",
+      "severity": "OPEN",
+      "name": "End-to-end no HTTP acceptance proves simulation only",
+      "failure_mode": "All unit cases may pass while real JRA HTML changes, violates rate controls or returns valid-looking error pages.",
+      "affected_surfaces": [
+        "kyoto_weekend_capture.py:capture",
+        "kyoto_weekend_sp_discovery.py:discover"
+      ],
+      "release_scope": "live_recon",
+      "identified_by": "independent_source_first_fmea",
+      "test_proven": false,
+      "remediated": false,
+      "required_evidence": "separate negative test + actual source bytes or documented simulated failure + independent recheck"
+    }
+  ],
+  "previous_test_matrix": "docs/diagnostics/KYOTO_PREDICTABLE_FAILURE_MATRIX_20261116.json",
+  "old_matrix_pass_count": 30,
+  "adjudication": {
+    "result": "STRUCTURALLY_ENUMERATED_BUT_FMEA_REVIEW_INCOMPLETE",
+    "open_risks": 20,
+    "live_data_authoritative": false,
+    "claims_of_no_foreseeable_bugs_prohibited": true,
+    "source_observation_may_proceed_only_if_release_policy_allows": true,
+    "top_level_functions_total": 76,
+    "top_level_functions_currently_unreviewed": 47,
+    "transitive_local_modules_total": 20
+  },
+  "notes": "Reverse FMEA explicitly finds risk modes not enumerated by the original 30 cases. Counting passing tests is not an independent proof of completeness.",
+  "source_git_blob_sha1": {
+    "diagnostics/kyoto_weekend_capture.py": "70cff6ed2488c9adec27c69a743c6c73d48de873",
+    "diagnostics/kyoto_weekend_sp_discovery.py": "93b695860983c600de4b2e144918db66e207d1c3",
+    "diagnostics/kyoto_weekend_postflight.py": "cf10e01ffe2be46c9a2f23d83273eaf0c98f39da",
+    "diagnostics/kyoto_weekend_day21_triage.py": "2e1419219cef40003b744c17ef9817ac65c9b1d2",
+    "diagnostics/kyoto_nov15_two_original_observer.py": "3ed34198bb3afde27ec7460386f18177121fb4d4",
+    "diagnostics/kyoto_sp_observed_source.py": "3d834412c21f77e1e50a7cc1e09c907212e909b6",
+    "diagnostics/kyoto_nov15_encrypted_evidence.py": "8bf93410f6d05d45ca282cafa13c7df23775e760",
+    "diagnostics/jra_benchmark_acceptance.py": "edbd6b5b9479fdbf3fc88c7450c0c7ae3260a76f",
+    "diagnostics/jra_market_integrity_gate.py": "6f20257575d7c5aeb232512bb64700dee21c3e06",
+    "diagnostics/jra_market_source_chain.py": "8e6bd6b33e9591b6158e2a14a48afd61a902b374",
+    "diagnostics/jra_multi_capture_20261106.py": "a223f6d20beebd1852e071a44af89e1a98e9ca6d",
+    "diagnostics/jra_odds_matrix_parser.py": "20633583ed9fb69836bf42bf26f51395f89d9f6e",
+    "diagnostics/jra_odds_source_archive.py": "04ffb7982da138c611ff622a8fba0c0868b618e4",
+    "diagnostics/jra_official_link_repair.py": "4bf0b16b4d0a6ff322c813718eb7ec38dd0d2f46",
+    "diagnostics/jra_official_market_navigation.py": "f452e6e0778fb9d86af7fa232092892c6ff11f34",
+    "diagnostics/jra_one_shot_market_capture.py": "ccd5b0b6868d2549515a018bd9d044ed549cae5a",
+    "diagnostics/jra_pc_sp_benchmark.py": "a6c952bbaa128275efb010100f3c5e789c68451e",
+    "diagnostics/jra_source_router.py": "d7eae104adecd60374ac0b6cc9ee622f9e47df95",
+    "diagnostics/kyoto_p1_nov14_official_one_shot_nav.py": "0aa2e6e53cb78f317d77c001ce55e101f45b8c50",
+    "diagnostics/kyoto_safe_stop_artifact.py": "72201d3149cf8f33e7c7cff5fe18118363ac0890"
+  }
+}
