@@ -17,6 +17,7 @@ from pathlib import Path
 COLLECTOR_SHA="d40b003e8704e2c8da13b5971830abbcd5561ddf"
 SUITES={
     "20261121":(
+        "tests.test_kyoto_weekend_retry_guard",
         "tests.test_kyoto_weekend_end_to_end",
         "tests.test_kyoto_weekend_race_parity",
         "tests.test_kyoto_weekend_interruption_and_pacing",
@@ -39,7 +40,8 @@ def rehearse(root:Path,out:Path,event:str,scheduled_expression:str,run_id:str):
         raise RuntimeError("UNVERIFIED_COLLECTOR_SHA")
     if event not in ("push","schedule","workflow_dispatch"):
         raise RuntimeError("WRONG_EVENT_TYPE")
-    expected_crons={"55 4 16 11 *","5 5 16 11 *"}
+    expected_crons={"55 4 16 11 *","5 5 16 11 *",
+                    "43 5 16 11 *","58 5 16 11 *","13 6 16 11 *"}
     if event=="schedule" and scheduled_expression not in expected_crons:
         raise RuntimeError("UNEXPECTED_SCHEDULE_EXPRESSION")
     out.mkdir(parents=True,exist_ok=True)
