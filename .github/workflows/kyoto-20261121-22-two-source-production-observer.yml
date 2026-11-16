@@ -52,7 +52,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          KYOTO_TARGET_DAY=20261121 python -m unittest -q tests.test_kyoto_weekend_race_parity tests.test_kyoto_weekend_capture tests.test_kyoto_safe_stop_artifact tests.test_kyoto_weekend_end_to_end tests.test_kyoto_weekend_postflight tests.test_kyoto_weekend_interruption_and_pacing
+          KYOTO_TARGET_DAY=20261121 python -m unittest -q tests.test_kyoto_weekend_retry_guard tests.test_kyoto_weekend_race_parity tests.test_kyoto_weekend_capture tests.test_kyoto_safe_stop_artifact tests.test_kyoto_weekend_end_to_end tests.test_kyoto_weekend_postflight tests.test_kyoto_weekend_interruption_and_pacing
           KYOTO_TARGET_DAY=20261115 python -m unittest -q tests.test_kyoto_nov15_two_original_observer tests.test_kyoto_nov15_offline_race_links tests.test_kyoto_nov15_encrypted_evidence
       - name: Enumerate and execute all predictable-failure regression scenarios before any JRA HTTP
         shell: bash
@@ -165,7 +165,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          KYOTO_TARGET_DAY=20261121 python -m unittest -q tests.test_kyoto_weekend_race_parity tests.test_kyoto_weekend_capture tests.test_kyoto_safe_stop_artifact tests.test_kyoto_weekend_end_to_end tests.test_kyoto_weekend_postflight tests.test_kyoto_weekend_interruption_and_pacing
+          KYOTO_TARGET_DAY=20261121 python -m unittest -q tests.test_kyoto_weekend_retry_guard tests.test_kyoto_weekend_race_parity tests.test_kyoto_weekend_capture tests.test_kyoto_safe_stop_artifact tests.test_kyoto_weekend_end_to_end tests.test_kyoto_weekend_postflight tests.test_kyoto_weekend_interruption_and_pacing
           KYOTO_TARGET_DAY=20261115 python -m unittest -q tests.test_kyoto_sp_observed_source
       - name: Enumerate and execute all predictable-failure regression scenarios before any JRA HTTP
         shell: bash
