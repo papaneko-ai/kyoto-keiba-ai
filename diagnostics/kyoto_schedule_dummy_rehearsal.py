@@ -14,7 +14,7 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
-COLLECTOR_SHA="e2a48f8b58ae13c210eead22533ee107004a45cd"
+COLLECTOR_SHA="17eae0ce3e1ffa04b75398555849740af6a22f0a"
 SUITES={
     "20261121":(
         "tests.test_kyoto_weekend_retry_guard",
@@ -41,7 +41,8 @@ def rehearse(root:Path,out:Path,event:str,scheduled_expression:str,run_id:str):
     if event not in ("push","schedule","workflow_dispatch"):
         raise RuntimeError("WRONG_EVENT_TYPE")
     expected_crons={"55 4 16 11 *","5 5 16 11 *",
-                    "43 5 16 11 *","58 5 16 11 *","13 6 16 11 *"}
+                    "43 5 16 11 *","58 5 16 11 *","13 6 16 11 *",
+                    "52 6 16 11 *","2 7 16 11 *","12 7 16 11 *"}
     if event=="schedule" and scheduled_expression not in expected_crons:
         raise RuntimeError("UNEXPECTED_SCHEDULE_EXPRESSION")
     out.mkdir(parents=True,exist_ok=True)
