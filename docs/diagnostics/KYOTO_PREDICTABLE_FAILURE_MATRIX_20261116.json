@@ -345,10 +345,10 @@
     {
       "id": "PF30",
       "phase": "cross_host",
-      "risk": "dual_capture",
+      "risk": "cross-job serialized HTTP and SP fallback on PC failure",
       "kind": "integration",
       "test_file": "tests/test_kyoto_weekend_production_workflow.py",
-      "test": "test_independent_lane_jobs_no_dependency",
+      "test": "test_independent_source_lanes_run_sequentially_even_if_pc_fails",
       "source_file": ".github/workflows/kyoto-20261121-22-two-source-production-observer.yml",
       "source_token": "sp-originals-independent:",
       "classification": "evidenced_by_executable_test"
