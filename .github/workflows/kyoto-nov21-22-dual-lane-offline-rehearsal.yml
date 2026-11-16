@@ -1,0 +1,91 @@
+name: Kyoto Nov21-22 independent PC SP offline rehearsal
+on:
+  push:
+    branches: [jra-html-diagnostic-20261105]
+    paths:
+      - '.github/workflows/kyoto-nov21-22-dual-lane-offline-rehearsal.yml'
+      - 'diagnostics/kyoto_safe_stop_artifact.py'
+      - 'tests/test_kyoto_safe_stop_artifact.py'
+      - 'tests/test_kyoto_nov15_offline_race_links.py'
+      - 'tests/test_kyoto_nov15_two_original_observer.py'
+      - 'tests/test_kyoto_sp_observed_source.py'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  pc-independent-offline:
+    runs-on: ubuntu-latest
+    timeout-minutes: 7
+    env:
+      PYTHONPATH: .
+      KYOTO_TARGET_DAY: '20261115'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install 'beautifulsoup4>=4.12,<5' 'cryptography>=43,<47'
+      - name: Verify PC mocks independently (no official HTTP)
+        shell: bash
+        run: |
+          mkdir -p pc_offline_proof
+          set -o pipefail
+          python -m unittest -v tests.test_kyoto_nov15_two_original_observer tests.test_kyoto_nov15_offline_race_links 2>&1 | tee pc_offline_proof/tests.log
+      - name: Preserve PC proof regardless of SP condition
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: kyoto-pc-independent-offline-${{ github.run_id }}
+          path: pc_offline_proof/
+          if-no-files-found: warn
+          retention-days: 30
+  sp-independent-offline:
+    runs-on: ubuntu-latest
+    timeout-minutes: 7
+    env:
+      PYTHONPATH: .
+      KYOTO_TARGET_DAY: '20261115'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install 'beautifulsoup4>=4.12,<5' 'cryptography>=43,<47'
+      - name: Verify SP mock original and separate odds capture (no official HTTP)
+        shell: bash
+        run: |
+          mkdir -p sp_offline_proof
+          set -o pipefail
+          python -m unittest -v tests.test_kyoto_sp_observed_source 2>&1 | tee sp_offline_proof/tests.log
+      - name: Preserve SP proof regardless of PC condition
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: kyoto-sp-independent-offline-${{ github.run_id }}
+          path: sp_offline_proof/
+          if-no-files-found: warn
+          retention-days: 30
+  stop-evidence-independent:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      PYTHONPATH: .
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Run saved-stop fault-injection without JRA HTTP
+        shell: bash
+        run: |
+          mkdir -p stop_offline_proof
+          set -o pipefail
+          python -m unittest -v tests.test_kyoto_safe_stop_artifact 2>&1 | tee stop_offline_proof/tests.log
+      - name: Retain evidence even when other job fails
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: kyoto-stop-independent-offline-${{ github.run_id }}
+          path: stop_offline_proof/
+          if-no-files-found: warn
+          retention-days: 30
