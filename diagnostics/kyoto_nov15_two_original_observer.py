@@ -76,8 +76,15 @@ def _single_observed_racecard(meeting_original, meeting_url):
         choices.setdefault(race,set()).add(url)
     if not choices:
         return None
-    # Prefer the latest numbered explicitly observed race; no start-time claim.
-    race=max(choices)
+    # Weekend PC/SP parity: both lanes observe exact Kyoto 12R only.
+    # Do not silently substitute 11R when SP cannot follow that race.
+    # Retain the historic experimental selection policy for older fixtures.
+    if DAY in ("20261121","20261122"):
+        if 12 not in choices:
+            return None
+        race=12
+    else:
+        race=max(choices)
     if len(choices[race])!=1:
         raise ObservationRejected("ambiguous_same_race_official_link")
     return race,next(iter(choices[race]))
