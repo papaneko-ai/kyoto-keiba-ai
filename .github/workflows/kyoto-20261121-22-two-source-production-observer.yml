@@ -153,7 +153,10 @@ jobs:
           if-no-files-found: error
 
   sp-originals-independent:
-    if: ${{ github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.confirmation == 'NOV21-22-OBSERVE-READ-ONLY') }}
+    # Source lanes remain independent, but network execution is serialized.
+    # PC failure must NOT prevent SP fallback.
+    needs: pc-originals-independent
+    if: ${{ always() && (github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.confirmation == 'NOV21-22-OBSERVE-READ-ONLY')) }}
     runs-on: ubuntu-latest
     timeout-minutes: 12
     env:
@@ -255,6 +258,9 @@ jobs:
               raise SystemExit("PREVIOUS_WORKFLOW_RUN_ON_TARGET_DAY_NO_HTTP")
           print('SP_PRE_HTTP_GUARDS_ACCEPTED')
           PY
+      - name: Cross-job HTTP separation before any official SP request
+        shell: bash
+        run: sleep 3
       - name: Independently verified SP link, otherwise record zero-request stop
         shell: bash
         run: |
