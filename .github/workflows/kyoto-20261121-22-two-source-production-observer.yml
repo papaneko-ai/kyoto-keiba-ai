@@ -34,10 +34,6 @@ jobs:
       ARCHIVE_KEY: ${{ secrets.KYOTO_JRA_ARCHIVE_AES256_HEX }}
       GH_TOKEN: ${{ github.token }}
       COLLECTOR_SHA: ${{ ((github.event.schedule == '10 2 22 11 *' || inputs.race_day == '20261122') && vars.KYOTO_NOV22_VERIFIED_COLLECTOR_SHA) || 'd5e0de7cc39afe8fd168f40a1915e9ddfb668f1a' }}
-      RELEASED_SOURCE_SHA: ${{ vars.KYOTO_WEEKEND_RELEASED_SOURCE_SHA }}
-      RELEASE_RECEIPT_ID: ${{ vars.KYOTO_WEEKEND_RELEASE_RECEIPT_ID }}
-      RELEASED_SOURCE_SHA: ${{ vars.KYOTO_WEEKEND_RELEASED_SOURCE_SHA }}
-      RELEASE_RECEIPT_ID: ${{ vars.KYOTO_WEEKEND_RELEASE_RECEIPT_ID }}
     steps:
       - name: Checkout pinned verified development collector, not default branch
         uses: actions/checkout@v4
@@ -55,49 +51,11 @@ jobs:
           set -euo pipefail
           KYOTO_TARGET_DAY=20261121 python -m unittest -q tests.test_kyoto_weekend_capture tests.test_kyoto_safe_stop_artifact tests.test_kyoto_weekend_end_to_end tests.test_kyoto_weekend_postflight
           KYOTO_TARGET_DAY=20261115 python -m unittest -q tests.test_kyoto_nov15_two_original_observer tests.test_kyoto_nov15_offline_race_links tests.test_kyoto_nov15_encrypted_evidence
-      - name: Independent release authorization gate blocks unresolved critical defects before JRA HTTP
+      - name: Critical incident containment - never contact JRA until independently cleared
         shell: bash
         run: |
-          set -euo pipefail
-          python - <<'PY'
-          import os,re,subprocess
-          actual=subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip()
-          selected=os.environ.get('COLLECTOR_SHA','')
-          approved=os.environ.get('RELEASED_SOURCE_SHA','')
-          receipt=os.environ.get('RELEASE_RECEIPT_ID','')
-          if (not re.fullmatch(r'[0-9a-f]{40}',selected)
-              or actual!=selected
-              or approved!=selected
-              or not re.fullmatch(r'KYOTO-AUDIT-202611[0-9]{2}-[A-Za-z0-9_-]{8,80}',receipt)):
-              raise SystemExit('UNRELEASED_OR_CRITICAL_FINDINGS_OPEN_NO_JRA_HTTP')
-          # Independently inspect the current main-branch issue register.
-          # A GitHub variable alone is not evidence that a bug was resolved.
-          import base64,json,urllib.request
-          repo=os.environ['GITHUB_REPOSITORY']
-          endpoint=('https://api.github.com/repos/'+repo+
-                    '/contents/docs/diagnostics/KYOTO_20261116_INDEPENDENT_RELEASE_BLOCKERS.json?ref=main')
-          request=urllib.request.Request(endpoint,headers={
-              'Authorization':'Bearer '+os.environ['GH_TOKEN'],
-              'Accept':'application/vnd.github+json',
-              'X-GitHub-Api-Version':'2022-11-28'})
-          with urllib.request.urlopen(request,timeout=12) as response:
-              remote=json.load(response)
-          data=json.loads(base64.b64decode(remote['content']))
-          approval=data.get('required_approval',{})
-          if (data.get('schema')!='kyoto_weekend_release_blocker_register.v1'
-              or data.get('status')!='RELEASE_AUTHORIZED'
-              or not isinstance(data.get('issues'),list)
-              or len(data['issues'])<6
-              or any(issue.get('state')!='CLOSED_WITH_INDEPENDENT_EVIDENCE'
-                     for issue in data['issues'])
-              or approval.get('status')!='APPROVED'
-              or approval.get('approved_commit_sha')!=selected
-              or approval.get('receipt')!=receipt
-              or approval.get('independent_source_recheck') is not True
-              or approval.get('full_e2e_test') is not True):
-              raise SystemExit('RELEASE_REGISTER_NOT_INDEPENDENTLY_CLEARED_NO_JRA_HTTP')
-          print('INDEPENDENT_RELEASE_GATE=AUTHORIZED_SOURCE_ONLY')
-          PY
+          echo "::error::RELEASE_BLOCKED_OPEN_CRITICAL_INCIDENTS_KW001_KW002_NO_JRA_HTTP"
+          exit 1
       - name: Race date, immutable commit, secret, first attempt and non-replay guard
         shell: bash
         run: |
@@ -212,49 +170,11 @@ jobs:
           set -euo pipefail
           KYOTO_TARGET_DAY=20261121 python -m unittest -q tests.test_kyoto_weekend_capture tests.test_kyoto_safe_stop_artifact tests.test_kyoto_weekend_end_to_end tests.test_kyoto_weekend_postflight
           KYOTO_TARGET_DAY=20261115 python -m unittest -q tests.test_kyoto_sp_observed_source
-      - name: Independent release authorization gate blocks unresolved critical defects before JRA HTTP
+      - name: Critical incident containment - never contact JRA until independently cleared
         shell: bash
         run: |
-          set -euo pipefail
-          python - <<'PY'
-          import os,re,subprocess
-          actual=subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip()
-          selected=os.environ.get('COLLECTOR_SHA','')
-          approved=os.environ.get('RELEASED_SOURCE_SHA','')
-          receipt=os.environ.get('RELEASE_RECEIPT_ID','')
-          if (not re.fullmatch(r'[0-9a-f]{40}',selected)
-              or actual!=selected
-              or approved!=selected
-              or not re.fullmatch(r'KYOTO-AUDIT-202611[0-9]{2}-[A-Za-z0-9_-]{8,80}',receipt)):
-              raise SystemExit('UNRELEASED_OR_CRITICAL_FINDINGS_OPEN_NO_JRA_HTTP')
-          # Independently inspect the current main-branch issue register.
-          # A GitHub variable alone is not evidence that a bug was resolved.
-          import base64,json,urllib.request
-          repo=os.environ['GITHUB_REPOSITORY']
-          endpoint=('https://api.github.com/repos/'+repo+
-                    '/contents/docs/diagnostics/KYOTO_20261116_INDEPENDENT_RELEASE_BLOCKERS.json?ref=main')
-          request=urllib.request.Request(endpoint,headers={
-              'Authorization':'Bearer '+os.environ['GH_TOKEN'],
-              'Accept':'application/vnd.github+json',
-              'X-GitHub-Api-Version':'2022-11-28'})
-          with urllib.request.urlopen(request,timeout=12) as response:
-              remote=json.load(response)
-          data=json.loads(base64.b64decode(remote['content']))
-          approval=data.get('required_approval',{})
-          if (data.get('schema')!='kyoto_weekend_release_blocker_register.v1'
-              or data.get('status')!='RELEASE_AUTHORIZED'
-              or not isinstance(data.get('issues'),list)
-              or len(data['issues'])<6
-              or any(issue.get('state')!='CLOSED_WITH_INDEPENDENT_EVIDENCE'
-                     for issue in data['issues'])
-              or approval.get('status')!='APPROVED'
-              or approval.get('approved_commit_sha')!=selected
-              or approval.get('receipt')!=receipt
-              or approval.get('independent_source_recheck') is not True
-              or approval.get('full_e2e_test') is not True):
-              raise SystemExit('RELEASE_REGISTER_NOT_INDEPENDENTLY_CLEARED_NO_JRA_HTTP')
-          print('INDEPENDENT_RELEASE_GATE=AUTHORIZED_SOURCE_ONLY')
-          PY
+          echo "::error::RELEASE_BLOCKED_OPEN_CRITICAL_INCIDENTS_KW001_KW002_NO_JRA_HTTP"
+          exit 1
       - name: Race date, immutable commit, secret, first attempt and non-replay guard
         shell: bash
         run: |
