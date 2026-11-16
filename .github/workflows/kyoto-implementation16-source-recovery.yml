@@ -1,4 +1,4 @@
-name: Kyoto Nov21-22 validated Sunday fallback and AES first-day triage recovery archive
+name: Kyoto Nov16 pre-HTTP failure closure and immutable production collector recovery
 on:
   push:
     branches: [jra-html-diagnostic-20261105]
