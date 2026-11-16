@@ -124,14 +124,15 @@ jobs:
         run: |
           set -euo pipefail
           python - <<'PY'
-          import json,os,shutil
+          import os,shutil
           from pathlib import Path
+          from diagnostics.kyoto_safe_stop_artifact import record_pre_http_stop
           from diagnostics.kyoto_nov15_encrypted_evidence import encrypt_evidence
           source=Path("nov15_work_originals")
           dest=Path("nov15_unattended_evidence")
           dest.mkdir(parents=True,exist_ok=True)
           if not source.is_dir():
-              (dest/"safe_stop.json").write_text(json.dumps({"state":"NO_CAPTURE_OR_PRE_HTTP_STOP","JRA_success":False})+"\n")
+              record_pre_http_stop(dest,race_day=os.environ["KYOTO_TARGET_DAY"],reason="NO_CAPTURE_OR_PRE_HTTP_STOP")
           else:
               shutil.rmtree(dest)
               dest.mkdir(parents=True,exist_ok=True)
