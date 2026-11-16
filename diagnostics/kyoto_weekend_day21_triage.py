@@ -50,10 +50,29 @@ def classify(day, run, jobs, artifacts):
         findings[lane]={"state":status,"stage":stage,"failed_steps":failed,
                         "artifact_count":len(artifact),
                         "job_conclusion":job.get("conclusion")}
+    # Prevalidated next-day behavior does not depend on editing protected main
+    # after Saturday. Unknown causes must not be mistaken for auto-repair.
+    blocked_stages={"PRE_HTTP_GUARD","ENCRYPTION_OR_STOP","ARTIFACT",
+                    "OFFLINE_REGRESSION","OTHER_FAILURE","UNKNOWN"}
+    needs_intervention=any(
+        item.get("stage") in blocked_stages for item in findings.values()
+    )
+    day22_strategy={
+        "PC":"FRESH_NEXT_DAY_INDEPENDENT_OFFICIAL_SOURCE_CAPTURE",
+        "SP":"SUNDAY_EXPANDED_BOUNDED_6_PAGE_OBSERVED_OFFICIAL_NAVIGATION",
+        "data_claim":"SOURCE_ONLY_NO_PREDICTION_OR_MARKET_AUTHENTICATION",
+        "requires_manual_intervention":needs_intervention,
+        "human_review_reason":"PRE_HTTP_OR_EVIDENCE_FAILURE" if needs_intervention else
+                              "OFFICIAL_BYTES_STILL_REQUIRE_INSPECTION",
+        "automatic_unknown_source_code_repair":False,
+        "configured_before_day21":True,
+    }
     return {"schema":"kyoto_weekend_day21_day22_handoff.v1",
             "day":day,"run_id":run.get("id"),
             "run_conclusion":run.get("conclusion"),
             "lanes":findings,
+            "observed_workflow_run_exists":run.get("actual_run_observed",True) is not False,
+            "day22_strategy":day22_strategy,
             "next_day":"20261122" if day=="20261121" else None,
             "candidate_promotion_permitted_without_independent_tests":False,
             "requires_actual_original_decrypt_and_hash_check":True,
