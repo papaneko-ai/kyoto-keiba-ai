@@ -42,8 +42,9 @@ class ProductionWorkflowContract(unittest.TestCase):
         self.assertIn("concurrency:",self.s)
 
     def test_seal_all_exits_and_no_plaintext_upload(self):
-        self.assertEqual(self.s.count("if: always()"),4)
+        self.assertEqual(self.s.count("if: always()"),6)
         self.assertEqual(self.s.count("--seal-only"),2)
+        self.assertEqual(self.s.count("kyoto_weekend_postflight"),2)
         self.assertIn("path: pc_sealed/",self.s)
         self.assertIn("path: sp_sealed/",self.s)
         self.assertNotIn("path: pc_raw/",self.s)
