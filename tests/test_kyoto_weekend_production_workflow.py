@@ -16,10 +16,13 @@ class ProductionWorkflowContract(unittest.TestCase):
         self.assertIn("20261121", self.s)
         self.assertIn("20261122", self.s)
 
-    def test_recovery_source_is_pinned_both_lanes(self):
+    def test_day21_immutable_source_and_day22_verified_promotion(self):
         pinned="7318f2b68579affec455627976becfc065248290"
-        self.assertEqual(self.s.count("ref: "+pinned),2)
-        self.assertEqual(self.s.count("strip()=='"+pinned+"'"),2)
+        self.assertIn("KYOTO_NOV22_VERIFIED_COLLECTOR_SHA",self.s)
+        self.assertEqual(self.s.count("ref: ${{ env.COLLECTOR_SHA }}"),2)
+        self.assertEqual(self.s.count("DAY21_SOURCE_UNEXPECTED_NO_HTTP"),2)
+        self.assertEqual(self.s.count("DAY22_CANDIDATE_NOT_PREFLIGHT_VERIFIED_NO_HTTP"),2)
+        self.assertIn(pinned,self.s)
         self.assertNotIn("ref: main",self.s)
 
     def test_independent_lane_jobs_no_dependency(self):
@@ -32,6 +35,8 @@ class ProductionWorkflowContract(unittest.TestCase):
         self.assertEqual(self.s.count('GITHUB_RUN_ATTEMPT'),2)
         self.assertEqual(self.s.count("PREVIOUS_WORKFLOW_RUN_ON_TARGET_DAY_NO_HTTP"),2)
         self.assertEqual(self.s.count("RUN_HISTORY_UNVERIFIED_NO_HTTP"),2)
+        self.assertEqual(self.s.count("SAME_DAY_HISTORY_NEEDS_PAGINATION_NO_HTTP"),2)
+        self.assertEqual(self.s.count("created="+target),2)
         self.assertEqual(self.s.count("ENCRYPTION_KEY_REQUIRED_NO_HTTP"),2)
         self.assertEqual(self.s.count("SOURCE_REVISION_MISMATCH_NO_HTTP"),2)
         self.assertIn("concurrency:",self.s)
