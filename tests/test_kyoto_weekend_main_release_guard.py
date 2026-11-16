@@ -1,45 +1,47 @@
-"""Execute the actual production stop steps with no JRA HTTP.
-
-Quarantine is deliberate: green dry-run or a user-set variable must never
-authorize live requests while the independent critical issues remain open.
-"""
+"""Main-branch source-only release gate: exact repair SHA, open prediction gates."""
 import json
-import subprocess
 import unittest
 from pathlib import Path
 
 WF=Path(".github/workflows/kyoto-20261121-22-two-source-production-observer.yml")
 REG=Path("docs/diagnostics/KYOTO_20261116_INDEPENDENT_RELEASE_BLOCKERS.json")
-STOP="RELEASE_BLOCKED_OPEN_CRITICAL_INCIDENTS_KW001_KW002_NO_JRA_HTTP"
+PIN="16f4ed8230845f9e6b3e23e61b4a4582bd31cc04"
 
-class ContainmentTests(unittest.TestCase):
+class SourceOnlyReleaseAcceptance(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.source=WF.read_text(encoding="utf8")
+        cls.workflow=WF.read_text(encoding="utf8")
         cls.ledger=json.loads(REG.read_text(encoding="utf8"))
-    def test_open_findings_cannot_be_relabelled_as_passing(self):
-        self.assertEqual(self.ledger["status"],"RELEASE_BLOCKED")
-        self.assertGreaterEqual(len(self.ledger["issues"]),6)
-        self.assertGreaterEqual(len([x for x in self.ledger["issues"] if x["state"]=="OPEN" and x["severity"]=="CRITICAL"]),2)
-    def test_both_jobs_have_immutable_release_stop_before_live_capture(self):
-        key="      - name: Critical incident containment - never contact JRA until independently cleared"
-        parts=self.source.split(key)
-        self.assertEqual(len(parts),3)
-        for block in parts[1:]:
-            self.assertIn(STOP,block)
-            self.assertLess(block.index(STOP),block.index("Capture official PC") if "Capture official PC" in block else block.index("Independently verified SP link"))
-    def test_execute_both_actual_quarantine_commands_offline(self):
-        key="      - name: Critical incident containment - never contact JRA until independently cleared"
-        for block in self.source.split(key)[1:]:
-            stage=block.split("      - name: Race date, immutable commit, secret, first attempt and non-replay guard",1)[0]
-            script="\n".join(x[10:] for x in stage.splitlines() if x.startswith("          "))
-            result=subprocess.run(["bash","-e","-c",script],capture_output=True,text=True,timeout=5)
-            self.assertNotEqual(result.returncode,0)
-            self.assertIn(STOP,result.stdout)
-    def test_schedule_retained_and_no_unapproved_release(self):
-        self.assertIn("cron: '5 2 21 11 *'",self.source)
-        self.assertIn("cron: '10 2 22 11 *'",self.source)
-        self.assertEqual(self.source.count(STOP),2)
-        self.assertNotIn("RELEASE_AUTHORIZED",self.source)
+        cls.issues={x["id"]:x for x in cls.ledger["issues"]}
+
+    def test_both_dated_jobs_use_fixed_sha_and_fault_injection(self):
+        self.assertEqual(self.workflow.count("ref: ${{ env.COLLECTOR_SHA }}"),2)
+        self.assertIn(PIN,self.workflow)
+        self.assertEqual(self.workflow.count("tests.test_kyoto_weekend_interruption_and_pacing"),2)
+        self.assertEqual(self.workflow.count("GITHUB_RUN_ATTEMPT"),2)
+        self.assertEqual(self.workflow.count("ENCRYPTION_KEY_REQUIRED_NO_HTTP"),2)
+
+    def test_both_schedules_and_no_global_hard_block(self):
+        self.assertIn("cron: '5 2 21 11 *'",self.workflow)
+        self.assertIn("cron: '10 2 22 11 *'",self.workflow)
+        self.assertNotIn("Critical incident containment",self.workflow)
+        self.assertNotIn("RELEASE_BLOCKED_OPEN_CRITICAL_INCIDENTS",self.workflow)
+
+    def test_two_critical_defects_have_test_proof(self):
+        self.assertEqual(self.ledger["status"],"OBSERVATION_ONLY_CANDIDATE_OFFLINE_VERIFIED")
+        self.assertEqual(self.ledger["required_approval"]["approved_commit_sha"],PIN)
+        for issue in ("KW-001","KW-002"):
+            self.assertEqual(self.issues[issue]["state"],"FIXED_AND_OFFLINE_REGRESSION_VERIFIED")
+            self.assertIn("CI run",self.issues[issue]["fix_evidence"])
+
+    def test_no_fake_live_market_certification(self):
+        self.assertFalse(self.ledger["required_approval"]["live_source_verified"])
+        self.assertFalse(self.ledger["required_approval"]["prediction_release_allowed"])
+        self.assertEqual(self.issues["KW-005"]["state"],"LIVE_OBSERVATION_REQUIRED")
+        self.assertIn("KYOTO_NOV22_VERIFIED_COLLECTOR_SHA",self.workflow)
+        self.assertEqual(self.workflow.count("--seal-only"),2)
+        self.assertNotIn("path: pc_raw/",self.workflow)
+        self.assertNotIn("path: sp_raw/",self.workflow)
+
 if __name__=="__main__":
     unittest.main()
