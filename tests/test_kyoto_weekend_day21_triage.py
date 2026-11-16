@@ -27,7 +27,8 @@ class TriageTests(unittest.TestCase):
         r=classify(DAY,RUN,[
             job("pc-originals-independent","success"),
             job("sp-originals-independent","failure",
-                "Independently verified SP link, otherwise record zero-request stop")],[])
+                "Independently verified SP link, otherwise record zero-request stop")],
+            [{"name":"kyoto-pc-111-20261121","expired":False}])
         self.assertEqual(r["day22_strategy"]["SP"],
                          "SUNDAY_EXPANDED_BOUNDED_6_PAGE_OBSERVED_OFFICIAL_NAVIGATION")
         self.assertFalse(r["day22_strategy"]["automatic_unknown_source_code_repair"])
