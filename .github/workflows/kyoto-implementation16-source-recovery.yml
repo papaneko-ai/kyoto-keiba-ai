@@ -1,4 +1,4 @@
-name: Kyoto implementation16 Nov21-22 fully audited source history backup
+name: Kyoto Nov21-22 post-repair immutable source history recovery backup
 on:
   push:
     branches: [jra-html-diagnostic-20261105]
