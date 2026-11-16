@@ -4,7 +4,7 @@
   "source_branch": "jra-html-diagnostic-20261105",
   "source_commit": "fd0d3ec7f3f85aa65c7205301e8ae10b39c98089",
   "scope": "Nov21/22 production official-source observation and handoff; not forecast market acceptance",
-  "extraction_policy": "all top-level functions in 7 selected critical source modules must be discovered by Python AST and have registered inventory",
+  "extraction_policy": "All 29 top-level functions enumerated with AST; seven immutable source blob IDs and additional SHA-256 report are verified even in shallow GitHub checkout.",
   "surfaces": [
     {
       "source": "diagnostics/kyoto_weekend_capture.py",
@@ -521,5 +521,14 @@
     "claims_of_no_foreseeable_bugs_prohibited": true,
     "source_observation_may_proceed_only_if_release_policy_allows": true
   },
-  "notes": "Reverse FMEA explicitly finds risk modes not enumerated by the original 30 cases. Counting passing tests is not an independent proof of completeness."
+  "notes": "Reverse FMEA explicitly finds risk modes not enumerated by the original 30 cases. Counting passing tests is not an independent proof of completeness.",
+  "source_git_blob_sha1": {
+    "diagnostics/kyoto_weekend_capture.py": "70cff6ed2488c9adec27c69a743c6c73d48de873",
+    "diagnostics/kyoto_weekend_sp_discovery.py": "93b695860983c600de4b2e144918db66e207d1c3",
+    "diagnostics/kyoto_weekend_postflight.py": "cf10e01ffe2be46c9a2f23d83273eaf0c98f39da",
+    "diagnostics/kyoto_weekend_day21_triage.py": "2e1419219cef40003b744c17ef9817ac65c9b1d2",
+    "diagnostics/kyoto_nov15_two_original_observer.py": "3ed34198bb3afde27ec7460386f18177121fb4d4",
+    "diagnostics/kyoto_sp_observed_source.py": "3d834412c21f77e1e50a7cc1e09c907212e909b6",
+    "diagnostics/kyoto_nov15_encrypted_evidence.py": "8bf93410f6d05d45ca282cafa13c7df23775e760"
+  }
 }
