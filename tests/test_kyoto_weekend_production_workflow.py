@@ -17,7 +17,7 @@ class ProductionWorkflowContract(unittest.TestCase):
         self.assertIn("20261122", self.s)
 
     def test_day21_immutable_source_and_day22_verified_promotion(self):
-        pinned="385a717d43472843fa84f2ce1063fc5aece1863b"
+        pinned="d5e0de7cc39afe8fd168f40a1915e9ddfb668f1a"
         self.assertIn("KYOTO_NOV22_VERIFIED_COLLECTOR_SHA",self.s)
         self.assertEqual(self.s.count("ref: ${{ env.COLLECTOR_SHA }}"),2)
         self.assertEqual(self.s.count("DAY21_SOURCE_UNEXPECTED_NO_HTTP"),2)
@@ -44,6 +44,7 @@ class ProductionWorkflowContract(unittest.TestCase):
     def test_seal_all_exits_and_no_plaintext_upload(self):
         self.assertEqual(self.s.count("if: always()"),6)
         self.assertEqual(self.s.count("--seal-only"),2)
+        self.assertEqual(self.s.count("tests.test_kyoto_weekend_end_to_end"),2)
         self.assertEqual(self.s.count("kyoto_weekend_postflight"),2)
         self.assertIn("path: pc_sealed/",self.s)
         self.assertIn("path: sp_sealed/",self.s)
