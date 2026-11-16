@@ -11,6 +11,7 @@ on:
   workflow_dispatch:
 permissions:
   contents: read
+  actions: read
 jobs:
   source-only-main-policy:
     runs-on: ubuntu-latest
@@ -38,6 +39,50 @@ jobs:
           path: source_only_proof/
           if-no-files-found: error
           retention-days: 30
+  pre-weekend-settings-hazard-check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    env:
+      GH_TOKEN: ${{ github.token }}
+      ARCHIVE_KEY: ${{ secrets.KYOTO_JRA_ARCHIVE_AES256_HEX }}
+      DAY22_COLLECTOR_CANDIDATE: ${{ vars.KYOTO_NOV22_VERIFIED_COLLECTOR_SHA }}
+    steps:
+      - name: Check Saturday and Sunday critical settings without JRA requests
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json,os,re,urllib.request
+          key=os.getenv("ARCHIVE_KEY","")
+          if not re.fullmatch(r"[0-9a-fA-F]{64}",key):
+              raise SystemExit("ARCHIVE_AES256_SECRET_MISSING_OR_INVALID")
+          repo=os.environ["GITHUB_REPOSITORY"]
+          headers={"Authorization":"Bearer "+os.environ["GH_TOKEN"],
+                   "Accept":"application/vnd.github+json",
+                   "X-GitHub-Api-Version":"2022-11-28"}
+          for filename in ("kyoto-20261121-22-two-source-production-observer.yml",
+                           "kyoto-20261121-22-result-handoff.yml"):
+              req=urllib.request.Request("https://api.github.com/repos/"+repo+
+                  "/actions/workflows/"+filename,headers=headers)
+              with urllib.request.urlopen(req,timeout=12) as response:
+                  obj=json.load(response)
+              if obj.get("state")!="active":
+                  raise SystemExit("WORKFLOW_NOT_ACTIVE:"+filename)
+          candidate=os.getenv("DAY22_COLLECTOR_CANDIDATE","").strip()
+          if candidate:
+              if not re.fullmatch(r"[0-9a-f]{40}",candidate):
+                  raise SystemExit("DAY22_OVERRIDE_SHA_MALFORMED")
+              endpoint="https://api.github.com/repos/"+repo+"/actions/workflows/kyoto-weekend-20261121-22-preflight.yml/runs?per_page=100"
+              with urllib.request.urlopen(urllib.request.Request(endpoint,headers=headers),timeout=12) as response:
+                  history=json.load(response)
+              if not any(r.get("head_sha")==candidate and r.get("conclusion")=="success"
+                         for r in history.get("workflow_runs",[])):
+                  raise SystemExit("DAY22_OVERRIDE_HAS_NO_MATCHING_PASSING_PREFLIGHT")
+          print("DAY21_22_CRITICAL_SECRET_FORMAT_VALID=TRUE")
+          print("DAY21_22_SCHEDULED_WORKFLOWS_ACTIVE=TRUE")
+          print("DAY22_OVERRIDE_VERIFIED_OR_BASELINE_FALLBACK=TRUE")
+          print("JRA_HTTP_REQUESTS=0")
+          PY
   pinned-collector-fault-rehearsal:
     runs-on: ubuntu-latest
     timeout-minutes: 10
