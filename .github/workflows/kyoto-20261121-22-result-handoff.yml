@@ -24,7 +24,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: 1cbb2923ef230e7cc6619ebb895e0bd6574d40df
+          ref: c53c763de545bbb5fd46f994455c36ce78d39ff0
           persist-credentials: false
       - uses: actions/setup-python@v5
         with:
@@ -90,8 +90,14 @@ jobs:
           for lane in ('PC','SP'):
               d=r['lanes'][lane]
               lines.append('| '+lane+' | '+d['state']+' | '+d['stage']+' |')
-          lines += ['', 'This is not a claim that official racecard or odds are authenticated.',
-                   'For next-day code repairs: validate the new exact SHA in offline CI before setting KYOTO_NOV22_VERIFIED_COLLECTOR_SHA.']
+          strategy=r['day22_strategy']
+          lines += ['', '## Prevalidated next-day fallback', '',
+                    'PC: '+strategy['PC'],
+                    'SP: '+strategy['SP'],
+                    'Manual intervention before Nov22: '+str(strategy['requires_manual_intervention']),
+                    'Run actually observed: '+str(r['observed_workflow_run_exists']),
+                    'This is not a claim that official racecard or odds are authenticated.',
+                    'For next-day code repairs: validate the new exact SHA in offline CI before setting KYOTO_NOV22_VERIFIED_COLLECTOR_SHA.']
           with open(os.environ['GITHUB_STEP_SUMMARY'],'a') as out:
               out.write('\n'.join(lines)+'\n')
           PY
