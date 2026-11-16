@@ -1,6 +1,8 @@
-"""Strict second-schedule policy: retry only absent or pre-HTTP stopped primary.
+"""Source-opportunity-first two-schedule policy.
 
-Never retry an attempted capture, in-progress run, or untrusted history.
+Prior workflow success/attempt is NOT proof of complete official raw markets;
+therefore prior runs do not veto the predeclared backup. GitHub date-scoped
+concurrency serializes execution; both schedule slots are bounded and finite.
 """
 import argparse
 import json
@@ -23,26 +25,18 @@ def evaluate(day,run_id,event,cron,runs,jobs_by_run):
         raise RetryGuardRejected("UNEXPECTED_CRON_NO_HTTP")
     if len(runs)>100:
         raise RetryGuardRejected("SAME_DAY_HISTORY_NEEDS_PAGINATION_NO_HTTP")
+    # One primary and one backup slot each day. Previous run count, job
+    # conclusion, or attempted GET is not a reason to waste the backup slot:
+    # success can mean safe-stop with no official originals or incomplete odds.
+    # Same-day GitHub concurrency is the actual overlapping-network guard.
     previous=[r for r in runs if str(r.get("id"))!=str(run_id)]
-    if not previous:
-        return "BACKUP_ALLOWED_NO_PRIMARY_RUN" if cron==BACKUP[day] else "PRIMARY_ALLOWED"
-    if event!="schedule" or cron!=BACKUP[day]:
-        raise RetryGuardRejected("PREVIOUS_WORKFLOW_RUN_ON_TARGET_DAY_NO_HTTP")
-    for r in previous:
-        if (r.get("event")!="schedule" or r.get("status")!="completed" or
-            r.get("conclusion") not in ("failure","cancelled","skipped","timed_out")):
-            raise RetryGuardRejected("PREVIOUS_WORKFLOW_RUN_ON_TARGET_DAY_NO_HTTP")
-        rid=r.get("id")
-        if rid not in jobs_by_run or not isinstance(jobs_by_run[rid],list):
-            raise RetryGuardRejected("RUN_HISTORY_UNVERIFIED_NO_HTTP")
-        for j in jobs_by_run[rid]:
-            if j.get("status")!="completed" or not isinstance(j.get("steps"),list):
-                raise RetryGuardRejected("RUN_HISTORY_UNVERIFIED_NO_HTTP")
-            for step in j["steps"]:
-                if any(step.get("name","").startswith(name) for name in CAPTURE_STEPS):
-                    if step.get("conclusion")!="skipped":
-                        raise RetryGuardRejected("PREVIOUS_CAPTURE_ATTEMPTED_NO_HTTP")
-    return "BACKUP_ALLOWED_VERIFIED_PRE_HTTP_STOP"
+    if event=="schedule" and cron==BACKUP[day]:
+        return ("BACKUP_ALLOWED_AFTER_PRIOR_RUN" if previous
+                else "BACKUP_ALLOWED_MISSING_PRIMARY")
+    if event=="schedule" and cron==PRIMARY[day]:
+        return "PRIMARY_ALLOWED_INDEPENDENT_OF_PRIOR_RUN"
+    # An explicitly authorized manual dispatch may restore a missed chance.
+    return "MANUAL_AUTHORIZED_RETRY_ALLOWED"
 
 def _get(url,token):
     request=Request(url,headers={"Authorization":"Bearer "+token,
@@ -61,17 +55,7 @@ def verify_github(day,run_id,event,cron,repo,token):
     if (not isinstance(data.get("workflow_runs"),list) or
         data.get("total_count",101)>100):
         raise RetryGuardRejected("SAME_DAY_HISTORY_NEEDS_PAGINATION_NO_HTTP")
-    prior=[r for r in data["workflow_runs"] if str(r.get("id"))!=str(run_id)]
-    jobs={}
-    for r in prior:
-        rid=r.get("id")
-        if type(rid) is not int:
-            raise RetryGuardRejected("RUN_HISTORY_UNVERIFIED_NO_HTTP")
-        response=_get(base+f"/actions/runs/{rid}/jobs?per_page=100",token)
-        if response.get("total_count",101)>100 or not isinstance(response.get("jobs"),list):
-            raise RetryGuardRejected("RUN_HISTORY_UNVERIFIED_NO_HTTP")
-        jobs[rid]=response["jobs"]
-    return evaluate(day,run_id,event,cron,data["workflow_runs"],jobs)
+    return evaluate(day,run_id,event,cron,data["workflow_runs"],{})
 
 def main():
     parser=argparse.ArgumentParser()
