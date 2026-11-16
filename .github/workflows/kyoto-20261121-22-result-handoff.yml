@@ -69,6 +69,32 @@ jobs:
               raise SystemExit('UNEXPECTED_RACE_DAY')
           Path('day_result_handoff/day.txt').write_text(day)
           PY
+      - name: Inspect actual AES-GCM PC and SP artifact contents privately before Nov22
+        shell: bash
+        env:
+          ARCHIVE_KEY: ${{ secrets.KYOTO_JRA_ARCHIVE_AES256_HEX }}
+        run: |
+          set -euo pipefail
+          day="$(cat day_result_handoff/day.txt)"
+          mkdir -p day21_ephemeral/pc day21_ephemeral/sp
+          if [ "$OBSERVED_RUN" != "0" ]; then
+            for lane in pc sp; do
+              artifact="kyoto-$lane-$OBSERVED_RUN-$day"
+              if jq -e --arg artifact "$artifact" '.artifacts[] | select(.name == $artifact and .expired == false)' day_result_handoff/artifacts.json >/dev/null; then
+                if ! gh run download "$OBSERVED_RUN" --repo "$GITHUB_REPOSITORY" --name "$artifact" --dir "day21_ephemeral/$lane" >/dev/null 2>&1; then
+                  echo "$lane:DOWNLOAD_FAILED" >> day_result_handoff/artifact_download_errors.txt
+                fi
+              else
+                echo "$lane:ARTIFACT_MISSING" >> day_result_handoff/artifact_download_errors.txt
+              fi
+            done
+          fi
+          KYOTO_TARGET_DAY="$day" python -m diagnostics.kyoto_weekend_day21_artifact_triage \
+            --day "$day" --run-id "$OBSERVED_RUN" \
+            --pc day21_ephemeral/pc --sp day21_ephemeral/sp \
+            --out day_result_handoff/source_assessment.json
+          # Never archive plaintext originals or the temporary decrypted folder.
+          rm -rf day21_ephemeral
       - name: Classify each failure type without inventing successful JRA retrieval
         shell: bash
         run: |
@@ -90,6 +116,15 @@ jobs:
           for lane in ('PC','SP'):
               d=r['lanes'][lane]
               lines.append('| '+lane+' | '+d['state']+' | '+d['stage']+' |')
+          source_file=Path('day_result_handoff/source_assessment.json')
+          source=json.loads(source_file.read_text()) if source_file.is_file() else {"lanes":{}}
+          lines += ['', '## Decrypted-source assessment (no raw HTML published)', '',
+                    '| Lane | AES evidence state | Both raw market files |',
+                    '|---|---|---|']
+          for lane in ('PC','SP'):
+              proof=source.get('lanes',{}).get(lane,{})
+              lines.append('| '+lane+' | '+str(proof.get('state','NOT_AVAILABLE'))+
+                           ' | '+str(proof.get('both_raw_market_originals_present',False))+' |')
           strategy=r['day22_strategy']
           lines += ['', '## Prevalidated next-day fallback', '',
                     'PC: '+strategy['PC'],
