@@ -1,0 +1,154 @@
+name: Kyoto Nov21-22 independent encrypted original collection
+on:
+  schedule:
+    - cron: '5 2 21 11 *'
+    - cron: '10 2 22 11 *'
+  workflow_dispatch:
+    inputs:
+      race_day:
+        description: Race day, must match actual UTC date
+        type: choice
+        required: true
+        options:
+          - '20261121'
+          - '20261122'
+      confirmation:
+        description: Enter NOV21-22-OBSERVE-READ-ONLY
+        required: true
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: kyoto-20261121-22-source-${{ github.event.schedule || inputs.race_day }}
+  cancel-in-progress: false
+
+jobs:
+  pc-originals-independent:
+    if: ${{ github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.confirmation == 'NOV21-22-OBSERVE-READ-ONLY') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    env:
+      PYTHONPATH: .
+      KYOTO_TARGET_DAY: ${{ (github.event.schedule == '5 2 21 11 *' || inputs.race_day == '20261121') && '20261121' || '20261122' }}
+      KYOTO_WEEKEND_HTTP_APPROVED: 'YES'
+      ARCHIVE_KEY: ${{ secrets.KYOTO_JRA_ARCHIVE_AES256_HEX }}
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Checkout pinned verified development collector, not default branch
+        uses: actions/checkout@v4
+        with:
+          ref: 92f3aff2a4318c0bcffab70ab6d6b4c7e4e0f4b4
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install parser and authenticated encryption
+        run: python -m pip install 'beautifulsoup4>=4.12,<5' 'cryptography>=43,<47'
+      - name: Offline regression mandatory before any live HTTP
+        shell: bash
+        run: |
+          set -euo pipefail
+          KYOTO_TARGET_DAY=20261121 python -m unittest -q tests.test_kyoto_weekend_capture tests.test_kyoto_safe_stop_artifact
+          KYOTO_TARGET_DAY=20261115 python -m unittest -q tests.test_kyoto_nov15_two_original_observer tests.test_kyoto_nov15_offline_race_links tests.test_kyoto_nov15_encrypted_evidence
+      - name: Race date, immutable commit, secret, first attempt and non-replay guard
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import os,re,subprocess
+          from datetime import datetime,timezone
+          day=os.environ['KYOTO_TARGET_DAY']
+          now=datetime.now(timezone.utc)
+          assert day in ('20261121','20261122'),'INVALID_DAY_NO_HTTP'
+          assert now.strftime('%Y%m%d')==day and 0<=now.hour<4,'OUTSIDE_DAY_WINDOW_NO_HTTP'
+          assert os.environ.get('GITHUB_RUN_ATTEMPT')=='1','RERUN_FORBIDDEN_NO_HTTP'
+          assert re.fullmatch(r'[0-9a-fA-F]{64}',os.environ.get('ARCHIVE_KEY','')),'ENCRYPTION_KEY_REQUIRED_NO_HTTP'
+          assert subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip()=='92f3aff2a4318c0bcffab70ab6d6b4c7e4e0f4b4','SOURCE_REVISION_MISMATCH_NO_HTTP'
+          assert os.environ.get('GITHUB_EVENT_NAME') in ('schedule','workflow_dispatch'),'INVALID_EVENT_NO_HTTP'
+          assert os.environ.get('KYOTO_WEEKEND_HTTP_APPROVED')=='YES','LIVE_HTTP_NOT_APPROVED'
+          print('PC_PRE_HTTP_GUARDS_ACCEPTED')
+          PY
+      - name: Capture official PC observed originals (bounded no guessed URLs)
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m diagnostics.kyoto_weekend_capture --day "$KYOTO_TARGET_DAY" --channel PC --source pc_raw --destination pc_sealed
+      - name: Always encrypt any source originals or save factual pre-HTTP stop
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m diagnostics.kyoto_weekend_capture --day "$KYOTO_TARGET_DAY" --channel PC --source pc_raw --destination pc_sealed --seal-only
+      - name: Upload only AES-GCM ciphertext or safe-stop receipt
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: kyoto-pc-${{ github.run_id }}-${{ env.KYOTO_TARGET_DAY }}
+          path: pc_sealed/
+          retention-days: 30
+          if-no-files-found: error
+
+  sp-originals-independent:
+    if: ${{ github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.confirmation == 'NOV21-22-OBSERVE-READ-ONLY') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    env:
+      PYTHONPATH: .
+      KYOTO_TARGET_DAY: ${{ (github.event.schedule == '5 2 21 11 *' || inputs.race_day == '20261121') && '20261121' || '20261122' }}
+      KYOTO_WEEKEND_HTTP_APPROVED: 'YES'
+      ARCHIVE_KEY: ${{ secrets.KYOTO_JRA_ARCHIVE_AES256_HEX }}
+      SP_INDEPENDENT_OFFICIAL_R12_URL: ${{ (github.event.schedule == '5 2 21 11 *' || inputs.race_day == '20261121') && vars.KYOTO_NOV21_SP_OFFICIAL_R12_URL || vars.KYOTO_NOV22_SP_OFFICIAL_R12_URL }}
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Checkout pinned verified development collector
+        uses: actions/checkout@v4
+        with:
+          ref: 92f3aff2a4318c0bcffab70ab6d6b4c7e4e0f4b4
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install parser and authenticated encryption
+        run: python -m pip install 'beautifulsoup4>=4.12,<5' 'cryptography>=43,<47'
+      - name: Independent SP offline regression
+        shell: bash
+        run: |
+          set -euo pipefail
+          KYOTO_TARGET_DAY=20261121 python -m unittest -q tests.test_kyoto_weekend_capture tests.test_kyoto_safe_stop_artifact
+          KYOTO_TARGET_DAY=20261115 python -m unittest -q tests.test_kyoto_sp_observed_source
+      - name: Race date, immutable commit, secret, first attempt and non-replay guard
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import os,re,subprocess
+          from datetime import datetime,timezone
+          day=os.environ['KYOTO_TARGET_DAY']
+          now=datetime.now(timezone.utc)
+          assert day in ('20261121','20261122'),'INVALID_DAY_NO_HTTP'
+          assert now.strftime('%Y%m%d')==day and 0<=now.hour<4,'OUTSIDE_DAY_WINDOW_NO_HTTP'
+          assert os.environ.get('GITHUB_RUN_ATTEMPT')=='1','RERUN_FORBIDDEN_NO_HTTP'
+          assert re.fullmatch(r'[0-9a-fA-F]{64}',os.environ.get('ARCHIVE_KEY','')),'ENCRYPTION_KEY_REQUIRED_NO_HTTP'
+          assert subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip()=='92f3aff2a4318c0bcffab70ab6d6b4c7e4e0f4b4','SOURCE_REVISION_MISMATCH_NO_HTTP'
+          assert os.environ.get('GITHUB_EVENT_NAME') in ('schedule','workflow_dispatch'),'INVALID_EVENT_NO_HTTP'
+          print('SP_PRE_HTTP_GUARDS_ACCEPTED')
+          PY
+      - name: Independently verified SP link, otherwise record zero-request stop
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m diagnostics.kyoto_weekend_capture --day "$KYOTO_TARGET_DAY" --channel SP --source sp_raw --destination sp_sealed
+      - name: Always encrypt SP originals or save factual pre-HTTP stop
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m diagnostics.kyoto_weekend_capture --day "$KYOTO_TARGET_DAY" --channel SP --source sp_raw --destination sp_sealed --seal-only
+      - name: Upload only AES-GCM ciphertext or safe-stop receipt
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: kyoto-sp-${{ github.run_id }}-${{ env.KYOTO_TARGET_DAY }}
+          path: sp_sealed/
+          retention-days: 30
+          if-no-files-found: error
