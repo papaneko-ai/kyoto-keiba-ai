@@ -62,6 +62,22 @@ class InterruptionAndPacingTests(unittest.TestCase):
         self.assertEqual((d/"official_sp_discovery_1.html").read_bytes(),b"official-like mock")
         self.assertFalse(json.loads((d/"receipt.json").read_text())["source_verified"])
 
+    def test_crypto_publication_failure_retains_unencrypted_source_for_recovery(self):
+        source=self.root/"source"
+        source.mkdir()
+        (source/"receipt.json").write_text('{"state":"PARTIAL"}')
+        (source/"official_selection.html").write_bytes(b"test interrupted ciphertext publish")
+        from unittest.mock import patch
+        with patch("pathlib.Path.rename",side_effect=OSError("injected final rename error")):
+            with self.assertRaisesRegex(OSError,"injected final rename error"):
+                seal("20261121",str(source),str(self.root/"sealed"),
+                     key="ab"*32,repo="papaneko-ai/kyoto-keiba-ai",run_id="123")
+        self.assertTrue(source.is_dir())
+        self.assertFalse((self.root/"sealed").exists())
+        self.assertEqual(list(self.root.glob(".encrypted_staging_*")),[])
+        self.assertEqual((source/"official_selection.html").read_bytes(),
+                         b"test interrupted ciphertext publish")
+
     def test_unknown_files_fail_closed_no_plaintext_upload(self):
         source=self.root/"source"
         source.mkdir()
