@@ -5,7 +5,7 @@ from pathlib import Path
 
 WF=Path(".github/workflows/kyoto-20261121-22-two-source-production-observer.yml")
 REG=Path("docs/diagnostics/KYOTO_20261116_INDEPENDENT_RELEASE_BLOCKERS.json")
-PIN="16f4ed8230845f9e6b3e23e61b4a4582bd31cc04"
+PIN="fca19b05450d52427b6e9507e94041ceee6abd14"
 
 class SourceOnlyReleaseAcceptance(unittest.TestCase):
     @classmethod
@@ -20,6 +20,17 @@ class SourceOnlyReleaseAcceptance(unittest.TestCase):
         self.assertEqual(self.workflow.count("tests.test_kyoto_weekend_interruption_and_pacing"),2)
         self.assertEqual(self.workflow.count("GITHUB_RUN_ATTEMPT"),2)
         self.assertEqual(self.workflow.count("ENCRYPTION_KEY_REQUIRED_NO_HTTP"),2)
+
+    def test_both_lanes_run_actual_foreseeable_failure_cases_before_jra(self):
+        self.assertEqual(self.workflow.count("diagnostics.kyoto_predictable_failure_gate"),2)
+        self.assertEqual(self.workflow.count("tests.test_kyoto_predictable_failure_gate"),2)
+        self.assertEqual(self.workflow.count("PREDICTABLE_FAILURE_PREFLIGHT_30_OF_30_EXECUTED"),2)
+        self.assertLess(self.workflow.index("PREDICTABLE_FAILURE_PREFLIGHT_30_OF_30_EXECUTED"),
+                        self.workflow.index("Capture official PC observed originals"))
+        self.assertLess(self.workflow.rindex("PREDICTABLE_FAILURE_PREFLIGHT_30_OF_30_EXECUTED"),
+                        self.workflow.index("Independently verified SP link, otherwise record zero-request stop"))
+        self.assertEqual(self.ledger["required_approval"]["enumerated_cases"],30)
+        self.assertFalse(self.ledger["required_approval"]["prediction_release_allowed"])
 
     def test_both_schedules_and_no_global_hard_block(self):
         self.assertIn("cron: '5 2 21 11 *'",self.workflow)
