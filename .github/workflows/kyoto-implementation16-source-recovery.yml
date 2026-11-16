@@ -1,4 +1,4 @@
-name: Kyoto 20261116 source-first FMEA coverage recovery archive
+name: Kyoto Nov21-22 validated Sunday fallback and AES first-day triage recovery archive
 on:
   push:
     branches: [jra-html-diagnostic-20261105]
