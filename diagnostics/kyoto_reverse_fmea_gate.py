@@ -167,6 +167,8 @@ def main():
     print(f"INDEPENDENT_AST_SURFACES={result['top_level_functions_discovered']}/{result['top_level_functions_registered']}")
     print(f"NEW_PREDICTABLE_RISKS={result['additional_predictable_failure_families']}")
     print(f"UNREVIEWED_REACHABLE_MODULES={result['additional_reachable_modules_not_yet_reviewed']}")
+    for name in result["additional_reachable_module_paths"]:
+        print("UNREVIEWED_DEPENDENCY="+name)
     print(f"UNRESOLVED_HIGH={result['high_severity_unresolved']}")
     print("FORESEEABLE_FAILURE_COMPLETENESS=NOT_DEMONSTRATED")
     if args.require_closed:
