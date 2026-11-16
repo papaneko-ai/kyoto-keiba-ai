@@ -95,7 +95,7 @@ def check_originals(root, *, day, channel):
                 if not item.get("file"):
                     continue
                 name=item["file"]
-                if not re.fullmatch(r"official_sp_discovery_[1-3]\.html",name):
+                if not re.fullmatch(r"official_sp_discovery_[1-6]\.html",name):
                     raise ValueError("discovery_original_name_invalid")
                 path=root/name
                 if (not path.is_file() or path.is_symlink()
