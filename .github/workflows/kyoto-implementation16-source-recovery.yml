@@ -1,4 +1,4 @@
-name: Kyoto Nov16 pre-HTTP failure closure and immutable production collector recovery
+name: Kyoto Nov16 final five-condition source-and-history recovery
 on:
   push:
     branches: [jra-html-diagnostic-20261105]
