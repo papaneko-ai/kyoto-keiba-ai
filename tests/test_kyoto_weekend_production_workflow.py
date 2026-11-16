@@ -17,7 +17,7 @@ class ProductionWorkflowContract(unittest.TestCase):
         self.assertIn("20261122", self.s)
 
     def test_recovery_source_is_pinned_both_lanes(self):
-        pinned="92f3aff2a4318c0bcffab70ab6d6b4c7e4e0f4b4"
+        pinned="7318f2b68579affec455627976becfc065248290"
         self.assertEqual(self.s.count("ref: "+pinned),2)
         self.assertEqual(self.s.count("strip()=='"+pinned+"'"),2)
         self.assertNotIn("ref: main",self.s)
