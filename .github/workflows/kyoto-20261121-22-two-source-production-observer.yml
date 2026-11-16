@@ -2,7 +2,9 @@ name: Kyoto Nov21-22 independent encrypted original collection
 on:
   schedule:
     - cron: '5 2 21 11 *'
+    - cron: '50 2 21 11 *' # pre-HTTP-failure-only backup
     - cron: '10 2 22 11 *'
+    - cron: '55 2 22 11 *' # pre-HTTP-failure-only backup
   workflow_dispatch:
     inputs:
       race_day:
@@ -19,7 +21,7 @@ permissions:
   contents: read
   actions: read
 concurrency:
-  group: kyoto-20261121-22-source-${{ github.event.schedule || inputs.race_day }}
+  group: kyoto-20261121-22-source-${{ (github.event.schedule == '5 2 21 11 *' || github.event.schedule == '50 2 21 11 *' || inputs.race_day == '20261121') && '20261121' || '20261122' }}
   cancel-in-progress: false
 
 jobs:
@@ -29,11 +31,12 @@ jobs:
     timeout-minutes: 12
     env:
       PYTHONPATH: .
-      KYOTO_TARGET_DAY: ${{ (github.event.schedule == '5 2 21 11 *' || inputs.race_day == '20261121') && '20261121' || '20261122' }}
+      KYOTO_TARGET_DAY: ${{ ((github.event.schedule == '5 2 21 11 *' || github.event.schedule == '50 2 21 11 *' || inputs.race_day == '20261121')) && '20261121' || '20261122' }}
       KYOTO_WEEKEND_HTTP_APPROVED: 'YES'
       ARCHIVE_KEY: ${{ secrets.KYOTO_JRA_ARCHIVE_AES256_HEX }}
       GH_TOKEN: ${{ github.token }}
-      COLLECTOR_SHA: ${{ ((github.event.schedule == '10 2 22 11 *' || inputs.race_day == '20261122') && vars.KYOTO_NOV22_VERIFIED_COLLECTOR_SHA) || 'd40b003e8704e2c8da13b5971830abbcd5561ddf' }}
+      GITHUB_EVENT_SCHEDULE: ${{ github.event.schedule }}
+      COLLECTOR_SHA: ${{ (((github.event.schedule == '10 2 22 11 *' || github.event.schedule == '55 2 22 11 *' || inputs.race_day == '20261122')) && vars.KYOTO_NOV22_VERIFIED_COLLECTOR_SHA) || 'd40b003e8704e2c8da13b5971830abbcd5561ddf' }}
     steps:
       - name: Checkout pinned verified development collector, not default branch
         uses: actions/checkout@v4
@@ -100,32 +103,11 @@ jobs:
                       raise SystemExit('DAY22_CANDIDATE_NOT_PREFLIGHT_VERIFIED_NO_HTTP')
           assert os.environ.get('GITHUB_EVENT_NAME') in ('schedule','workflow_dispatch'),'INVALID_EVENT_NO_HTTP'
           assert os.environ.get('KYOTO_WEEKEND_HTTP_APPROVED')=='YES','LIVE_HTTP_NOT_APPROVED'
-          import json,urllib.request
-          from urllib.parse import quote
-          repo=os.environ["GITHUB_REPOSITORY"]
-          ident=os.environ["GITHUB_RUN_ID"]
-          target=day[:4]+"-"+day[4:6]+"-"+day[6:]
-          endpoint=("https://api.github.com/repos/"+repo+
-              "/actions/workflows/kyoto-20261121-22-two-source-production-observer.yml/runs"+
-              "?created="+target+"&per_page=100")
-          request=urllib.request.Request(endpoint,headers={
-              "Authorization":"Bearer "+os.environ["GH_TOKEN"],
-              "Accept":"application/vnd.github+json",
-              "X-GitHub-Api-Version":"2022-11-28",
-          })
-          with urllib.request.urlopen(request,timeout=12) as response:
-              history=json.load(response)
-          if not isinstance(history.get("workflow_runs"),list):
-              raise SystemExit("RUN_HISTORY_UNVERIFIED_NO_HTTP")
-          # Exclude only the current run; same-day prior runs are not silently
-          # re-authorized. >100 historical runs from older days do not matter.
-          if history.get("total_count",0)>100:
-              raise SystemExit("SAME_DAY_HISTORY_NEEDS_PAGINATION_NO_HTTP")
-          if any(str(run.get("id"))!=ident
-                 for run in history["workflow_runs"]):
-              raise SystemExit("PREVIOUS_WORKFLOW_RUN_ON_TARGET_DAY_NO_HTTP")
-          print('PC_PRE_HTTP_GUARDS_ACCEPTED')
+          # The shared day-locked backup gate separately verifies GitHub
+          # run/job metadata and capture-step execution.
+          print('PC_STATIC_PRE_HTTP_GUARDS_ACCEPTED')
           PY
+          python -m diagnostics.kyoto_weekend_retry_guard --day "$KYOTO_TARGET_DAY"
       - name: Capture official PC observed originals (bounded no guessed URLs)
         shell: bash
         run: |
@@ -161,12 +143,13 @@ jobs:
     timeout-minutes: 12
     env:
       PYTHONPATH: .
-      KYOTO_TARGET_DAY: ${{ (github.event.schedule == '5 2 21 11 *' || inputs.race_day == '20261121') && '20261121' || '20261122' }}
+      KYOTO_TARGET_DAY: ${{ ((github.event.schedule == '5 2 21 11 *' || github.event.schedule == '50 2 21 11 *' || inputs.race_day == '20261121')) && '20261121' || '20261122' }}
       KYOTO_WEEKEND_HTTP_APPROVED: 'YES'
       ARCHIVE_KEY: ${{ secrets.KYOTO_JRA_ARCHIVE_AES256_HEX }}
-      SP_INDEPENDENT_OFFICIAL_R12_URL: ${{ (github.event.schedule == '5 2 21 11 *' || inputs.race_day == '20261121') && vars.KYOTO_NOV21_SP_OFFICIAL_R12_URL || vars.KYOTO_NOV22_SP_OFFICIAL_R12_URL }}
+      SP_INDEPENDENT_OFFICIAL_R12_URL: ${{ ((github.event.schedule == '5 2 21 11 *' || github.event.schedule == '50 2 21 11 *' || inputs.race_day == '20261121')) && vars.KYOTO_NOV21_SP_OFFICIAL_R12_URL || vars.KYOTO_NOV22_SP_OFFICIAL_R12_URL }}
       GH_TOKEN: ${{ github.token }}
-      COLLECTOR_SHA: ${{ ((github.event.schedule == '10 2 22 11 *' || inputs.race_day == '20261122') && vars.KYOTO_NOV22_VERIFIED_COLLECTOR_SHA) || 'd40b003e8704e2c8da13b5971830abbcd5561ddf' }}
+      GITHUB_EVENT_SCHEDULE: ${{ github.event.schedule }}
+      COLLECTOR_SHA: ${{ (((github.event.schedule == '10 2 22 11 *' || github.event.schedule == '55 2 22 11 *' || inputs.race_day == '20261122')) && vars.KYOTO_NOV22_VERIFIED_COLLECTOR_SHA) || 'd40b003e8704e2c8da13b5971830abbcd5561ddf' }}
     steps:
       - name: Checkout pinned verified development collector
         uses: actions/checkout@v4
@@ -232,32 +215,11 @@ jobs:
                              and run.get('conclusion')=='success' for run in runs):
                       raise SystemExit('DAY22_CANDIDATE_NOT_PREFLIGHT_VERIFIED_NO_HTTP')
           assert os.environ.get('GITHUB_EVENT_NAME') in ('schedule','workflow_dispatch'),'INVALID_EVENT_NO_HTTP'
-          import json,urllib.request
-          from urllib.parse import quote
-          repo=os.environ["GITHUB_REPOSITORY"]
-          ident=os.environ["GITHUB_RUN_ID"]
-          target=day[:4]+"-"+day[4:6]+"-"+day[6:]
-          endpoint=("https://api.github.com/repos/"+repo+
-              "/actions/workflows/kyoto-20261121-22-two-source-production-observer.yml/runs"+
-              "?created="+target+"&per_page=100")
-          request=urllib.request.Request(endpoint,headers={
-              "Authorization":"Bearer "+os.environ["GH_TOKEN"],
-              "Accept":"application/vnd.github+json",
-              "X-GitHub-Api-Version":"2022-11-28",
-          })
-          with urllib.request.urlopen(request,timeout=12) as response:
-              history=json.load(response)
-          if not isinstance(history.get("workflow_runs"),list):
-              raise SystemExit("RUN_HISTORY_UNVERIFIED_NO_HTTP")
-          # Exclude only the current run; same-day prior runs are not silently
-          # re-authorized. >100 historical runs from older days do not matter.
-          if history.get("total_count",0)>100:
-              raise SystemExit("SAME_DAY_HISTORY_NEEDS_PAGINATION_NO_HTTP")
-          if any(str(run.get("id"))!=ident
-                 for run in history["workflow_runs"]):
-              raise SystemExit("PREVIOUS_WORKFLOW_RUN_ON_TARGET_DAY_NO_HTTP")
-          print('SP_PRE_HTTP_GUARDS_ACCEPTED')
+          # The shared day-locked backup gate separately verifies GitHub
+          # run/job metadata and capture-step execution.
+          print('SP_STATIC_PRE_HTTP_GUARDS_ACCEPTED')
           PY
+          python -m diagnostics.kyoto_weekend_retry_guard --day "$KYOTO_TARGET_DAY"
       - name: Cross-job HTTP separation before any official SP request
         shell: bash
         run: sleep 3
