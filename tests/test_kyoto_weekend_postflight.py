@@ -65,6 +65,26 @@ class PostflightTests(unittest.TestCase):
         self.assertTrue(r["source_verified"])
         self.assertFalse(r["racecard_start_time_verified"])
 
+    def test_sunday_six_discovery_originals_all_checked(self):
+        self.day="20261122"
+        attempts=[]
+        for index in range(1,7):
+            name=f"official_sp_discovery_{index}.html"
+            raw=("<html>observed "+str(index)+"</html>").encode()
+            (self.root/name).write_bytes(raw)
+            attempts.append({"file":name,"sha256":hashlib.sha256(raw).hexdigest(),
+                             "captured_at_utc":"2026-11-22T02:10:00+00:00"})
+        (self.root/"sp_discovery_receipt.json").write_text(json.dumps({
+            "day":self.day,"not_pc_derived":True,"attempts":attempts}))
+        r=check_originals(self.root,day=self.day,channel="SP")
+        self.assertTrue(r["source_verified"])
+        self.assertEqual(len(r["source_rows"]),6)
+        self.assertFalse(r["prediction_ready"])
+        (self.root/"official_sp_discovery_6.html").write_bytes(b"tampered")
+        r=check_originals(self.root,day=self.day,channel="SP")
+        self.assertFalse(r["source_verified"])
+        self.assertEqual(r["state"],"SP_PROVENANCE_REJECTED")
+
     def test_pc_missing_and_false_receipt_rejected(self):
         self.assertEqual(check_originals(self.root,day=self.day,channel="PC")["state"],
                          "RECEIPT_MISSING")
