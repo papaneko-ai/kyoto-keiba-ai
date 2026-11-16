@@ -1,6 +1,6 @@
 """Source-opportunity-first retry regression; prior run never a blanket veto."""
 import unittest
-from diagnostics.kyoto_weekend_retry_guard import evaluate,RetryGuardRejected,PRIMARY,BACKUP
+from diagnostics.kyoto_weekend_retry_guard import evaluate,RetryGuardRejected,ADVANCE,PRIMARY,BACKUP
 
 DAY="20261121"
 def prior(conclusion="failure",status="completed",event="schedule",ident=100):
@@ -10,6 +10,9 @@ class OpportunityFirstRetryTests(unittest.TestCase):
  def check(self,runs=None,day=DAY,cron=None,event="schedule"):
     return evaluate(day,101,event,cron if cron is not None else BACKUP[day],
                     [] if runs is None else runs,{})
+ def test_advance_slot_each_day_is_allowed_without_prior_history(self):
+    for day in ("20261121","20261122"):
+        self.assertEqual(self.check(day=day,cron=ADVANCE[day]),"ADVANCE_ALLOWED_WITHOUT_GUARANTEED_MARKET_AVAILABILITY")
  def test_primary_fires_without_prior_run(self):
     self.assertEqual(self.check(cron=PRIMARY[DAY]),"PRIMARY_ALLOWED_INDEPENDENT_OF_PRIOR_RUN")
  def test_missing_primary_does_not_block_backup(self):
