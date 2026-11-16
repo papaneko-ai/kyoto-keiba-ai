@@ -1,5 +1,7 @@
 name: Kyoto Nov21 result classification and Nov22 repair handoff
 on:
+  schedule:
+    - cron: '0 12 21 11 *'
   workflow_run:
     workflows: ['Kyoto Nov21-22 independent encrypted original collection']
     types: [completed]
@@ -13,7 +15,7 @@ permissions:
   actions: read
 jobs:
   independent-day-result-triage:
-    if: ${{ github.event_name == 'workflow_dispatch' || startsWith(github.event.workflow_run.created_at, '2026-11-21') || startsWith(github.event.workflow_run.created_at, '2026-11-22') }}
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' || startsWith(github.event.workflow_run.created_at, '2026-11-21') || startsWith(github.event.workflow_run.created_at, '2026-11-22') }}
     runs-on: ubuntu-latest
     timeout-minutes: 6
     env:
@@ -32,10 +34,27 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p day_result_handoff
+          if [ "$GITHUB_EVENT_NAME" = "schedule" ]; then
+            gh api "repos/$GITHUB_REPOSITORY/actions/workflows/kyoto-20261121-22-two-source-production-observer.yml/runs?created=2026-11-21&per_page=100" > day_result_handoff/day21_runs.json
+            OBSERVED_RUN="$(python - <<'PY'
+          import json
+          from pathlib import Path
+          runs=json.loads(Path('day_result_handoff/day21_runs.json').read_text()).get('workflow_runs',[])
+          completed=[r for r in runs if r.get('status')=='completed']
+          print(completed[0]['id'] if completed else '0')
+          PY
+          )"
+          fi
           [[ "$OBSERVED_RUN" =~ ^[0-9]+$ ]] || { echo INVALID_RUN_ID; exit 1; }
-          gh api "repos/$GITHUB_REPOSITORY/actions/runs/$OBSERVED_RUN" > day_result_handoff/run.json
-          gh api "repos/$GITHUB_REPOSITORY/actions/runs/$OBSERVED_RUN/jobs?per_page=100" > day_result_handoff/jobs.json
-          gh api "repos/$GITHUB_REPOSITORY/actions/runs/$OBSERVED_RUN/artifacts?per_page=100" > day_result_handoff/artifacts.json
+          if [ "$OBSERVED_RUN" = "0" ]; then
+            printf '%s\n' '{"event":"schedule","created_at":"2026-11-21T12:00:00Z","id":null,"conclusion":null,"actual_run_observed":false,"name":"Kyoto Nov21-22 independent encrypted original collection","status":"completed"}' > day_result_handoff/run.json
+            printf '%s\n' '{"jobs":[]}' > day_result_handoff/jobs.json
+            printf '%s\n' '{"artifacts":[]}' > day_result_handoff/artifacts.json
+          else
+            gh api "repos/$GITHUB_REPOSITORY/actions/runs/$OBSERVED_RUN" > day_result_handoff/run.json
+            gh api "repos/$GITHUB_REPOSITORY/actions/runs/$OBSERVED_RUN/jobs?per_page=100" > day_result_handoff/jobs.json
+            gh api "repos/$GITHUB_REPOSITORY/actions/runs/$OBSERVED_RUN/artifacts?per_page=100" > day_result_handoff/artifacts.json
+          fi
           python - <<'PY'
           import json
           from pathlib import Path
