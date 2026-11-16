@@ -1,0 +1,69 @@
+name: Kyoto Nov16 real GitHub cron-to-evidence no-JRA dummy rehearsal
+on:
+  schedule:
+    - cron: '55 4 16 11 *'
+    - cron: '5 5 16 11 *'
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/kyoto-nov16-actual-schedule-dummy.yml'
+      - 'diagnostics/kyoto_schedule_dummy_rehearsal.py'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  dummy-cron-to-original-crypto-proof:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    env:
+      PYTHONPATH: .
+      GITHUB_EVENT_SCHEDULE: ${{ github.event.schedule }}
+    steps:
+      - name: Checkout current dry-run harness without production data
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Checkout exact approved production source only
+        uses: actions/checkout@v4
+        with:
+          ref: d40b003e8704e2c8da13b5971830abbcd5561ddf
+          path: verified_collector
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install only sandbox mock-parser and AES dependencies
+        shell: bash
+        run: python -m pip install 'beautifulsoup4>=4.12,<5' 'cryptography>=43,<47'
+      - name: Run actual fixed 21st/22nd mock capture-to-save-to-decrypt tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd verified_collector
+          python ../diagnostics/kyoto_schedule_dummy_rehearsal.py --root . --out ../dummy_schedule_proof
+      - name: Audit actual event identity, no JRA network and archived mock results
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f dummy_schedule_proof/receipt.json
+          python - <<'PY'
+          import json,os
+          from pathlib import Path
+          r=json.loads(Path("dummy_schedule_proof/receipt.json").read_text())
+          assert r["jra_http_attempts"]==0 and r["mock_only"] is True
+          assert r["both_days_tested"] and r["all_mock_suites_passed"]
+          if os.environ["GITHUB_EVENT_NAME"]=="schedule":
+              assert r["actual_automatic_schedule_trigger_verified"]
+          print("ACTUAL_EVENT="+r["github_event_name"])
+          print("CRON_TRIGGER_PROVEN="+str(r["actual_automatic_schedule_trigger_verified"]))
+          print("MOCK_E2E_TWO_DAYS=PASS")
+          PY
+      - name: Upload source-free signed-by-hash dummy run receipt and case logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: kyoto-real-schedule-dummy-${{ github.run_id }}
+          path: dummy_schedule_proof/
+          retention-days: 30
+          if-no-files-found: error
