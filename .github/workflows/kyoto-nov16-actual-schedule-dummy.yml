@@ -6,6 +6,9 @@ on:
     - cron: '43 5 16 11 *'
     - cron: '58 5 16 11 *'
     - cron: '13 6 16 11 *'
+    - cron: '52 6 16 11 *' # post-patch rehearsal
+    - cron: '2 7 16 11 *' # backup rehearsal
+    - cron: '12 7 16 11 *' # second backup
   push:
     branches: [main]
     paths:
@@ -29,7 +32,7 @@ jobs:
       - name: Checkout exact approved production source only
         uses: actions/checkout@v4
         with:
-          ref: e2a48f8b58ae13c210eead22533ee107004a45cd
+          ref: 17eae0ce3e1ffa04b75398555849740af6a22f0a
           path: verified_collector
           persist-credentials: false
       - uses: actions/setup-python@v5
