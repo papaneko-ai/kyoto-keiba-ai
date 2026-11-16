@@ -35,7 +35,9 @@ class FiveFixedReadinessCriteria(unittest.TestCase):
     self.assertIn("workflow_run:",self.h)
     self.assertIn("cron: '0 12 21 11 *'",self.h)
     self.assertIn("kyoto_weekend_day21_artifact_triage",self.h)
-    self.assertIn("SUNDAY_EXPANDED_BOUNDED",self.h)
+    self.assertIn("strategy[\'SP\']",self.h)
+    self.assertIn("tests.test_kyoto_weekend_sp_discovery",self.s)
+    self.assertIn("tests.test_kyoto_weekend_handoff_workflow",self.s)
     self.assertIn("tests.test_kyoto_weekend_handoff_workflow",self.s)
  def test_c5_exact_sha_active_runtime_gates_and_backup(self):
     sha=self.p["collector_sha"]
