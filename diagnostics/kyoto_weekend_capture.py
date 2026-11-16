@@ -65,8 +65,8 @@ def capture(day: str, channel: str, output: str, *, live: bool,
         raise ValueError("offline_mock_opener_required")
     if live and os.getenv("GITHUB_EVENT_NAME") not in ("schedule", "workflow_dispatch"):
         raise ValueError("unapproved_live_event")
-    if live and os.getenv("GITHUB_RUN_ATTEMPT") != "1":
-        raise ValueError("rerun_forbidden_zero_http")
+    # GitHub rerun is explicit operator action. A previous attempt is not
+    # evidence of complete source acquisition: do not suppress recovery.
     if live and os.getenv("KYOTO_WEEKEND_HTTP_APPROVED") != "YES":
         raise ValueError("explicit_live_approval_missing_zero_http")
     if live and not re.fullmatch(r"[0-9a-fA-F]{64}",os.getenv("ARCHIVE_KEY","")):
