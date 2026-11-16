@@ -26,6 +26,8 @@ class OfflineRaceLinksTests(unittest.TestCase):
       "observed_meeting_url":MEETING,"meeting_label":"京都 20261115",
       "selection_sha256":hashlib.sha256(selection).hexdigest(),"selection_bytes":len(selection),
       "meeting_sha256":hashlib.sha256(meeting).hexdigest(),"meeting_bytes":len(meeting),
+      "selection_captured_at_utc":"2026-11-15T02:00:01+00:00",
+      "meeting_captured_at_utc":"2026-11-15T02:00:02+00:00",
       "http_requests_started":2}),encoding="utf8")
  def test_observed_race_link_only(self):
     d=derive_nov15_race_links(self.root)
