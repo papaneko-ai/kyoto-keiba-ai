@@ -121,6 +121,27 @@ class InterruptionAndPacingTests(unittest.TestCase):
         self.assertTrue(callable(seen[0].before_request))
         self.assertEqual(result["observed_http_requests_started"],1)
 
+    def test_live_sp_environment_url_cannot_bypass_independent_html_observation(self):
+        import os
+        from unittest.mock import patch
+        bogus="https://sp.jra.jp/JRADB/accessD.html?CNAME=sw01race1220261121%2FBB"
+        class Trap:
+            def open(self,*a,**k):
+                raise AssertionError("unobserved_SP_racecard_requested")
+        def no_link(root,**kwargs):
+            Path(root).mkdir()
+            return {"state":"OFFICIAL_R12_LINK_NOT_OBSERVED",
+                    "network_requests_started":0,"racecard_url":""}
+        with patch.dict(os.environ,{"GITHUB_EVENT_NAME":"schedule","GITHUB_RUN_ATTEMPT":"1",
+                   "KYOTO_WEEKEND_HTTP_APPROVED":"YES","ARCHIVE_KEY":"ab"*32}),patch(
+                "diagnostics.kyoto_weekend_capture.validate_day"),patch(
+                "diagnostics.kyoto_weekend_sp_discovery.discover",side_effect=no_link):
+            result=capture("20261121","SP",str(self.root/"sp"),live=True,
+                           opener=Trap(),sp_source_url=bogus)
+        self.assertEqual(result["state"],"OFFICIAL_R12_LINK_NOT_OBSERVED")
+        self.assertEqual(result["observed_http_requests_started"],0)
+        self.assertFalse(result["prediction_ready"])
+
     def test_official_discovery_and_racecard_share_same_pacer(self):
         observed=[]
         def discovery(root,*,pacer,**kwargs):
