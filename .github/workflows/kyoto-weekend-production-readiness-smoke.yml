@@ -1,0 +1,54 @@
+name: Kyoto weekend production readiness smoke NO JRA HTTP
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/kyoto-weekend-production-readiness-smoke.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  final-production-readiness:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    env:
+      PYTHONPATH: .
+      ARCHIVE_KEY: ${{ secrets.KYOTO_JRA_ARCHIVE_AES256_HEX }}
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: 7318f2b68579affec455627976becfc065248290
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install 'beautifulsoup4>=4.12,<5' 'cryptography>=43,<47'
+      - name: Verify secret existence, production source, GitHub API and no JRA HTTP
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p weekend_prod_smoke
+          python - <<'PY'
+          import os,re,subprocess
+          expected='7318f2b68579affec455627976becfc065248290'
+          assert subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip()==expected,'SOURCE_SHA_INVALID'
+          assert re.fullmatch(r'[0-9a-fA-F]{64}',os.getenv('ARCHIVE_KEY','')),'ARCHIVE_SECRET_INVALID'
+          print('PINNED_SOURCE_VERIFIED=TRUE')
+          print('ENCRYPTION_SECRET_PRESENT_AND_FORMAT_VALID=TRUE')
+          print('NO_JRA_NETWORK_IN_THIS_JOB=TRUE')
+          PY
+          gh api "repos/$GITHUB_REPOSITORY/actions/workflows/kyoto-20261121-22-two-source-production-observer.yml/runs?per_page=1" --jq '.total_count' > weekend_prod_smoke/github_readable.txt
+          KYOTO_TARGET_DAY=20261121 python -m unittest -q tests.test_kyoto_weekend_capture tests.test_kyoto_weekend_sp_discovery tests.test_kyoto_safe_stop_artifact tests.test_kyoto_weekend_production_workflow 2>&1 | tee weekend_prod_smoke/current_tests.log
+          KYOTO_TARGET_DAY=20261115 python -m unittest -q tests.test_kyoto_sp_observed_source tests.test_kyoto_nov15_two_original_observer tests.test_kyoto_nov15_offline_race_links tests.test_kyoto_nov15_encrypted_evidence 2>&1 | tee weekend_prod_smoke/historical_tests.log
+          git rev-parse HEAD > weekend_prod_smoke/pinned_source_head.txt
+          (cd weekend_prod_smoke && sha256sum *.log > test_hashes.sha256)
+      - name: Preserve exact zero-JRA-HTTP production rehearsal
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: kyoto-weekend-production-readiness-${{ github.run_id }}
+          path: weekend_prod_smoke/
+          retention-days: 30
+          if-no-files-found: warn
