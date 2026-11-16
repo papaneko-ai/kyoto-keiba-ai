@@ -37,7 +37,7 @@ jobs:
       - name: Checkout pinned verified development collector, not default branch
         uses: actions/checkout@v4
         with:
-          ref: 92f3aff2a4318c0bcffab70ab6d6b4c7e4e0f4b4
+          ref: 7318f2b68579affec455627976becfc065248290
           persist-credentials: false
       - uses: actions/setup-python@v5
         with:
@@ -63,7 +63,7 @@ jobs:
           assert now.strftime('%Y%m%d')==day and 0<=now.hour<4,'OUTSIDE_DAY_WINDOW_NO_HTTP'
           assert os.environ.get('GITHUB_RUN_ATTEMPT')=='1','RERUN_FORBIDDEN_NO_HTTP'
           assert re.fullmatch(r'[0-9a-fA-F]{64}',os.environ.get('ARCHIVE_KEY','')),'ENCRYPTION_KEY_REQUIRED_NO_HTTP'
-          assert subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip()=='92f3aff2a4318c0bcffab70ab6d6b4c7e4e0f4b4','SOURCE_REVISION_MISMATCH_NO_HTTP'
+          assert subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip()=='7318f2b68579affec455627976becfc065248290','SOURCE_REVISION_MISMATCH_NO_HTTP'
           assert os.environ.get('GITHUB_EVENT_NAME') in ('schedule','workflow_dispatch'),'INVALID_EVENT_NO_HTTP'
           assert os.environ.get('KYOTO_WEEKEND_HTTP_APPROVED')=='YES','LIVE_HTTP_NOT_APPROVED'
           import json,urllib.request
@@ -121,7 +121,7 @@ jobs:
       - name: Checkout pinned verified development collector
         uses: actions/checkout@v4
         with:
-          ref: 92f3aff2a4318c0bcffab70ab6d6b4c7e4e0f4b4
+          ref: 7318f2b68579affec455627976becfc065248290
           persist-credentials: false
       - uses: actions/setup-python@v5
         with:
@@ -147,7 +147,7 @@ jobs:
           assert now.strftime('%Y%m%d')==day and 0<=now.hour<4,'OUTSIDE_DAY_WINDOW_NO_HTTP'
           assert os.environ.get('GITHUB_RUN_ATTEMPT')=='1','RERUN_FORBIDDEN_NO_HTTP'
           assert re.fullmatch(r'[0-9a-fA-F]{64}',os.environ.get('ARCHIVE_KEY','')),'ENCRYPTION_KEY_REQUIRED_NO_HTTP'
-          assert subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip()=='92f3aff2a4318c0bcffab70ab6d6b4c7e4e0f4b4','SOURCE_REVISION_MISMATCH_NO_HTTP'
+          assert subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip()=='7318f2b68579affec455627976becfc065248290','SOURCE_REVISION_MISMATCH_NO_HTTP'
           assert os.environ.get('GITHUB_EVENT_NAME') in ('schedule','workflow_dispatch'),'INVALID_EVENT_NO_HTTP'
           import json,urllib.request
           from urllib.parse import quote
