@@ -17,7 +17,7 @@ class ProductionWorkflowContract(unittest.TestCase):
         self.assertIn("20261122", self.s)
 
     def test_day21_immutable_source_and_day22_verified_promotion(self):
-        pinned="98618492fbea3725899cde2ce3790b5289be27cd"
+        pinned="d40b003e8704e2c8da13b5971830abbcd5561ddf"
         self.assertIn("KYOTO_NOV22_VERIFIED_COLLECTOR_SHA",self.s)
         self.assertEqual(self.s.count("ref: ${{ env.COLLECTOR_SHA }}"),2)
         self.assertEqual(self.s.count("DAY21_SOURCE_UNEXPECTED_NO_HTTP"),2)

@@ -33,7 +33,7 @@ jobs:
       KYOTO_WEEKEND_HTTP_APPROVED: 'YES'
       ARCHIVE_KEY: ${{ secrets.KYOTO_JRA_ARCHIVE_AES256_HEX }}
       GH_TOKEN: ${{ github.token }}
-      COLLECTOR_SHA: ${{ ((github.event.schedule == '10 2 22 11 *' || inputs.race_day == '20261122') && vars.KYOTO_NOV22_VERIFIED_COLLECTOR_SHA) || '98618492fbea3725899cde2ce3790b5289be27cd' }}
+      COLLECTOR_SHA: ${{ ((github.event.schedule == '10 2 22 11 *' || inputs.race_day == '20261122') && vars.KYOTO_NOV22_VERIFIED_COLLECTOR_SHA) || 'd40b003e8704e2c8da13b5971830abbcd5561ddf' }}
     steps:
       - name: Checkout pinned verified development collector, not default branch
         uses: actions/checkout@v4
@@ -83,11 +83,11 @@ jobs:
           assert subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip()==os.environ['COLLECTOR_SHA'],'SOURCE_REVISION_MISMATCH_NO_HTTP'
           assert re.fullmatch(r'[0-9a-f]{40}',os.environ['COLLECTOR_SHA']),'COLLECTOR_SHA_INVALID_NO_HTTP'
           if day=='20261121':
-              assert os.environ['COLLECTOR_SHA']=='98618492fbea3725899cde2ce3790b5289be27cd','DAY21_SOURCE_UNEXPECTED_NO_HTTP'
+              assert os.environ['COLLECTOR_SHA']=='d40b003e8704e2c8da13b5971830abbcd5561ddf','DAY21_SOURCE_UNEXPECTED_NO_HTTP'
           else:
               # Any day22 updated source must be an exact reviewed immutable
               # commit; release acceptance is rechecked below in GitHub API.
-              if os.environ['COLLECTOR_SHA']!='98618492fbea3725899cde2ce3790b5289be27cd':
+              if os.environ['COLLECTOR_SHA']!='d40b003e8704e2c8da13b5971830abbcd5561ddf':
                   import json,urllib.request
                   url='https://api.github.com/repos/'+os.environ['GITHUB_REPOSITORY']+'/actions/workflows/kyoto-weekend-20261121-22-preflight.yml/runs?per_page=100'
                   req=urllib.request.Request(url,headers={
@@ -166,7 +166,7 @@ jobs:
       ARCHIVE_KEY: ${{ secrets.KYOTO_JRA_ARCHIVE_AES256_HEX }}
       SP_INDEPENDENT_OFFICIAL_R12_URL: ${{ (github.event.schedule == '5 2 21 11 *' || inputs.race_day == '20261121') && vars.KYOTO_NOV21_SP_OFFICIAL_R12_URL || vars.KYOTO_NOV22_SP_OFFICIAL_R12_URL }}
       GH_TOKEN: ${{ github.token }}
-      COLLECTOR_SHA: ${{ ((github.event.schedule == '10 2 22 11 *' || inputs.race_day == '20261122') && vars.KYOTO_NOV22_VERIFIED_COLLECTOR_SHA) || '98618492fbea3725899cde2ce3790b5289be27cd' }}
+      COLLECTOR_SHA: ${{ ((github.event.schedule == '10 2 22 11 *' || inputs.race_day == '20261122') && vars.KYOTO_NOV22_VERIFIED_COLLECTOR_SHA) || 'd40b003e8704e2c8da13b5971830abbcd5561ddf' }}
     steps:
       - name: Checkout pinned verified development collector
         uses: actions/checkout@v4
@@ -216,11 +216,11 @@ jobs:
           assert subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip()==os.environ['COLLECTOR_SHA'],'SOURCE_REVISION_MISMATCH_NO_HTTP'
           assert re.fullmatch(r'[0-9a-f]{40}',os.environ['COLLECTOR_SHA']),'COLLECTOR_SHA_INVALID_NO_HTTP'
           if day=='20261121':
-              assert os.environ['COLLECTOR_SHA']=='98618492fbea3725899cde2ce3790b5289be27cd','DAY21_SOURCE_UNEXPECTED_NO_HTTP'
+              assert os.environ['COLLECTOR_SHA']=='d40b003e8704e2c8da13b5971830abbcd5561ddf','DAY21_SOURCE_UNEXPECTED_NO_HTTP'
           else:
               # Any day22 updated source must be an exact reviewed immutable
               # commit; release acceptance is rechecked below in GitHub API.
-              if os.environ['COLLECTOR_SHA']!='98618492fbea3725899cde2ce3790b5289be27cd':
+              if os.environ['COLLECTOR_SHA']!='d40b003e8704e2c8da13b5971830abbcd5561ddf':
                   import json,urllib.request
                   url='https://api.github.com/repos/'+os.environ['GITHUB_REPOSITORY']+'/actions/workflows/kyoto-weekend-20261121-22-preflight.yml/runs?per_page=100'
                   req=urllib.request.Request(url,headers={
