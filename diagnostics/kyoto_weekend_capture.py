@@ -101,12 +101,13 @@ def capture(day: str, channel: str, output: str, *, live: bool,
     # an independently verified original: the date/race is checked by parser.
     from diagnostics.jra_one_shot_market_capture import RequestPacer
     shared_sp_pacer=RequestPacer(min_gap_seconds=2.0)
+    shared_sp_client=opener or build_opener(NoRedirect(), HTTPCookieProcessor(CookieJar()))
     discovery_requests=0
     if not sp_source_url and live:
         from diagnostics.kyoto_weekend_sp_discovery import discover
         discovery_root=root / "sp_discovery"
         try:
-            found=discover(discovery_root,day=day,opener=opener,pacer=shared_sp_pacer)
+            found=discover(discovery_root,day=day,opener=shared_sp_client,pacer=shared_sp_pacer)
             discovery_requests=found["network_requests_started"]
             sp_source_url=found["racecard_url"]
         except Exception as exc:
@@ -130,10 +131,9 @@ def capture(day: str, channel: str, output: str, *, live: bool,
         _write_receipt(root, out)
         return out
     try:
-        client = opener or build_opener(NoRedirect(), HTTPCookieProcessor(CookieJar()))
         result = capture_verified_sp_seed(
             root, race_day=day, race_number=12, source_url=sp_source_url,
-            opener=client, include_odds=True, pacer=shared_sp_pacer)
+            opener=shared_sp_client, include_odds=True, pacer=shared_sp_pacer)
         out = _no_claim(day, channel, result["state"],
                         observed_http_requests_started=discovery_requests+result.get("network_requests_started", 0),
                         captured_originals=bool(result.get("racecard_sha256")),
