@@ -1,0 +1,43 @@
+name: Kyoto implementation16 development source recovery backup
+on:
+  push:
+    branches: [jra-html-diagnostic-20261105]
+    paths:
+      - '.github/workflows/kyoto-implementation16-source-recovery.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  assemble-verified-development-backup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Export exact tracked repository and git history without runtime secrets
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p implementation16_recovery
+          git rev-parse HEAD > implementation16_recovery/DEVELOPMENT_HEAD.txt
+          git rev-parse --verify origin/main > implementation16_recovery/MAIN_REFERENCE.txt
+          git archive --format=zip --output=implementation16_recovery/DEVELOPMENT_TRACKED_SOURCE.zip HEAD
+          git bundle create implementation16_recovery/REPOSITORY_GIT_HISTORY.bundle --all
+          git bundle verify implementation16_recovery/REPOSITORY_GIT_HISTORY.bundle
+          unzip -t implementation16_recovery/DEVELOPMENT_TRACKED_SOURCE.zip > implementation16_recovery/ZIP_VERIFICATION.log
+          printf 'Archive is a source-and-history recovery, not a copy of Turso, encrypted run artifacts, GitHub Secrets or deployed Streamlit settings.\n' > implementation16_recovery/READ_ME.txt
+          (
+            cd implementation16_recovery
+            sha256sum DEVELOPMENT_TRACKED_SOURCE.zip REPOSITORY_GIT_HISTORY.bundle > SHA256SUMS.txt
+          )
+          test -s implementation16_recovery/REPOSITORY_GIT_HISTORY.bundle
+          test -s implementation16_recovery/DEVELOPMENT_TRACKED_SOURCE.zip
+      - name: Retain both exact source and history with checksums
+        uses: actions/upload-artifact@v4
+        with:
+          name: kyoto-implementation16-development-recovery-${{ github.run_id }}
+          path: implementation16_recovery/
+          retention-days: 30
+          if-no-files-found: error
