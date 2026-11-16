@@ -13,6 +13,8 @@ class ProductionWorkflowContract(unittest.TestCase):
     def test_two_distinct_date_locked_schedules(self):
         self.assertIn("cron: '5 2 21 11 *'", self.s)
         self.assertIn("cron: '10 2 22 11 *'", self.s)
+        self.assertIn("cron: '50 2 21 11 *'",self.s)
+        self.assertIn("cron: '55 2 22 11 *'",self.s)
         self.assertIn("20261121", self.s)
         self.assertIn("20261122", self.s)
 
@@ -53,13 +55,24 @@ class ProductionWorkflowContract(unittest.TestCase):
 
     def test_pre_http_all_bounded_and_no_replay(self):
         self.assertEqual(self.s.count('GITHUB_RUN_ATTEMPT'),2)
-        self.assertEqual(self.s.count("PREVIOUS_WORKFLOW_RUN_ON_TARGET_DAY_NO_HTTP"),2)
-        self.assertEqual(self.s.count("RUN_HISTORY_UNVERIFIED_NO_HTTP"),2)
-        self.assertEqual(self.s.count("SAME_DAY_HISTORY_NEEDS_PAGINATION_NO_HTTP"),2)
-        self.assertEqual(self.s.count('"?created="+target'),2)
+        self.assertEqual(self.s.count("python -m diagnostics.kyoto_weekend_retry_guard --day"),2)
+        self.assertIn("GITHUB_EVENT_SCHEDULE",self.s)
+        self.assertIn("kyoto-20261121-22-source-",self.s)
+        self.assertIn("github.event.schedule == '50 2 21 11 *'",self.s)
+        self.assertIn("github.event.schedule == '55 2 22 11 *'",self.s)
+        self.assertIn("tests.test_kyoto_weekend_retry_guard",self.s)
         self.assertEqual(self.s.count("ENCRYPTION_KEY_REQUIRED_NO_HTTP"),2)
         self.assertEqual(self.s.count("SOURCE_REVISION_MISMATCH_NO_HTTP"),2)
         self.assertIn("concurrency:",self.s)
+
+    def test_backup_same_day_concurrency_and_failure_only_policy(self):
+        from diagnostics.kyoto_weekend_retry_guard import PRIMARY,BACKUP
+        self.assertEqual(set(PRIMARY),{"20261121","20261122"})
+        self.assertEqual(set(BACKUP),set(PRIMARY))
+        group=self.s.split("concurrency:",1)[1].split("jobs:",1)[0]
+        self.assertIn("20261121",group)
+        self.assertIn("20261122",group)
+        self.assertNotIn("github.event.schedule || inputs.race_day",group)
 
     def test_seal_all_exits_and_no_plaintext_upload(self):
         self.assertEqual(self.s.count("if: always()"),6)
