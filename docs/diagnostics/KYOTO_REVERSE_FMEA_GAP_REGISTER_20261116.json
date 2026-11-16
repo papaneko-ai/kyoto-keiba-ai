@@ -68,7 +68,7 @@
       "phase": "official_link_navigation",
       "review_required": true,
       "source_sha_status": "BIND_TO_CI_CHECKOUT",
-      "review_status": "SOURCE_READ_FMEA_OPEN_GAPS"
+      "review_status": "CHANGED_SOURCE_REVIEW_REOPENED"
     },
     {
       "source": "diagnostics/kyoto_weekend_sp_discovery.py",
@@ -76,7 +76,7 @@
       "phase": "official_link_navigation",
       "review_required": true,
       "source_sha_status": "BIND_TO_CI_CHECKOUT",
-      "review_status": "SOURCE_READ_FMEA_OPEN_GAPS"
+      "review_status": "CHANGED_SOURCE_REVIEW_REOPENED"
     },
     {
       "source": "diagnostics/kyoto_weekend_postflight.py",
@@ -84,7 +84,7 @@
       "phase": "provenance_and_timestamp",
       "review_required": true,
       "source_sha_status": "BIND_TO_CI_CHECKOUT",
-      "review_status": "SOURCE_READ_FMEA_OPEN_GAPS"
+      "review_status": "CHANGED_SOURCE_REVIEW_REOPENED"
     },
     {
       "source": "diagnostics/kyoto_weekend_postflight.py",
@@ -92,7 +92,7 @@
       "phase": "provenance_and_timestamp",
       "review_required": true,
       "source_sha_status": "BIND_TO_CI_CHECKOUT",
-      "review_status": "SOURCE_READ_FMEA_OPEN_GAPS"
+      "review_status": "CHANGED_SOURCE_REVIEW_REOPENED"
     },
     {
       "source": "diagnostics/kyoto_weekend_postflight.py",
@@ -100,7 +100,7 @@
       "phase": "provenance_and_timestamp",
       "review_required": true,
       "source_sha_status": "BIND_TO_CI_CHECKOUT",
-      "review_status": "SOURCE_READ_FMEA_OPEN_GAPS"
+      "review_status": "CHANGED_SOURCE_REVIEW_REOPENED"
     },
     {
       "source": "diagnostics/kyoto_weekend_day21_triage.py",
@@ -108,7 +108,7 @@
       "phase": "first_to_second_day",
       "review_required": true,
       "source_sha_status": "BIND_TO_CI_CHECKOUT",
-      "review_status": "SOURCE_READ_FMEA_OPEN_GAPS"
+      "review_status": "CHANGED_SOURCE_REVIEW_REOPENED"
     },
     {
       "source": "diagnostics/kyoto_weekend_day21_triage.py",
@@ -116,7 +116,7 @@
       "phase": "first_to_second_day",
       "review_required": true,
       "source_sha_status": "BIND_TO_CI_CHECKOUT",
-      "review_status": "SOURCE_READ_FMEA_OPEN_GAPS"
+      "review_status": "CHANGED_SOURCE_REVIEW_REOPENED"
     },
     {
       "source": "diagnostics/kyoto_nov15_two_original_observer.py",
@@ -204,7 +204,7 @@
       "phase": "authenticated_evidence_storage",
       "review_required": true,
       "source_sha_status": "BIND_TO_CI_CHECKOUT",
-      "review_status": "SOURCE_READ_FMEA_OPEN_GAPS"
+      "review_status": "CHANGED_SOURCE_REVIEW_REOPENED"
     },
     {
       "source": "diagnostics/kyoto_nov15_encrypted_evidence.py",
@@ -212,7 +212,7 @@
       "phase": "authenticated_evidence_storage",
       "review_required": true,
       "source_sha_status": "BIND_TO_CI_CHECKOUT",
-      "review_status": "SOURCE_READ_FMEA_OPEN_GAPS"
+      "review_status": "CHANGED_SOURCE_REVIEW_REOPENED"
     },
     {
       "source": "diagnostics/kyoto_nov15_encrypted_evidence.py",
@@ -220,7 +220,7 @@
       "phase": "authenticated_evidence_storage",
       "review_required": true,
       "source_sha_status": "BIND_TO_CI_CHECKOUT",
-      "review_status": "SOURCE_READ_FMEA_OPEN_GAPS"
+      "review_status": "CHANGED_SOURCE_REVIEW_REOPENED"
     },
     {
       "source": "diagnostics/kyoto_nov15_encrypted_evidence.py",
@@ -228,7 +228,7 @@
       "phase": "authenticated_evidence_storage",
       "review_required": true,
       "source_sha_status": "BIND_TO_CI_CHECKOUT",
-      "review_status": "SOURCE_READ_FMEA_OPEN_GAPS"
+      "review_status": "CHANGED_SOURCE_REVIEW_REOPENED"
     },
     {
       "source": "diagnostics/kyoto_nov15_encrypted_evidence.py",
@@ -236,7 +236,7 @@
       "phase": "authenticated_evidence_storage",
       "review_required": true,
       "source_sha_status": "BIND_TO_CI_CHECKOUT",
-      "review_status": "SOURCE_READ_FMEA_OPEN_GAPS"
+      "review_status": "CHANGED_SOURCE_REVIEW_REOPENED"
     },
     {
       "source": "diagnostics/jra_benchmark_acceptance.py",
@@ -932,12 +932,12 @@
   "notes": "Reverse FMEA explicitly finds risk modes not enumerated by the original 30 cases. Counting passing tests is not an independent proof of completeness.",
   "source_git_blob_sha1": {
     "diagnostics/kyoto_weekend_capture.py": "70cff6ed2488c9adec27c69a743c6c73d48de873",
-    "diagnostics/kyoto_weekend_sp_discovery.py": "93b695860983c600de4b2e144918db66e207d1c3",
-    "diagnostics/kyoto_weekend_postflight.py": "cf10e01ffe2be46c9a2f23d83273eaf0c98f39da",
-    "diagnostics/kyoto_weekend_day21_triage.py": "2e1419219cef40003b744c17ef9817ac65c9b1d2",
+    "diagnostics/kyoto_weekend_sp_discovery.py": "b320ced19ebe089869fdcfd4b1b368977720a2bf",
+    "diagnostics/kyoto_weekend_postflight.py": "e5d130542c77f40915329aa7b2bb93e4371fb64d",
+    "diagnostics/kyoto_weekend_day21_triage.py": "b172831bcbf98f83b101bab5309002c3782d3aa1",
     "diagnostics/kyoto_nov15_two_original_observer.py": "3ed34198bb3afde27ec7460386f18177121fb4d4",
     "diagnostics/kyoto_sp_observed_source.py": "3d834412c21f77e1e50a7cc1e09c907212e909b6",
-    "diagnostics/kyoto_nov15_encrypted_evidence.py": "8bf93410f6d05d45ca282cafa13c7df23775e760",
+    "diagnostics/kyoto_nov15_encrypted_evidence.py": "a1ae7d1ef8ac9bbf79dfbdfc999ee1fe044ecc16",
     "diagnostics/jra_benchmark_acceptance.py": "edbd6b5b9479fdbf3fc88c7450c0c7ae3260a76f",
     "diagnostics/jra_market_integrity_gate.py": "6f20257575d7c5aeb232512bb64700dee21c3e06",
     "diagnostics/jra_market_source_chain.py": "8e6bd6b33e9591b6158e2a14a48afd61a902b374",
@@ -951,5 +951,6 @@
     "diagnostics/jra_source_router.py": "d7eae104adecd60374ac0b6cc9ee622f9e47df95",
     "diagnostics/kyoto_p1_nov14_official_one_shot_nav.py": "0aa2e6e53cb78f317d77c001ce55e101f45b8c50",
     "diagnostics/kyoto_safe_stop_artifact.py": "72201d3149cf8f33e7c7cff5fe18118363ac0890"
-  }
+  },
+  "revision_note": "2026-11-16: Source-blobs updated for bounded Sunday observed-navigation fallback, six-original crypto and postflight, and actionable handoff. Prior FMEA coverage remains incomplete; reviewed sections are reopened, not certified."
 }
