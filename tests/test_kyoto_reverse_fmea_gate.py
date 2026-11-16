@@ -34,7 +34,7 @@ class SourceFirstCoverageTests(unittest.TestCase):
     def test_function_omission_rejected(self):
         d=copy.deepcopy(self.doc)
         d["surfaces"].pop()
-        with self.assertRaisesRegex(AuditCoverageRejected,"source_surface_register_incomplete"):
+        with self.assertRaisesRegex(AuditCoverageRejected,"source_module_inventory_incomplete"):
             inspect(ROOT,d,verify_git=False)
     def test_fake_function_rejected(self):
         d=copy.deepcopy(self.doc)
@@ -64,7 +64,7 @@ class SourceFirstCoverageTests(unittest.TestCase):
             with self.assertRaisesRegex(AuditCoverageRejected,"source_changed_requires_new_fmea"):
                 inspect(ROOT,self.doc,verify_git=True)
     def test_source_first_fmea_never_promotes_unverified_live_market(self):
-        self.assertEqual(self.doc["adjudication"]["result"],"COMPLETENESS_NOT_PROVEN")
+        self.assertEqual(self.doc["adjudication"]["result"],"STRUCTURALLY_ENUMERATED_BUT_FMEA_REVIEW_INCOMPLETE")
         self.assertFalse(self.doc["adjudication"]["live_data_authoritative"])
         self.assertTrue(self.doc["adjudication"]["claims_of_no_foreseeable_bugs_prohibited"])
 
