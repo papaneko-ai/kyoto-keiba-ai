@@ -19,6 +19,18 @@ class HandoffWorkflowContract(unittest.TestCase):
             self.assertIn(fragment,self.src)
         self.assertNotIn("authorized-live-http",self.src)
         self.assertNotIn("sp.jra.jp/",self.src)
+    def test_actual_encrypted_artifacts_are_privately_decrypted_before_decision(self):
+        self.assertIn("gh run download",self.src)
+        self.assertIn("KYOTO_JRA_ARCHIVE_AES256_HEX",self.src)
+        self.assertIn("kyoto_weekend_day21_artifact_triage",self.src)
+        self.assertIn("source_assessment.json",self.src)
+        self.assertIn("rm -rf day21_ephemeral",self.src)
+        self.assertIn("Manual intervention before Nov22",self.src)
+        self.assertIn("SUNDAY_EXPANDED_BOUNDED",Path(
+            "diagnostics/kyoto_weekend_day21_triage.py").read_text())
+        self.assertIn("path: day_result_handoff/",self.src)
+        self.assertNotIn("path: day21_ephemeral/",self.src)
+
     def test_only_official_workflow_is_accepted(self):
         self.assertIn("WRONG_WORKFLOW_IDENTITY",self.src)
         self.assertIn("SOURCE_RUN_NOT_COMPLETED",self.src)
