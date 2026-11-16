@@ -45,6 +45,15 @@ class SourceOnlyReleaseAcceptance(unittest.TestCase):
             self.assertEqual(self.issues[issue]["state"],"FIXED_AND_OFFLINE_REGRESSION_VERIFIED")
             self.assertIn("CI run",self.issues[issue]["fix_evidence"])
 
+    def test_source_observation_cannot_be_mistaken_for_complete_predictable_risk_audit(self):
+        approval=self.ledger["required_approval"]
+        self.assertIs(approval["fmea_completeness_demonstrated"],False)
+        self.assertEqual(approval["top_level_functions_in_source_closure"],76)
+        self.assertEqual(approval["unreviewed_top_level_functions"],47)
+        self.assertEqual(approval["unreviewed_class_methods"],10)
+        self.assertEqual(approval["additional_open_risk_families"],20)
+        self.assertIs(approval["source_only_observation_not_certification"],True)
+
     def test_no_fake_live_market_certification(self):
         self.assertFalse(self.ledger["required_approval"]["live_source_verified"])
         self.assertFalse(self.ledger["required_approval"]["prediction_release_allowed"])
