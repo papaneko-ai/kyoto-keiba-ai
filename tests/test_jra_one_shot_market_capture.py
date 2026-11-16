@@ -867,13 +867,23 @@ class PCOnlyPreviouslyAgreedRouteTests(unittest.TestCase):
    self.assertEqual(result["state"],"OFFICIAL_NOT_PUBLISHED")
    self.assertEqual(len(stub.requests),2)
    self.assertFalse(result["pre_race_prices_accepted"])
- def test_hybrid_forbids_missing_sp_url_and_no_request(self):
+ def test_hybrid_without_sp_link_runs_pc_only_and_never_guesses_sp(self):
   from diagnostics.jra_one_shot_market_capture import capture_hybrid
+  calls=[]
+  def stopped_channel(out, **kwargs):
+   calls.append(kwargs["channel"])
+   return dict(race_id=kwargs["race_spec"].race_id,
+               channel=kwargs["channel"],state="CAPTURE_BLOCKED",
+               pre_race_prices_accepted=False)
   with tempfile.TemporaryDirectory() as d:
-   with self.assertRaisesRegex(SourceChainError,"required_observed_racecard_url_missing"):
-    capture_hybrid(d,primary_channel="PC",race_spec=self.spec(),
-     verified_start_utc="2026-11-14T06:45:00Z",
-     active_runners=((1,1),(2,2)))
+   result=capture_hybrid(d,primary_channel="PC",race_spec=self.spec(),
+    verified_start_utc="2026-11-14T06:45:00Z",
+    active_runners=((1,1),(2,2)),capture_fn=stopped_channel)
+   self.assertEqual(calls,["PC"])
+   self.assertEqual(result["state"],"SAFE_STOP")
+   self.assertTrue(result["fallback_not_attempted_missing_official_link"])
+   self.assertFalse(result["other_channel_link_observed"])
+   self.assertFalse(result["prediction_ready"])
  def test_single_sp_without_pc_remains_possible_if_sp_is_officially_observed(self):
   from dataclasses import replace
   sp="https://sp.jra.jp/JRADB/accessD.html?CNAME=sw01dde0108202605011120261114%2FA0"
