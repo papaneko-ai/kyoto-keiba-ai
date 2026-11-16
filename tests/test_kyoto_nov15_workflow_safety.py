@@ -16,23 +16,34 @@ class Nov15WorkflowSafetyTests(unittest.TestCase):
     self.assertIn("github.event.inputs.confirmation == 'NOV15-ONE-SHOT-READ-ONLY'",self.s)
  def test_actual_http_only_after_offline_original_handoff(self):
     self.assertLess(self.s.index("validate"),self.s.index("--authorized-live-http")) if "validate" in self.s else self.assertLess(self.s.index("python -m diagnostics.kyoto_nov14_nov15_second_day_handoff"),self.s.index("--authorized-live-http"))
- def test_replay_attempt_blocked_before_network(self):
-    self.assertIn('GITHUB_RUN_ATTEMPT',self.s)
-    self.assertIn('audit_previous_runs',self.s)
-    self.assertIn('NOV15_PRE_HTTP_RETRY_COUNT=',self.s)
-    self.assertLess(self.s.index('audit_previous_runs'),self.s.index('--authorized-live-http'))
- def test_fail_closed_git_hub_run_api(self):
-    self.assertIn('kyoto_p1_github_attempt_history_gate',self.s)
-    self.assertIn('http_step="Single bounded Nov15 observed PC racecard and market fetch"',self.s)
-    self.assertIn('actions: read',self.s)
- def test_known_404_410_pc_link_repair_is_bounded(self):
-    self.assertIn("--auto-repair-broken-pc-link",self.s)
-    self.assertIn("--channel PC",self.s)
-    self.assertIn("python -m diagnostics.kyoto_nov15_capture_acceptance",self.s)
+ def test_historical_replay_blocked_by_fixed_market_window_before_http(self):
+    # This is a 2026-11-15 historical diagnostic, not the Nov21/22 workflow.
+    # It must stop outside the exact 2026-11-15 start-time window.
+    self.assertIn("NOV15_PC_OUTSIDE_MARKET_WINDOW_NO_HTTP_RETRY_SAFE",self.s)
+    self.assertIn('strftime("%Y%m%d")!="20261115"',self.s)
+    self.assertLess(self.s.index("NOV15_PC_OUTSIDE_MARKET_WINDOW_NO_HTTP_RETRY_SAFE"),
+                    self.s.index("--authorized-live-http"))
+ def test_fail_closed_prior_observer_api_and_identity(self):
+    self.assertIn('gh api "repos/$GITHUB_REPOSITORY/actions/runs/$OBSERVER_RUN"',self.s)
+    self.assertIn("kyoto_nov15_observer_artifact_identity",self.s)
+    self.assertLess(self.s.index("kyoto_nov15_observer_artifact_identity"),
+                    self.s.index("--authorized-live-http"))
+    self.assertIn("actions: read",self.s)
+ def test_optional_pc_404_repair_is_not_implicitly_enabled(self):
+    # Legacy 11/15 source uses default no-repair; bounded 404 repair is a
+    # separate opt-in in the actual capturer, not an implied workflow option.
+    source=Path("diagnostics/jra_one_shot_market_capture.py").read_text(encoding="utf8")
+    self.assertIn("auto_repair_broken_pc_link=False",source)
+    self.assertIn("broken.code in (404,410)",source)
+    self.assertNotIn("--auto-repair-broken-pc-link",self.s)
  def test_no_guessed_sp_urls(self):
-    self.assertIn('--channel PC',self.s)
-    self.assertNotIn('--channel SP',self.s)
-    self.assertNotIn('--hybrid',self.s)
+    self.assertIn("--channel PC",self.s)
+    self.assertNotIn("--channel SP",self.s)
+    self.assertNotIn("CNAME=sw",self.s)
+    # A hybrid is valid only where a separate SP observed link already exists.
+    source=Path("diagnostics/jra_one_shot_market_capture.py").read_text(encoding="utf8")
+    self.assertIn("other_source_available=bool(other_url)",source)
+    self.assertIn("spec.validate(require_channels=(primary_channel,))",source)
  def test_no_live_model_or_real_wager(self):
     self.assertIn('NO_REAL_BETS=TRUE',self.s)
     self.assertIn('python -m diagnostics.kyoto_nov15_capture_acceptance',self.s)
@@ -54,9 +65,11 @@ class Nov15WorkflowSafetyTests(unittest.TestCase):
     self.assertNotIn('path: nov15_pc_one_shot/',self.s)
     self.assertIn('kyoto_nov15_full_capture_seal',self.s)
  def test_prior_observation_artifact_is_authenticated(self):
-    self.assertIn('kyoto-nov15-encrypted-observation-',self.s)
-    self.assertIn('kyoto_nov15_encrypted_evidence',self.s)
-    self.assertIn('ARCHIVE_KEY',self.s)
+    # Artifact identity is computed from actual GitHub run metadata; requiring
+    # one hard-coded artifact name would reintroduce guessing.
+    self.assertIn("kyoto_nov15_observer_artifact_identity",self.s)
+    self.assertIn("kyoto_nov15_encrypted_evidence",self.s)
+    self.assertIn("ARCHIVE_KEY",self.s)
  def test_racecard_links_are_not_hardcoded(self):
     self.assertIn('nov15_decrypted/official_selection.html',self.s)
     self.assertIn('nov15_decrypted/official_meeting.html',self.s)
