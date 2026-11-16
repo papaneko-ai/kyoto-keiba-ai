@@ -71,7 +71,9 @@ jobs:
           repo=os.environ["GITHUB_REPOSITORY"]
           ident=os.environ["GITHUB_RUN_ID"]
           target=day[:4]+"-"+day[4:6]+"-"+day[6:]
-          endpoint="https://api.github.com/repos/"+repo+"/actions/workflows/kyoto-20261121-22-two-source-production-observer.yml/runs?per_page=100"
+          endpoint=("https://api.github.com/repos/"+repo+
+              "/actions/workflows/kyoto-20261121-22-two-source-production-observer.yml/runs"+
+              "?created="+target+"&per_page=100")
           request=urllib.request.Request(endpoint,headers={
               "Authorization":"Bearer "+os.environ["GH_TOKEN"],
               "Accept":"application/vnd.github+json",
@@ -79,9 +81,13 @@ jobs:
           })
           with urllib.request.urlopen(request,timeout=12) as response:
               history=json.load(response)
-          if history.get("total_count",101)>100 or not isinstance(history.get("workflow_runs"),list):
+          if not isinstance(history.get("workflow_runs"),list):
               raise SystemExit("RUN_HISTORY_UNVERIFIED_NO_HTTP")
-          if any(str(run.get("id"))!=ident and run.get("created_at","").startswith(target)
+          # Exclude only the current run; same-day prior runs are not silently
+          # re-authorized. >100 historical runs from older days do not matter.
+          if history.get("total_count",0)>100:
+              raise SystemExit("SAME_DAY_HISTORY_NEEDS_PAGINATION_NO_HTTP")
+          if any(str(run.get("id"))!=ident
                  for run in history["workflow_runs"]):
               raise SystemExit("PREVIOUS_WORKFLOW_RUN_ON_TARGET_DAY_NO_HTTP")
           print('PC_PRE_HTTP_GUARDS_ACCEPTED')
@@ -154,7 +160,9 @@ jobs:
           repo=os.environ["GITHUB_REPOSITORY"]
           ident=os.environ["GITHUB_RUN_ID"]
           target=day[:4]+"-"+day[4:6]+"-"+day[6:]
-          endpoint="https://api.github.com/repos/"+repo+"/actions/workflows/kyoto-20261121-22-two-source-production-observer.yml/runs?per_page=100"
+          endpoint=("https://api.github.com/repos/"+repo+
+              "/actions/workflows/kyoto-20261121-22-two-source-production-observer.yml/runs"+
+              "?created="+target+"&per_page=100")
           request=urllib.request.Request(endpoint,headers={
               "Authorization":"Bearer "+os.environ["GH_TOKEN"],
               "Accept":"application/vnd.github+json",
@@ -162,9 +170,13 @@ jobs:
           })
           with urllib.request.urlopen(request,timeout=12) as response:
               history=json.load(response)
-          if history.get("total_count",101)>100 or not isinstance(history.get("workflow_runs"),list):
+          if not isinstance(history.get("workflow_runs"),list):
               raise SystemExit("RUN_HISTORY_UNVERIFIED_NO_HTTP")
-          if any(str(run.get("id"))!=ident and run.get("created_at","").startswith(target)
+          # Exclude only the current run; same-day prior runs are not silently
+          # re-authorized. >100 historical runs from older days do not matter.
+          if history.get("total_count",0)>100:
+              raise SystemExit("SAME_DAY_HISTORY_NEEDS_PAGINATION_NO_HTTP")
+          if any(str(run.get("id"))!=ident
                  for run in history["workflow_runs"]):
               raise SystemExit("PREVIOUS_WORKFLOW_RUN_ON_TARGET_DAY_NO_HTTP")
           print('SP_PRE_HTTP_GUARDS_ACCEPTED')
