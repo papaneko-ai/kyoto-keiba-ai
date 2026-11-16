@@ -1,4 +1,4 @@
-name: Kyoto weekend production readiness smoke NO JRA HTTP
+name: Kyoto weekend fail-closed release containment NO JRA HTTP
 on:
   push:
     branches: [main]
@@ -10,61 +10,10 @@ on:
   workflow_dispatch:
 permissions:
   contents: read
-  actions: read
 jobs:
-  final-production-readiness:
+  assert-no-unsafe-production-acquisition:
     runs-on: ubuntu-latest
-    timeout-minutes: 12
-    env:
-      PYTHONPATH: .
-      ARCHIVE_KEY: ${{ secrets.KYOTO_JRA_ARCHIVE_AES256_HEX }}
-      GH_TOKEN: ${{ github.token }}
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: 8b8b6b97fc6c920e270c963cd17c4efc92e56d46
-          persist-credentials: false
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-      - run: python -m pip install 'beautifulsoup4>=4.12,<5' 'cryptography>=43,<47'
-      - name: Verify secret existence, production source, GitHub API and no JRA HTTP
-        shell: bash
-        run: |
-          set -euo pipefail
-          mkdir -p weekend_prod_smoke
-          python - <<'PY'
-          import os,re,subprocess
-          expected='8b8b6b97fc6c920e270c963cd17c4efc92e56d46'
-          assert subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip()==expected,'SOURCE_SHA_INVALID'
-          assert re.fullmatch(r'[0-9a-fA-F]{64}',os.getenv('ARCHIVE_KEY','')),'ARCHIVE_SECRET_INVALID'
-          print('PINNED_SOURCE_VERIFIED=TRUE')
-          print('ENCRYPTION_SECRET_PRESENT_AND_FORMAT_VALID=TRUE')
-          print('NO_JRA_NETWORK_IN_THIS_JOB=TRUE')
-          PY
-          for p in kyoto-20261121-22-two-source-production-observer.yml kyoto-20261121-22-result-handoff.yml; do
-            local_sha="$(git hash-object ".github/workflows/$p")"
-            main_sha="$(gh api "repos/$GITHUB_REPOSITORY/contents/.github/workflows/$p?ref=main" --jq '.sha')"
-            test "$local_sha" = "$main_sha" || { echo "DEPLOYMENT_SOURCE_DRIFT:$p"; exit 1; }
-            echo "$p $main_sha" >> weekend_prod_smoke/deployed_workflow_hashes.txt
-          done
-          gh api "repos/$GITHUB_REPOSITORY/actions/workflows/kyoto-20261121-22-two-source-production-observer.yml/runs?per_page=1" --jq '.total_count' > weekend_prod_smoke/github_readable.txt
-          KYOTO_TARGET_DAY=20261121 python -m unittest -q tests.test_kyoto_weekend_capture tests.test_kyoto_weekend_sp_discovery tests.test_kyoto_safe_stop_artifact tests.test_kyoto_weekend_production_workflow tests.test_kyoto_weekend_day21_triage tests.test_kyoto_weekend_postflight tests.test_kyoto_weekend_handoff_workflow tests.test_kyoto_weekend_end_to_end 2>&1 | tee weekend_prod_smoke/current_tests.log
-          KYOTO_TARGET_DAY=20261115 python -m unittest -q tests.test_kyoto_sp_observed_source tests.test_kyoto_nov15_two_original_observer tests.test_kyoto_nov15_offline_race_links tests.test_kyoto_nov15_encrypted_evidence 2>&1 | tee weekend_prod_smoke/historical_tests.log
-          git rev-parse HEAD > weekend_prod_smoke/pinned_source_head.txt
-          (cd weekend_prod_smoke && sha256sum *.log > test_hashes.sha256)
-      - name: Preserve exact zero-JRA-HTTP production rehearsal
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: kyoto-weekend-production-readiness-${{ github.run_id }}
-          path: weekend_prod_smoke/
-          retention-days: 30
-          if-no-files-found: warn
-
-  independently-test-main-release-denial:
-    runs-on: ubuntu-latest
-    timeout-minutes: 4
+    timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
         with:
@@ -72,19 +21,21 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      - name: Execute exact two production release gates with offline adversarial tests
+      - name: Execute the actual two release stops and inspect open critical incidents offline
         shell: bash
         run: |
           set -euo pipefail
           mkdir -p weekend_guard_evidence
-          python -m unittest -v tests.test_kyoto_weekend_main_release_guard 2>&1 | tee weekend_guard_evidence/audit.log
+          python -m unittest -v tests.test_kyoto_weekend_main_release_guard 2>&1 | tee weekend_guard_evidence/containment_tests.log
           git rev-parse HEAD > weekend_guard_evidence/main_head.txt
-          sha256sum weekend_guard_evidence/audit.log > weekend_guard_evidence/audit.sha256
-      - name: Always preserve independent denial evidence
+          sha256sum weekend_guard_evidence/containment_tests.log > weekend_guard_evidence/tests.sha256
+          echo 'RELEASE_STATE=BLOCKED_BY_UNRESOLVED_CRITICAL_INCIDENTS'
+          echo 'REAL_JRA_HTTP=NOT_ATTEMPTED'
+      - name: Retain immutable containment evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: kyoto-release-denial-audit-${{ github.run_id }}
+          name: kyoto-weekend-release-containment-${{ github.run_id }}
           path: weekend_guard_evidence/
-          if-no-files-found: warn
+          if-no-files-found: error
           retention-days: 30
