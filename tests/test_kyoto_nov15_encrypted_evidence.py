@@ -46,6 +46,21 @@ class CryptoTests(unittest.TestCase):
     self.assertIn("observed_race_links.json",report["files"])
     self.assertEqual((self.decrypted/"observed_race_links.json").read_bytes(),payload)
     self.assertNotIn(payload,(self.enc/"originals.tar.gz.aesgcm").read_bytes())
+ def test_sunday_six_observed_navigation_pages_survive_encryption(self):
+    from unittest.mock import patch
+    import diagnostics.kyoto_nov15_encrypted_evidence as crypto
+    for i in range(1,7):
+        (self.raw/f"official_sp_discovery_{i}.html").write_bytes(
+            ("<html>Sunday observed stage "+str(i)+"</html>").encode())
+    with patch.object(crypto,"DAY","20261122"):
+        self.seal()
+        report=self.restore()
+    for i in range(1,7):
+        name=f"official_sp_discovery_{i}.html"
+        self.assertIn(name,report["files"])
+        self.assertEqual((self.decrypted/name).read_bytes(),(self.raw/name).read_bytes())
+    self.assertEqual({x.name for x in self.enc.iterdir()},
+                     {"manifest.json","originals.tar.gz.aesgcm"})
  def test_no_plaintext_in_uploaded_output(self):
     self.seal()
     self.assertEqual({x.name for x in self.enc.iterdir()},
