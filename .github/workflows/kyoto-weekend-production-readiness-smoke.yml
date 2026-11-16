@@ -7,6 +7,7 @@ on:
       - '.github/workflows/kyoto-20261121-22-two-source-production-observer.yml'
       - 'docs/diagnostics/KYOTO_20261116_INDEPENDENT_RELEASE_BLOCKERS.json'
       - 'tests/test_kyoto_weekend_main_release_guard.py'
+      - 'docs/diagnostics/KYOTO_PREDICTABLE_FAILURE_MATRIX_20261116.json'
   workflow_dispatch:
 permissions:
   contents: read
@@ -45,7 +46,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: 16f4ed8230845f9e6b3e23e61b4a4582bd31cc04
+          ref: fca19b05450d52427b6e9507e94041ceee6abd14
           persist-credentials: false
       - uses: actions/setup-python@v5
         with:
@@ -56,11 +57,22 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p pinned_collector_proof
-          test "$(git rev-parse HEAD)" = "16f4ed8230845f9e6b3e23e61b4a4582bd31cc04"
+          test "$(git rev-parse HEAD)" = "fca19b05450d52427b6e9507e94041ceee6abd14"
           KYOTO_TARGET_DAY=20261121 python -m unittest -v tests.test_kyoto_weekend_interruption_and_pacing tests.test_kyoto_weekend_end_to_end tests.test_kyoto_weekend_postflight tests.test_kyoto_weekend_capture tests.test_kyoto_weekend_sp_discovery 2>&1 | tee pinned_collector_proof/new_cases.log
           KYOTO_TARGET_DAY=20261115 python -m unittest -v tests.test_kyoto_nov15_two_original_observer tests.test_kyoto_sp_observed_source tests.test_kyoto_nov15_encrypted_evidence 2>&1 | tee pinned_collector_proof/history.log
           git rev-parse HEAD > pinned_collector_proof/collector_sha.txt
           sha256sum pinned_collector_proof/*.log > pinned_collector_proof/testlogs.sha256
+          python -m unittest -v tests.test_kyoto_predictable_failure_gate 2>&1 | tee pinned_collector_proof/coverage_integrity.log
+          python -m diagnostics.kyoto_predictable_failure_gate --report pinned_collector_proof/predictable_failure_matrix_run.json 2>&1 | tee pinned_collector_proof/coverage_execution.log
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          r=json.loads(Path('pinned_collector_proof/predictable_failure_matrix_run.json').read_text())
+          assert r["passing"]==r["count"]==30
+          assert r["live_jra_proven"] is False
+          assert r["prediction_ready"] is False
+          print("PINNED_COLLECTOR_PREDICTABLE_FAILURE_COVERAGE_30_30")
+          PY
           echo 'OFFICIAL_JRA_HTTP_REQUESTS=0'
       - name: Keep fault-injection logs
         if: always()
