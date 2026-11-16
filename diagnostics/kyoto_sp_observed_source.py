@@ -121,7 +121,7 @@ def capture_verified_sp_seed(originals, *, race_day, race_number, source_url,
         if include_odds:
             _capture_sp_observed_markets(
                 root,opener,page["raw"],source_url,race_day,
-                race_number,receipt,pacer or RequestPacer(min_gap_seconds=2.0))
+                race_number,receipt,shared_pacer)
     except Exception as exc:
         receipt["state"]="SP_HTTP_FAILED"
         receipt["error_class"]=type(exc).__name__
