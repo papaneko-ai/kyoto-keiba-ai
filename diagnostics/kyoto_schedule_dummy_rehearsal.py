@@ -14,7 +14,7 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
-COLLECTOR_SHA="d40b003e8704e2c8da13b5971830abbcd5561ddf"
+COLLECTOR_SHA="e2a48f8b58ae13c210eead22533ee107004a45cd"
 SUITES={
     "20261121":(
         "tests.test_kyoto_weekend_retry_guard",
