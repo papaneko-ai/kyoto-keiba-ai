@@ -1,4 +1,4 @@
-name: Kyoto Nov16 final five-condition source-and-history recovery
+name: Kyoto Nov16 no-self-imposed-veto primary-backup recovery pack
 on:
   push:
     branches: [jra-html-diagnostic-20261105]
