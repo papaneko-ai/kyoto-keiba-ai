@@ -1,0 +1,106 @@
+name: Kyoto Nov21 result classification and Nov22 repair handoff
+on:
+  schedule:
+    - cron: '0 12 21 11 *'
+  workflow_run:
+    workflows: ['Kyoto Nov21-22 independent encrypted original collection']
+    types: [completed]
+  workflow_dispatch:
+    inputs:
+      observed_run_id:
+        description: Completed observation run ID to classify
+        required: true
+permissions:
+  contents: read
+  actions: read
+jobs:
+  independent-day-result-triage:
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' || startsWith(github.event.workflow_run.created_at, '2026-11-21') || startsWith(github.event.workflow_run.created_at, '2026-11-22') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    env:
+      GH_TOKEN: ${{ github.token }}
+      OBSERVED_RUN: ${{ github.event.workflow_run.id || inputs.observed_run_id }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: 1cbb2923ef230e7cc6619ebb895e0bd6574d40df
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Fetch exact scheduled run, jobs and artifact metadata from GitHub API
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p day_result_handoff
+          if [ "$GITHUB_EVENT_NAME" = "schedule" ]; then
+            gh api "repos/$GITHUB_REPOSITORY/actions/workflows/kyoto-20261121-22-two-source-production-observer.yml/runs?created=2026-11-21&per_page=100" > day_result_handoff/day21_runs.json
+            OBSERVED_RUN="$(python - <<'PY'
+          import json
+          from pathlib import Path
+          runs=json.loads(Path('day_result_handoff/day21_runs.json').read_text()).get('workflow_runs',[])
+          completed=[r for r in runs if r.get('status')=='completed']
+          print(completed[0]['id'] if completed else '0')
+          PY
+          )"
+          fi
+          [[ "$OBSERVED_RUN" =~ ^[0-9]+$ ]] || { echo INVALID_RUN_ID; exit 1; }
+          if [ "$OBSERVED_RUN" = "0" ]; then
+            printf '%s\n' '{"event":"schedule","created_at":"2026-11-21T12:00:00Z","id":null,"conclusion":null,"actual_run_observed":false,"name":"Kyoto Nov21-22 independent encrypted original collection","status":"completed"}' > day_result_handoff/run.json
+            printf '%s\n' '{"jobs":[]}' > day_result_handoff/jobs.json
+            printf '%s\n' '{"artifacts":[]}' > day_result_handoff/artifacts.json
+          else
+            gh api "repos/$GITHUB_REPOSITORY/actions/runs/$OBSERVED_RUN" > day_result_handoff/run.json
+            gh api "repos/$GITHUB_REPOSITORY/actions/runs/$OBSERVED_RUN/jobs?per_page=100" > day_result_handoff/jobs.json
+            gh api "repos/$GITHUB_REPOSITORY/actions/runs/$OBSERVED_RUN/artifacts?per_page=100" > day_result_handoff/artifacts.json
+          fi
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          run=json.loads(Path('day_result_handoff/run.json').read_text())
+          if run.get('name')!='Kyoto Nov21-22 independent encrypted original collection':
+              raise SystemExit('WRONG_WORKFLOW_IDENTITY')
+          if run.get('status')!='completed':
+              raise SystemExit('SOURCE_RUN_NOT_COMPLETED')
+          stamp=run.get('created_at','')
+          day=stamp[:10].replace('-','')
+          if day not in ('20261121','20261122'):
+              raise SystemExit('UNEXPECTED_RACE_DAY')
+          Path('day_result_handoff/day.txt').write_text(day)
+          PY
+      - name: Classify each failure type without inventing successful JRA retrieval
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m diagnostics.kyoto_weekend_day21_triage \
+            --day "$(cat day_result_handoff/day.txt)" \
+            --run day_result_handoff/run.json \
+            --jobs day_result_handoff/jobs.json \
+            --artifacts day_result_handoff/artifacts.json \
+            --out day_result_handoff/diagnostic.json
+          python - <<'PY'
+          import json,os
+          from pathlib import Path
+          r=json.loads(Path('day_result_handoff/diagnostic.json').read_text())
+          lines=['## Kyoto day-result fault classification', '',
+                 'Day: '+r['day'], 'Run: '+str(r['run_id']), '',
+                 '| Lane | Evidence status | Failure stage |',
+                 '|---|---|---|']
+          for lane in ('PC','SP'):
+              d=r['lanes'][lane]
+              lines.append('| '+lane+' | '+d['state']+' | '+d['stage']+' |')
+          lines += ['', 'This is not a claim that official racecard or odds are authenticated.',
+                   'For next-day code repairs: validate the new exact SHA in offline CI before setting KYOTO_NOV22_VERIFIED_COLLECTOR_SHA.']
+          with open(os.environ['GITHUB_STEP_SUMMARY'],'a') as out:
+              out.write('\n'.join(lines)+'\n')
+          PY
+          sha256sum day_result_handoff/diagnostic.json > day_result_handoff/diagnostic.sha256
+      - name: Retain exact run metadata and next-day repair decision support
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: kyoto-day-result-triage-${{ github.run_id }}
+          path: day_result_handoff/
+          retention-days: 30
+          if-no-files-found: warn
