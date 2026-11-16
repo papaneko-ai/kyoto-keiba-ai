@@ -27,6 +27,8 @@ def check_originals(root, *, day, channel):
     report={"schema":"kyoto_weekend_postflight.v1","day":day,"channel":channel,
             "source_verified":False,"prediction_ready":False,
             "both_markets_verified":False,"racecard_start_time_verified":False,
+            "local_target_race_key":f"KYOTO:{day}:12",
+            "observed_local_race_key":None,"race_identity_verified":False,
             "source_rows":[]}
     if channel=="PC":
         receipt=root/"receipt.json"
@@ -37,6 +39,14 @@ def check_originals(root, *, day, channel):
             saved=json.loads(receipt.read_text(encoding="utf8"))
             if saved.get("day")!=day:
                 raise ValueError("day_mismatch")
+            if saved.get("racecard_original_fetched") is True:
+                if saved.get("racecard_number") != 12:
+                    raise ValueError("pc_not_target_12r")
+                key=f"KYOTO:{day}:12"
+                if saved.get("local_observed_race_key",key)!=key:
+                    raise ValueError("pc_observed_race_key_mismatch")
+                report["observed_local_race_key"]=key
+                report["race_identity_verified"]=True
             from diagnostics.kyoto_nov15_two_original_observer import accept_observation
             accepted=accept_observation(root)
             if accepted.get("state")!="TWO_ORIGINALS_MATCH_RECEIPT_ONLY":
@@ -72,6 +82,15 @@ def check_originals(root, *, day, channel):
             saved=json.loads(saved_path.read_text(encoding="utf8"))
             if saved.get("day")!=day or saved.get("channel")!="SP":
                 raise ValueError("sp_day_channel_mismatch")
+            if "race_number" in saved:
+                if saved["race_number"]!=12:
+                    raise ValueError("sp_not_target_12r")
+                key=f"KYOTO:{day}:12"
+                if saved.get("local_target_race_key",key)!=key:
+                    raise ValueError("sp_observed_race_key_mismatch")
+                if (root/"official_sp_racecard.html").is_file():
+                    report["observed_local_race_key"]=key
+                    report["race_identity_verified"]=True
             for name,key in (("official_sp_racecard.html","racecard"),
                              ("official_sp_odds_menu.html","sp_odds_menu"),
                              ("official_sp_odds_navigation_1.html","sp_odds_navigation_1"),
