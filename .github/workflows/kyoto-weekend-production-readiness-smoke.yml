@@ -166,7 +166,7 @@ jobs:
           observed={"schema":"kyoto_fixed_five_preparation_receipt.v1",
                     "utc":datetime.now(timezone.utc).isoformat(),
                     "main_sha":subprocess.check_output(["git","rev-parse","HEAD"],text=True).strip(),
-                    "collector_sha":policy["pinned_collector_sha"],
+                    "collector_sha":policy["collector_sha"],
                     "prerequisite_job_conclusions":jobs,
                     "criteria_total":len(items),
                     "criteria_verified":sum(x["verified"] for x in items),
