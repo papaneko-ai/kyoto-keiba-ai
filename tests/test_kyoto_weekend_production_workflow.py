@@ -17,13 +17,22 @@ class ProductionWorkflowContract(unittest.TestCase):
         self.assertIn("20261122", self.s)
 
     def test_day21_immutable_source_and_day22_verified_promotion(self):
-        pinned="16f4ed8230845f9e6b3e23e61b4a4582bd31cc04"
+        pinned="fca19b05450d52427b6e9507e94041ceee6abd14"
         self.assertIn("KYOTO_NOV22_VERIFIED_COLLECTOR_SHA",self.s)
         self.assertEqual(self.s.count("ref: ${{ env.COLLECTOR_SHA }}"),2)
         self.assertEqual(self.s.count("DAY21_SOURCE_UNEXPECTED_NO_HTTP"),2)
         self.assertEqual(self.s.count("DAY22_CANDIDATE_NOT_PREFLIGHT_VERIFIED_NO_HTTP"),2)
         self.assertIn(pinned,self.s)
         self.assertNotIn("ref: main",self.s)
+
+    def test_full_predictable_failure_gate_required_in_both_lanes(self):
+        self.assertEqual(self.s.count("diagnostics.kyoto_predictable_failure_gate"),2)
+        self.assertEqual(self.s.count("tests.test_kyoto_predictable_failure_gate"),2)
+        self.assertEqual(self.s.count("PREDICTABLE_FAILURE_PREFLIGHT_30_OF_30_EXECUTED"),2)
+        self.assertLess(self.s.index("PREDICTABLE_FAILURE_PREFLIGHT_30_OF_30_EXECUTED"),
+                        self.s.index("Capture official PC observed originals"))
+        self.assertLess(self.s.rindex("PREDICTABLE_FAILURE_PREFLIGHT_30_OF_30_EXECUTED"),
+                        self.s.index("Independently verified SP link, otherwise record zero-request stop"))
 
     def test_independent_lane_jobs_no_dependency(self):
         self.assertIn("pc-originals-independent:",self.s)
