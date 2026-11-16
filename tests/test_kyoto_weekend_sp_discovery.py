@@ -75,8 +75,6 @@ class DiscoveryTests(unittest.TestCase):
         self.assertFalse(r["unique_observed_racecard"])
 
     def test_sunday_two_real_navigation_choices_recovers_link_without_guessing(self):
-        from diagnostics.kyoto_nov15_encrypted_evidence import encrypt_evidence, decrypt_evidence
-        import os
         sunday="20261122"
         a="https://sp.jra.jp/JRADB/accessD.html?CNAME=sw01meet20261122%2FA1"
         b="https://sp.jra.jp/JRADB/accessD.html?CNAME=sw01meet20261122%2FB1"
@@ -91,15 +89,7 @@ class DiscoveryTests(unittest.TestCase):
         self.assertEqual(stub.calls,[SEED,a,b,c])
         self.assertEqual(found["network_requests_started"],4)
         self.assertTrue((self.root/"official_sp_discovery_4.html").exists())
-        # Actual encrypted evidence must accept every extra Sunday navigation
-        # source; a new fallback is useless if its proof cannot be sealed.
-        (self.root/"receipt.json").write_text(json.dumps({"day":sunday,"source_only":True}))
-        out=self.root.parent/"sealed"
-        decoded=self.root.parent/"decoded"
-        with unittest.mock.patch.dict(os.environ,{"KYOTO_TARGET_DAY":sunday}):
-            # crypto binds DAY on module import: test the runtime entrypoint
-            # under an explicit Sunday import in a subprocess elsewhere.
-            pass
+        # Sunday evidence sealing is verified independently in crypto tests.
 
     def test_unrelated_page_kyoto_text_does_not_authenticate_other_race(self):
         race="https://sp.jra.jp/JRADB/accessD.html?CNAME=sw01race1220261121%2FBB"
