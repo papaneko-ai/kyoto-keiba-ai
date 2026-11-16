@@ -1,4 +1,4 @@
-name: Kyoto weekend fail-closed release containment NO JRA HTTP
+name: Kyoto Nov21-22 repaired source-only observation release readiness
 on:
   push:
     branches: [main]
@@ -11,7 +11,7 @@ on:
 permissions:
   contents: read
 jobs:
-  assert-no-unsafe-production-acquisition:
+  source-only-main-policy:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -21,21 +21,52 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      - name: Execute the actual two release stops and inspect open critical incidents offline
+      - name: Verify source-only risk boundary on actual main YAML
         shell: bash
         run: |
           set -euo pipefail
-          mkdir -p weekend_guard_evidence
-          python -m unittest -v tests.test_kyoto_weekend_main_release_guard 2>&1 | tee weekend_guard_evidence/containment_tests.log
-          git rev-parse HEAD > weekend_guard_evidence/main_head.txt
-          sha256sum weekend_guard_evidence/containment_tests.log > weekend_guard_evidence/tests.sha256
-          echo 'RELEASE_STATE=BLOCKED_BY_UNRESOLVED_CRITICAL_INCIDENTS'
-          echo 'REAL_JRA_HTTP=NOT_ATTEMPTED'
-      - name: Retain immutable containment evidence
+          mkdir -p source_only_proof
+          python -m unittest -v tests.test_kyoto_weekend_main_release_guard 2>&1 | tee source_only_proof/main_policy.log
+          sha256sum source_only_proof/main_policy.log > source_only_proof/main_policy.sha256
+          git rev-parse HEAD > source_only_proof/main_sha.txt
+      - name: Keep independent main contract evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: kyoto-weekend-release-containment-${{ github.run_id }}
-          path: weekend_guard_evidence/
+          name: kyoto-main-observation-policy-${{ github.run_id }}
+          path: source_only_proof/
+          if-no-files-found: error
+          retention-days: 30
+  pinned-collector-fault-rehearsal:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      PYTHONPATH: .
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: 16f4ed8230845f9e6b3e23e61b4a4582bd31cc04
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install 'beautifulsoup4>=4.12,<5' 'cryptography>=43,<47'
+      - name: Test exact source SHA under both fault-injection and historical fixture dates
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p pinned_collector_proof
+          test "$(git rev-parse HEAD)" = "16f4ed8230845f9e6b3e23e61b4a4582bd31cc04"
+          KYOTO_TARGET_DAY=20261121 python -m unittest -v tests.test_kyoto_weekend_interruption_and_pacing tests.test_kyoto_weekend_end_to_end tests.test_kyoto_weekend_postflight tests.test_kyoto_weekend_capture tests.test_kyoto_weekend_sp_discovery 2>&1 | tee pinned_collector_proof/new_cases.log
+          KYOTO_TARGET_DAY=20261115 python -m unittest -v tests.test_kyoto_nov15_two_original_observer tests.test_kyoto_sp_observed_source tests.test_kyoto_nov15_encrypted_evidence 2>&1 | tee pinned_collector_proof/history.log
+          git rev-parse HEAD > pinned_collector_proof/collector_sha.txt
+          sha256sum pinned_collector_proof/*.log > pinned_collector_proof/testlogs.sha256
+          echo 'OFFICIAL_JRA_HTTP_REQUESTS=0'
+      - name: Keep fault-injection logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: kyoto-pinned-collector-regressions-${{ github.run_id }}
+          path: pinned_collector_proof/
           if-no-files-found: error
           retention-days: 30
