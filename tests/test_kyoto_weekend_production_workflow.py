@@ -11,6 +11,8 @@ class ProductionWorkflowContract(unittest.TestCase):
         cls.s=SRC.read_text(encoding="utf8")
 
     def test_two_distinct_date_locked_schedules(self):
+        self.assertIn("cron: '5 1 21 11 *'", self.s)
+        self.assertIn("cron: '10 1 22 11 *'", self.s)
         self.assertIn("cron: '5 2 21 11 *'", self.s)
         self.assertIn("cron: '10 2 22 11 *'", self.s)
         self.assertIn("cron: '50 2 21 11 *'",self.s)
@@ -64,13 +66,17 @@ class ProductionWorkflowContract(unittest.TestCase):
         self.assertEqual(self.s.count("ENCRYPTION_KEY_REQUIRED_NO_HTTP"),2)
         self.assertEqual(self.s.count("SOURCE_REVISION_MISMATCH_NO_HTTP"),2)
         self.assertIn("concurrency:",self.s)
+        self.assertIn("queue: max",self.s)
+        self.assertIn("cancel-in-progress: false",self.s)
 
     def test_backup_same_day_concurrency_and_failure_only_policy(self):
-        from diagnostics.kyoto_weekend_retry_guard import PRIMARY,BACKUP
+        from diagnostics.kyoto_weekend_retry_guard import ADVANCE,PRIMARY,BACKUP
+        self.assertEqual(set(ADVANCE),{"20261121","20261122"})
         self.assertEqual(set(PRIMARY),{"20261121","20261122"})
         self.assertEqual(set(BACKUP),set(PRIMARY))
         group=self.s.split("concurrency:",1)[1].split("jobs:",1)[0]
         self.assertIn("20261121",group)
+        self.assertIn("github.event.schedule == '5 1 21 11 *'",group)
         self.assertIn("20261122",group)
         self.assertNotIn("github.event.schedule || inputs.race_day",group)
 
