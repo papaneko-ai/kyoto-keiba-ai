@@ -73,8 +73,18 @@ def assess_lane(root,*,day,channel,key,repo,run_id):
             markets=(("official_quinella_odds.html","official_bracket_quinella_odds.html") if channel=="PC"
                 else ("official_sp_quinella_odds.html","official_sp_bracket_quinella_odds.html"))
             result["both_raw_market_originals_present"]=all((source/name).is_file() for name in markets)
-            result["state"]=("RAW_BOTH_MARKETS_PRESERVED_NOT_AUTHENTICATED" if result["both_raw_market_originals_present"]
-                  else "VALID_ORIGINALS_WITH_INCOMPLETE_MARKETS")
+            # Artifact presence alone is insufficient: the postflight receipt
+            # must independently hash and UTC-bind *each* market original.
+            verified_names={row["filename"] for row in rows}
+            result["both_raw_market_originals_sha_utc_verified"]=(
+                result["both_raw_market_originals_present"] and
+                all(name in verified_names for name in markets))
+            result["state"]=(
+                "RAW_BOTH_MARKETS_PRESERVED_NOT_AUTHENTICATED"
+                if result["both_raw_market_originals_sha_utc_verified"] else
+                "MARKET_ORIGINALS_PRESENT_BUT_NOT_SHA_UTC_VERIFIED"
+                if result["both_raw_market_originals_present"] else
+                "VALID_ORIGINALS_WITH_INCOMPLETE_MARKETS")
     except (OSError,ValueError,KeyError,TypeError,Exception) as exc:
         # The public triage report contains only exception classes, never
         # decrypted originals, URL query tokens or secrets.
