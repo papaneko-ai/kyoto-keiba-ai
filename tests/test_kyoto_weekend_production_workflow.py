@@ -17,7 +17,7 @@ class ProductionWorkflowContract(unittest.TestCase):
         self.assertIn("20261122", self.s)
 
     def test_day21_immutable_source_and_day22_verified_promotion(self):
-        pinned="980365257e2bbe4b5b44d63f708a6ce761cf1ad5"
+        pinned="98618492fbea3725899cde2ce3790b5289be27cd"
         self.assertIn("KYOTO_NOV22_VERIFIED_COLLECTOR_SHA",self.s)
         self.assertEqual(self.s.count("ref: ${{ env.COLLECTOR_SHA }}"),2)
         self.assertEqual(self.s.count("DAY21_SOURCE_UNEXPECTED_NO_HTTP"),2)
@@ -33,6 +33,10 @@ class ProductionWorkflowContract(unittest.TestCase):
                         self.s.index("Capture official PC observed originals"))
         self.assertLess(self.s.rindex("PREDICTABLE_FAILURE_PREFLIGHT_30_OF_30_EXECUTED"),
                         self.s.index("Independently verified SP link, otherwise record zero-request stop"))
+
+    def test_pre_http_both_lanes_rehearse_exact_race_parity(self):
+        self.assertEqual(self.s.count("tests.test_kyoto_weekend_race_parity"),2)
+        self.assertIn("12R",Path("diagnostics/kyoto_nov15_two_original_observer.py").read_text())
 
     def test_independent_source_lanes_run_sequentially_even_if_pc_fails(self):
         self.assertIn("pc-originals-independent:",self.s)
