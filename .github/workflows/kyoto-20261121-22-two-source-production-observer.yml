@@ -115,6 +115,12 @@ jobs:
         run: |
           set -euo pipefail
           python -m diagnostics.kyoto_weekend_capture --day "$KYOTO_TARGET_DAY" --channel PC --source pc_raw --destination pc_sealed
+      - name: Offline postflight verify saved original SHA and UTC before evidence sealing
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m diagnostics.kyoto_weekend_postflight --day "$KYOTO_TARGET_DAY" --channel PC --root pc_raw
       - name: Always encrypt any source originals or save factual pre-HTTP stop
         if: always()
         shell: bash
@@ -222,6 +228,12 @@ jobs:
         run: |
           set -euo pipefail
           python -m diagnostics.kyoto_weekend_capture --day "$KYOTO_TARGET_DAY" --channel SP --source sp_raw --destination sp_sealed
+      - name: Offline postflight verify saved original SHA and UTC before evidence sealing
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m diagnostics.kyoto_weekend_postflight --day "$KYOTO_TARGET_DAY" --channel SP --root sp_raw
       - name: Always encrypt SP originals or save factual pre-HTTP stop
         if: always()
         shell: bash
