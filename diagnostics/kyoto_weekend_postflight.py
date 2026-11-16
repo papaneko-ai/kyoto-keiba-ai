@@ -1,0 +1,132 @@
+"""Offline byte/UTC integrity check for every captured original before sealing.
+
+The output is an evidence quality report, never a race/market validity grant.
+Runs even after a capture exception and leaves source bytes untouched.
+"""
+from __future__ import annotations
+import argparse, hashlib, json, re
+from datetime import datetime,timezone
+from pathlib import Path
+
+def _utc(value):
+    if not isinstance(value,str): return False
+    try:
+        dt=datetime.fromisoformat(value.replace("Z","+00:00"))
+        return dt.utcoffset()==timezone.utc.utcoffset(None)
+    except (ValueError,TypeError,AttributeError):
+        return False
+
+def check_originals(root, *, day, channel):
+    root=Path(root)
+    if day not in ("20261121","20261122") or channel not in ("PC","SP"):
+        raise ValueError("invalid_identity")
+    if not root.is_dir() or root.is_symlink():
+        return {"schema":"kyoto_weekend_postflight.v1","day":day,
+                "channel":channel,"state":"NO_ORIGINAL_SOURCE_TO_AUDIT",
+                "source_verified":False, "prediction_ready":False}
+    report={"schema":"kyoto_weekend_postflight.v1","day":day,"channel":channel,
+            "source_verified":False,"prediction_ready":False,
+            "both_markets_verified":False,"racecard_start_time_verified":False,
+            "source_rows":[]}
+    if channel=="PC":
+        receipt=root/"receipt.json"
+        if not receipt.is_file():
+            report["state"]="RECEIPT_MISSING"
+            return report
+        try:
+            saved=json.loads(receipt.read_text(encoding="utf8"))
+            if saved.get("day")!=day:
+                raise ValueError("day_mismatch")
+            from diagnostics.kyoto_nov15_two_original_observer import accept_observation
+            accepted=accept_observation(root)
+            if accepted.get("state")!="TWO_ORIGINALS_MATCH_RECEIPT_ONLY":
+                raise ValueError("observer_receipt_invalid")
+            report["state"]="PC_OBSERVER_ORIGINALS_AND_RECEIPT_INTEGRITY_VERIFIED_ONLY"
+            report["source_verified"]=True
+            for basename,key in (
+                ("official_selection.html","selection"),
+                ("official_meeting.html","meeting"),
+                ("official_racecard.html","racecard"),
+                ("official_odds_menu.html","odds_menu"),
+                ("official_quinella_odds.html","quinella"),
+                ("official_bracket_quinella_odds.html","bracket_quinella")):
+                path=root/basename
+                if path.is_file():
+                    raw=path.read_bytes()
+                    report["source_rows"].append({"filename":basename,
+                        "sha256":hashlib.sha256(raw).hexdigest(),
+                        "captured_at_utc":saved.get(key+"_captured_at_utc")})
+        except (OSError,ValueError,TypeError,KeyError) as exc:
+            report["state"]="PC_PROVENANCE_REJECTED"
+            report["error_class"]=type(exc).__name__
+        return report
+    saved_path=root/"sp_receipt.json"
+    discovery_path=root/"sp_discovery_receipt.json"
+    if not saved_path.is_file() and not discovery_path.is_file():
+        report["state"]="SP_RECEIPT_MISSING"
+        return report
+    try:
+        if saved_path.is_file():
+            saved=json.loads(saved_path.read_text(encoding="utf8"))
+            if saved.get("day")!=day or saved.get("channel")!="SP":
+                raise ValueError("sp_day_channel_mismatch")
+            for name,key in (("official_sp_racecard.html","racecard"),
+                             ("official_sp_odds_menu.html","sp_odds_menu"),
+                             ("official_sp_quinella_odds.html","sp_quinella"),
+                             ("official_sp_bracket_quinella_odds.html","sp_bracket_quinella")):
+                path=root/name
+                if not path.exists():
+                    continue
+                if path.is_symlink() or not path.is_file():
+                    raise ValueError("sp_path_not_regular")
+                raw=path.read_bytes()
+                if not 0<len(raw)<=1_500_000 or hashlib.sha256(raw).hexdigest()!=saved.get(key+"_sha256"):
+                    raise ValueError("sp_original_sha_mismatch")
+                stamp=saved.get(key+"_captured_at_utc")
+                if not _utc(stamp):
+                    raise ValueError("sp_original_utc_missing")
+                report["source_rows"].append({"filename":name,
+                    "sha256":hashlib.sha256(raw).hexdigest(),"captured_at_utc":stamp})
+        if discovery_path.is_file():
+            discovery=json.loads(discovery_path.read_text(encoding="utf8"))
+            if discovery.get("day")!=day or not discovery.get("not_pc_derived"):
+                raise ValueError("discovery_day_or_provenance_invalid")
+            for item in discovery.get("attempts",[]):
+                if not item.get("file"):
+                    continue
+                name=item["file"]
+                if not re.fullmatch(r"official_sp_discovery_[1-3]\\.html",name):
+                    raise ValueError("discovery_original_name_invalid")
+                path=root/name
+                if (not path.is_file() or path.is_symlink()
+                    or hashlib.sha256(path.read_bytes()).hexdigest()!=item.get("sha256")
+                    or not _utc(item.get("captured_at_utc"))):
+                    raise ValueError("discovery_original_invalid")
+                report["source_rows"].append({"filename":name,
+                    "sha256":item["sha256"],
+                    "captured_at_utc":item["captured_at_utc"]})
+        report["state"]="SP_RAW_ORIGINALS_DIGEST_UTC_CONSISTENT_ONLY"
+        report["source_verified"]=bool(report["source_rows"])
+    except (ValueError,TypeError,KeyError,OSError) as exc:
+        report["state"]="SP_PROVENANCE_REJECTED"
+        report["source_verified"]=False
+        report["error_class"]=type(exc).__name__
+    return report
+
+def main(argv=None):
+    p=argparse.ArgumentParser()
+    p.add_argument("--day",choices=("20261121","20261122"),required=True)
+    p.add_argument("--channel",choices=("PC","SP"),required=True)
+    p.add_argument("--root",type=Path,required=True)
+    args=p.parse_args(argv)
+    if not args.root.is_dir():
+        print("NO_CAPTURED_SOURCE_TO_VALIDATE")
+        return
+    data=check_originals(args.root,day=args.day,channel=args.channel)
+    path=args.root/"source_verification.json"
+    with path.open("x",encoding="utf8") as fp:
+        json.dump(data,fp,sort_keys=True,ensure_ascii=False,indent=2)
+        fp.write("\n")
+    print("SOURCE_POSTFLIGHT="+data["state"])
+if __name__=="__main__":
+    main()
