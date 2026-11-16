@@ -32,6 +32,9 @@ class FiveFixedReadinessCriteria(unittest.TestCase):
         self.assertIn(module,self.s)
  def test_c4_sunday_plan_and_actual_21st_evidence_triage(self):
     self.assertIn("cron: '10 2 22 11 *'",self.w)
+    self.assertIn("cron: '50 2 21 11 *'",self.w)
+    self.assertIn("cron: '55 2 22 11 *'",self.w)
+    self.assertEqual(self.w.count("kyoto_weekend_retry_guard --day"),2)
     self.assertIn("workflow_run:",self.h)
     self.assertIn("cron: '0 12 21 11 *'",self.h)
     self.assertIn("kyoto_weekend_day21_artifact_triage",self.h)

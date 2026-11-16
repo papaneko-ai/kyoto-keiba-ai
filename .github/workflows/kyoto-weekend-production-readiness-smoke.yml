@@ -93,7 +93,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: d40b003e8704e2c8da13b5971830abbcd5561ddf
+          ref: e2a48f8b58ae13c210eead22533ee107004a45cd
           persist-credentials: false
       - uses: actions/setup-python@v5
         with:
@@ -104,8 +104,8 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p pinned_collector_proof
-          test "$(git rev-parse HEAD)" = "d40b003e8704e2c8da13b5971830abbcd5561ddf"
-          KYOTO_TARGET_DAY=20261121 python -m unittest -v tests.test_kyoto_weekend_interruption_and_pacing tests.test_kyoto_weekend_race_parity tests.test_kyoto_safe_stop_artifact tests.test_kyoto_weekend_end_to_end tests.test_kyoto_weekend_day21_artifact_triage tests.test_kyoto_weekend_postflight tests.test_kyoto_weekend_production_workflow tests.test_kyoto_weekend_capture tests.test_kyoto_weekend_sp_discovery 2>&1 | tee pinned_collector_proof/new_cases.log
+          test "$(git rev-parse HEAD)" = "e2a48f8b58ae13c210eead22533ee107004a45cd"
+          KYOTO_TARGET_DAY=20261121 python -m unittest -v tests.test_kyoto_weekend_interruption_and_pacing tests.test_kyoto_weekend_race_parity tests.test_kyoto_weekend_retry_guard tests.test_kyoto_safe_stop_artifact tests.test_kyoto_weekend_end_to_end tests.test_kyoto_weekend_day21_artifact_triage tests.test_kyoto_weekend_postflight tests.test_kyoto_weekend_production_workflow tests.test_kyoto_weekend_capture tests.test_kyoto_weekend_sp_discovery 2>&1 | tee pinned_collector_proof/new_cases.log
           KYOTO_TARGET_DAY=20261115 python -m unittest -v tests.test_kyoto_nov15_two_original_observer tests.test_kyoto_nov15_offline_race_links tests.test_kyoto_sp_observed_source tests.test_kyoto_nov15_encrypted_evidence 2>&1 | tee pinned_collector_proof/history.log
           KYOTO_TARGET_DAY=20261122 python -m unittest -v tests.test_kyoto_weekend_sp_discovery tests.test_kyoto_weekend_handoff_workflow tests.test_kyoto_nov15_encrypted_evidence tests.test_kyoto_weekend_postflight tests.test_kyoto_weekend_day21_triage tests.test_kyoto_weekend_day21_artifact_triage 2>&1 | tee pinned_collector_proof/sunday_fallback.log
           git rev-parse HEAD > pinned_collector_proof/collector_sha.txt

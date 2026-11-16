@@ -5,7 +5,7 @@ from pathlib import Path
 
 WF=Path(".github/workflows/kyoto-20261121-22-two-source-production-observer.yml")
 REG=Path("docs/diagnostics/KYOTO_20261116_INDEPENDENT_RELEASE_BLOCKERS.json")
-PIN="d40b003e8704e2c8da13b5971830abbcd5561ddf"
+PIN="e2a48f8b58ae13c210eead22533ee107004a45cd"
 
 class SourceOnlyReleaseAcceptance(unittest.TestCase):
     @classmethod
@@ -49,6 +49,14 @@ class SourceOnlyReleaseAcceptance(unittest.TestCase):
         self.assertIn("cron: '10 2 22 11 *'",self.workflow)
         self.assertNotIn("Critical incident containment",self.workflow)
         self.assertNotIn("RELEASE_BLOCKED_OPEN_CRITICAL_INCIDENTS",self.workflow)
+
+    def test_schedule_backup_is_not_blocked_by_prior_failed_attempt(self):
+        for cron in ("50 2 21 11 *","55 2 22 11 *"):
+            self.assertIn("cron: '"+cron+"'",self.workflow)
+        self.assertEqual(self.workflow.count("kyoto_weekend_retry_guard --day"),2)
+        self.assertNotIn("RERUN_FORBIDDEN_NO_HTTP",self.workflow)
+        self.assertNotIn("PREVIOUS_WORKFLOW_RUN_ON_TARGET_DAY_NO_HTTP",self.workflow)
+        self.assertIn("KYOTO_NOV22_VERIFIED_COLLECTOR_SHA",self.workflow)
 
     def test_two_critical_defects_have_test_proof(self):
         self.assertEqual(self.ledger["status"],"OBSERVATION_ONLY_CANDIDATE_OFFLINE_VERIFIED")
