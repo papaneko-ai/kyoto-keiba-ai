@@ -55,7 +55,7 @@ def official_sp_anchors(raw, parent, day):
     return choices
 
 def discover(root, *, day, opener=None, pacer=None):
-    """At most 3 paced, no-redirect official SP HTML GETs (incl. homepage).
+    """At most 3 Saturday or 6 Sunday no-redirect SP HTML GETs.
 
     This is deliberately independent of the PC selector and tokens.
     Every successful GET is saved byte-for-byte with SHA256 and UTC.
@@ -72,7 +72,11 @@ def discover(root, *, day, opener=None, pacer=None):
     visited=set()
     log=[]
     matched=set()
-    for step in range(3):
+    # Sunday is a predeclared, separately testable route fallback.
+    # All requests still follow genuine saved official SP anchors; never
+    # synthesize URLs or retry already visited pages.
+    max_steps=3 if day=="20261121" else 6
+    for step in range(max_steps):
         if not queue:
             break
         url=queue.pop(0)
@@ -104,17 +108,24 @@ def discover(root, *, day, opener=None, pacer=None):
                     "sha256":digest,"bytes":len(raw),"file":name})
         anchors=official_sp_anchors(raw,url,day)
         for target,label,token in anchors:
-            if day in token and f"12{day}" in token and bool(re.search(r"(?<![0-9])12\s*(R|レース)",label,re.I)) and "京都" in (label+" "+raw.decode("cp932",errors="replace")):
+            if day in token and f"12{day}" in token and bool(re.search(r"(?<![0-9])12\s*(R|レース)",label,re.I)) and "京都" in label:
                 matched.add(target)
         if matched:
             break
         # Enqueue only on-page SP official selections; no URL synthesis.
         # An ambiguous candidate is not automatically visited.
         nav=[u for u,l,t in anchors if (day in t and ("京都" in l or "出馬表" in l or "開催" in l))]
-        if len(set(nav))==1:
-            target=nav[0]
-            if target not in visited:
-                queue.append(target)
+        if day=="20261121":
+            if len(set(nav))==1:
+                target=nav[0]
+                if target not in visited and target not in queue:
+                    queue.append(target)
+        else:
+            # The Sunday fallback explores bounded *observed* alternatives,
+            # retaining loop protection and never constructing a CNAME.
+            for target in sorted(set(nav)):
+                if target not in visited and target not in queue and len(queue)<5:
+                    queue.append(target)
     result={"schema":"kyoto_weekend_sp_independent_discovery.v1",
             "day":day,"seed":SEED,"attempts":log,
             "racecard_url":next(iter(matched)) if len(matched)==1 else "",
