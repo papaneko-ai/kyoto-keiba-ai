@@ -54,6 +54,8 @@ def capture(day: str, channel: str, output: str, *, live: bool,
             sp_source_url: str = "", opener=None) -> dict:
     """Fail closed before network unless today's explicit runtime conditions hold."""
     validate_day(day, live=live)
+    if os.getenv("KYOTO_TARGET_DAY") != day:
+        raise ValueError("capture_day_binding_invalid_zero_http")
     if channel not in CHANNELS:
         raise ValueError("invalid_channel")
     root = Path(output)
