@@ -19,6 +19,38 @@ KNOWN_RISKS={f"GAP-{i:02d}" for i in range(1,21)}
 
 class AuditCoverageRejected(ValueError): pass
 
+def reachable_local_modules(root:Path, seed_files:set[str]) -> set[str]:
+    """Discover transitive function-local and top-level diagnostics imports."""
+    pending=list(seed_files)
+    known=set()
+    while pending:
+        path=pending.pop()
+        if path in known:
+            continue
+        source=root/path
+        if not source.is_file() or source.is_symlink():
+            continue
+        known.add(path)
+        try:
+            tree=ast.parse(source.read_bytes(),filename=path)
+        except SyntaxError as exc:
+            raise AuditCoverageRejected(f"dependency_not_parseable:{path}") from exc
+        for node in ast.walk(tree):
+            modules=[]
+            if isinstance(node,ast.Import):
+                modules.extend(a.name for a in node.names)
+            elif isinstance(node,ast.ImportFrom) and node.module:
+                modules.append(node.module)
+                modules.extend(node.module+"."+alias.name for alias in node.names)
+            for name in modules:
+                if name.startswith("diagnostics."):
+                    candidate=name.replace(".","/")+".py"
+                    if candidate not in known and (root/candidate).is_file():
+                        pending.append(candidate)
+    return known
+
+
+
 def inspect(root:Path, ledger:dict, *, verify_git:bool=True) -> dict:
     if ledger.get("schema")!="kyoto_fmea_reverse_coverage_v1":
         raise AuditCoverageRejected("incorrect_fmea_schema")
@@ -95,11 +127,16 @@ def inspect(root:Path, ledger:dict, *, verify_git:bool=True) -> dict:
     old=json.loads((root/OLD_MATRIX).read_text(encoding="utf8"))
     if old.get("schema")!="kyoto_predictable_failure_matrix.v1" or len(old.get("entries",[]))!=30:
         raise AuditCoverageRejected("previous_test_baseline_unavailable")
+    all_reachable=reachable_local_modules(root,files)
+    imported_not_yet_reviewed=sorted(all_reachable-files)
     return {
         "schema":"kyoto_reverse_fmea_examination_v1",
         "source_commit":baseline,
         "source_sha256":source_sha,
         "critical_modules":len(files),
+        "reachable_local_diagnostics_modules":len(all_reachable),
+        "additional_reachable_modules_not_yet_reviewed":len(imported_not_yet_reviewed),
+        "additional_reachable_module_paths":imported_not_yet_reviewed,
         "top_level_functions_discovered":len(actual),
         "top_level_functions_registered":len(reviewed),
         "top_level_functions_unregistered":0,
@@ -129,6 +166,7 @@ def main():
     args.report.write_text(json.dumps(result,indent=2,sort_keys=True,ensure_ascii=False)+"\n",encoding="utf8")
     print(f"INDEPENDENT_AST_SURFACES={result['top_level_functions_discovered']}/{result['top_level_functions_registered']}")
     print(f"NEW_PREDICTABLE_RISKS={result['additional_predictable_failure_families']}")
+    print(f"UNREVIEWED_REACHABLE_MODULES={result['additional_reachable_modules_not_yet_reviewed']}")
     print(f"UNRESOLVED_HIGH={result['high_severity_unresolved']}")
     print("FORESEEABLE_FAILURE_COMPLETENESS=NOT_DEMONSTRATED")
     if args.require_closed:
