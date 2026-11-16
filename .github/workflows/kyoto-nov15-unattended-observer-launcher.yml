@@ -129,10 +129,12 @@ jobs:
           from diagnostics.kyoto_nov15_encrypted_evidence import encrypt_evidence
           source=Path("nov15_work_originals")
           dest=Path("nov15_unattended_evidence")
+          dest.mkdir(parents=True,exist_ok=True)
           if not source.is_dir():
               (dest/"safe_stop.json").write_text(json.dumps({"state":"NO_CAPTURE_OR_PRE_HTTP_STOP","JRA_success":False})+"\n")
           else:
               shutil.rmtree(dest)
+              dest.mkdir(parents=True,exist_ok=True)
               encrypt_evidence(source,dest,key_hex=os.environ["ARCHIVE_KEY"],
                   repo=os.environ["GITHUB_REPOSITORY"],run_id=os.environ["GITHUB_RUN_ID"])
               shutil.rmtree(source)
