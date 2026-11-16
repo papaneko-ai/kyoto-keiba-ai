@@ -124,7 +124,7 @@
       "phase": "pc_original_http_capture",
       "review_required": true,
       "source_sha_status": "BIND_TO_CI_CHECKOUT",
-      "review_status": "SOURCE_READ_FMEA_OPEN_GAPS"
+      "review_status": "CHANGED_SOURCE_REVIEW_REOPENED"
     },
     {
       "source": "diagnostics/kyoto_nov15_two_original_observer.py",
@@ -132,7 +132,7 @@
       "phase": "pc_original_http_capture",
       "review_required": true,
       "source_sha_status": "BIND_TO_CI_CHECKOUT",
-      "review_status": "SOURCE_READ_FMEA_OPEN_GAPS"
+      "review_status": "CHANGED_SOURCE_REVIEW_REOPENED"
     },
     {
       "source": "diagnostics/kyoto_nov15_two_original_observer.py",
@@ -140,7 +140,7 @@
       "phase": "pc_original_http_capture",
       "review_required": true,
       "source_sha_status": "BIND_TO_CI_CHECKOUT",
-      "review_status": "SOURCE_READ_FMEA_OPEN_GAPS"
+      "review_status": "CHANGED_SOURCE_REVIEW_REOPENED"
     },
     {
       "source": "diagnostics/kyoto_nov15_two_original_observer.py",
@@ -148,7 +148,7 @@
       "phase": "pc_original_http_capture",
       "review_required": true,
       "source_sha_status": "BIND_TO_CI_CHECKOUT",
-      "review_status": "SOURCE_READ_FMEA_OPEN_GAPS"
+      "review_status": "CHANGED_SOURCE_REVIEW_REOPENED"
     },
     {
       "source": "diagnostics/kyoto_nov15_two_original_observer.py",
@@ -156,7 +156,7 @@
       "phase": "pc_original_http_capture",
       "review_required": true,
       "source_sha_status": "BIND_TO_CI_CHECKOUT",
-      "review_status": "SOURCE_READ_FMEA_OPEN_GAPS"
+      "review_status": "CHANGED_SOURCE_REVIEW_REOPENED"
     },
     {
       "source": "diagnostics/kyoto_nov15_two_original_observer.py",
@@ -164,7 +164,7 @@
       "phase": "pc_original_http_capture",
       "review_required": true,
       "source_sha_status": "BIND_TO_CI_CHECKOUT",
-      "review_status": "SOURCE_READ_FMEA_OPEN_GAPS"
+      "review_status": "CHANGED_SOURCE_REVIEW_REOPENED"
     },
     {
       "source": "diagnostics/kyoto_sp_observed_source.py",
@@ -935,7 +935,7 @@
     "diagnostics/kyoto_weekend_sp_discovery.py": "b320ced19ebe089869fdcfd4b1b368977720a2bf",
     "diagnostics/kyoto_weekend_postflight.py": "02ee2992817bf2f764a9bcc097e29672bf23f642",
     "diagnostics/kyoto_weekend_day21_triage.py": "b172831bcbf98f83b101bab5309002c3782d3aa1",
-    "diagnostics/kyoto_nov15_two_original_observer.py": "3ed34198bb3afde27ec7460386f18177121fb4d4",
+    "diagnostics/kyoto_nov15_two_original_observer.py": "5987575007cfce5a7340091aaaab47efbc9bc812",
     "diagnostics/kyoto_sp_observed_source.py": "3d834412c21f77e1e50a7cc1e09c907212e909b6",
     "diagnostics/kyoto_nov15_encrypted_evidence.py": "a1ae7d1ef8ac9bbf79dfbdfc999ee1fe044ecc16",
     "diagnostics/jra_benchmark_acceptance.py": "edbd6b5b9479fdbf3fc88c7450c0c7ae3260a76f",
@@ -952,5 +952,5 @@
     "diagnostics/kyoto_p1_nov14_official_one_shot_nav.py": "0aa2e6e53cb78f317d77c001ce55e101f45b8c50",
     "diagnostics/kyoto_safe_stop_artifact.py": "72201d3149cf8f33e7c7cff5fe18118363ac0890"
   },
-  "revision_note": "Reopened source review for PC/SP odds intermediate-navigation SHA/UTC verification, source blob changed; pre-weekend release requires regression. Existing 20 risk families retained."
+  "revision_note": "2026-11-16: exact 12R PC source selection aligned with SP fixed R12; no 11R substitution; source blob reopened and no live claim."
 }
