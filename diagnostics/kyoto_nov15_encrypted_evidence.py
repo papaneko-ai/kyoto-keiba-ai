@@ -4,7 +4,7 @@ Secret is provided only at runtime. Neither key nor plaintext gets committed.
 This is not source authenticity; original claims remain separately audited.
 """
 from __future__ import annotations
-import hashlib,io,json,re,secrets,tarfile,os
+import hashlib,io,json,re,secrets,tarfile,os,tempfile,shutil
 from pathlib import Path
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 
@@ -44,14 +44,22 @@ def encrypt_evidence(source,out,*,key_hex,repo,run_id):
             archive.addfile(item,io.BytesIO(data))
     nonce=secrets.token_bytes(12)
     sealed=AESGCM(key).encrypt(nonce,payload.getvalue(),aad)
-    out.mkdir()
-    (out/"originals.tar.gz.aesgcm").write_bytes(sealed)
     manifest={"schema":"kyoto_nov15_encrypted_artifact.v1",
               "repo":repo,"run_id":str(run_id),"day":DAY,
               "nonce_hex":nonce.hex(),"ciphertext_sha256":hashlib.sha256(sealed).hexdigest(),
               "file_names":sorted(p.name for p in files),
               "encryption":"AES-256-GCM","plaintext_uploaded":False}
-    (out/"manifest.json").write_text(json.dumps(manifest,sort_keys=True,indent=2)+"\n")
+    # Publish both ciphertext and manifest atomically: an interruption must
+    # not expose a half-formed final artifact directory.
+    staging=Path(tempfile.mkdtemp(prefix=".encrypted_staging_",dir=out.parent))
+    try:
+        (staging/"originals.tar.gz.aesgcm").write_bytes(sealed)
+        (staging/"manifest.json").write_text(
+            json.dumps(manifest,sort_keys=True,indent=2)+"\n",encoding="utf8")
+        staging.rename(out)
+    finally:
+        if staging.exists():
+            shutil.rmtree(staging)
     return {"manifest":manifest,"encrypted_only":True}
 
 def decrypt_evidence(source,out,*,key_hex,repo,run_id):
