@@ -104,7 +104,7 @@ def discover(root, *, day, opener=None, pacer=None):
                     "sha256":digest,"bytes":len(raw),"file":name})
         anchors=official_sp_anchors(raw,url,day)
         for target,label,token in anchors:
-            if day in token and f"12{day}" in token and bool(re.search(r"(?<![0-9])12\\s*(R|レース)",label,re.I)) and "京都" in (label+" "+raw.decode("cp932",errors="replace")):
+            if day in token and f"12{day}" in token and bool(re.search(r"(?<![0-9])12\s*(R|レース)",label,re.I)) and "京都" in (label+" "+raw.decode("cp932",errors="replace")):
                 matched.add(target)
         if matched:
             break
