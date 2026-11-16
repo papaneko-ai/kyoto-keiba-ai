@@ -4,6 +4,9 @@ on:
     branches: [main]
     paths:
       - '.github/workflows/kyoto-weekend-production-readiness-smoke.yml'
+      - '.github/workflows/kyoto-20261121-22-two-source-production-observer.yml'
+      - 'docs/diagnostics/KYOTO_20261116_INDEPENDENT_RELEASE_BLOCKERS.json'
+      - 'tests/test_kyoto_weekend_main_release_guard.py'
   workflow_dispatch:
 permissions:
   contents: read
@@ -58,3 +61,30 @@ jobs:
           path: weekend_prod_smoke/
           retention-days: 30
           if-no-files-found: warn
+
+  independently-test-main-release-denial:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Execute exact two production release gates with offline adversarial tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p weekend_guard_evidence
+          python -m unittest -v tests.test_kyoto_weekend_main_release_guard 2>&1 | tee weekend_guard_evidence/audit.log
+          git rev-parse HEAD > weekend_guard_evidence/main_head.txt
+          sha256sum weekend_guard_evidence/audit.log > weekend_guard_evidence/audit.sha256
+      - name: Always preserve independent denial evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: kyoto-release-denial-audit-${{ github.run_id }}
+          path: weekend_guard_evidence/
+          if-no-files-found: warn
+          retention-days: 30
