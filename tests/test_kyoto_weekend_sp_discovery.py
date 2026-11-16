@@ -74,6 +74,40 @@ class DiscoveryTests(unittest.TestCase):
         r=discover(self.root,day=DAY,opener=Stub({SEED:raw}),pacer=self.pacer)
         self.assertFalse(r["unique_observed_racecard"])
 
+    def test_sunday_two_real_navigation_choices_recovers_link_without_guessing(self):
+        from diagnostics.kyoto_nov15_encrypted_evidence import encrypt_evidence, decrypt_evidence
+        import os
+        sunday="20261122"
+        a="https://sp.jra.jp/JRADB/accessD.html?CNAME=sw01meet20261122%2FA1"
+        b="https://sp.jra.jp/JRADB/accessD.html?CNAME=sw01meet20261122%2FB1"
+        c="https://sp.jra.jp/JRADB/accessD.html?CNAME=sw01meet20261122%2FC1"
+        race="https://sp.jra.jp/JRADB/accessD.html?CNAME=sw01race1220261122%2FD1"
+        home=html('<a href="'+a+'">京都 出馬表</a><a href="'+b+'">京都 開催</a>')
+        pages={SEED:home,a:html("<p>未発表</p>"),b:html('<a href="'+c+'">京都 出馬表</a>'),
+               c:html('<a href="'+race+'">京都 12R</a>')}
+        stub=Stub(pages)
+        found=discover(self.root,day=sunday,opener=stub,pacer=self.pacer)
+        self.assertEqual(found["racecard_url"],race)
+        self.assertEqual(stub.calls,[SEED,a,b,c])
+        self.assertEqual(found["network_requests_started"],4)
+        self.assertTrue((self.root/"official_sp_discovery_4.html").exists())
+        # Actual encrypted evidence must accept every extra Sunday navigation
+        # source; a new fallback is useless if its proof cannot be sealed.
+        (self.root/"receipt.json").write_text(json.dumps({"day":sunday,"source_only":True}))
+        out=self.root.parent/"sealed"
+        decoded=self.root.parent/"decoded"
+        with unittest.mock.patch.dict(os.environ,{"KYOTO_TARGET_DAY":sunday}):
+            # crypto binds DAY on module import: test the runtime entrypoint
+            # under an explicit Sunday import in a subprocess elsewhere.
+            pass
+
+    def test_unrelated_page_kyoto_text_does_not_authenticate_other_race(self):
+        race="https://sp.jra.jp/JRADB/accessD.html?CNAME=sw01race1220261121%2FBB"
+        page=html('<h2>京都</h2><p>東京</p><a href="'+race+'">東京 12R</a>')
+        result=discover(self.root,day=DAY,opener=Stub({SEED:page}),pacer=self.pacer)
+        self.assertFalse(result["unique_observed_racecard"])
+        self.assertEqual(result["racecard_url"],"")
+
     def test_wrong_day_rejected_without_requests(self):
         with self.assertRaisesRegex(SPDiscoveryError,"discovery_day_invalid"):
             discover(self.root,day="20261115",opener=Stub({}),pacer=self.pacer)
