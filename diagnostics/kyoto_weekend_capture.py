@@ -103,7 +103,10 @@ def capture(day: str, channel: str, output: str, *, live: bool,
     shared_sp_pacer=RequestPacer(min_gap_seconds=2.0)
     shared_sp_client=opener or build_opener(NoRedirect(), HTTPCookieProcessor(CookieJar()))
     discovery_requests=0
-    if not sp_source_url and live:
+    if live:
+        # Runtime URL is only an unverified hint. Live requests must originate
+        # from saved same-day official SP navigation bytes, never a variable.
+        sp_source_url=""
         from diagnostics.kyoto_weekend_sp_discovery import discover
         discovery_root=root / "sp_discovery"
         try:
