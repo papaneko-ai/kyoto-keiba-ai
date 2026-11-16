@@ -99,6 +99,29 @@ def capture(day: str, channel: str, output: str, *, live: bool,
     from diagnostics.kyoto_p1_nov14_official_one_shot_nav import NoRedirect
     # No SP token is generated from PC's CNAME. Runtime supply alone is not
     # an independently verified original: the date/race is checked by parser.
+    discovery_requests=0
+    if not sp_source_url and live:
+        from diagnostics.kyoto_weekend_sp_discovery import discover
+        discovery_root=root / "sp_discovery"
+        try:
+            found=discover(discovery_root,day=day,opener=opener)
+            discovery_requests=found["network_requests_started"]
+            sp_source_url=found["racecard_url"]
+        except Exception as exc:
+            found={"state":"SP_DISCOVERY_EXCEPTION","network_requests_started":0,
+                   "error_class":type(exc).__name__}
+        finally:
+            if discovery_root.is_dir():
+                for item in discovery_root.iterdir():
+                    if item.is_file() and not item.is_symlink():
+                        item.rename(root / item.name)
+                discovery_root.rmdir()
+        if not sp_source_url:
+            out=_no_claim(day,channel,found["state"],
+                          observed_http_requests_started=discovery_requests,
+                          captured_originals=any(root.glob("official_sp_discovery_*.html")))
+            _write_receipt(root,out)
+            return out
     if not sp_source_url:
         out = _no_claim(day, channel, "SP_OFFICIAL_LINK_NOT_SUPPLIED_ZERO_HTTP",
                         observed_http_requests_started=0)
@@ -110,7 +133,7 @@ def capture(day: str, channel: str, output: str, *, live: bool,
             root, race_day=day, race_number=12, source_url=sp_source_url,
             opener=client, include_odds=True)
         out = _no_claim(day, channel, result["state"],
-                        observed_http_requests_started=result.get("network_requests_started", 0),
+                        observed_http_requests_started=discovery_requests+result.get("network_requests_started", 0),
                         captured_originals=bool(result.get("racecard_sha256")),
                         source_discovery_claim="EXTERNAL_INDEPENDENT_SP_LINK_UNVERIFIED_AT_RUNTIME")
     except Exception as exc:
