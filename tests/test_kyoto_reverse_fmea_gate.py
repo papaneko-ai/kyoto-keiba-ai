@@ -11,24 +11,24 @@ class SourceFirstCoverageTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.doc=json.loads((ROOT/LEDGER).read_text(encoding="utf8"))
-    def test_seven_modules_twenty_nine_functions_not_declared_complete(self):
+    def test_twenty_reachable_modules_seventy_six_functions_not_declared_complete(self):
         r=inspect(ROOT,self.doc)
-        self.assertEqual(r["critical_modules"],7)
-        self.assertEqual(r["top_level_functions_discovered"],29)
+        self.assertEqual(r["critical_modules"],20)
+        self.assertEqual(r["top_level_functions_discovered"],76)
         self.assertEqual(r["top_level_functions_unregistered"],0)
+        self.assertEqual(r["top_level_functions_not_yet_independently_reviewed"],47)
+        self.assertGreater(r["class_methods_discovered_but_not_yet_independently_reviewed"],0)
         self.assertEqual(r["additional_predictable_failure_families"],20)
         self.assertGreater(r["high_severity_unresolved"],0)
         self.assertIs(r["completeness_demonstrated"],False)
-    def test_transitive_source_dependencies_are_enumerated_not_ignored(self):
+    def test_transitive_source_dependencies_are_enumerated_and_registered(self):
         from diagnostics.kyoto_reverse_fmea_gate import reachable_local_modules
         seed={item["source"] for item in self.doc["surfaces"]}
         seen=reachable_local_modules(ROOT,seed)
-        self.assertTrue(seed.issubset(seen))
-        self.assertGreater(len(seen),len(seed),
-                           "No imported module outside the manually selected seven was found; verify import analysis")
+        self.assertEqual(seen,seed)
         result=inspect(ROOT,self.doc)
-        self.assertEqual(result["additional_reachable_modules_not_yet_reviewed"],
-                         len(seen-seed))
+        self.assertEqual(result["additional_reachable_modules_not_yet_reviewed"],0)
+        self.assertEqual(result["top_level_functions_not_yet_independently_reviewed"],47)
         self.assertIs(result["completeness_demonstrated"],False)
 
     def test_function_omission_rejected(self):
