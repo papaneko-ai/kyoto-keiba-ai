@@ -19,7 +19,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: 7318f2b68579affec455627976becfc065248290
+          ref: e088b336057a5f94b886e3f924e7ab9c9d21fc3c
           persist-credentials: false
       - uses: actions/setup-python@v5
         with:
@@ -32,15 +32,21 @@ jobs:
           mkdir -p weekend_prod_smoke
           python - <<'PY'
           import os,re,subprocess
-          expected='7318f2b68579affec455627976becfc065248290'
+          expected='e088b336057a5f94b886e3f924e7ab9c9d21fc3c'
           assert subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip()==expected,'SOURCE_SHA_INVALID'
           assert re.fullmatch(r'[0-9a-fA-F]{64}',os.getenv('ARCHIVE_KEY','')),'ARCHIVE_SECRET_INVALID'
           print('PINNED_SOURCE_VERIFIED=TRUE')
           print('ENCRYPTION_SECRET_PRESENT_AND_FORMAT_VALID=TRUE')
           print('NO_JRA_NETWORK_IN_THIS_JOB=TRUE')
           PY
+          for p in kyoto-20261121-22-two-source-production-observer.yml kyoto-20261121-22-result-handoff.yml; do
+            local_sha="$(git hash-object ".github/workflows/$p")"
+            main_sha="$(gh api "repos/$GITHUB_REPOSITORY/contents/.github/workflows/$p?ref=main" --jq '.sha')"
+            test "$local_sha" = "$main_sha" || { echo "DEPLOYMENT_SOURCE_DRIFT:$p"; exit 1; }
+            echo "$p $main_sha" >> weekend_prod_smoke/deployed_workflow_hashes.txt
+          done
           gh api "repos/$GITHUB_REPOSITORY/actions/workflows/kyoto-20261121-22-two-source-production-observer.yml/runs?per_page=1" --jq '.total_count' > weekend_prod_smoke/github_readable.txt
-          KYOTO_TARGET_DAY=20261121 python -m unittest -q tests.test_kyoto_weekend_capture tests.test_kyoto_weekend_sp_discovery tests.test_kyoto_safe_stop_artifact tests.test_kyoto_weekend_production_workflow 2>&1 | tee weekend_prod_smoke/current_tests.log
+          KYOTO_TARGET_DAY=20261121 python -m unittest -q tests.test_kyoto_weekend_capture tests.test_kyoto_weekend_sp_discovery tests.test_kyoto_safe_stop_artifact tests.test_kyoto_weekend_production_workflow tests.test_kyoto_weekend_day21_triage tests.test_kyoto_weekend_postflight tests.test_kyoto_weekend_handoff_workflow 2>&1 | tee weekend_prod_smoke/current_tests.log
           KYOTO_TARGET_DAY=20261115 python -m unittest -q tests.test_kyoto_sp_observed_source tests.test_kyoto_nov15_two_original_observer tests.test_kyoto_nov15_offline_race_links tests.test_kyoto_nov15_encrypted_evidence 2>&1 | tee weekend_prod_smoke/historical_tests.log
           git rev-parse HEAD > weekend_prod_smoke/pinned_source_head.txt
           (cd weekend_prod_smoke && sha256sum *.log > test_hashes.sha256)
