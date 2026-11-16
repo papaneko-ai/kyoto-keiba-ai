@@ -93,16 +93,24 @@ class WeekendCaptureTests(unittest.TestCase):
             seal("20261121",str(source),str(dest),key="ab"*32,
                  repo="papaneko-ai/kyoto-keiba-ai",run_id="1")
 
-    def test_no_live_retry(self):
+    def test_explicit_recovery_rerun_is_not_rejected_before_source_discovery(self):
+        class NoNetwork:
+            def open(self,*args,**kwargs):
+                raise AssertionError("unexpected_JRA_HTTP")
+        def no_link(folder,**kwargs):
+            Path(folder).mkdir()
+            return {"state":"OFFICIAL_R12_LINK_NOT_OBSERVED",
+                    "network_requests_started":0,"racecard_url":""}
         with patch.dict(os.environ,{
             "GITHUB_EVENT_NAME":"schedule","GITHUB_RUN_ATTEMPT":"2",
             "KYOTO_WEEKEND_HTTP_APPROVED":"YES","ARCHIVE_KEY":"ab"*32
-        }):
-            with patch("diagnostics.kyoto_weekend_capture.validate_day",return_value=None):
-                with self.assertRaisesRegex(ValueError,"rerun_forbidden"):
-                    capture("20261121","SP",str(self.root/"sp"),
-                            live=True,sp_source_url="")
-        self.assertFalse((self.root/"sp").exists())
+        }),patch("diagnostics.kyoto_weekend_capture.validate_day",return_value=None),patch(
+            "diagnostics.kyoto_weekend_sp_discovery.discover",side_effect=no_link):
+            rec=capture("20261121","SP",str(self.root/"sp"),
+                        live=True,sp_source_url="",opener=NoNetwork())
+        self.assertEqual(rec["state"],"OFFICIAL_R12_LINK_NOT_OBSERVED")
+        self.assertEqual(rec["observed_http_requests_started"],0)
+        self.assertTrue((self.root/"sp"/"receipt.json").is_file())
 
 
 if __name__=="__main__":
