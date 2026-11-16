@@ -48,12 +48,12 @@
     {
       "id": "PF03",
       "phase": "pre_http",
-      "risk": "replay",
+      "risk": "explicit_recovery_rerun_allowed",
       "kind": "negative",
       "test_file": "tests/test_kyoto_weekend_capture.py",
-      "test": "test_no_live_retry",
+      "test": "test_explicit_recovery_rerun_is_not_rejected_before_source_discovery",
       "source_file": "diagnostics/kyoto_weekend_capture.py",
-      "source_token": "rerun_forbidden_zero_http",
+      "source_token": "KYOTO_WEEKEND_HTTP_APPROVED",
       "classification": "evidenced_by_executable_test"
     },
     {
