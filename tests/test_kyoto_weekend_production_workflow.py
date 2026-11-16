@@ -34,10 +34,17 @@ class ProductionWorkflowContract(unittest.TestCase):
         self.assertLess(self.s.rindex("PREDICTABLE_FAILURE_PREFLIGHT_30_OF_30_EXECUTED"),
                         self.s.index("Independently verified SP link, otherwise record zero-request stop"))
 
-    def test_independent_lane_jobs_no_dependency(self):
+    def test_independent_source_lanes_run_sequentially_even_if_pc_fails(self):
         self.assertIn("pc-originals-independent:",self.s)
         self.assertIn("sp-originals-independent:",self.s)
-        self.assertNotIn("needs:",self.s)
+        pc,sp=self.s.split("  sp-originals-independent:",1)
+        self.assertNotIn("needs:",pc)
+        self.assertIn("needs: pc-originals-independent",sp)
+        self.assertIn("if: ${{ always() && (github.event_name",sp)
+        self.assertIn("Cross-job HTTP separation before any official SP request",sp)
+        self.assertIn("run: sleep 3",sp)
+        self.assertLess(sp.index("run: sleep 3"),
+                        sp.index("Independently verified SP link, otherwise record zero-request stop"))
         self.assertEqual(self.s.count("uses: actions/upload-artifact@v4"),2)
 
     def test_pre_http_all_bounded_and_no_replay(self):
