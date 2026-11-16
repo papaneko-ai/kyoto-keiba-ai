@@ -50,12 +50,21 @@ def inspect(root:Path, ledger:dict, *, verify_git:bool=True) -> dict:
             raise AuditCoverageRejected("duplicate_function_name")
         actual.update(f"{file}:{name}" for name in names)
         if verify_git:
+            frozen_blobs=ledger.get("source_git_blob_sha1",{})
+            if (set(frozen_blobs)!={s["source"] for s in surfaces}
+                or not all(isinstance(value,str) and len(value)==40
+                           for value in frozen_blobs.values())):
+                raise AuditCoverageRejected("locked_source_blob_registry_missing")
+            # GitHub checkout is intentionally shallow. Git hash-object hashes
+            # actual bytes without depending on historical commits present
+            # in the local checkout.
             try:
-                frozen=subprocess.check_output(["git","show",f"{baseline}:{file}"],
-                    cwd=root,stderr=subprocess.PIPE,timeout=7)
+                observed=subprocess.check_output(
+                    ["git","hash-object",str(path)],cwd=root,
+                    stderr=subprocess.PIPE,timeout=7,text=True).strip()
             except (subprocess.CalledProcessError,subprocess.TimeoutExpired) as exc:
-                raise AuditCoverageRejected("locked_baseline_unavailable") from exc
-            if raw!=frozen:
+                raise AuditCoverageRejected("source_hashing_failed") from exc
+            if observed!=frozen_blobs[file]:
                 raise AuditCoverageRejected(f"source_changed_requires_new_fmea:{file}")
     reviewed=[f"{s['source']}:{s['function']}" for s in surfaces]
     if len(reviewed)!=len(set(reviewed)) or actual!=set(reviewed):
