@@ -1,0 +1,387 @@
+{
+  "schema": "kyoto_predictable_failure_matrix.v1",
+  "scope": "2026-11-21/22 source-only observation; not predictions",
+  "basis": "Observed Nov14/15 pre-HTTP failures, repeated reviews and source-code cross-boundaries",
+  "required_phases": [
+    "pre_http",
+    "navigation",
+    "transport",
+    "timestamp",
+    "provenance",
+    "capture",
+    "storage",
+    "handoff",
+    "false_success",
+    "cross_host"
+  ],
+  "required_kinds": [
+    "valid",
+    "negative",
+    "boundary",
+    "adversarial",
+    "integration",
+    "destructive"
+  ],
+  "entries": [
+    {
+      "id": "PF01",
+      "phase": "pre_http",
+      "risk": "date",
+      "kind": "valid",
+      "test_file": "tests/test_kyoto_weekend_capture.py",
+      "test": "test_day22_independent_binding",
+      "source_file": "diagnostics/kyoto_weekend_capture.py",
+      "source_token": "validate_day",
+      "classification": "evidenced_by_executable_test"
+    },
+    {
+      "id": "PF02",
+      "phase": "pre_http",
+      "risk": "date",
+      "kind": "negative",
+      "test_file": "tests/test_kyoto_weekend_capture.py",
+      "test": "test_date_mismatch_fail_closed_without_output",
+      "source_file": "diagnostics/kyoto_weekend_capture.py",
+      "source_token": "capture_day_binding_invalid_zero_http",
+      "classification": "evidenced_by_executable_test"
+    },
+    {
+      "id": "PF03",
+      "phase": "pre_http",
+      "risk": "replay",
+      "kind": "negative",
+      "test_file": "tests/test_kyoto_weekend_capture.py",
+      "test": "test_no_live_retry",
+      "source_file": "diagnostics/kyoto_weekend_capture.py",
+      "source_token": "rerun_forbidden_zero_http",
+      "classification": "evidenced_by_executable_test"
+    },
+    {
+      "id": "PF04",
+      "phase": "pre_http",
+      "risk": "schedule",
+      "kind": "boundary",
+      "test_file": "tests/test_kyoto_weekend_production_workflow.py",
+      "test": "test_two_distinct_date_locked_schedules",
+      "source_file": ".github/workflows/kyoto-20261121-22-two-source-production-observer.yml",
+      "source_token": "cron: '5 2 21 11 *'",
+      "classification": "evidenced_by_executable_test"
+    },
+    {
+      "id": "PF05",
+      "phase": "navigation",
+      "risk": "pc_source",
+      "kind": "valid",
+      "test_file": "tests/test_kyoto_weekend_capture.py",
+      "test": "test_pc_capture_preserves_exact_provenance_original_and_receipt",
+      "source_file": "diagnostics/kyoto_weekend_capture.py",
+      "source_token": "pc_originals",
+      "classification": "evidenced_by_executable_test"
+    },
+    {
+      "id": "PF06",
+      "phase": "navigation",
+      "risk": "sp_independence",
+      "kind": "valid",
+      "test_file": "tests/test_kyoto_weekend_sp_discovery.py",
+      "test": "test_sp_home_observed_meeting_to_exact_race",
+      "source_file": "diagnostics/kyoto_weekend_sp_discovery.py",
+      "source_token": "official_sp_anchors",
+      "classification": "evidenced_by_executable_test"
+    },
+    {
+      "id": "PF07",
+      "phase": "navigation",
+      "risk": "sp_independence",
+      "kind": "negative",
+      "test_file": "tests/test_kyoto_weekend_interruption_and_pacing.py",
+      "test": "test_live_sp_environment_url_cannot_bypass_independent_html_observation",
+      "source_file": "diagnostics/kyoto_weekend_capture.py",
+      "source_token": "sp_source_url=\"\"",
+      "classification": "evidenced_by_executable_test"
+    },
+    {
+      "id": "PF08",
+      "phase": "navigation",
+      "risk": "host",
+      "kind": "adversarial",
+      "test_file": "tests/test_kyoto_weekend_sp_discovery.py",
+      "test": "test_adversarial_host_ignored",
+      "source_file": "diagnostics/kyoto_weekend_sp_discovery.py",
+      "source_token": "u.hostname!=\"sp.jra.jp\"",
+      "classification": "evidenced_by_executable_test"
+    },
+    {
+      "id": "PF09",
+      "phase": "navigation",
+      "risk": "missing",
+      "kind": "negative",
+      "test_file": "tests/test_kyoto_weekend_sp_discovery.py",
+      "test": "test_without_observed_anchor_never_invents_url",
+      "source_file": "diagnostics/kyoto_weekend_sp_discovery.py",
+      "source_token": "OFFICIAL_R12_LINK_NOT_OBSERVED",
+      "classification": "evidenced_by_executable_test"
+    },
+    {
+      "id": "PF10",
+      "phase": "transport",
+      "risk": "rate",
+      "kind": "boundary",
+      "test_file": "tests/test_kyoto_weekend_interruption_and_pacing.py",
+      "test": "test_consecutive_sp_requests_are_never_less_than_two_seconds_apart",
+      "source_file": "diagnostics/kyoto_sp_observed_source.py",
+      "source_token": "shared_pacer",
+      "classification": "evidenced_by_executable_test"
+    },
+    {
+      "id": "PF11",
+      "phase": "transport",
+      "risk": "cross_step",
+      "kind": "integration",
+      "test_file": "tests/test_kyoto_weekend_interruption_and_pacing.py",
+      "test": "test_official_discovery_and_racecard_share_same_pacer",
+      "source_file": "diagnostics/kyoto_weekend_capture.py",
+      "source_token": "shared_sp_pacer",
+      "classification": "evidenced_by_executable_test"
+    },
+    {
+      "id": "PF12",
+      "phase": "transport",
+      "risk": "session",
+      "kind": "integration",
+      "test_file": "tests/test_kyoto_weekend_interruption_and_pacing.py",
+      "test": "test_official_discovery_and_racecard_share_same_pacer",
+      "source_file": "diagnostics/kyoto_weekend_capture.py",
+      "source_token": "shared_sp_client",
+      "classification": "evidenced_by_executable_test"
+    },
+    {
+      "id": "PF13",
+      "phase": "timestamp",
+      "risk": "utc",
+      "kind": "negative",
+      "test_file": "tests/test_kyoto_nov15_offline_race_links.py",
+      "test": "test_non_utc_original_timestamp_rejected",
+      "source_file": "diagnostics/kyoto_weekend_postflight.py",
+      "source_token": "_utc",
+      "classification": "evidenced_by_executable_test"
+    },
+    {
+      "id": "PF14",
+      "phase": "timestamp",
+      "risk": "absence",
+      "kind": "negative",
+      "test_file": "tests/test_kyoto_nov15_offline_race_links.py",
+      "test": "test_missing_mandatory_original_timestamp_rejected",
+      "source_file": "diagnostics/kyoto_weekend_postflight.py",
+      "source_token": "source_verified",
+      "classification": "evidenced_by_executable_test"
+    },
+    {
+      "id": "PF15",
+      "phase": "provenance",
+      "risk": "sha",
+      "kind": "adversarial",
+      "test_file": "tests/test_kyoto_weekend_postflight.py",
+      "test": "test_sp_changed_original_rejected",
+      "source_file": "diagnostics/kyoto_weekend_postflight.py",
+      "source_token": "sha256",
+      "classification": "evidenced_by_executable_test"
+    },
+    {
+      "id": "PF16",
+      "phase": "provenance",
+      "risk": "tamper",
+      "kind": "adversarial",
+      "test_file": "tests/test_kyoto_weekend_postflight.py",
+      "test": "test_sp_discovery_hash_tamper_rejected",
+      "source_file": "diagnostics/kyoto_weekend_postflight.py",
+      "source_token": "SP_PROVENANCE_REJECTED",
+      "classification": "evidenced_by_executable_test"
+    },
+    {
+      "id": "PF17",
+      "phase": "capture",
+      "risk": "pc_to_storage",
+      "kind": "integration",
+      "test_file": "tests/test_kyoto_weekend_end_to_end.py",
+      "test": "test_pc_actual_observer_parses_originals_then_audits_and_seals",
+      "source_file": "diagnostics/kyoto_weekend_capture.py",
+      "source_token": "_preserve_interrupted_originals",
+      "classification": "evidenced_by_executable_test"
+    },
+    {
+      "id": "PF18",
+      "phase": "capture",
+      "risk": "sp_to_storage",
+      "kind": "integration",
+      "test_file": "tests/test_kyoto_weekend_end_to_end.py",
+      "test": "test_sp_exact_official_source_produces_independent_receipts",
+      "source_file": "diagnostics/kyoto_weekend_capture.py",
+      "source_token": "capture_verified_sp_seed",
+      "classification": "evidenced_by_executable_test"
+    },
+    {
+      "id": "PF19",
+      "phase": "storage",
+      "risk": "interrupt_pc",
+      "kind": "destructive",
+      "test_file": "tests/test_kyoto_weekend_interruption_and_pacing.py",
+      "test": "test_interrupted_pc_nested_raw_without_any_receipt_survives",
+      "source_file": "diagnostics/kyoto_weekend_capture.py",
+      "source_token": "PARTIAL_OR_INTERRUPTED_CAPTURE_UNAUTHENTICATED",
+      "classification": "evidenced_by_executable_test"
+    },
+    {
+      "id": "PF20",
+      "phase": "storage",
+      "risk": "interrupt_sp",
+      "kind": "destructive",
+      "test_file": "tests/test_kyoto_weekend_interruption_and_pacing.py",
+      "test": "test_sp_partial_original_without_receipt_is_kept_encrypted",
+      "source_file": "diagnostics/kyoto_weekend_capture.py",
+      "source_token": "_preserve_interrupted_originals",
+      "classification": "evidenced_by_executable_test"
+    },
+    {
+      "id": "PF21",
+      "phase": "storage",
+      "risk": "atomicity",
+      "kind": "destructive",
+      "test_file": "tests/test_kyoto_weekend_interruption_and_pacing.py",
+      "test": "test_crypto_publication_failure_retains_unencrypted_source_for_recovery",
+      "source_file": "diagnostics/kyoto_nov15_encrypted_evidence.py",
+      "source_token": "staging.rename(out)",
+      "classification": "evidenced_by_executable_test"
+    },
+    {
+      "id": "PF22",
+      "phase": "storage",
+      "risk": "recoverability",
+      "kind": "integration",
+      "test_file": "tests/test_kyoto_weekend_capture.py",
+      "test": "test_seal_and_decrypt_preserves_sources_without_plaintext_upload",
+      "source_file": "diagnostics/kyoto_nov15_encrypted_evidence.py",
+      "source_token": "decrypt_evidence",
+      "classification": "evidenced_by_executable_test"
+    },
+    {
+      "id": "PF23",
+      "phase": "storage",
+      "risk": "bad_content",
+      "kind": "negative",
+      "test_file": "tests/test_kyoto_weekend_interruption_and_pacing.py",
+      "test": "test_unknown_files_fail_closed_no_plaintext_upload",
+      "source_file": "diagnostics/kyoto_nov15_encrypted_evidence.py",
+      "source_token": "unexpected_original_file",
+      "classification": "evidenced_by_executable_test"
+    },
+    {
+      "id": "PF24",
+      "phase": "storage",
+      "risk": "stop_receipt",
+      "kind": "negative",
+      "test_file": "tests/test_kyoto_safe_stop_artifact.py",
+      "test": "test_missing_directory_is_created_and_saved",
+      "source_file": "diagnostics/kyoto_safe_stop_artifact.py",
+      "source_token": "record_pre_http_stop",
+      "classification": "evidenced_by_executable_test"
+    },
+    {
+      "id": "PF25",
+      "phase": "handoff",
+      "risk": "missing_run",
+      "kind": "negative",
+      "test_file": "tests/test_kyoto_weekend_handoff_workflow.py",
+      "test": "test_day21_completion_or_absent_run_both_trigger_handoff",
+      "source_file": ".github/workflows/kyoto-20261121-22-result-handoff.yml",
+      "source_token": "actual_run_observed",
+      "classification": "evidenced_by_executable_test"
+    },
+    {
+      "id": "PF26",
+      "phase": "handoff",
+      "risk": "day22",
+      "kind": "integration",
+      "test_file": "tests/test_kyoto_weekend_production_workflow.py",
+      "test": "test_day21_immutable_source_and_day22_verified_promotion",
+      "source_file": ".github/workflows/kyoto-20261121-22-two-source-production-observer.yml",
+      "source_token": "DAY22_CANDIDATE_NOT_PREFLIGHT_VERIFIED_NO_HTTP",
+      "classification": "evidenced_by_executable_test"
+    },
+    {
+      "id": "PF27",
+      "phase": "handoff",
+      "risk": "failed_artifact",
+      "kind": "negative",
+      "test_file": "tests/test_kyoto_weekend_day21_triage.py",
+      "test": "test_missing_artifacts_never_pass",
+      "source_file": "diagnostics/kyoto_weekend_day21_triage.py",
+      "source_token": "NO_ARTIFACT",
+      "classification": "evidenced_by_executable_test"
+    },
+    {
+      "id": "PF28",
+      "phase": "false_success",
+      "risk": "market",
+      "kind": "negative",
+      "test_file": "tests/test_kyoto_weekend_day21_triage.py",
+      "test": "test_both_success_jobs_do_not_prove_jra_success",
+      "source_file": "diagnostics/kyoto_weekend_day21_triage.py",
+      "source_token": "ready_for_prerace_predictions",
+      "classification": "evidenced_by_executable_test"
+    },
+    {
+      "id": "PF29",
+      "phase": "false_success",
+      "risk": "data_time",
+      "kind": "negative",
+      "test_file": "tests/test_kyoto_weekend_postflight.py",
+      "test": "test_sp_original_hash_and_utc_accepted_without_market_claim",
+      "source_file": "diagnostics/kyoto_weekend_postflight.py",
+      "source_token": "racecard_start_time_verified",
+      "classification": "evidenced_by_executable_test"
+    },
+    {
+      "id": "PF30",
+      "phase": "cross_host",
+      "risk": "dual_capture",
+      "kind": "integration",
+      "test_file": "tests/test_kyoto_weekend_production_workflow.py",
+      "test": "test_independent_lane_jobs_no_dependency",
+      "source_file": ".github/workflows/kyoto-20261121-22-two-source-production-observer.yml",
+      "source_token": "sp-originals-independent:",
+      "classification": "evidenced_by_executable_test"
+    }
+  ],
+  "explicit_deferred_gates": [
+    {
+      "id": "DEFER01",
+      "risk": "actual live JRA PC/SP HTML link layout and odds availability",
+      "reason": "Cannot be demonstrated by historical/synthetic local fixtures; live evidence required",
+      "may_run_source_only": true,
+      "may_use_for_prediction": false
+    },
+    {
+      "id": "DEFER02",
+      "risk": "verified actual start time before odds snapshot",
+      "reason": "market authentication currently false; requires race identity/start-time evidence from official source",
+      "may_run_source_only": true,
+      "may_use_for_prediction": false
+    },
+    {
+      "id": "DEFER03",
+      "risk": "automatic unknown root cause code repair on 21st",
+      "reason": "requires independently evaluated candidate update rather than blind patch promotion",
+      "may_run_source_only": true,
+      "may_use_for_prediction": false
+    }
+  ],
+  "policy": {
+    "zero_missing_tests": true,
+    "zero_duplicate_ids": true,
+    "runner_requires_execution_receipts": true,
+    "no_synthetic_live_success": true,
+    "zero_predicted_market_acceptance_without_verified_source": true
+  }
+}
