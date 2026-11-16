@@ -4,6 +4,15 @@ from dataclasses import replace
 from unittest.mock import patch
 from tempfile import TemporaryDirectory
 from urllib.error import HTTPError
+from datetime import datetime, timezone
+
+class HistoricalTestClock(datetime):
+    """Reproduce the Nov13 pre-race repair window, never change live cutoff."""
+    @classmethod
+    def now(cls, tz=None):
+        instant = datetime(2026, 11, 13, 10, 0, tzinfo=timezone.utc)
+        return instant.astimezone(tz) if tz is not None else instant.replace(tzinfo=None)
+
 from diagnostics.jra_one_shot_market_capture import (
     DEFAULT_RACE_SPEC, capture, PC_RACECARD_URL)
 from diagnostics.jra_official_link_repair import (
@@ -142,6 +151,7 @@ class OfflineRepairTests(unittest.TestCase):
                 raw=[a,b,raceraw,menu][len(self.calls)-2]
                 return Response(raw,request.full_url)
         with TemporaryDirectory() as directory,patch(
+            "diagnostics.jra_one_shot_market_capture.datetime",HistoricalTestClock),patch(
             "diagnostics.jra_one_shot_market_capture.verify_live_racecard_roster",
             side_effect=lambda raw,channel,spec,*args,**kwargs:{"race_id":spec.race_id,"count":2}):
             from pathlib import Path
@@ -175,7 +185,8 @@ class OfflineRepairTests(unittest.TestCase):
                 if self.calls==1:
                     raise HTTPError(OLD,404,"Not Found",None,None)
                 raise HTTPError(OFFICIAL_ENTRY,404,"Not Found",None,None)
-        with TemporaryDirectory() as directory:
+        with TemporaryDirectory() as directory,patch(
+                "diagnostics.jra_one_shot_market_capture.datetime",HistoricalTestClock):
             opener=Broken()
             future=replace(DEFAULT_RACE_SPEC,race_day="20261114",
                 race_id="2026-11-14_KYOTO_11R",
