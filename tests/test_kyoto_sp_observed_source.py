@@ -59,7 +59,7 @@ class SPSourceTests(unittest.TestCase):
             self.collect(navigation_url=SOURCE.replace("sp.jra.jp","jra.jp"))
         self.assertEqual(self.opener.urls,[])
     def test_invalid_day_rejected(self):
-        with self.assertRaisesRegex(SPSourceError,"provenance_invalid"):
+        with self.assertRaisesRegex(SPSourceError,"sp_race_link_not_independently_observed"):
             self.collect(race_day="20261114")
         self.assertEqual(self.opener.urls,[])
     def test_existing_destination_rejected(self):
@@ -68,6 +68,7 @@ class SPSourceTests(unittest.TestCase):
             self.collect()
         self.assertEqual(self.opener.urls,[])
     def test_verified_sp_seed_stored_exactly(self):
+        self.dir.mkdir()  # The seed is added to an already established evidence root.
         from diagnostics.kyoto_sp_observed_source import capture_verified_sp_seed
         rec=capture_verified_sp_seed(
             self.dir,race_day=DAY,race_number=12,source_url=RACE,
@@ -80,6 +81,7 @@ class SPSourceTests(unittest.TestCase):
         self.assertEqual((self.dir/"official_sp_racecard.html").read_bytes(),
                          b"<html>sp original fixture</html>")
     def test_verified_sp_seed_rejects_pc_domain(self):
+        self.dir.mkdir()  # The seed is added to an already established evidence root.
         from diagnostics.kyoto_sp_observed_source import capture_verified_sp_seed
         with self.assertRaisesRegex(SPSourceError,"sp_source_url_unverified"):
             capture_verified_sp_seed(
@@ -88,6 +90,7 @@ class SPSourceTests(unittest.TestCase):
                 opener=self.opener)
         self.assertEqual(self.opener.urls,[])
     def test_seed_requires_matching_date_and_race(self):
+        self.dir.mkdir()  # The seed is added to an already established evidence root.
         from diagnostics.kyoto_sp_observed_source import capture_verified_sp_seed
         for day,num in (("20261114",12),(DAY,11)):
             with self.assertRaisesRegex(SPSourceError,"sp_source_url_unverified"):
@@ -96,6 +99,7 @@ class SPSourceTests(unittest.TestCase):
                     source_url=RACE,opener=self.opener)
         self.assertEqual(self.opener.urls,[])
     def test_observed_sp_menu_and_both_market_originals(self):
+        self.dir.mkdir()  # The seed is added to an already established evidence root.
         from diagnostics.kyoto_sp_observed_source import capture_verified_sp_seed
         from urllib.parse import parse_qs
         racecard="""<html><a onclick="doAction('/JRADB/accessO.html','sw01oddsmenu20261115/AA')">オッズ</a></html>""".encode("cp932")
