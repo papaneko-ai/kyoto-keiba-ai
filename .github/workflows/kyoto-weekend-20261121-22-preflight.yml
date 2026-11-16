@@ -30,7 +30,8 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p weekend_preflight_proof
-          python -m unittest -v tests.test_kyoto_weekend_capture tests.test_kyoto_safe_stop_artifact tests.test_kyoto_sp_observed_source tests.test_kyoto_nov15_offline_race_links 2>&1 | tee weekend_preflight_proof/tests.log
+          KYOTO_TARGET_DAY=20261121 python -m unittest -v tests.test_kyoto_weekend_capture tests.test_kyoto_safe_stop_artifact 2>&1 | tee weekend_preflight_proof/tests.log
+          KYOTO_TARGET_DAY=20261115 python -m unittest -v tests.test_kyoto_sp_observed_source tests.test_kyoto_nov15_offline_race_links 2>&1 | tee -a weekend_preflight_proof/tests.log
       - name: Record checked version and hash of offline test log
         if: always()
         shell: bash
