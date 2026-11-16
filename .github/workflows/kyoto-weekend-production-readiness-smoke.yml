@@ -91,7 +91,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: 96c5af565ff4ab40a0e6ff563ef65537f1cac7f5
+          ref: 980365257e2bbe4b5b44d63f708a6ce761cf1ad5
           persist-credentials: false
       - uses: actions/setup-python@v5
         with:
@@ -102,8 +102,8 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p pinned_collector_proof
-          test "$(git rev-parse HEAD)" = "96c5af565ff4ab40a0e6ff563ef65537f1cac7f5"
-          KYOTO_TARGET_DAY=20261121 python -m unittest -v tests.test_kyoto_weekend_interruption_and_pacing tests.test_kyoto_weekend_end_to_end tests.test_kyoto_weekend_day21_artifact_triage tests.test_kyoto_weekend_postflight tests.test_kyoto_weekend_capture tests.test_kyoto_weekend_sp_discovery 2>&1 | tee pinned_collector_proof/new_cases.log
+          test "$(git rev-parse HEAD)" = "980365257e2bbe4b5b44d63f708a6ce761cf1ad5"
+          KYOTO_TARGET_DAY=20261121 python -m unittest -v tests.test_kyoto_weekend_interruption_and_pacing tests.test_kyoto_weekend_end_to_end tests.test_kyoto_weekend_day21_artifact_triage tests.test_kyoto_weekend_postflight tests.test_kyoto_weekend_production_workflow tests.test_kyoto_weekend_capture tests.test_kyoto_weekend_sp_discovery 2>&1 | tee pinned_collector_proof/new_cases.log
           KYOTO_TARGET_DAY=20261115 python -m unittest -v tests.test_kyoto_nov15_two_original_observer tests.test_kyoto_sp_observed_source tests.test_kyoto_nov15_encrypted_evidence 2>&1 | tee pinned_collector_proof/history.log
           KYOTO_TARGET_DAY=20261122 python -m unittest -v tests.test_kyoto_weekend_sp_discovery tests.test_kyoto_nov15_encrypted_evidence tests.test_kyoto_weekend_postflight tests.test_kyoto_weekend_day21_triage tests.test_kyoto_weekend_day21_artifact_triage 2>&1 | tee pinned_collector_proof/sunday_fallback.log
           git rev-parse HEAD > pinned_collector_proof/collector_sha.txt

@@ -5,7 +5,7 @@ from pathlib import Path
 
 WF=Path(".github/workflows/kyoto-20261121-22-two-source-production-observer.yml")
 REG=Path("docs/diagnostics/KYOTO_20261116_INDEPENDENT_RELEASE_BLOCKERS.json")
-PIN="96c5af565ff4ab40a0e6ff563ef65537f1cac7f5"
+PIN="980365257e2bbe4b5b44d63f708a6ce761cf1ad5"
 
 class SourceOnlyReleaseAcceptance(unittest.TestCase):
     @classmethod
@@ -31,6 +31,14 @@ class SourceOnlyReleaseAcceptance(unittest.TestCase):
                         self.workflow.index("Independently verified SP link, otherwise record zero-request stop"))
         self.assertEqual(self.ledger["required_approval"]["enumerated_cases"],30)
         self.assertFalse(self.ledger["required_approval"]["prediction_release_allowed"])
+
+    def test_sequential_cross_job_network_but_sp_runs_after_pc_failure(self):
+        pc,sp=self.workflow.split("  sp-originals-independent:",1)
+        self.assertIn("needs: pc-originals-independent",sp)
+        self.assertIn("if: ${{ always() && (github.event_name",sp)
+        self.assertIn("run: sleep 3",sp)
+        self.assertLess(sp.index("run: sleep 3"),
+                        sp.index("Independently verified SP link, otherwise record zero-request stop"))
 
     def test_both_schedules_and_no_global_hard_block(self):
         self.assertIn("cron: '5 2 21 11 *'",self.workflow)
