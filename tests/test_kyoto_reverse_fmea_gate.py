@@ -22,7 +22,7 @@ class SourceFirstCoverageTests(unittest.TestCase):
     def test_function_omission_rejected(self):
         d=copy.deepcopy(self.doc)
         d["surfaces"].pop()
-        with self.assertRaisesRegex(AuditCoverageRejected,"unreviewed_or_stale_functions"):
+        with self.assertRaisesRegex(AuditCoverageRejected,"source_surface_register_incomplete"):
             inspect(ROOT,d,verify_git=False)
     def test_fake_function_rejected(self):
         d=copy.deepcopy(self.doc)
