@@ -75,6 +75,13 @@
     "predictable_failure_matrix": "docs/diagnostics/KYOTO_PREDICTABLE_FAILURE_MATRIX_20261116.json",
     "enumerated_cases": 30,
     "matrix_ci_run": 43798733203,
-    "operational_scope": "OFFICIAL_SOURCE_OBSERVATION_ONLY_NOT_PREDICTION"
+    "operational_scope": "OFFICIAL_SOURCE_OBSERVATION_ONLY_NOT_PREDICTION",
+    "fmea_completeness_demonstrated": false,
+    "top_level_functions_in_source_closure": 76,
+    "unreviewed_top_level_functions": 47,
+    "unreviewed_class_methods": 10,
+    "additional_open_risk_families": 20,
+    "fmea_register": "docs/diagnostics/KYOTO_REVERSE_FMEA_GAP_REGISTER_20261116.json",
+    "source_only_observation_not_certification": true
   }
 }
