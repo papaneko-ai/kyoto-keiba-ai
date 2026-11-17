@@ -1,5 +1,6 @@
 """G03 12R archived-original audit tests: synthetic pages are *not* JRA evidence."""
 import hashlib
+import json
 import tempfile
 import unittest
 from pathlib import Path
@@ -33,6 +34,32 @@ def card(count=8, time="発走 11:05", race=1, day=DAY, venue="京都"):
 class G03AllRaces(unittest.TestCase):
     def test_all_twelve_link_observation(self):
         self.assertEqual(sorted(links(meeting(),PARENT,DAY)),list(range(1,13)))
+    def test_historical_20261107_real_structured_rosters_148_12r(self):
+        # Saved pre-race official-source snapshots, NOT raw-HTML revalidation.
+        base=Path("docs/diagnostics")
+        prior=json.loads((base/"JRA_KYOTO_FULL_DAY_ACCEPTANCE_20261106.json").read_text(encoding="utf8"))
+        self.assertEqual(prior["race_count"],12)
+        self.assertEqual(prior["runner_count"],148)
+        self.assertFalse(prior["html_bytes_independently_verified_by_ci"])
+        total=0
+        for race in range(1,13):
+            file=(base/f"multirace_20261106/kyoto_{race:02d}_snapshot.json"
+                  if race in (1,6,12) else
+                  base/"JRA_KYOTO_R7_PRERACE_FROZEN_20261106.json"
+                  if race==7 else
+                  base/f"remaining8_20261106/kyoto_{race:02d}_snapshot.json")
+            doc=json.loads(file.read_text(encoding="utf8"))
+            self.assertEqual(doc["race_number"],race)
+            self.assertEqual(doc["race_date"],"2026-11-07")
+            self.assertEqual(doc["venue"],"KYOTO")
+            self.assertEqual(doc["runner_count"],prior["counts_by_race"][str(race)])
+            self.assertEqual(sorted(v["horse_number"] for v in doc["runners"]),
+                             list(range(1,doc["runner_count"]+1)))
+            self.assertTrue(all(1<=v["frame_number"]<=8 for v in doc["runners"]))
+            self.assertRegex(doc["source_sha256"],r"^[0-9a-f]{64}$")
+            total+=doc["runner_count"]
+        self.assertEqual(total,148)
+
     def test_historical_real_jra_20261107_selector_links_with_empty_labels(self):
         # Official CNAMEs recorded in JRA_LIVE_NAV_DISCOVERY_20261106.json.
         suffixes=["C1","76","2B","E0","95","4A","FF","B4","69","5E","13","C8"]
