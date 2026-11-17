@@ -93,6 +93,24 @@ def capture(day: str, channel: str, output: str, *, live: bool,
                                        day=day,opener=pc_client,pacer=pc_pacer)
             out["g03_all_race_originals_observed"]=bool(g03.get("complete"))
             out["g03_network_requests_started"]=g03.get("network_requests_started",0)
+            # G04 follows only independently revalidated G03 originals.
+            # Reuse the same official-only, no-redirect and paced GET client.
+            # A G04 failure must not discard the successful G03 originals.
+            out["g04_all_horse_profiles_parsed"]=False
+            if g03.get("complete") is True:
+                try:
+                    from diagnostics.kyoto_g04_all_horse_profiles import capture as g04_capture
+                    from diagnostics.kyoto_nov15_two_original_observer import _read
+                    g04=g04_capture(
+                        root=root / "pc_originals",day=day,
+                        fetch=lambda url: (pc_pacer.before_request(),_read(pc_client,url))[1],
+                        clock=lambda:datetime.now(timezone.utc).isoformat(),allowed=True)
+                    out["g04_all_horse_profiles_parsed"]=bool(g04["all_profiles_parsed"])
+                    out["g04_profiles_verified"]=g04["profile_verified_count"]
+                    out["g04_profiles_expected"]=g04["expected_horses"]
+                except Exception as exc:
+                    out["g04_capture_state"]="G04_EXCEPTION_SOURCE_OR_PARSE_BLOCKED"
+                    out["g04_error_class"]=type(exc).__name__
             for original in (root / "pc_originals").iterdir():
                 if original.is_file():
                     original.rename(root / original.name)
