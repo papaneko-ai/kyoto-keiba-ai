@@ -1,0 +1,125 @@
+{
+  "format": "cron-job.org PUT /jobs template",
+  "created_for": "Kyoto AI implementation18",
+  "never_submit_without_credential_setup": true,
+  "requires_provider_account": true,
+  "activation_condition": "Run safe no-JRA probe and verify real workflow_dispatch, artifact, provider history before enabling live jobs",
+  "jobs": [
+    {
+      "job": {
+        "enabled": false,
+        "saveResponses": false,
+        "requestTimeout": 20,
+        "redirectSuccess": false,
+        "requestMethod": 1,
+        "extendedData": {
+          "headers": {
+            "Accept": "application/vnd.github+json",
+            "Content-Type": "application/json",
+            "Authorization": "Bearer REPLACE_IN_PROVIDER_UI_WITH_REPO_SCOPED_TOKEN"
+          },
+          "body": "{\"ref\":\"main\",\"inputs\":{\"sent_unix\":\"%cjo:unixtime%\"}}"
+        },
+        "title": "Kyoto AI EXTERNAL PROBE Nov18 09:15 JST (safe no JRA)",
+        "url": "https://api.github.com/repos/papaneko-ai/kyoto-keiba-ai/actions/workflows/kyoto-implementation18-external-timer-probe.yml/dispatches",
+        "schedule": {
+          "timezone": "Asia/Tokyo",
+          "expiresAt": 20261123000000,
+          "hours": [
+            9
+          ],
+          "mdays": [
+            18
+          ],
+          "minutes": [
+            15
+          ],
+          "months": [
+            11
+          ],
+          "wdays": [
+            -1
+          ]
+        }
+      }
+    },
+    {
+      "job": {
+        "enabled": false,
+        "saveResponses": false,
+        "requestTimeout": 20,
+        "redirectSuccess": false,
+        "requestMethod": 1,
+        "extendedData": {
+          "headers": {
+            "Accept": "application/vnd.github+json",
+            "Content-Type": "application/json",
+            "Authorization": "Bearer REPLACE_IN_PROVIDER_UI_WITH_REPO_SCOPED_TOKEN"
+          },
+          "body": "{\"ref\":\"main\",\"inputs\":{\"race_day\":\"20261121\",\"confirmation\":\"NOV21-22-OBSERVE-READ-ONLY\"}}"
+        },
+        "title": "Kyoto AI LIVE Nov21 dual auto-start",
+        "url": "https://api.github.com/repos/papaneko-ai/kyoto-keiba-ai/actions/workflows/kyoto-20261121-22-two-source-production-observer.yml/dispatches",
+        "schedule": {
+          "timezone": "Asia/Tokyo",
+          "expiresAt": 20261123000000,
+          "hours": [
+            9,
+            10
+          ],
+          "mdays": [
+            21
+          ],
+          "minutes": [
+            15
+          ],
+          "months": [
+            11
+          ],
+          "wdays": [
+            -1
+          ]
+        }
+      }
+    },
+    {
+      "job": {
+        "enabled": false,
+        "saveResponses": false,
+        "requestTimeout": 20,
+        "redirectSuccess": false,
+        "requestMethod": 1,
+        "extendedData": {
+          "headers": {
+            "Accept": "application/vnd.github+json",
+            "Content-Type": "application/json",
+            "Authorization": "Bearer REPLACE_IN_PROVIDER_UI_WITH_REPO_SCOPED_TOKEN"
+          },
+          "body": "{\"ref\":\"main\",\"inputs\":{\"race_day\":\"20261122\",\"confirmation\":\"NOV21-22-OBSERVE-READ-ONLY\"}}"
+        },
+        "title": "Kyoto AI LIVE Nov22 dual auto-start",
+        "url": "https://api.github.com/repos/papaneko-ai/kyoto-keiba-ai/actions/workflows/kyoto-20261121-22-two-source-production-observer.yml/dispatches",
+        "schedule": {
+          "timezone": "Asia/Tokyo",
+          "expiresAt": 20261123000000,
+          "hours": [
+            9,
+            10
+          ],
+          "mdays": [
+            22
+          ],
+          "minutes": [
+            15
+          ],
+          "months": [
+            11
+          ],
+          "wdays": [
+            -1
+          ]
+        }
+      }
+    }
+  ]
+}
