@@ -20,7 +20,7 @@ class Bridge(unittest.TestCase):
         (root/"official_racecard.html").write_bytes(raw)
         (root/"receipt.json").write_text(json.dumps({
             "day":DAY,"observed_meeting_url":URL,
-            "observed_racecard_url":f"https://jra.jp/JRADB/accessD.html?CNAME=pw00test12{DAY}%2FXX",
+            "observed_racecard_url":f"https://jra.jp/JRADB/accessD.html?CNAME=pw00test12{DAY}%2FAA",
             "racecard_number":12,"racecard_original_fetched":True,
             "racecard_sha256":hashlib.sha256(raw).hexdigest(),
             "selection_sha256":"abc"}))
