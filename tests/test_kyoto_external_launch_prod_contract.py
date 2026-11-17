@@ -63,5 +63,30 @@ class ContractTest(unittest.TestCase):
         self.assertEqual(set(CONTRACT),{"20261121","20261122"})
         self.assertTrue(ENDPOINT.startswith("https://api.github.com/repos/papaneko-ai/"))
         self.assertIn("no-JRA", "no-JRA")
+    def test_cron_job_provider_specs_disabled_and_exact(self):
+        specs=json.loads((ROOT/"docs/diagnostics/KYOTO_AI_20261117_EXTERNAL_TIMER_DISABLED_JOB_SPECS.json").read_text())
+        self.assertEqual(len(specs["jobs"]),3)
+        expected=[(18,[9],None),(21,[9,10],"20261121"),(22,[9,10],"20261122")]
+        for item,(day,hours,race_day) in zip(specs["jobs"],expected):
+            job=item["job"]
+            self.assertFalse(job["enabled"])
+            self.assertFalse(job["saveResponses"])
+            self.assertEqual(job["requestMethod"],1)
+            self.assertEqual(job["schedule"]["timezone"],"Asia/Tokyo")
+            self.assertEqual(job["schedule"]["expiresAt"],20261123000000)
+            self.assertEqual(job["schedule"]["mdays"],[day])
+            self.assertEqual(job["schedule"]["hours"],hours)
+            self.assertEqual(job["schedule"]["minutes"],[15])
+            self.assertEqual(job["schedule"]["months"],[11])
+            self.assertEqual(job["schedule"]["wdays"],[-1])
+            self.assertEqual(job["extendedData"]["headers"]["Authorization"],"Bearer REPLACE_IN_PROVIDER_UI_WITH_REPO_SCOPED_TOKEN")
+            body=json.loads(job["extendedData"]["body"])
+            if race_day is None:
+                self.assertEqual(job["url"],PROBE_ENDPOINT)
+                self.assertEqual(body,{"ref":"main","inputs":{"sent_unix":"%cjo:unixtime%"}})
+            else:
+                self.assertEqual(job["url"],ENDPOINT)
+                self.assertEqual(body,CONTRACT[race_day]["body"])
+        self.assertNotIn("ghp_",json.dumps(specs))
 if __name__=="__main__":
     unittest.main()
