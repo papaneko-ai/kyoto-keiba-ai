@@ -1,0 +1,56 @@
+name: Kyoto G03 development collector regression
+on:
+  push:
+    branches:
+      - jra-html-diagnostic-20261105
+    paths:
+      - 'diagnostics/kyoto_g03_all_races.py'
+      - 'diagnostics/kyoto_g03_weekend_bridge.py'
+      - 'diagnostics/kyoto_weekend_capture.py'
+      - 'diagnostics/kyoto_nov15_encrypted_evidence.py'
+      - 'tests/test_kyoto_g03_all_races.py'
+      - 'tests/test_kyoto_g03_weekend_bridge.py'
+      - '.github/workflows/kyoto-g03-development-gate.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  g03-offline-integrated:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    env:
+      PYTHONPATH: .
+      KYOTO_TARGET_DAY: '20261121'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install 'beautifulsoup4>=4.12,<5' 'cryptography>=43,<47'
+      - name: All 12R and integrated PC AES-GCM offline acceptance
+        run: python -m unittest -v tests.test_kyoto_g03_all_races tests.test_kyoto_g03_weekend_bridge
+      - name: Previously verified weekend capture and fail-closed regressions
+        run: python -m unittest -q tests.test_kyoto_weekend_retry_guard tests.test_kyoto_weekend_race_parity tests.test_kyoto_weekend_capture tests.test_kyoto_safe_stop_artifact tests.test_kyoto_weekend_end_to_end tests.test_kyoto_weekend_postflight tests.test_kyoto_weekend_interruption_and_pacing
+      - name: Cryptographic archive regression
+        run: python -m unittest -q tests.test_kyoto_nov15_encrypted_evidence
+      - name: Record testing scope accurately
+        run: |
+          mkdir -p g03_gate_proof
+          python - <<'PY'
+          import json,subprocess
+          from pathlib import Path
+          data={"gate":"G03","scope":"OFFLINE_SYNTHETIC_INTEGRATED_CAPTURE_AND_ENCRYPTION",
+                "actual_JRA_12R_originals_verified":False,
+                "race_identity_from_official_source_proven":False,
+                "fixed_gate_pass":False,
+                "source_sha":subprocess.check_output(["git","rev-parse","HEAD"],text=True).strip()}
+          Path("g03_gate_proof/receipt.json").write_text(json.dumps(data,indent=2)+"\n")
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: kyoto-g03-dev-gate-${{ github.run_id }}
+          path: g03_gate_proof/
+          if-no-files-found: ignore
