@@ -19,8 +19,8 @@ CONTRACT={
 }
 ENDPOINT="https://api.github.com/repos/papaneko-ai/kyoto-keiba-ai/actions/workflows/kyoto-20261121-22-two-source-production-observer.yml/dispatches"
 PROBE_ENDPOINT="https://api.github.com/repos/papaneko-ai/kyoto-keiba-ai/actions/workflows/kyoto-implementation18-external-timer-probe.yml/dispatches"
-EXPECTED_SCHEDULE={"5 1 21 11 *","5 2 21 11 *","50 2 21 11 *",
-                   "10 1 22 11 *","10 2 22 11 *","55 2 22 11 *"}
+EXPECTED_SCHEDULE={"15 0 21 11 *","5 2 21 11 *","50 2 21 11 *",
+                   "15 0 22 11 *","10 2 22 11 *","55 2 22 11 *"}
 
 def check_sources(prod_text,probe_text):
     errors=[]
@@ -51,7 +51,7 @@ class ContractTest(unittest.TestCase):
     def test_actual_workflows_match(self):
         self.assertEqual(check_sources(PROD.read_text(),PROBE.read_text()),[])
     def test_bad_backup_cron_fails(self):
-        txt=PROD.read_text().replace("'5 1 21 11 *'","'5 3 21 11 *'",1)
+        txt=PROD.read_text().replace("'15 0 21 11 *'","'5 3 21 11 *'",1)
         self.assertIn("PRODUCTION_BACKUP_SCHEDULE_CHANGED",check_sources(txt,PROBE.read_text()))
     def test_missing_pc_guard_fails(self):
         txt=PROD.read_text().replace("OUTSIDE_DAY_WINDOW_NO_HTTP","REMOVED_WINDOW",1)
