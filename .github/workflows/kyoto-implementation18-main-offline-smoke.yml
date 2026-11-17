@@ -1,0 +1,54 @@
+name: Kyoto implementation18 main offline integrity smoke
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/kyoto-implementation18-main-offline-smoke.yml'
+      - 'app.py'
+      - 'docs/KYOTO_AI_IMPLEMENTATION18_FIXED_DECISIONS_20261117.md'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  validate-main-entry-and-evidence:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Check only new entrypoint and permanent handoff
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p offline_smoke_evidence
+          python - <<'PY'
+          import ast,hashlib,json,os
+          from datetime import datetime,timezone
+          from pathlib import Path
+          source=Path('app.py').read_bytes()
+          ast.parse(source.decode())
+          assert 'streamlit' in source.decode()
+          for forbidden in ('fetch_race_results_safely','analyze_pro_factors','netkeiba.com','hashlib.md5'):
+              assert forbidden not in source.decode(), forbidden
+          assert Path('docs/KYOTO_AI_IMPLEMENTATION18_FIXED_DECISIONS_20261117.md').is_file()
+          assert Path('.github/workflows/kyoto-weekend-20261121-22-preflight.yml').is_file()
+          result={'kind':'offline_main_integrity_only','timestamp_utc':datetime.now(timezone.utc).isoformat(),
+                  'event':os.environ.get('GITHUB_EVENT_NAME'),
+                  'commit':os.environ.get('GITHUB_SHA'),
+                  'app_sha256':hashlib.sha256(source).hexdigest(),
+                  'legacy_predictor_removed':True,'preflight_file_exists':True,
+                  'jra_http_requests':0,'external_timer_proven':False}
+          Path('offline_smoke_evidence/receipt.json').write_text(json.dumps(result,indent=2,sort_keys=True))
+          print('MAIN_ENTRY_OFFLINE_SMOKE_PASS')
+          print('EXTERNAL_TIMER_PROVEN=False')
+          print('JRA_HTTP_REQUESTS=0')
+          PY
+      - name: Upload evidence even if prior check failed
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: kyoto-implementation18-main-offline-smoke-${{ github.run_id }}
+          path: offline_smoke_evidence/
+          retention-days: 30
+          if-no-files-found: error
