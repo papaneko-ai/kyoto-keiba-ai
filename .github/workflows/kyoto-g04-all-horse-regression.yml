@@ -1,0 +1,53 @@
+name: Kyoto G04 all-horse source and prior-history pre-event regression
+on:
+  push:
+    branches: [jra-html-diagnostic-20261105]
+    paths:
+      - 'diagnostics/kyoto_g04_all_horse_profiles.py'
+      - 'diagnostics/kyoto_weekend_capture.py'
+      - 'diagnostics/kyoto_nov15_encrypted_evidence.py'
+      - 'tests/test_kyoto_g04_all_horse_profiles.py'
+      - '.github/workflows/kyoto-g04-all-horse-regression.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  g04-pre-event:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    env:
+      PYTHONPATH: .
+      KYOTO_TARGET_DAY: '20261121'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install 'beautifulsoup4>=4.12,<5' 'cryptography>=43,<47'
+      - name: Full 12R per-horse profile source test and 7 failure/cutoff guards
+        run: python -m unittest -v tests.test_kyoto_g04_all_horse_profiles
+      - name: G03 and weekend source encryption nonregression
+        run: python -m unittest -q tests.test_kyoto_g03_all_races tests.test_kyoto_g03_proof_verify tests.test_kyoto_g03_weekend_bridge tests.test_kyoto_weekend_capture tests.test_kyoto_nov15_encrypted_evidence
+      - name: Preserve exact pre-event evidence
+        run: |
+          mkdir -p g04_proof
+          python - <<'PY'
+          import json,subprocess
+          from pathlib import Path
+          result={"gate":"G04","test_kind":"SYNTHETIC_12R_ALL_PROFILE_INTEGRATION",
+                  "raw_historical_html_independently_replayed_in_this_ci":False,
+                  "future_live_nov21_22_capture_verified":False,
+                  "current_jockey_source_verified":False,
+                  "permanent_horse_id_source_verified":False,
+                  "gate_pass":False,
+                  "head":subprocess.check_output(["git","rev-parse","HEAD"],text=True).strip()}
+          Path("g04_proof/receipt.json").write_text(json.dumps(result,indent=2)+"\n")
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: kyoto-g04-pre-event-${{ github.run_id }}
+          path: g04_proof/
+          if-no-files-found: ignore
