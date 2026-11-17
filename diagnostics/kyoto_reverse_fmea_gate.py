@@ -15,7 +15,7 @@ from pathlib import Path
 
 LEDGER="docs/diagnostics/KYOTO_REVERSE_FMEA_GAP_REGISTER_20261116.json"
 OLD_MATRIX="docs/diagnostics/KYOTO_PREDICTABLE_FAILURE_MATRIX_20261116.json"
-KNOWN_RISKS={f"GAP-{i:02d}" for i in range(1,24)}
+KNOWN_RISKS={f"GAP-{i:02d}" for i in range(1,26)}
 
 class AuditCoverageRejected(ValueError): pass
 
@@ -68,7 +68,7 @@ def inspect(root:Path, ledger:dict, *, verify_git:bool=True) -> dict:
     dynamic_import_markers=[]
     source_sha={}
     files={s["source"] for s in surfaces}
-    if len(files)!=26:
+    if len(files)!=28:
         raise AuditCoverageRejected("source_module_inventory_incomplete")
     for file in files:
         path=root/file
