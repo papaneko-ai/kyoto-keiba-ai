@@ -36,18 +36,16 @@ An archived GitHub artifact 13482994623 was separately recovered and contains
 86 real HTML originals for individual horse profiles, NOT 12 raw racecards;
 therefore it cannot be repurposed as 12R racecard-byte proof.
 
-## Strict fixed progress — NO UNJUSTIFIED PASS
-- 12 fixed gates: previous 2/12 (16.7%); current 2/12 (16.7%); delta 0.
-- 9 preliminary experiments: previous 2/9 (22.2%); current 2/9 (22.2%); delta 0.
-- G03: integrated implementation + historic real-link/structured-snapshot
-  regressions PASS, **Nov21/22 real JRA all-12R source capture NOT VERIFIED**.
+## G03 pre-event accreditation corrected 2026-11-17
+- 12 fixed gates: previous 2/12 (16.7%); current 3/12 (25.0%); +1 gate / +8.3 percentage points.
+- 9 pre-event gates: previous 2/9 (22.2%); current 3/9 (33.3%); +1 gate / +11.1 percentage points.
+- G03: PASS for **pre-event implementation and validation** at source 327218cc342f812607e0ddcfc9c30ee742c671e7. Independent proof verifier, 143 synthetic/archived-reference tests Run 44025792318 and source-only preflight Run 44025823309 were successful. **Nov21/22 real source capture is a future G10/G11 requirement, not a prerequisite for G03.**
 - G08: external actual timed trigger NOT independently VERIFIED.
 - Production forecast and virtual settlement remain separate downstream gates.
-- This receipt is evidence of source-only readiness, NOT a model prediction,
-  betting recommendation or authorization to release the 12-gate counter.
+- This receipt proves source-only readiness and supports G03 PASS, NOT a model prediction or wagering recommendation. It does not certify G04-G12.
 
-## Remaining criteria for G03 promotion to 3/12
-Real upcoming Kyoto source observation must produce 12 distinct official
+## Remaining future validation — belongs to G10/G11, not G03
+For future G10/G11, real Kyoto source observation must produce 12 distinct official
 racecard HTML bytes, all observed official links, each race's 1..N runner
 number/name/frame, exact day/race/venue, start time, source SHA256 and
 captured-at-UTC, encryption and independently inspectable release receipt.
