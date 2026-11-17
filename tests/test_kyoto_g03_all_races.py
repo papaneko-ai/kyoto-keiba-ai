@@ -134,10 +134,10 @@ class G03AllRaces(unittest.TestCase):
         raw=raw.replace(b'<th class="horse">','<th class="jockey">騎手・負担重量</th><th class="horse">'.encode("cp932"))
         for n in range(1,4):
             target=f'<td class="horse"><a href="/JRADB/accessU.html?CNAME=horse{n}">'.encode("cp932")
-            rider=f'<td class="jockey"><a>騎手{n}</a> 57.0 kg</td>'.encode("cp932")
+            rider=f'<td class="jockey"><a>騎手{["甲","乙","丙"][n-1]}</a> 57.0 kg</td>'.encode("cp932")
             raw=raw.replace(target,rider+target)
         parsed=parse(raw,DAY,1,PARENT,"2026-11-21T00:00:00Z")
-        self.assertEqual([h["current_jockey"] for h in parsed["runners"]],["騎手1","騎手2","騎手3"])
+        self.assertEqual([h["current_jockey"] for h in parsed["runners"]],["騎手甲","騎手乙","騎手丙"])
         self.assertTrue(all(h["current_jockey_source_verified"] for h in parsed["runners"]))
         self.assertTrue(all(h["assigned_weight_kg"]==57.0 for h in parsed["runners"]))
     def test_missing_current_jockey_is_explicit_unverified_not_inferred(self):
