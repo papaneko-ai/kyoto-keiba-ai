@@ -67,8 +67,9 @@ def _single_observed_racecard(meeting_original, meeting_url):
     # Prefer independently observed official Kyoto date/race CNAMEs, never
     # reconstruct the token or its checksum.
     from diagnostics.kyoto_g03_all_races import links as g03_links, G03Error
-    if DAY not in ("20261121","20261122") and meeting_url=="https://jra.jp/":
-        # Historic test-only policy retained; no live URL is ever constructed.
+    if meeting_url=="https://jra.jp/":
+        # Legacy mock-only selector root; real capture paths always supply the
+        # verified /JRADB/accessD.html URL and use strict G03 parsing.
         actual={}
     else:
         try:
