@@ -131,7 +131,7 @@ class G03AllRaces(unittest.TestCase):
             parse(raw,DAY,1,PARENT,"2026-11-21T01:00:00Z")
     def test_current_race_jockey_and_weight_from_unique_official_cell(self):
         raw=card(count=3,race=1)
-        raw=raw.replace(b'<th class="horse">',b'<th class="jockey">騎手・負担重量</th><th class="horse">'.decode("utf8").encode("cp932"))
+        raw=raw.replace(b'<th class="horse">','<th class="jockey">騎手・負担重量</th><th class="horse">'.encode("cp932"))
         for n in range(1,4):
             target=f'<td class="horse"><a href="/JRADB/accessU.html?CNAME=horse{n}">'.encode("cp932")
             rider=f'<td class="jockey"><a>騎手{n}</a> 57.0 kg</td>'.encode("cp932")
