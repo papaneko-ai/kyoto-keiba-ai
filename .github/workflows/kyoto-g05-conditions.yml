@@ -9,6 +9,7 @@ on:
       - 'diagnostics/kyoto_nov15_encrypted_evidence.py'
       - 'tests/test_kyoto_g05_conditions.py'
       - 'tests/test_kyoto_g05_official_track.py'
+      - 'tests/test_kyoto_g05_weekend_bridge.py'
       - '.github/workflows/kyoto-g05-conditions.yml'
   workflow_dispatch:
 permissions:
@@ -29,7 +30,7 @@ jobs:
           python-version: '3.11'
       - run: python -m pip install 'beautifulsoup4>=4.12,<5' 'cryptography>=43,<47'
       - name: All 12R G05 source and missingness regression; zero external HTTP
-        run: python -m unittest -v tests.test_kyoto_g05_conditions tests.test_kyoto_g05_official_track
+        run: python -m unittest -v tests.test_kyoto_g05_conditions tests.test_kyoto_g05_official_track tests.test_kyoto_g05_weekend_bridge
       - name: Guard G03/G04 and encrypted source archive against regression
         run: python -m unittest -q tests.test_kyoto_g03_all_races tests.test_kyoto_g03_proof_verify tests.test_kyoto_g04_all_horse_profiles tests.test_kyoto_g03_weekend_bridge tests.test_kyoto_weekend_capture tests.test_kyoto_nov15_encrypted_evidence
       - name: Preserve evidence scope and unresolved official source
