@@ -1,0 +1,52 @@
+name: Kyoto implementation18 external dispatch no-JRA lab
+on:
+  push:
+    branches: [kyoto-external-launch-20261117]
+    paths:
+      - 'diagnostics/kyoto_external_dispatch_contract.py'
+      - 'tests/test_kyoto_external_dispatch_contract.py'
+      - '.github/workflows/kyoto-implementation18-external-trigger-lab.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  external-dispatch-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Test exact GitHub dispatch JSON and mock HTTP POST for both race days
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p external_dispatch_evidence
+          python -m unittest -v tests.test_kyoto_external_dispatch_contract 2>&1 | tee external_dispatch_evidence/test.log
+          python - <<'PY'
+          import json,hashlib,os
+          from datetime import datetime,timezone
+          from pathlib import Path
+          p=Path("external_dispatch_evidence")
+          r={"event":os.environ["GITHUB_EVENT_NAME"],
+            "head_sha":os.environ["GITHUB_SHA"],
+            "recorded_at_utc":datetime.now(timezone.utc).isoformat(),
+            "fake_server_only":True,"jra_http_requests":0,
+            "actual_external_timer_fired":False,
+            "mock_http_contract":"PASS",
+            "test_log_sha256":hashlib.sha256((p/"test.log").read_bytes()).hexdigest()}
+          (p/"receipt.json").write_text(json.dumps(r,sort_keys=True,indent=2))
+          print("EXTERNAL_DISPATCH_FAKE_SERVER_PASS")
+          print("ACTUAL_EXTERNAL_TIMER_PROVEN=False")
+          PY
+      - name: Preserve mock-only proof
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: kyoto18-external-dispatch-lab-${{ github.run_id }}
+          path: external_dispatch_evidence/
+          if-no-files-found: error
+          retention-days: 30
