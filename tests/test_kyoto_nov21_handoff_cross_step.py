@@ -14,7 +14,7 @@ def evaluate(source):
         issues.append("NO_SCHEDULE_RUN_SELECTION")
     if 'echo "OBSERVED_RUN=$OBSERVED_RUN" >> "$GITHUB_ENV"' not in source:
         issues.append("SELECTED_RUN_NOT_PERSISTED")
-    if 'printf \'%s\\n\' "$OBSERVED_RUN" > day_result_handoff/observed_run_id.txt' not in source:
+    if not any('printf ' in line and ' > day_result_handoff/observed_run_id.txt' in line for line in source.splitlines()):
         issues.append("RUN_RECEIPT_MISSING")
     if 'if [ "$OBSERVED_RUN" != "0" ]; then' not in source:
         issues.append("NO_SAVED_RUN_HANDOFF")
