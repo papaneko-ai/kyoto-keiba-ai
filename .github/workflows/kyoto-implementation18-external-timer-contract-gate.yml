@@ -1,0 +1,59 @@
+name: Kyoto implementation18 external timer contract offline gate
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'tests/test_kyoto_external_launch_prod_contract.py'
+      - '.github/workflows/kyoto-implementation18-external-timer-contract-gate.yml'
+      - '.github/workflows/kyoto-20261121-22-two-source-production-observer.yml'
+      - '.github/workflows/kyoto-implementation18-external-timer-probe.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verify-external-to-production-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Test production/probe contract plus negative regressions (zero HTTP)
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p external_timer_contract_receipt
+          python -m unittest -v tests.test_kyoto_external_launch_prod_contract 2>&1 | tee external_timer_contract_receipt/tests.log
+          python - <<'PY'
+          import hashlib,json,os
+          from datetime import datetime,timezone
+          from pathlib import Path
+          root=Path('external_timer_contract_receipt')
+          report={'result':'PASS','run_id':os.environ['GITHUB_RUN_ID'],
+                  'event':os.environ['GITHUB_EVENT_NAME'],
+                  'checked_sha':os.environ['GITHUB_SHA'],
+                  'checked_utc':datetime.now(timezone.utc).isoformat(),
+                  'test_log_sha256':hashlib.sha256((root/'tests.log').read_bytes()).hexdigest(),
+                  'external_provider_registered':False,
+                  'external_schedule_proven':False,'jra_http_requests':0,
+                  'production_collector_modified':False}
+          (root/'receipt.json').write_text(json.dumps(report,indent=2,sort_keys=True))
+          print('EXTERNAL_TIMER_PRODUCTION_CONTRACT_PASS')
+          print('EXTERNAL_PROVIDER_REGISTERED=False')
+          PY
+      - name: Preserve factual failure receipt
+        if: always()
+        shell: bash
+        run: |
+          mkdir -p external_timer_contract_receipt
+          if [ ! -f external_timer_contract_receipt/receipt.json ]; then
+            echo '{"result":"FAILED_OR_UNVERIFIED","external_schedule_proven":false,"jra_http_requests":0}' > external_timer_contract_receipt/receipt.json
+          fi
+      - name: Upload test receipt
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: kyoto18-external-contract-gate-${{ github.run_id }}
+          path: external_timer_contract_receipt/
+          if-no-files-found: error
+          retention-days: 30
