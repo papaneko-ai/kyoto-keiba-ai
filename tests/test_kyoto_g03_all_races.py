@@ -24,7 +24,7 @@ class G03AllRaces(unittest.TestCase):
         with self.assertRaisesRegex(G03Error,"ambiguous"):
             links(meeting(ambiguous=4),PARENT,DAY)
     def test_unauthorized_host_does_not_supply_links(self):
-        rogue=b'<a href="https://example.org/JRADB/accessD.html?CNAME=pw00test0120261121%2FAA">京都 1R</a>'
+        rogue='<a href="https://example.org/JRADB/accessD.html?CNAME=pw00test0120261121%2FAA">京都 1R</a>'.encode("cp932")
         self.assertFalse(links(rogue,PARENT,DAY))
     def test_twelve_saved_originals_and_all_rosters(self):
         with tempfile.TemporaryDirectory() as td:
