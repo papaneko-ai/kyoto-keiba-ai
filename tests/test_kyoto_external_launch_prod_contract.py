@@ -19,13 +19,13 @@ CONTRACT={
 }
 ENDPOINT="https://api.github.com/repos/papaneko-ai/kyoto-keiba-ai/actions/workflows/kyoto-20261121-22-two-source-production-observer.yml/dispatches"
 PROBE_ENDPOINT="https://api.github.com/repos/papaneko-ai/kyoto-keiba-ai/actions/workflows/kyoto-implementation18-external-timer-probe.yml/dispatches"
-EXPECTED_SCHEDULE={"15 0 21 11 *","5 2 21 11 *","50 2 21 11 *",
-                   "15 0 22 11 *","10 2 22 11 *","55 2 22 11 *"}
+EXPECTED_SCHEDULE={"15 0 21 11 *","15 1 21 11 *","5 2 21 11 *","50 2 21 11 *",
+                   "15 0 22 11 *","15 1 22 11 *","10 2 22 11 *","55 2 22 11 *"}
 
 def check_sources(prod_text,probe_text):
     errors=[]
     crons=re.findall(r"^\s*- cron: '([^']+)'",prod_text,re.M)
-    if len(crons)!=6 or set(crons)!=EXPECTED_SCHEDULE:
+    if len(crons)!=8 or set(crons)!=EXPECTED_SCHEDULE:
         errors.append("PRODUCTION_BACKUP_SCHEDULE_CHANGED")
     for marker in ("  workflow_dispatch:","      race_day:","      confirmation:",
                    "NOV21-22-OBSERVE-READ-ONLY","KYOTO_NOV22_VERIFIED_COLLECTOR_SHA"):
