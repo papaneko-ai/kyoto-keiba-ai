@@ -1,0 +1,114 @@
+name: Kyoto implementation19 produce complete migration source backup
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/kyoto-implementation19-create-migration-pack.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  verified-migration-package:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout full repository, all reachable history
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Capture main and independent development source in one ZIP
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          mkdir -p migration19/source/main migration19/source/development migration19/verification migration19/source/history
+          MAIN_SHA="$(git rev-parse HEAD)"
+          DEV_SHA="c97c6165d797e83a9893331f358e2cfe3590a52a"
+          git cat-file -e "$DEV_SHA^{commit}"
+          git archive --format=tar "$MAIN_SHA" | tar -x -C migration19/source/main
+          git archive --format=tar "$DEV_SHA" | tar -x -C migration19/source/development
+          git bundle create migration19/source/history/repository-all-refs.bundle --all
+          git bundle verify migration19/source/history/repository-all-refs.bundle > migration19/verification/bundle_verify.txt 2>&1
+          git show -s --format=fuller HEAD > migration19/verification/main_commit.txt
+          git show -s --format=fuller "$DEV_SHA" > migration19/verification/development_commit.txt
+          git branch -a -vv > migration19/verification/all_branches.txt
+          git log --all -25 --date=iso-strict --format='%H %ad %s' > migration19/verification/recent_history.txt
+          git remote -v > migration19/verification/remote.txt
+          printf '%s\n' "$MAIN_SHA" > migration19/verification/MAIN_SHA.txt
+          printf '%s\n' "$DEV_SHA" > migration19/verification/DEVELOPMENT_SHA.txt
+          cp migration19/source/main/docs/KYOTO_AI_IMPLEMENTATION19_COMPLETE_MIGRATION_INSTRUCTIONS_20261117.md migration19/START_HERE_MIGRATION_INSTRUCTIONS.md
+          cp migration19/source/main/docs/KYOTO_AI_20261121_22_FULL_DATA_12_GATE_EXECUTION_TRACKER.md migration19/12_GATE_PROGRESS.md
+          cat > migration19/REMOTE_EVIDENCE_AND_EXTERNAL_DEPENDENCIES.md <<'EOF'
+          # External evidence and dependencies, deliberately not misrepresented as bundled
+          GitHub: https://github.com/papaneko-ai/kyoto-keiba-ai
+          main/development source files and a Git bundle are bundled; check MAIN_SHA and DEVELOPMENT_SHA.
+          Source observations / historical GitHub Actions artifacts are external unless explicitly listed in this ZIP. The encrypted JRA originals may require a GitHub Actions artifact download and AES secret for restoration; secrets are NEVER copied into this archive.
+          Verified past runs: 44000813185, 44000823360, 44001865077, 44002252973, 44002262620, 43999571979, 44013681986.
+          GitHub Actions archive artifacts: 14291972311, 14291434383, 14292038796, 14292268732, 14291884651, 14291985786, 14298355041.
+          Turso production data, Streamlit Secrets, connected external timers/accounts, credential tokens, personal external service settings, and decrypted originals are NOT packaged and cannot be restored from these files alone.
+          cron-job.org probe templates are disabled. Pipedream is only an unelected candidate. External scheduled-origin launch remains unverified.
+          Strict caution: a main branch code change does not automatically change the production collector pinned at 17eae0ce3e1ffa04b75398555849740af6a22f0a.
+          EOF
+          gh api "repos/$GITHUB_REPOSITORY/actions/runs?per_page=100" > migration19/verification/actions_runs_latest100.json
+          gh api "repos/$GITHUB_REPOSITORY" > migration19/verification/repo_metadata.json
+          gh api "repos/$GITHUB_REPOSITORY/branches/main" > migration19/verification/branch_main_api.json
+          python - <<'PY'
+          from pathlib import Path
+          import hashlib, json, subprocess, zipfile, datetime
+          root=Path("migration19")
+          files=[p for p in root.rglob("*") if p.is_file()]
+          manifest={
+            "schema":"kyoto_ai_implementation19_complete_migration.v1",
+            "created_at_utc":datetime.datetime.now(datetime.timezone.utc).isoformat(),
+            "repository":"papaneko-ai/kyoto-keiba-ai",
+            "main_sha":(root/"verification/MAIN_SHA.txt").read_text().strip(),
+            "development_sha":(root/"verification/DEVELOPMENT_SHA.txt").read_text().strip(),
+            "source_snapshots":["source/main","source/development"],
+            "git_bundle_verified":True,
+            "legacy_app_is_not_design_basis":True,
+            "turso_production_db_included":False,
+            "github_secrets_included":False,
+            "encrypted_JRA_artifacts_included":False,
+            "external_timer_schedule_verified":False,
+            "fixed_weekend_gate_progress":"2/12",
+            "files":{str(p.relative_to(root)):{"size":p.stat().st_size,"sha256":hashlib.sha256(p.read_bytes()).hexdigest()} for p in sorted(files)}}
+          (root/"MANIFEST.json").write_text(json.dumps(manifest,ensure_ascii=False,sort_keys=True,indent=2)+"\n")
+          zip_path=Path("KYOTO_AI_IMPLEMENTATION19_COMPLETE_MIGRATION_20261117.zip")
+          with zipfile.ZipFile(zip_path,"w",zipfile.ZIP_DEFLATED,compresslevel=6,allowZip64=True) as z:
+            for p in sorted(root.rglob("*")):
+              if p.is_file():z.write(p,str(p))
+          with zipfile.ZipFile(zip_path) as z:
+            corrupt=z.testzip()
+            if corrupt:raise SystemExit("CORRUPT_ZIP_ENTRY:"+corrupt)
+            stored=json.loads(z.read("migration19/MANIFEST.json"))
+            for rel,expected in stored["files"].items():
+              raw=z.read("migration19/"+rel)
+              if hashlib.sha256(raw).hexdigest()!=expected["sha256"]:
+                raise SystemExit("MIGRATION_BYTES_SHA_MISMATCH:"+rel)
+            assert z.read("migration19/START_HERE_MIGRATION_INSTRUCTIONS.md")
+            assert z.read("migration19/source/history/repository-all-refs.bundle")
+          digest=hashlib.sha256(zip_path.read_bytes()).hexdigest()
+          receipt={"result":"VERIFIED","filename":zip_path.name,
+                   "sha256":digest,"bytes":zip_path.stat().st_size,
+                   "members":len(stored["files"]),"main_sha":stored["main_sha"],
+                   "development_sha":stored["development_sha"],
+                   "git_bundle_verified":True,"zip_integrity":"PASS",
+                   "all_content_shas":"PASS","external_secrets_included":False}
+          Path("MIGRATION19_VERIFIED_RECEIPT.json").write_text(json.dumps(receipt,indent=2)+"\n")
+          print("MIGRATION19_PACKAGE_PASS")
+          print("MIGRATION19_SOURCE_MEMBER_COUNT="+str(len(stored["files"])))
+          print("MIGRATION19_PACKAGE_SHA256="+digest)
+          print("MIGRATION19_PACKAGE_BYTES="+str(zip_path.stat().st_size))
+          PY
+      - name: Upload complete ZIP plus verification receipt
+        uses: actions/upload-artifact@v4
+        with:
+          name: KYOTO_AI_IMPLEMENTATION19_COMPLETE_MIGRATION_20261117
+          path: |
+            KYOTO_AI_IMPLEMENTATION19_COMPLETE_MIGRATION_20261117.zip
+            MIGRATION19_VERIFIED_RECEIPT.json
+          if-no-files-found: error
+          retention-days: 90
