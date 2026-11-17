@@ -4,6 +4,7 @@ on:
     branches: [jra-html-diagnostic-20261105]
     paths:
       - 'diagnostics/kyoto_g04_all_horse_profiles.py'
+      - 'diagnostics/kyoto_g04_historical_original_replay.py'
       - 'diagnostics/kyoto_weekend_capture.py'
       - 'diagnostics/kyoto_nov15_encrypted_evidence.py'
       - 'tests/test_kyoto_g04_all_horse_profiles.py'
@@ -11,6 +12,7 @@ on:
   workflow_dispatch:
 permissions:
   contents: read
+  actions: read
 jobs:
   g04-pre-event:
     runs-on: ubuntu-latest
@@ -28,6 +30,14 @@ jobs:
       - run: python -m pip install 'beautifulsoup4>=4.12,<5' 'cryptography>=43,<47'
       - name: Full 12R per-horse profile source test and 7 failure/cutoff guards
         run: python -m unittest -v tests.test_kyoto_g04_all_horse_profiles
+      - name: Revalidate archived actual JRA 84 PC and 2 SP profiles without JRA HTTP
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          gh api repos/papaneko-ai/kyoto-keiba-ai/actions/artifacts/13482994623/zip > historical_archive.zip
+          python -m diagnostics.kyoto_g04_historical_original_replay --archive historical_archive.zip
+          rm -f historical_archive.zip
       - name: G03 and weekend source encryption nonregression
         run: python -m unittest -q tests.test_kyoto_g03_all_races tests.test_kyoto_g03_proof_verify tests.test_kyoto_g03_weekend_bridge tests.test_kyoto_weekend_capture tests.test_kyoto_nov15_encrypted_evidence
       - name: Preserve exact pre-event evidence
