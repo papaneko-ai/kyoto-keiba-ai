@@ -1,0 +1,77 @@
+name: Kyoto exact three-branch session-end migration snapshot
+on:
+  push:
+    branches:
+      - experiment/multisource-hybrid-20261117
+    paths:
+      - '.github/workflows/kyoto-session-end-migration.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  snapshot:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Fetch exact preserved production and both development branches
+        run: |
+          git fetch origin main jra-html-diagnostic-20261105 experiment/multisource-hybrid-20261117
+          mkdir -p session_end
+          git rev-parse origin/main > session_end/main.sha
+          git rev-parse origin/jra-html-diagnostic-20261105 > session_end/development.sha
+          git rev-parse origin/experiment/multisource-hybrid-20261117 > session_end/experiment.sha
+          git bundle create session_end/all_three_branches.bundle             origin/main origin/jra-html-diagnostic-20261105             origin/experiment/multisource-hybrid-20261117
+          for spec in 'main:main' 'development:jra-html-diagnostic-20261105' 'experiment:experiment/multisource-hybrid-20261117'; do
+            name=${spec%%:*}
+            branch=${spec#*:}
+            mkdir -p "session_end/sources/$name"
+            git archive "origin/$branch" | tar -xf - -C "session_end/sources/$name"
+          done
+      - name: Hash and verify byte-for-byte source snapshots and bundle
+        run: |
+          python - <<'PY'
+          import hashlib,json,subprocess,pathlib
+          root=pathlib.Path('session_end')
+          files={}
+          for p in sorted(root.rglob('*')):
+              if p.is_file() and p.name!='SHA256_MANIFEST.json':
+                  raw=p.read_bytes()
+                  files[str(p.relative_to(root))]={'size':len(raw),
+                                                     'sha256':hashlib.sha256(raw).hexdigest()}
+          branches={x:(root/(x+'.sha')).read_text().strip() for x in
+                    ['main','development','experiment']}
+          manifest={'schema':'kyoto_session_end_exact_three_branch_archive.v1',
+                    'branches':branches,'source_files':len(files),
+                    'contents':files,'external_secrets_included':False,
+                    'Turso_database_included':False,
+                    'historical_actions_originals_included':False}
+          (root/'SHA256_MANIFEST.json').write_text(
+              json.dumps(manifest,ensure_ascii=False,indent=2)+'\n')
+          for ref,branch in [('main','main'),('development','jra-html-diagnostic-20261105'),
+                             ('experiment','experiment/multisource-hybrid-20261117')]:
+              actual=subprocess.check_output(['git','rev-parse','origin/'+branch],text=True).strip()
+              assert branches[ref]==actual,(ref,branches[ref],actual)
+          print(json.dumps({'heads':branches,'files':len(files)}))
+          PY
+          git bundle verify session_end/all_three_branches.bundle
+      - name: Compress exact snapshots
+        run: |
+          python - <<'PY'
+          import pathlib,zipfile,hashlib
+          folder=pathlib.Path('session_end')
+          dest=pathlib.Path('KYOTO_20261117_THREE_BRANCH_SNAPSHOT.zip')
+          with zipfile.ZipFile(dest,'w',compression=zipfile.ZIP_DEFLATED,compresslevel=7) as z:
+              for p in sorted(folder.rglob('*')):
+                  if p.is_file():z.write(p,arcname=str(p))
+          print('size',dest.stat().st_size,'sha256',hashlib.sha256(dest.read_bytes()).hexdigest())
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: kyoto-three-branch-migration-${{ github.run_id }}
+          path: KYOTO_20261117_THREE_BRANCH_SNAPSHOT.zip
+          if-no-files-found: error
+          retention-days: 30
