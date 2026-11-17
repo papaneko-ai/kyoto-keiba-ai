@@ -4,7 +4,7 @@
   "status": "OBSERVATION_ONLY_CANDIDATE_OFFLINE_VERIFIED",
   "policy": "Read-only official-source observation is eligible after destructive offline regressions and exact source SHA; not a claim of official retrieval or prediction readiness. Never permit real wagers or use incomplete/final/post-start odds for predictions.",
   "production_workflow": ".github/workflows/kyoto-20261121-22-two-source-production-observer.yml",
-  "production_observer_pinned_sha": "1a953bcb08adb871f930521cf24cb0266fbc2339",
+  "production_observer_pinned_sha": "c96df31542cb94435ca36cb4a1b8bd6de938233f",
   "issues": [
     {
       "id": "KW-001",
@@ -66,8 +66,8 @@
   ],
   "required_approval": {
     "status": "SOURCE_OBSERVATION_ONLY",
-    "approved_commit_sha": "1a953bcb08adb871f930521cf24cb0266fbc2339",
-    "receipt": "G04_86_REAL_ARCHIVED_PROFILES_44027330384_216_SYNTHETIC_44028121039_AND_FMEA_44028246362",
+    "approved_commit_sha": "c96df31542cb94435ca36cb4a1b8bd6de938233f",
+    "receipt": "G05_12R_GROUND_WEIGHT_AND_KYOTO_TRACK_SOURCE_TEST_44030271724_AND_28_SOURCE_FMEA_44030290660",
     "independent_source_recheck": false,
     "full_e2e_test": true,
     "live_source_verified": false,
@@ -86,7 +86,7 @@
     "day21_artifact_decrypt_sha_utc_automated": true,
     "day22_prevalidated_sp_navigation_fallback": true,
     "day22_fallback_source_only_not_guaranteed_success": true,
-    "last_offline_preflight_run": 44028246362,
+    "last_offline_preflight_run": 44030290660,
     "sequential_pc_sp_http": true,
     "previous_nov14_nov15_pre_http_errors_reproduced_in_historical_tests": true,
     "odds_navigation_sha_utc_covered": true,
@@ -95,14 +95,19 @@
     "retry_guard_first_run_hard_veto_removed": true,
     "explicit_rerun_allowed": true,
     "scheduled_dummy_proved": false,
-    "previous_source_only_approved_sha": "327218cc342f812607e0ddcfc9c30ee742c671e7",
+    "previous_source_only_approved_sha": "1a953bcb08adb871f930521cf24cb0266fbc2339",
     "g03_real_12r_verified": false,
     "g03_gate_status": "PENDING_JRA_REAL_ORIGINALS",
     "g03_pre_event_qualification": "PASS",
     "g04_pre_event_qualification": "SOURCE_ONLY_ACQUISITION_AND_HISTORY_PREPARED",
     "g04_race_jockey_from_observed_source_only": true,
     "g04_permanent_horse_id_claim": false,
-    "g04_actual_nov21_22_original_capture_proven": false
+    "g04_actual_nov21_22_original_capture_proven": false,
+    "g05_pre_event_qualification": "SOURCE_EVIDENCE_INTEGRATED_WITH_EXPLICIT_WORKOUT_MISSINGNESS",
+    "g05_live_weather_track_origin": "https://jra.jp/keiba/baba/index2.html",
+    "g05_same_day_track_publication_time_verified": false,
+    "g05_workout_source_values_verified": false,
+    "g05_actual_nov21_nov22_original_capture_proven": false
   },
-  "production_observer_previous_pinned_sha": "327218cc342f812607e0ddcfc9c30ee742c671e7"
+  "production_observer_previous_pinned_sha": "1a953bcb08adb871f930521cf24cb0266fbc2339"
 }
