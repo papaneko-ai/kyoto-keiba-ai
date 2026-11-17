@@ -69,6 +69,26 @@ class BackupChainGateTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError,"NEW_SOURCE_OR_WORK_ZIP_MISSING"):
             verify(self.next,self.prior)
 
+    def test_builder_creates_verified_cumulative_backup(self):
+        from diagnostics.kyoto_build_cumulative_migration import build
+        latest=Path(self.tmp.name)/"latest.zip"
+        latest.write_bytes(self.current)
+        guide=Path(self.tmp.name)/"handoff.md"
+        guide.write_text("Kyoto AI full data acquisition gates G01 through G12. Continue after verifying GitHub SHA and the prior archive.")
+        result=build(self.prior,latest,guide,self.next)
+        self.assertEqual(result["result"],"PASS")
+        self.assertEqual(verify(self.next,self.prior)["result"],"PASS")
+        self.assertTrue(self.next.with_name(self.next.stem+"_VERIFICATION.json").is_file())
+
+    def test_builder_refuses_missing_previous(self):
+        from diagnostics.kyoto_build_cumulative_migration import build
+        latest=Path(self.tmp.name)/"latest.zip"
+        latest.write_bytes(self.current)
+        guide=Path(self.tmp.name)/"handoff.md"
+        guide.write_text("Kyoto AI full data acquisition gates G01 through G12. Continue after verifying GitHub SHA and the prior archive.")
+        with self.assertRaises(FileNotFoundError):
+            build(Path(self.tmp.name)/"missing.zip",latest,guide,self.next)
+
     def test_previous_archive_corruption_fails(self):
         self.prior.write_bytes(b"bad")
         self.make()
