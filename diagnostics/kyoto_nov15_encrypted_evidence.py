@@ -20,6 +20,7 @@ FILES |= {f"g03_official_racecard_{n:02d}.html" for n in range(1,13)}
 FILES.add("g04_receipt.json")
 # G05 archived race conditions and per-horse body weight/unknown workout evidence.
 FILES.add("g05_receipt.json")
+FILES |= {"g05_official_kyoto_track.html","g05_track_receipt.json"}
 FILES |= {f"g04_profile_r{race:02d}_h{horse:02d}.html"
           for race in range(1,13) for horse in range(1,19)}
 FILES |= {f"g04_profile_r{race:02d}_h{horse:02d}_parsed.json"
