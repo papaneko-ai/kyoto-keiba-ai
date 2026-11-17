@@ -3,13 +3,19 @@ import hashlib
 import tempfile
 import unittest
 from pathlib import Path
+from urllib.parse import urlsplit,parse_qs
 from diagnostics.kyoto_g03_all_races import audit, links, parse, G03Error
 
 DAY="20261121"
 PARENT="https://jra.jp/JRADB/accessD.html?CNAME=pw01dli00%2FF3"
+def source_race(url):
+    token=parse_qs(urlsplit(url).query)["CNAME"][0]
+    return int(token[-13:-11])
+
 def meeting(races=range(1,13),ambiguous=None):
-    entries=[f'<a href="/JRADB/accessD.html?CNAME=pw00test{r:02d}{DAY}%2FAA">京都 {r}R</a>' for r in races]
-    if ambiguous: entries.append(f'<a href="/JRADB/accessD.html?CNAME=pw99test{ambiguous:02d}{DAY}%2FBB">京都 {ambiguous}R</a>')
+    entries=[f'<a href="/JRADB/accessD.html?CNAME=pw01dde010820260501{r:02d}{DAY}%2FAA"></a>' for r in races]
+    if ambiguous:
+        entries.append(f'<a href="/JRADB/accessD.html?CNAME=pw01dde010820260501{ambiguous:02d}{DAY}%2FBB"></a>')
     return ("<html>"+''.join(entries)+"</html>").encode("cp932")
 def card(count=8, time="発走 11:05", race=1, day=DAY, venue="京都"):
     body=''.join(
@@ -27,6 +33,26 @@ def card(count=8, time="発走 11:05", race=1, day=DAY, venue="京都"):
 class G03AllRaces(unittest.TestCase):
     def test_all_twelve_link_observation(self):
         self.assertEqual(sorted(links(meeting(),PARENT,DAY)),list(range(1,13)))
+    def test_historical_real_jra_20261107_selector_links_with_empty_labels(self):
+        # Official CNAMEs recorded in JRA_LIVE_NAV_DISCOVERY_20261106.json.
+        suffixes=["C1","76","2B","E0","95","4A","FF","B4","69","5E","13","C8"]
+        raw=("<html>"+''.join(
+            f'<a href="/JRADB/accessD.html?CNAME=pw01dde010820260501{race:02d}20261107/{sig}"></a>'
+            for race,sig in enumerate(suffixes,1))+"</html>").encode("cp932")
+        discovered=links(raw,PARENT,"20261107")
+        self.assertEqual(sorted(discovered),list(range(1,13)))
+        for race,sig in enumerate(suffixes,1):
+            self.assertIn(f"{race:02d}20261107/{sig}",discovered[race])
+    def test_other_venue_and_wrong_day_never_selected(self):
+        original=(
+            '<a href="/JRADB/accessD.html?CNAME=pw01dde0105202605010120261121/AA"></a>'
+            '<a href="/JRADB/accessD.html?CNAME=pw01dde0108202605010120261122/BB"></a>'
+        ).encode("cp932")
+        self.assertFalse(links(original,PARENT,DAY))
+    def test_label_contradicting_token_rejected(self):
+        raw='<a href="/JRADB/accessD.html?CNAME=pw01dde0108202605010120261121/AA">京都2R</a>'.encode("cp932")
+        with self.assertRaisesRegex(G03Error,"contradictory_race_label"):
+            links(raw,PARENT,DAY)
     def test_no_guessed_missing_link(self):
         self.assertEqual(sorted(links(meeting(range(1,12)),PARENT,DAY)),list(range(1,12)))
     def test_duplicate_observed_anchor_rejected(self):
@@ -40,7 +66,7 @@ class G03AllRaces(unittest.TestCase):
             called=[]
             def fetch(url):
                 called.append(url)
-                return card(3+int(url.split("test")[1][:2]),race=int(url.split("test")[1][:2]))
+                return card(3+source_race(url),race=source_race(url))
             result=audit(DAY,meeting(),PARENT,fetch,lambda:"2026-11-21T01:01:00Z",Path(td)/"new")
             self.assertTrue(result["complete"])
             self.assertEqual(len(called),12)
@@ -51,12 +77,12 @@ class G03AllRaces(unittest.TestCase):
                 self.assertEqual(result["races"][str(r)]["sha256"],hashlib.sha256(original).hexdigest())
     def test_missing_race_is_partial_not_success(self):
         with tempfile.TemporaryDirectory() as td:
-            result=audit(DAY,meeting(range(1,12)),PARENT,lambda url:card(race=int(url.split("test")[1][:2])),lambda:"2026-11-21T01:00:00Z",Path(td)/"new")
+            result=audit(DAY,meeting(range(1,12)),PARENT,lambda url:card(race=source_race(url)),lambda:"2026-11-21T01:00:00Z",Path(td)/"new")
             self.assertFalse(result["complete"])
             self.assertEqual(result["missing"],[12])
     def test_missing_start_time_is_partial_not_success(self):
         with tempfile.TemporaryDirectory() as td:
-            result=audit(DAY,meeting(),PARENT,lambda url:card(time="発走未定",race=6) if "test06" in url else card(race=int(url.split("test")[1][:2])),lambda:"2026-11-21T01:00:00Z",Path(td)/"new")
+            result=audit(DAY,meeting(),PARENT,lambda url:card(time="発走未定",race=6) if source_race(url)==6 else card(race=source_race(url)),lambda:"2026-11-21T01:00:00Z",Path(td)/"new")
             self.assertFalse(result["complete"])
             self.assertEqual(result["missing"],[6])
     def test_duplicate_horse_number_rejected(self):
