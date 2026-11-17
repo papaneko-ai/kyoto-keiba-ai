@@ -125,6 +125,24 @@ def capture(day: str, channel: str, output: str, *, live: bool,
                 except Exception as exc:
                     out["g05_capture_state"]="G05_INCOMPLETE_OR_SOURCE_REJECTED"
                     out["g05_error_class"]=type(exc).__name__
+            # The official published Kyoto track page is a separate JRA source.
+            # At 09:15 it may still show an earlier meeting; preserve bytes,
+            # never promote stale data. Existing shared pacer/no-redirect remains.
+            out["g05_kyoto_track_source_saved"]=False
+            if g03.get("complete") is True:
+                try:
+                    from diagnostics.kyoto_g05_official_track import capture_kyoto_track
+                    from diagnostics.kyoto_nov15_two_original_observer import _read
+                    track=capture_kyoto_track(
+                        root / "pc_originals",day=day,
+                        fetch=lambda url: (pc_pacer.before_request(),_read(pc_client,url))[1],
+                        clock=lambda:datetime.now(timezone.utc).isoformat(),allowed=True)
+                    out["g05_kyoto_track_source_saved"]=True
+                    out["g05_same_day_track_heading_verified"]=track[
+                        "same_day_official_meeting_heading_verified"]
+                except Exception as exc:
+                    out["g05_track_capture_state"]="G05_TRACK_SOURCE_UNAVAILABLE_OR_REJECTED"
+                    out["g05_track_error_class"]=type(exc).__name__
             for original in (root / "pc_originals").iterdir():
                 if original.is_file():
                     original.rename(root / original.name)
