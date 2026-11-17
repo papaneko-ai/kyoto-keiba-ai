@@ -15,7 +15,7 @@ class Bridge(unittest.TestCase):
 
     def observer(self,path,**kw):
         root=Path(path);root.mkdir()
-        raw=card(15)
+        raw=card(15,race=12)
         (root/"official_meeting.html").write_bytes(meeting())
         (root/"official_racecard.html").write_bytes(raw)
         (root/"receipt.json").write_text(json.dumps({
@@ -33,7 +33,7 @@ class Bridge(unittest.TestCase):
         def fetch(_,url):
             requests.append(url)
             if broken and "test06" in url: raise TimeoutError("injected_failure")
-            return card(3+int(url.split("test")[1][:2]))
+            return card(3+int(url.split("test")[1][:2]),race=int(url.split("test")[1][:2]))
         with patch("diagnostics.kyoto_nov15_two_original_observer.observe",self.observer),patch(
             "diagnostics.kyoto_g03_weekend_bridge._read",side_effect=fetch),patch(
             "diagnostics.jra_one_shot_market_capture.RequestPacer"):
