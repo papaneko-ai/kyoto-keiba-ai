@@ -64,12 +64,46 @@ def parse(raw, day, race, url, utc):
         raise G03Error("official_roster_identity_invalid:"+",".join(sorted(set(errors))))
     if not 2<=len(rows)<=18:
         raise G03Error("incomplete_roster")
+    # Current race jockey, not a horse's most recent *past* jockey.
+    # Only a uniquely identifiable official racecard cell may populate it.
+    header=tables[0].select_one("tr")
+    header_cells=header.find_all("th",recursive=False) if header else []
+    rider_columns=[i for i,th in enumerate(header_cells)
+                   if "騎手" in th.get_text(" ",strip=True)]
+    assigned={}
+    for tr in tables[0].select("tr"):
+        n=tr.select_one("td.num")
+        if n is None or not n.get_text(strip=True).isdigit():continue
+        rider_cell=tr.select_one("td.jockey,td.jockey_name,td.kisyu,td.jock")
+        if rider_cell is None and len(rider_columns)==1:
+            cells=tr.find_all("td",recursive=False)
+            if len(cells)==len(header_cells):
+                rider_cell=cells[rider_columns[0]]
+        person=None;weight=None
+        if rider_cell is not None:
+            anchors=[a.get_text(" ",strip=True) for a in rider_cell.select("a")
+                     if a.get_text(" ",strip=True)]
+            if len(anchors)==1:
+                person=anchors[0]
+            cell_text=rider_cell.get_text(" ",strip=True)
+            masses=re.findall(r"(?<![0-9])([45][0-9]|6[0-3])(?:\\.([05]))?\\s*kg",cell_text,re.I)
+            if len(masses)==1:
+                weight=float(masses[0][0]+"."+(masses[0][1] or "0"))
+            if not person:
+                m=re.search(r"([☆▲△★◇]?[A-Za-zＡ-Ｚａ-ｚ一-龥ぁ-んァ-ン.・\\s]{2,35})\\s+(?:[45][0-9]|6[0-3])(?:\\.[05])?\\s*kg",cell_text)
+                if m:person=m.group(1).strip()
+            if person and (len(person)>40 or re.search(r"\\d",person)):
+                person=None
+        assigned[int(n.get_text(strip=True))]=(person,weight)
     horses=[{"number":row["horse_number"],
              "name":row["horse_name"],
              "frame":row["frame_number"],
              "profile_navigation":row["horse_profile_href"],
              "past_race_dates":row["past_race_dates"],
-             "permanent_id":None} for row in rows]
+             "permanent_id":None,
+             "current_jockey":assigned.get(row["horse_number"],(None,None))[0],
+             "current_jockey_source_verified":bool(assigned.get(row["horse_number"],(None,None))[0]),
+             "assigned_weight_kg":assigned.get(row["horse_number"],(None,None))[1]} for row in rows]
     text=soup.get_text(" ",strip=True)
     if "京都" not in text:
         raise G03Error("kyoto_venue_not_in_original")
