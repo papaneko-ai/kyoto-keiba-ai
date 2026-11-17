@@ -34,17 +34,24 @@ def parse(raw, day, race, url, utc):
     if stamp.tzinfo is None or stamp.utcoffset().total_seconds()!=0: raise G03Error("timestamp_not_utc")
     if not 0<len(raw)<=1500000: raise G03Error("invalid_original")
     soup=BeautifulSoup(raw.decode("cp932",errors="replace"),"html.parser")
-    tables=[t for t in soup.select("table") if t.select_one("th.horse") and t.select_one("th.num") and t.select_one("th.waku")]
-    if len(tables)!=1: raise G03Error("racecard_table_missing_or_ambiguous")
-    horses=[]
-    for row in tables[0].select("tr"):
-        num=row.select_one("td.num"); name=row.select_one("td.horse")
-        if num is None and name is None: continue
-        a=name.select_one('a[href^="/JRADB/accessU.html?CNAME="]') if name else None
-        if num is None or a is None or not num.get_text(strip=True).isascii() or not num.get_text(strip=True).isdigit(): raise G03Error("invalid_horse_row")
-        horses.append({"number":int(num.get_text(strip=True)), "name":a.get_text(" ",strip=True), "profile_navigation":a["href"],"permanent_id":None})
-    nums=[x["number"] for x in horses]
-    if not 2<=len(nums)<=18 or sorted(nums)!=list(range(1,len(nums)+1)) or any(not h["name"] for h in horses): raise G03Error("incomplete_roster")
+    # Reuse the existing validated historical PC racecard parser; its checks
+    # bind the HTML's date, race number, horse numbers and frame order.
+    from diagnostics.jra_multi_capture_20261106 import parse as pc_parse
+    meeting_date=f"{day[:4]}-{day[4:6]}-{day[6:]}"
+    rows,errors=pc_parse(raw,race,meeting_date=meeting_date)
+    if errors:
+        raise G03Error("official_roster_identity_invalid:"+",".join(sorted(set(errors))))
+    if not 2<=len(rows)<=18:
+        raise G03Error("incomplete_roster")
+    horses=[{"number":row["horse_number"],
+             "name":row["horse_name"],
+             "frame":row["frame_number"],
+             "profile_navigation":row["horse_profile_href"],
+             "past_race_dates":row["past_race_dates"],
+             "permanent_id":None} for row in rows]
+    text=soup.get_text(" ",strip=True)
+    if "京都" not in text:
+        raise G03Error("kyoto_venue_not_in_original")
     times=set(re.findall(r"発走(?:予定)?(?:時刻)?\s*[:：]?\s*([01]?\d|2[0-3]):([0-5]\d)",soup.get_text(" ",strip=True)))
     if len(times)!=1: raise G03Error("start_time_not_proven")
     hh,mm=next(iter(times))
