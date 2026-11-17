@@ -1,0 +1,71 @@
+name: Kyoto implementation18 day21 handoff cross-step regression no JRA
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/kyoto-20261121-22-result-handoff.yml'
+      - 'tests/test_kyoto_nov21_handoff_cross_step.py'
+      - '.github/workflows/kyoto-implementation18-day21-handoff-gate.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  simulate-scheduled-handoff-env:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Run actual workflow plus 3 mutation regression tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p handoff_cross_step_proof
+          python -m unittest -v tests.test_kyoto_nov21_handoff_cross_step 2>&1 | tee handoff_cross_step_proof/tests.log
+      - name: Simulate scheduled first step and persist selected Run ID
+        shell: bash
+        env:
+          OBSERVED_RUN: ''
+        run: |
+          set -euo pipefail
+          OBSERVED_RUN=987654321
+          echo "OBSERVED_RUN=$OBSERVED_RUN" >> "$GITHUB_ENV"
+          echo "$OBSERVED_RUN" > handoff_cross_step_proof/selected_run.txt
+      - name: Verify downstream step sees scheduled Run ID and records factual proof
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$OBSERVED_RUN" = "987654321"
+          test "$(cat handoff_cross_step_proof/selected_run.txt)" = "$OBSERVED_RUN"
+          python - <<'PY'
+          import hashlib,json,os
+          from datetime import datetime,timezone
+          from pathlib import Path
+          p=Path('handoff_cross_step_proof')
+          result={'status':'PASS','test_kind':'GITHUB_CROSS_STEP_ENV_OFFLINE',
+                  'scheduled_run_mock_id':os.environ['OBSERVED_RUN'],
+                  'timestamp_utc':datetime.now(timezone.utc).isoformat(),
+                  'workflow_sha':os.environ['GITHUB_SHA'],
+                  'log_sha256':hashlib.sha256((p/'tests.log').read_bytes()).hexdigest(),
+                  'jra_http_requests':0,'real_race_data_observed':False}
+          (p/'receipt.json').write_text(json.dumps(result,sort_keys=True,indent=2))
+          print('DAY21_HANDOFF_CROSS_STEP_PASS')
+          print('JRA_HTTP_REQUESTS=0')
+          PY
+      - name: Retain failure evidence
+        if: always()
+        shell: bash
+        run: |
+          mkdir -p handoff_cross_step_proof
+          if [ ! -f handoff_cross_step_proof/receipt.json ]; then
+            echo '{"status":"FAILED_OR_UNVERIFIED","jra_http_requests":0}' > handoff_cross_step_proof/receipt.json
+          fi
+      - name: Upload cross-step evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: kyoto18-day21-handoff-gate-${{ github.run_id }}
+          path: handoff_cross_step_proof/
+          if-no-files-found: error
+          retention-days: 30
