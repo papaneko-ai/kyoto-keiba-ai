@@ -4,6 +4,7 @@ on:
     branches: [main]
     paths:
       - 'diagnostics/kyoto_backup_chain_guard.py'
+      - 'diagnostics/kyoto_build_cumulative_migration.py'
       - 'diagnostics/kyoto_cumulative_migration_backup_guard.py'
       - 'tests/test_kyoto_backup_chain_guard.py'
       - '.github/workflows/kyoto-cumulative-backup-chain-gate.yml'
@@ -30,16 +31,16 @@ jobs:
           from pathlib import Path
           import json,hashlib,os
           log=Path("backup_gate_evidence/test_log.txt").read_bytes()
-          if b"Ran 6 tests" not in log or b"OK" not in log:
+          if b"Ran 8 tests" not in log or b"OK" not in log:
               raise SystemExit("INCOMPLETE_DESTRUCTIVE_TESTS")
-          r={"result":"PASS","test_cases":6,
+          r={"result":"PASS","test_cases":8,
              "prior_missing_detected":True,"prior_mutation_detected":True,
              "manifest_corruption_detected":True,"missing_latest_detected":True,
              "prior_zip_corruption_detected":True,
              "sha256_log":hashlib.sha256(log).hexdigest(),
              "tested_commit":os.environ["GITHUB_SHA"]}
           Path("backup_gate_evidence/receipt.json").write_text(json.dumps(r,sort_keys=True,indent=2)+"\n")
-          print("CUMULATIVE_BACKUP_CHAIN_6_OF_6_PASS")
+          print("CUMULATIVE_BACKUP_CHAIN_8_OF_8_PASS")
           PY
       - name: Preserve evidence on success or failure
         if: always()
