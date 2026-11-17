@@ -5,7 +5,7 @@ from pathlib import Path
 from urllib.parse import urlsplit,parse_qs
 from unittest.mock import patch
 from diagnostics.kyoto_g03_all_races import acquire_all
-from diagnostics.kyoto_g04_all_horse_profiles import capture, G04Rejected, _metadata
+from diagnostics.kyoto_g04_all_horse_profiles import capture, G04Rejected, _metadata, _observed_profile_code
 from diagnostics.kyoto_nov15_encrypted_evidence import encrypt_evidence
 from tests.test_kyoto_g03_all_races import DAY,PARENT,meeting,card,source_race
 
@@ -105,6 +105,36 @@ class AllHorseProfile(unittest.TestCase):
         with self.assertRaisesRegex(G04Rejected,"trainer_unverified"):
             _metadata(profile("競走馬1").replace("調教師名".encode("cp932"),"不明".encode("cp932")),"競走馬1")
 
+    def test_historical_all_148_official_profile_codes_unique(self):
+        rows=json.loads(Path("docs/diagnostics/jra_p1_batch14_96_profiles_20261106/feature_rows_148.json").read_text(encoding="utf8"))
+        codes=[_observed_profile_code("https://jra.jp"+row["profile_href"]) for row in rows]
+        self.assertEqual(len(codes),148)
+        self.assertTrue(all(code and len(code)==10 and code.isdigit() for code in codes))
+        self.assertEqual(len(set(codes)),148)
+        self.assertIsNone(_observed_profile_code("https://jra.jp/JRADB/accessU.html?CNAME=pw1/AA"))
+    def test_216_runner_capacity_does_not_hardcode_historical_148(self):
+        import hashlib
+        from tests.test_kyoto_g03_all_races import DAY,PARENT,meeting,card
+        root=self.root.parent/"max_216";root.mkdir()
+        stage=self.root.parent/"max_stage"
+        def full_card(url):
+            race=source_race(url)
+            html=card(count=18,race=race)
+            for n in range(1,19):
+                html=html.replace(f"CNAME=horse{n}".encode(),f"CNAME=pw22{race:02d}{n:02d}%2FAA".encode())
+            return html
+        proof=acquire_all(day=DAY,root=stage,meeting_raw=meeting(),meeting_url=PARENT,
+            fetch=full_card,captured_at_utc=lambda:"2026-11-21T00:00:00Z",allowed=True)
+        self.assertTrue(proof["complete"])
+        for file in stage.iterdir():file.rename(root/("g03_"+file.name))
+        shutil.copyfile(root/"g03_official_meeting.html",root/"official_meeting.html")
+        (root/"g03_receipt.json").write_text(json.dumps(proof),encoding="utf8")
+        result=capture(root=root,day=DAY,fetch=lambda url:profile(f"競走馬{int(parse_qs(urlsplit(url).query)['CNAME'][0][-5:-3])}"),
+            clock=lambda:"2026-11-21T00:01:00Z",allowed=True)
+        self.assertEqual(result["expected_horses"],216)
+        self.assertEqual(result["profile_verified_count"],216)
+        self.assertTrue(result["all_profiles_parsed"])
+        self.assertFalse(result["current_jockey_verified_for_all"])
     def test_no_permission_no_http(self):
         with self.assertRaisesRegex(G04Rejected,"not_authorized"):
             capture(root=self.root,day=DAY,fetch=self.fetch,
