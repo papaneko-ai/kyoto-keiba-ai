@@ -23,6 +23,7 @@ class Bridge(unittest.TestCase):
             "observed_racecard_url":f"https://jra.jp/JRADB/accessD.html?CNAME=pw00test12{DAY}%2FAA",
             "racecard_number":12,"racecard_original_fetched":True,
             "racecard_sha256":hashlib.sha256(raw).hexdigest(),
+            "racecard_captured_at_utc":"2026-11-21T01:07:00Z",
             "selection_sha256":"abc"}))
         return {"state":"NOV15_RACECARD_ORIGINAL_OBSERVED_ROSTER_UNVERIFIED",
                 "http_requests_started":3,"selection_sha256":"abc"}
@@ -46,6 +47,7 @@ class Bridge(unittest.TestCase):
         receipt=json.loads((self.root/"raw"/"g03_receipt.json").read_text())
         self.assertTrue(receipt["complete"])
         self.assertTrue(receipt["race12_original_reused"])
+        self.assertEqual(receipt["races"]["12"]["captured_at_utc"],"2026-11-21T01:07:00Z")
         self.assertEqual(len(list((self.root/"raw").glob("g03_official_racecard_*.html"))),12)
         with patch("diagnostics.kyoto_nov15_encrypted_evidence.DAY",DAY):
             seal(DAY,str(self.root/"raw"),str(self.root/"sealed"),key="ab"*32,
