@@ -1,0 +1,66 @@
+name: Kyoto reversible multisource hybrid offline comparison
+on:
+  push:
+    branches:
+      - experiment/multisource-hybrid-20261117
+    paths:
+      - 'diagnostics/kyoto_hybrid_multi_source.py'
+      - 'tests/test_kyoto_hybrid_multi_source.py'
+      - '.github/workflows/kyoto-experimental-hybrid.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  evidence-first-offline:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Unit and adversarial coverage (zero HTTP, zero DB)
+        run: python -m unittest -v tests.test_kyoto_hybrid_multi_source
+      - name: Fixed-denominator same-race PC vs hybrid coverage
+        run: |
+          mkdir -p hybrid_proof
+          python - <<'PY'
+          import json,subprocess
+          from hashlib import sha256
+          from pathlib import Path
+          from diagnostics.kyoto_hybrid_multi_source import merge_fields,coverage
+          r='KYOTO:20261121:01';cutoff='2026-11-21T04:00:00Z'
+          a={'JRA_PC':'https://www.jra.go.jp/JRADB/accessD.html?CNAME=observed',
+             'JRA_SP':'https://sp.jra.jp/JRADB/accessD.html?CNAME=observed'}
+          def item(h,field,value,kind):
+              raw=(kind+str(h)+field).encode()
+              return dict(race_key=r,horse_number=h,field=field,value=value,
+                source=dict(kind=kind,url=a[kind],verified_original_url=True,
+                            license_verified=True,allowed_for_automated_access=True),
+                raw=raw,source_sha256=sha256(raw).hexdigest(),
+                captured_utc='2026-11-21T03:00:00Z',published_utc=None,identity_verified=True)
+          pc=[];hybrid=[]
+          for h in range(1,19):
+              base=[item(h,'body_weight',450+h,'JRA_PC')]
+              sp=[item(h,'workout','55.0','JRA_SP')] if h<=12 else []
+              for records,target in ((base,pc),(base+sp,hybrid)):
+                  target.append(merge_fields(race_key=r,horse_number=h,
+                      cutoff_utc=cutoff,evidence=records,
+                      required_fields=('body_weight','workout')))
+          summary={'schema':'kyoto_hybrid_offline_comparison.v1',
+                   'reference':'SYNTHETIC_NOT_REAL_HORSES',
+                   'source_commit':subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip(),
+                   'pc_only':coverage(pc),'hybrid':coverage(hybrid),
+                   'network_requests':0,'live_source_validation':False,
+                   'production_approval':False,'reversible':True}
+          assert summary['hybrid']['coverage_pct']>summary['pc_only']['coverage_pct']
+          Path('hybrid_proof/compare.json').write_text(json.dumps(summary,indent=2)+'\n')
+          print(json.dumps(summary,indent=2))
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: kyoto-reversible-hybrid-compare-${{ github.run_id }}
+          path: hybrid_proof/
