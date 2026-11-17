@@ -13,12 +13,12 @@ class SourceFirstCoverageTests(unittest.TestCase):
         cls.doc=json.loads((ROOT/LEDGER).read_text(encoding="utf8"))
     def test_twenty_reachable_modules_seventy_six_functions_not_declared_complete(self):
         r=inspect(ROOT,self.doc)
-        self.assertEqual(r["critical_modules"],22)
-        self.assertEqual(r["top_level_functions_discovered"],81)
+        self.assertEqual(r["critical_modules"],26)
+        self.assertEqual(r["top_level_functions_discovered"],91)
         self.assertEqual(r["top_level_functions_unregistered"],0)
-        self.assertEqual(r["top_level_functions_not_yet_independently_reviewed"],52)
+        self.assertEqual(r["top_level_functions_not_yet_independently_reviewed"],62)
         self.assertGreater(r["class_methods_discovered_but_not_yet_independently_reviewed"],0)
-        self.assertEqual(r["additional_predictable_failure_families"],22)
+        self.assertEqual(r["additional_predictable_failure_families"],23)
         self.assertGreater(r["high_severity_unresolved"],0)
         self.assertIs(r["completeness_demonstrated"],False)
     def test_transitive_source_dependencies_are_enumerated_and_registered(self):
@@ -28,7 +28,7 @@ class SourceFirstCoverageTests(unittest.TestCase):
         self.assertEqual(seen,seed)
         result=inspect(ROOT,self.doc)
         self.assertEqual(result["additional_reachable_modules_not_yet_reviewed"],0)
-        self.assertEqual(result["top_level_functions_not_yet_independently_reviewed"],52)
+        self.assertEqual(result["top_level_functions_not_yet_independently_reviewed"],62)
         self.assertIs(result["completeness_demonstrated"],False)
 
     def test_function_omission_rejected(self):
