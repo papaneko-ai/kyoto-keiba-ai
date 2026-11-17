@@ -9,6 +9,7 @@ import hashlib,json,re
 from datetime import datetime,date,timezone
 from zoneinfo import ZoneInfo
 from pathlib import Path
+from urllib.parse import urlsplit, parse_qs
 from bs4 import BeautifulSoup
 from diagnostics.jra_pending_profile_plan import trusted_url,PlanningError
 from diagnostics.jra_prior_form_offline import parse_horse_history
@@ -26,6 +27,14 @@ def _utc(value):
     if stamp.tzinfo is None or stamp.utcoffset()!=timezone.utc.utcoffset(None):
         raise G04Rejected("timestamp_not_utc")
     return stamp
+
+def _observed_profile_code(url):
+    """Opaque JRA profile token identity; not an officially attested permanent ID."""
+    query=parse_qs(urlsplit(url).query)
+    tokens=query.get("CNAME",[])
+    token=tokens[0] if len(tokens)==1 else ""
+    match=re.fullmatch(r"pw01dud00([0-9]{10})/[A-Za-z0-9]{2}",token)
+    return match.group(1) if match else None
 
 def _metadata(raw,expected_name):
     soup=BeautifulSoup(raw.decode("cp932",errors="replace"),"html.parser")
@@ -99,6 +108,8 @@ def capture(*,root,day,fetch,clock,allowed=False):
         original_name=f"g04_profile_r{race:02d}_h{number:02d}.html"
         item={"race":race,"horse_number":number,"horse_name":name,
               "source_url":url,"source_kind":"JRA_PC_OBSERVED_RACECARD_PROFILE_LINK",
+              "observed_profile_code":_observed_profile_code(url),
+              "observed_profile_code_attested_as_permanent_id":False,
               "race_cutoff_utc":cutoff.isoformat(),"raw_original_file":original_name,
               "state":"NOT_FETCHED","profile_verified":False,
               "current_jockey_verified":False,
@@ -142,6 +153,7 @@ def capture(*,root,day,fetch,clock,allowed=False):
                 demographics=features,
                 parsed_file=parsed_file,
                 prior_finish_count=len(parsed["prior_rows"]),
+                most_recent_prior_jockey=next((row.get("jockey") for row in parsed["prior_rows"] if row.get("jockey")),None),
                 nonfinish_count=len(parsed["nonfinish_rows"]),
                 administrative_event_count=len(parsed["administrative_events"]),
                 excluded_row_count=len(parsed["excluded_rows"]),
@@ -159,6 +171,7 @@ def capture(*,root,day,fetch,clock,allowed=False):
             "all_profiles_parsed":not missing,
             "current_jockey_verified_for_all":False,
             "jra_permanent_ids_verified_for_all":False,
+            "observed_profile_codes_extracted":sum(bool(p.get("observed_profile_code")) for p in results),
             "prediction_ready":False,"training_ready":False,
             "profiles":results}
     (root/"g04_receipt.json").write_text(
