@@ -46,6 +46,10 @@ jobs:
           )"
           fi
           [[ "$OBSERVED_RUN" =~ ^[0-9]+$ ]] || { echo INVALID_RUN_ID; exit 1; }
+          # Persist the run selected by the scheduled step for all later job steps.
+          # Without this, later steps see the original empty job-level value.
+          echo "OBSERVED_RUN=$OBSERVED_RUN" >> "$GITHUB_ENV"
+          printf '%s\\n' "$OBSERVED_RUN" > day_result_handoff/observed_run_id.txt
           if [ "$OBSERVED_RUN" = "0" ]; then
             printf '%s\n' '{"event":"schedule","created_at":"2026-11-21T12:00:00Z","id":null,"conclusion":null,"actual_run_observed":false,"name":"Kyoto Nov21-22 independent encrypted original collection","status":"completed"}' > day_result_handoff/run.json
             printf '%s\n' '{"jobs":[]}' > day_result_handoff/jobs.json
