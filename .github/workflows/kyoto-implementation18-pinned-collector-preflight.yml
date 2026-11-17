@@ -1,0 +1,84 @@
+name: Kyoto implementation18 pinned collector offline preflight
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/kyoto-implementation18-pinned-collector-preflight.yml'
+  workflow_dispatch:
+    inputs:
+      candidate_sha:
+        required: true
+        description: '40-character exact immutable collector commit to test'
+        type: string
+permissions:
+  contents: read
+  actions: read
+jobs:
+  pinned-offline-collector-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    env:
+      PYTHONPATH: .
+      CANDIDATE_SHA: ${{ inputs.candidate_sha || '6f4de9c8ad0f65949e2bd4584e7b652cb7459073' }}
+    steps:
+      - name: Validate exact source SHA before checkout
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ "$CANDIDATE_SHA" =~ ^[0-9a-f]{40}$ ]]
+      - name: Checkout immutable candidate, not main
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ env.CANDIDATE_SHA }}
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install offline parser dependencies
+        run: python -m pip install 'beautifulsoup4>=4.12,<5' 'cryptography>=43,<47'
+      - name: Execute existing preflight regressions against actual pinned candidate
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p pinned_preflight_proof
+          test "$(git rev-parse HEAD)" = "$CANDIDATE_SHA"
+          KYOTO_TARGET_DAY=20261121 python -m unittest -q tests.test_kyoto_weekend_capture tests.test_kyoto_safe_stop_artifact tests.test_kyoto_weekend_production_workflow tests.test_kyoto_weekend_sp_discovery tests.test_kyoto_weekend_day21_triage tests.test_kyoto_weekend_day21_artifact_triage tests.test_kyoto_weekend_postflight tests.test_kyoto_weekend_handoff_workflow tests.test_kyoto_weekend_end_to_end tests.test_kyoto_weekend_interruption_and_pacing > pinned_preflight_proof/day21.log 2>&1
+          KYOTO_TARGET_DAY=20261115 python -m unittest -q tests.test_kyoto_sp_observed_source tests.test_kyoto_nov15_offline_race_links > pinned_preflight_proof/sp.log 2>&1
+          KYOTO_TARGET_DAY=20261122 python -m unittest -q tests.test_kyoto_nov15_encrypted_evidence tests.test_kyoto_weekend_sp_discovery tests.test_kyoto_weekend_postflight tests.test_kyoto_weekend_day21_triage > pinned_preflight_proof/day22.log 2>&1
+          KYOTO_TARGET_DAY=20261121 python -m unittest -q tests.test_kyoto_weekend_retry_guard tests.test_kyoto_weekend_race_parity > pinned_preflight_proof/parity.log 2>&1
+          python -m unittest -q tests.test_kyoto_predictable_failure_gate tests.test_kyoto_reverse_fmea_gate > pinned_preflight_proof/failure_gate.log 2>&1
+          python -m diagnostics.kyoto_predictable_failure_gate --report pinned_preflight_proof/predictable_failure.json > pinned_preflight_proof/predictable.log 2>&1
+          python -m diagnostics.kyoto_reverse_fmea_gate --report pinned_preflight_proof/reverse_fmea.json > pinned_preflight_proof/reverse_fmea.log 2>&1
+          python - <<'PY'
+          import json,hashlib,os
+          from pathlib import Path
+          from datetime import datetime,timezone
+          p=Path('pinned_preflight_proof')
+          sources=sorted(f for f in p.iterdir() if f.is_file())
+          report={'status':'PASS','candidate_sha':os.environ['CANDIDATE_SHA'],
+                  'workflow_head_sha':os.environ['GITHUB_SHA'],
+                  'verified_utc':datetime.now(timezone.utc).isoformat(),
+                  'run_id':os.environ['GITHUB_RUN_ID'],
+                  'event':os.environ['GITHUB_EVENT_NAME'],
+                  'network_jra_requests':0,'deployment_approved':False,
+                  'evidence_sha256':{f.name:hashlib.sha256(f.read_bytes()).hexdigest() for f in sources}}
+          (p/'receipt.json').write_text(json.dumps(report,sort_keys=True,indent=2))
+          print('PINNED_COLLECTOR_PREFLIGHT_PASS='+os.environ['CANDIDATE_SHA'])
+          print('THIS_IS_NOT_LIVE_JRA_VALIDATION')
+          PY
+      - name: Retain evidence or truthful failure marker
+        if: always()
+        shell: bash
+        run: |
+          mkdir -p pinned_preflight_proof
+          if [ ! -f pinned_preflight_proof/receipt.json ]; then
+            printf '%s\n' '{"status":"FAIL_OR_UNVERIFIED","deployment_approved":false,"network_jra_requests":0}' > pinned_preflight_proof/receipt.json
+          fi
+      - name: Save offline evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: kyoto18-pinned-preflight-${{ github.run_id }}
+          path: pinned_preflight_proof/
+          retention-days: 30
+          if-no-files-found: error
