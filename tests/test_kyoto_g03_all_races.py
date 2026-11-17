@@ -129,6 +129,22 @@ class G03AllRaces(unittest.TestCase):
         raw=card().replace('alt="1枠"'.encode("cp932"),b'alt="broken"')
         with self.assertRaisesRegex(G03Error,"frame_missing"):
             parse(raw,DAY,1,PARENT,"2026-11-21T01:00:00Z")
+    def test_current_race_jockey_and_weight_from_unique_official_cell(self):
+        raw=card(count=3,race=1)
+        raw=raw.replace(b'<th class="horse">',b'<th class="jockey">騎手・負担重量</th><th class="horse">'.decode("utf8").encode("cp932"))
+        for n in range(1,4):
+            target=f'<td class="horse"><a href="/JRADB/accessU.html?CNAME=horse{n}">'.encode("cp932")
+            rider=f'<td class="jockey"><a>騎手{n}</a> 57.0 kg</td>'.encode("cp932")
+            raw=raw.replace(target,rider+target)
+        parsed=parse(raw,DAY,1,PARENT,"2026-11-21T00:00:00Z")
+        self.assertEqual([h["current_jockey"] for h in parsed["runners"]],["騎手1","騎手2","騎手3"])
+        self.assertTrue(all(h["current_jockey_source_verified"] for h in parsed["runners"]))
+        self.assertTrue(all(h["assigned_weight_kg"]==57.0 for h in parsed["runners"]))
+    def test_missing_current_jockey_is_explicit_unverified_not_inferred(self):
+        parsed=parse(card(count=3,race=1),DAY,1,PARENT,"2026-11-21T00:00:00Z")
+        self.assertTrue(all(h["current_jockey"] is None for h in parsed["runners"]))
+        self.assertTrue(all(not h["current_jockey_source_verified"] for h in parsed["runners"]))
+
     def test_no_naive_timestamp(self):
         with self.assertRaisesRegex(G03Error,"timestamp_not_utc"):
             parse(card(),DAY,1,PARENT,"2026-11-21T01:00:00")
