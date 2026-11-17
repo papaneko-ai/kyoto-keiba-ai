@@ -1,0 +1,88 @@
+name: Kyoto implementation18 existing preflight evidence verification
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/kyoto-implementation18-preflight-evidence.yml'
+  workflow_dispatch:
+    inputs:
+      candidate_sha:
+        required: true
+        description: 'Exact previously tested candidate commit SHA'
+      preflight_run_id:
+        required: true
+        description: 'Matching successful offline preflight run ID'
+permissions:
+  contents: read
+  actions: read
+jobs:
+  verify-release-proof:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      GH_TOKEN: ${{ github.token }}
+      CANDIDATE_SHA: ${{ inputs.candidate_sha || '6f4de9c8ad0f65949e2bd4584e7b652cb7459073' }}
+      PREFLIGHT_RUN_ID: ${{ inputs.preflight_run_id || '43809830663' }}
+    steps:
+      - name: Verify matching GitHub run and sealed preflight artifact (no JRA HTTP)
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p preflight_release_evidence
+          python - <<'PY'
+          import json,os,re,urllib.request
+          from datetime import datetime,timezone
+          from pathlib import Path
+          repo=os.environ['GITHUB_REPOSITORY']
+          sha=os.environ['CANDIDATE_SHA']
+          run_id=os.environ['PREFLIGHT_RUN_ID']
+          assert re.fullmatch(r'[0-9a-f]{40}',sha),'INVALID_CANDIDATE_SHA'
+          assert re.fullmatch(r'[1-9][0-9]*',run_id),'INVALID_PREFLIGHT_RUN'
+          base='https://api.github.com/repos/'+repo
+          headers={'Authorization':'Bearer '+os.environ['GH_TOKEN'],
+                   'Accept':'application/vnd.github+json','X-GitHub-Api-Version':'2022-11-28'}
+          def get(path):
+              req=urllib.request.Request(base+path,headers=headers)
+              with urllib.request.urlopen(req,timeout=12) as response:
+                  return json.load(response)
+          run=get('/actions/runs/'+run_id)
+          assert run.get('head_sha')==sha,'PREFLIGHT_HEAD_SHA_MISMATCH'
+          assert run.get('conclusion')=='success','PREFLIGHT_NOT_SUCCESS'
+          assert run.get('status')=='completed','PREFLIGHT_NOT_COMPLETE'
+          assert run.get('event') in ('push','workflow_dispatch'),'PREFLIGHT_NOT_APPROVED_EVENT'
+          assert run.get('path')=='.github/workflows/kyoto-weekend-20261121-22-preflight.yml','WRONG_WORKFLOW'
+          arts=get('/actions/runs/'+run_id+'/artifacts').get('artifacts',[])
+          matches=[a for a in arts
+                   if a.get('name')=='kyoto-nov21-22-preflight-'+run_id
+                   and not a.get('expired',True)
+                   and a.get('size_in_bytes',0)>0
+                   and re.fullmatch(r'sha256:[0-9a-f]{64}',a.get('digest') or '')]
+          assert matches,'PREFLIGHT_ARTIFACT_MISSING_OR_EXPIRED'
+          report={'result':'PASS','kind':'existing_offline_preflight_release_evidence',
+                  'verified_at_utc':datetime.now(timezone.utc).isoformat(),
+                  'candidate_sha':sha,'preflight_run_id':int(run_id),
+                  'preflight_event':run['event'],'preflight_path':run['path'],
+                  'artifact_id':matches[0]['id'],'artifact_digest':matches[0]['digest'],
+                  'jra_http_requests':0,'candidate_promoted':False,
+                  'external_timer_trigger_proven':False}
+          Path('preflight_release_evidence/receipt.json').write_text(json.dumps(report,indent=2,sort_keys=True))
+          print('EXISTING_PREFLIGHT_EVIDENCE_MATCHED=PASS')
+          print('CANDIDATE_PROMOTED=False')
+          print('JRA_HTTP_REQUESTS=0')
+          PY
+      - name: Preserve success or failure receipt status
+        if: always()
+        shell: bash
+        run: |
+          mkdir -p preflight_release_evidence
+          if [ ! -f preflight_release_evidence/receipt.json ]; then
+            printf '%s\n' '{"result":"FAILED_OR_UNVERIFIED","candidate_promoted":false,"jra_http_requests":0}' > preflight_release_evidence/receipt.json
+          fi
+      - name: Upload verified-release candidate evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: kyoto18-preflight-release-evidence-${{ github.run_id }}
+          path: preflight_release_evidence/
+          retention-days: 30
+          if-no-files-found: error
