@@ -1,0 +1,51 @@
+name: Kyoto cumulative backup chain fail-closed gate
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'diagnostics/kyoto_backup_chain_guard.py'
+      - 'diagnostics/kyoto_cumulative_migration_backup_guard.py'
+      - 'tests/test_kyoto_backup_chain_guard.py'
+      - '.github/workflows/kyoto-cumulative-backup-chain-gate.yml'
+permissions:
+  contents: read
+jobs:
+  verify-chain-verifier:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Run destructive regression tests against cumulative backup gate
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p backup_gate_evidence
+          python -m unittest -v tests.test_kyoto_backup_chain_guard 2>&1 | tee backup_gate_evidence/test_log.txt
+          python - <<'PY'
+          from pathlib import Path
+          import json,hashlib,os
+          log=Path("backup_gate_evidence/test_log.txt").read_bytes()
+          if b"Ran 6 tests" not in log or b"OK" not in log:
+              raise SystemExit("INCOMPLETE_DESTRUCTIVE_TESTS")
+          r={"result":"PASS","test_cases":6,
+             "prior_missing_detected":True,"prior_mutation_detected":True,
+             "manifest_corruption_detected":True,"missing_latest_detected":True,
+             "prior_zip_corruption_detected":True,
+             "sha256_log":hashlib.sha256(log).hexdigest(),
+             "tested_commit":os.environ["GITHUB_SHA"]}
+          Path("backup_gate_evidence/receipt.json").write_text(json.dumps(r,sort_keys=True,indent=2)+"\n")
+          print("CUMULATIVE_BACKUP_CHAIN_6_OF_6_PASS")
+          PY
+      - name: Preserve evidence on success or failure
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: kyoto-cumulative-backup-chain-${{ github.run_id }}
+          path: backup_gate_evidence/
+          if-no-files-found: warn
+          retention-days: 90
