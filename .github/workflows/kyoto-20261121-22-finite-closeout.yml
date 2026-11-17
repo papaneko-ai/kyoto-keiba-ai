@@ -1,7 +1,7 @@
 name: Kyoto Nov21-22 finite acquisition experiment closeout
 on:
   schedule:
-    - cron: '0 5 22 11 *' # 2026-11-22 14:00 JST, one-hour after fixed cutoff
+    - cron: '0 10 22 11 *' # 2026-11-22 19:00 JST, one-hour after 18:00 JST cutoff
   workflow_dispatch:
 permissions:
   contents: read
