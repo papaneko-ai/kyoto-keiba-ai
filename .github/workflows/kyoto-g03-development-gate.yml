@@ -33,7 +33,11 @@ jobs:
       - name: All 12R and integrated PC AES-GCM offline acceptance
         run: python -m unittest -v tests.test_kyoto_g03_all_races tests.test_kyoto_g03_weekend_bridge
       - name: Previously verified weekend capture and fail-closed regressions
-        run: python -m unittest -q tests.test_kyoto_weekend_retry_guard tests.test_kyoto_weekend_race_parity tests.test_kyoto_weekend_capture tests.test_kyoto_safe_stop_artifact tests.test_kyoto_weekend_end_to_end tests.test_kyoto_weekend_postflight tests.test_kyoto_weekend_interruption_and_pacing tests.test_kyoto_nov15_two_original_observer
+        run: python -m unittest -q tests.test_kyoto_weekend_retry_guard tests.test_kyoto_weekend_race_parity tests.test_kyoto_weekend_capture tests.test_kyoto_safe_stop_artifact tests.test_kyoto_weekend_end_to_end tests.test_kyoto_weekend_postflight tests.test_kyoto_weekend_interruption_and_pacing
+      - name: Historical Nov15 observer regression with its original target date
+        env:
+          KYOTO_TARGET_DAY: '20261115'
+        run: python -m unittest -q tests.test_kyoto_nov15_two_original_observer
       - name: Cryptographic archive regression
         run: python -m unittest -q tests.test_kyoto_nov15_encrypted_evidence
       - name: Record testing scope accurately
