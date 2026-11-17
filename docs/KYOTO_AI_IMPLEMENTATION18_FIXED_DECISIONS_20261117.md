@@ -25,3 +25,17 @@
 - Do not turn a mock test, documentation commit, app replacement, or push event into evidence of actual unattended scheduled launch.
 - Fixed management indicators remain: research 32/32; graduation 12/12; pre-data readiness 16/16; independent live connection 0/6; independent practical capability 0/100.
 - First finish independently tested unattended capture and day-21/day-22 recovery procedure. UI integration follows, without preserving old app compatibility.
+
+
+## 2026-11-17 additional verified GitHub Actions milestone
+
+Independent evidence from real GitHub executions (all were `push`, **not** external timer or `schedule` events):
+
+- Main entrypoint offline integrity: Run `43997794522`, completed success; artifact `14291280314`, digest `sha256:0ebb34bc358d137d4d3bdf28755d9b05cf91972154b59b3ff59149df2ece07fe`.
+- External GitHub dispatch fake-server contract: Run `43998092685`, completed success; artifact `14290188600`, digest `sha256:2c3bb1a418418f6f0bf4b69e08c65baf98342f3bd62e5384ee97aab84e13a860`.
+- Reused Nov21-22 offline preflight: Run `43809830663`, successful on candidate `6f4de9c8ad0f65949e2bd4584e7b652cb7459073`, artifact `14199284639`, digest `sha256:7c92daa886bbee563a5b81a9c817255e769a9e1cd2f50f669d380c5c4f024810`.
+- New independent GitHub release-evidence checker: Run `43999091621`, completed success and printed `EXISTING_PREFLIGHT_EVIDENCE_MATCHED=PASS`; artifact `14289924834`, digest `sha256:ebe50bb8626b236e610496f0b6dc53d3823b15bf4059d8dfc915cd2e83a853ea`. Workflow source: `.github/workflows/kyoto-implementation18-preflight-evidence.yml`, commit `88825d1d055b56d6b76a3077901cca4f01de5d77`.
+- The difference from preflight candidate `6f4de9c8...` to diagnostic HEAD `c97c6165...` is only `.github/workflows/kyoto-implementation16-source-recovery.yml` and the P1 roadmap markdown. Do **not** claim that c97c itself passed preflight: its SHA differs.
+- The earlier migration ZIP's tracked source does not match the latest diagnostic branch in at least `diagnostics/kyoto_weekend_sp_discovery.py`: local historical blob `110842ed...`, current GitHub blob `b320ced1...`. A 154-test local suite on that historical extracted copy returned 1 failure and 2 errors; these cannot be ascribed to current GitHub source and must not overwrite real GitHub CI evidence.
+
+**Important bounds:** No `KYOTO_NOV22_VERIFIED_COLLECTOR_SHA` variable was changed, no live collector was promoted, no external scheduler account was configured, and no external timer-to-GitHub event was demonstrated. Do not claim unattended production operation until provider setup plus a real timed workflow_dispatch run and artifact are verified. No JRA requests were made in these tests. Existing fixed certification metrics remain unchanged.
