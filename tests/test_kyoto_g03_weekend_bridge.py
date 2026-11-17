@@ -3,6 +3,7 @@ import hashlib,json,os,tempfile,unittest
 from pathlib import Path
 from unittest.mock import patch
 from diagnostics.kyoto_weekend_capture import capture,seal
+from diagnostics.kyoto_nov15_two_original_observer import _single_observed_racecard
 from tests.test_kyoto_g03_all_races import meeting,card,source_race
 DAY="20261121"
 URL="https://jra.jp/JRADB/accessD.html?CNAME=pw01dli00%2FF3"
@@ -39,6 +40,12 @@ class Bridge(unittest.TestCase):
             "diagnostics.jra_one_shot_market_capture.RequestPacer"):
             result=capture(DAY,"PC",str(self.root/"raw"),live=False,opener=object())
         return result,requests
+
+    def test_official_empty_label_race12_is_selected(self):
+        observed=_single_observed_racecard(meeting(),URL)
+        self.assertIsNotNone(observed)
+        self.assertEqual(observed[0],12)
+        self.assertIn(f"1220261121",observed[1])
 
     def test_all_races_and_existing_aes_gcm(self):
         r,calls=self.run_capture()
