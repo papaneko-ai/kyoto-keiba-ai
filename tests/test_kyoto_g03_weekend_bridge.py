@@ -3,7 +3,7 @@ import hashlib,json,os,tempfile,unittest
 from pathlib import Path
 from unittest.mock import patch
 from diagnostics.kyoto_weekend_capture import capture,seal
-from tests.test_kyoto_g03_all_races import meeting,card
+from tests.test_kyoto_g03_all_races import meeting,card,source_race
 DAY="20261121"
 URL="https://jra.jp/JRADB/accessD.html?CNAME=pw01dli00%2FF3"
 
@@ -20,7 +20,7 @@ class Bridge(unittest.TestCase):
         (root/"official_racecard.html").write_bytes(raw)
         (root/"receipt.json").write_text(json.dumps({
             "day":DAY,"observed_meeting_url":URL,
-            "observed_racecard_url":f"https://jra.jp/JRADB/accessD.html?CNAME=pw00test12{DAY}%2FAA",
+            "observed_racecard_url":f"https://jra.jp/JRADB/accessD.html?CNAME=pw01dde01082026050112{DAY}%2FAA",
             "racecard_number":12,"racecard_original_fetched":True,
             "racecard_sha256":hashlib.sha256(raw).hexdigest(),
             "racecard_captured_at_utc":"2026-11-21T01:07:00Z",
@@ -32,8 +32,8 @@ class Bridge(unittest.TestCase):
         requests=[]
         def fetch(_,url):
             requests.append(url)
-            if broken and "test06" in url: raise TimeoutError("injected_failure")
-            return card(3+int(url.split("test")[1][:2]),race=int(url.split("test")[1][:2]))
+            if broken and source_race(url)==6: raise TimeoutError("injected_failure")
+            return card(3+source_race(url),race=source_race(url))
         with patch("diagnostics.kyoto_nov15_two_original_observer.observe",self.observer),patch(
             "diagnostics.kyoto_g03_weekend_bridge._read",side_effect=fetch),patch(
             "diagnostics.jra_one_shot_market_capture.RequestPacer"):
