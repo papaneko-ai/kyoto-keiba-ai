@@ -90,9 +90,9 @@ def parse(raw, day, race, url, utc):
             if len(anchors)==1:
                 person=anchors[0]
             cell_text=rider_cell.get_text(" ",strip=True)
-            masses=re.findall(r"(?<![0-9])([45][0-9]|6[0-3])(?:\\.([05]))?\\s*kg",cell_text,re.I)
+            masses=re.findall(r"(?<![0-9])([4-6][0-9](?:\.[05])?)\s*kg",cell_text,re.I)
             if len(masses)==1:
-                weight=float(masses[0][0]+"."+(masses[0][1] or "0"))
+                weight=float(masses[0])
             if not person:
                 m=re.search(r"([☆▲△★◇]?[A-Za-zＡ-Ｚａ-ｚ一-龥ぁ-んァ-ン.・\\s]{2,35})\\s+(?:[45][0-9]|6[0-3])(?:\\.[05])?\\s*kg",cell_text)
                 if m:person=m.group(1).strip()
