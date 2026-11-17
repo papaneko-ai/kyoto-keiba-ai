@@ -42,7 +42,7 @@ def links(original, parent, day):
         race=int(match["race"])
         label=a.get_text(" ",strip=True)
         if label:
-            labelled=re.search(r"(?<!\d)(1[0-2]|0?[1-9])\\s*(?:R|レース)(?!\d)",label,re.I)
+            labelled=re.search(r"(?<!\d)(1[0-2]|0?[1-9])\s*(?:R|レース)(?!\d)",label,re.I)
             if labelled and int(labelled.group(1))!=race:
                 raise G03Error("contradictory_race_label")
         observed[race].add(url)
