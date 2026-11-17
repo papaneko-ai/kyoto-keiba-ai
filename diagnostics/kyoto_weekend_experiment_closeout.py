@@ -14,7 +14,7 @@ from pathlib import Path
 import urllib.request
 
 DAYS=("20261121","20261122")
-CUTOFF=datetime(2026,11,22,4,0,tzinfo=timezone.utc)
+CUTOFF=datetime(2026,11,22,9,0,tzinfo=timezone.utc)
 WORKFLOW="kyoto-20261121-22-two-source-production-observer.yml"
 REPO="papaneko-ai/kyoto-keiba-ai"
 LANES=("pc","sp")
