@@ -11,23 +11,44 @@ class G03Error(ValueError): pass
 CoverageRejected=G03Error
 
 def links(original, parent, day):
-    if not re.fullmatch(r"20\d{6}", day): raise G03Error("invalid_day")
-    if urlsplit(parent).hostname != "jra.jp": raise G03Error("untrusted_meeting")
+    """Only navigate real observed PC Kyoto racecard CNAMEs; never infer a checksum.
+
+    JRA's race-selector anchors may have empty labels. Use its actual observed
+    2026/11/07 PC navigation token structure, rather than anchor text.
+    """
+    if not re.fullmatch(r"20\\d{6}",day): raise G03Error("invalid_day")
+    parent_parts=urlsplit(parent)
+    if parent_parts.scheme!="https" or parent_parts.hostname!="jra.jp" or parent_parts.path!="/JRADB/accessD.html":
+        raise G03Error("untrusted_meeting")
     soup=BeautifulSoup(original.decode("cp932",errors="replace"),"html.parser")
-    found={r:set() for r in range(1,13)}
+    observed={race:set() for race in range(1,13)}
+    token_re=re.compile(
+        r"pw01dde01(?P<venue>08)(?P<year>20\\d{2})"
+        r"(?P<meeting>\\d{2})(?P<meeting_day>\\d{2})"
+        r"(?P<race>0[1-9]|1[0-2])(?P<day>20\\d{6})"
+        r"/(?P<signature>[A-Za-z0-9]{2})"
+    )
     for a in soup.select("a[href]"):
-        title=a.get_text(" ",strip=True)
-        match=re.search(r"(?<!\d)(1[0-2]|0?[1-9])\s*(?:R|レース)(?!\d)",title,re.I)
-        if not match: continue
-        race=int(match.group(1)); url=urljoin(parent,a["href"]); p=urlsplit(url)
-        q=parse_qs(p.query)
-        if (p.scheme!="https" or p.hostname!="jra.jp" or p.path!="/JRADB/accessD.html"
-            or p.fragment or set(q)!={"CNAME"} or len(q["CNAME"])!=1): continue
-        token=q["CNAME"][0]
-        if re.fullmatch(r"pw[A-Za-z0-9]+/[A-Za-z0-9]+",token) and f"{race:02d}{day}" in token:
-            found[race].add(url)
-    if any(len(v)>1 for v in found.values()): raise G03Error("ambiguous_race_link")
-    return {r:next(iter(v)) for r,v in found.items() if v}
+        url=urljoin(parent,a["href"])
+        parts=urlsplit(url)
+        q=parse_qs(parts.query)
+        if (parts.scheme!="https" or parts.hostname!="jra.jp" or
+            parts.path!="/JRADB/accessD.html" or parts.fragment or
+            set(q)!={"CNAME"} or len(q["CNAME"])!=1):
+            continue
+        match=token_re.fullmatch(q["CNAME"][0])
+        if not match or match["day"]!=day or match["year"]!=day[:4]:
+            continue
+        race=int(match["race"])
+        label=a.get_text(" ",strip=True)
+        if label:
+            labelled=re.search(r"(?<!\\d)(1[0-2]|0?[1-9])\\s*(?:R|レース)(?!\\d)",label,re.I)
+            if labelled and int(labelled.group(1))!=race:
+                raise G03Error("contradictory_race_label")
+        observed[race].add(url)
+    if any(len(urls)>1 for urls in observed.values()):
+        raise G03Error("ambiguous_race_link")
+    return {race:next(iter(urls)) for race,urls in observed.items() if urls}
 
 def parse(raw, day, race, url, utc):
     stamp=datetime.fromisoformat(utc.replace("Z","+00:00"))
