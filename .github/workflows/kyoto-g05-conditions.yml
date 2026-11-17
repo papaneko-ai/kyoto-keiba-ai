@@ -4,9 +4,11 @@ on:
     branches: [jra-html-diagnostic-20261105]
     paths:
       - 'diagnostics/kyoto_g05_conditions.py'
+      - 'diagnostics/kyoto_g05_official_track.py'
       - 'diagnostics/kyoto_weekend_capture.py'
       - 'diagnostics/kyoto_nov15_encrypted_evidence.py'
       - 'tests/test_kyoto_g05_conditions.py'
+      - 'tests/test_kyoto_g05_official_track.py'
       - '.github/workflows/kyoto-g05-conditions.yml'
   workflow_dispatch:
 permissions:
@@ -27,7 +29,7 @@ jobs:
           python-version: '3.11'
       - run: python -m pip install 'beautifulsoup4>=4.12,<5' 'cryptography>=43,<47'
       - name: All 12R G05 source and missingness regression; zero external HTTP
-        run: python -m unittest -v tests.test_kyoto_g05_conditions
+        run: python -m unittest -v tests.test_kyoto_g05_conditions tests.test_kyoto_g05_official_track
       - name: Guard G03/G04 and encrypted source archive against regression
         run: python -m unittest -q tests.test_kyoto_g03_all_races tests.test_kyoto_g03_proof_verify tests.test_kyoto_g04_all_horse_profiles tests.test_kyoto_g03_weekend_bridge tests.test_kyoto_weekend_capture tests.test_kyoto_nov15_encrypted_evidence
       - name: Preserve evidence scope and unresolved official source
@@ -39,6 +41,7 @@ jobs:
           data={"gate":"G05","scope":"ZERO_HTTP_ALL_12R_SAVED_RACECARD_GROUND_WEATHER_WEIGHT_MISSINGNESS",
                 "real_saved_conditions_source_bytes_replayed":False,
                 "published_workout_source_discovered":False,
+                "official_kyoto_track_page_same_day_synthetic_replay":True,
                 "official_publication_timestamps_verified":False,
                 "historical_training_values_fabricated":False,
                 "live_nov21_nov22_acquired":False,
