@@ -1,0 +1,42 @@
+name: Kyoto G03 12-race roster offline regression
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'diagnostics/kyoto_g03_all_races.py'
+      - 'tests/test_kyoto_g03_all_races.py'
+      - '.github/workflows/kyoto-g03-all-races-offline.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  g03-offline-evidence:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install parser dependencies
+        run: python -m pip install 'beautifulsoup4>=4.12,<5'
+      - name: Run 12-race offline regression, no JRA HTTP
+        run: python -m unittest -v tests.test_kyoto_g03_all_races
+      - name: Record scope and limits
+        run: |
+          mkdir -p g03_offline_evidence
+          python - <<'PY'
+          import json, subprocess, pathlib
+          data={"gate":"G03","kind":"SYNTHETIC_OFFLINE_REGRESSION",
+                "live_jra_acquisition_proven":False,"all_real_races_verified":False,
+                "workflow_head_sha":subprocess.check_output(["git","rev-parse","HEAD"],text=True).strip(),
+                "gate_pass":False}
+          pathlib.Path("g03_offline_evidence/receipt.json").write_text(json.dumps(data,indent=2)+"\n")
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: kyoto-g03-offline-regression-${{ github.run_id }}
+          path: g03_offline_evidence/
+          if-no-files-found: error
