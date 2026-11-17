@@ -24,7 +24,14 @@ def parse_kyoto_track(raw,day,source_url,captured_at_utc):
     stamp=_utc(captured_at_utc)
     if not re.fullmatch(r"20[0-9]{6}",day):
         raise G05TrackRejected("day_unverified")
-    soup=BeautifulSoup(raw.decode("utf8",errors="replace"),"html.parser")
+    try:
+        decoded=raw.decode("utf8",errors="strict")
+    except UnicodeError:
+        try:
+            decoded=raw.decode("cp932",errors="strict")
+        except UnicodeError as exc:
+            raise G05TrackRejected("official_track_encoding_unverified") from exc
+    soup=BeautifulSoup(decoded,"html.parser")
     # English translation or different encoding may alter selectors.
     # With no trustworthy same-day heading, retain originals only.
     text=soup.get_text(" ",strip=True)
