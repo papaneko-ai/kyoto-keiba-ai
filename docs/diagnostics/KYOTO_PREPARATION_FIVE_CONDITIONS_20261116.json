@@ -1,6 +1,6 @@
 {
   "schema": "kyoto_five_fixed_pre_experiment_criteria.v1",
-  "collector_sha": "e2a48f8b58ae13c210eead22533ee107004a45cd",
+  "collector_sha": "eafcf8e13849f340e4bf4c3459347bebc89121da",
   "scope": "Nov21/22 Kyoto original source-only acquisition, not prediction or real-result proof",
   "conditions": [
     {
@@ -28,7 +28,7 @@
     43547344697,
     43669118231
   ],
-  "collector_dev_preflight_run": 43805494867,
+  "collector_dev_preflight_run": 44019233919,
   "backup": {
     "run_id": 43805649211,
     "artifact_id": 14198436409,
@@ -36,5 +36,8 @@
   },
   "live_external_result_excluded": true,
   "backup_recovery_policy": "Opportunity-first, do not block after previous run/attempt; 2 scheduled slots per target day and date-based concurrency",
-  "live_scheduled_dummy_verified": false
+  "live_scheduled_dummy_verified": false,
+  "previous_collector_sha": "e2a48f8b58ae13c210eead22533ee107004a45cd",
+  "previous_collector_dev_preflight_run": 43805494867,
+  "g03_status": "INTEGRATED_OFFLINE_SUCCESS_LIVE_12R_NOT_VERIFIED"
 }
