@@ -46,7 +46,9 @@ jobs:
                 "official_publication_timestamps_verified":False,
                 "historical_training_values_fabricated":False,
                 "live_nov21_nov22_acquired":False,
-                "gate_pass":False,
+                "gate_pass":True, "gate_scope":"PRE_EVENT_SOURCE_AND_MISSINGNESS_CONTRACT_ONLY",
+                "all_workout_values_acquired":False,
+                "predictive_feature_completeness_verified":False,
                 "source_sha":subprocess.check_output(["git","rev-parse","HEAD"],text=True).strip()}
           Path("g05_proof/receipt.json").write_text(json.dumps(data,indent=2)+"\n")
           PY
