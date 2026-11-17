@@ -103,6 +103,19 @@ jobs:
           print("MIGRATION19_PACKAGE_SHA256="+digest)
           print("MIGRATION19_PACKAGE_BYTES="+str(zip_path.stat().st_size))
           PY
+      - name: Fail closed unless the previous full migration ZIP is embedded
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import zipfile,sys
+          archive="KYOTO_AI_IMPLEMENTATION19_COMPLETE_MIGRATION_20261117.zip"
+          with zipfile.ZipFile(archive) as z:
+              if not any(n.lower().endswith(".zip") and
+                         ("previous" in n.lower() or "legacy" in n.lower())
+                         for n in z.namelist()):
+                  sys.exit("CUMULATIVE_BACKUP_FAILED_CLOSED: previous complete archive absent; source-only ZIP cannot be published as COMPLETE")
+          PY
       - name: Upload complete ZIP plus verification receipt
         uses: actions/upload-artifact@v4
         with:
