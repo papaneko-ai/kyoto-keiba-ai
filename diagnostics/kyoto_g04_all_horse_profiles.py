@@ -97,22 +97,25 @@ def capture(*,root,day,fetch,clock,allowed=False):
             key=(race,number)
             if key in seen:raise G04Rejected("duplicate_runner")
             seen.add(key)
-            pending.append((race,number,name,url,cutoff))
+            pending.append((race,number,name,url,cutoff,horse.get("current_jockey"),horse.get("assigned_weight_kg")))
     if not 2<=len(pending)<=MAX_HORSES:raise G04Rejected("runner_volume_invalid")
     urls=[item[3] for item in pending]
     if len(urls)!=len(set(urls)):raise G04Rejected("duplicate_profile_url_identity")
     if (root/"g04_receipt.json").exists():
         raise G04Rejected("g04_receipt_already_exists")
     results=[]
-    for race,number,name,url,cutoff in pending:
+    for race,number,name,url,cutoff,current_jockey,assigned_weight in pending:
         original_name=f"g04_profile_r{race:02d}_h{number:02d}.html"
         item={"race":race,"horse_number":number,"horse_name":name,
               "source_url":url,"source_kind":"JRA_PC_OBSERVED_RACECARD_PROFILE_LINK",
               "observed_profile_code":_observed_profile_code(url),
               "observed_profile_code_attested_as_permanent_id":False,
+              "current_jockey":current_jockey if isinstance(current_jockey,str) else None,
+              "current_jockey_source_verified":bool(current_jockey and isinstance(current_jockey,str)),
+              "current_assigned_weight_kg":assigned_weight,
               "race_cutoff_utc":cutoff.isoformat(),"raw_original_file":original_name,
               "state":"NOT_FETCHED","profile_verified":False,
-              "current_jockey_verified":False,
+              "current_jockey_verified":bool(current_jockey and isinstance(current_jockey,str)),
               "prediction_ready":False,"training_ready":False}
         try:
             before=_utc(clock())
@@ -169,7 +172,7 @@ def capture(*,root,day,fetch,clock,allowed=False):
             "profile_verified_count":len(pending)-len(missing),
             "missing_profiles":missing,
             "all_profiles_parsed":not missing,
-            "current_jockey_verified_for_all":False,
+            "current_jockey_verified_for_all":all(p["current_jockey_source_verified"] for p in results),
             "jra_permanent_ids_verified_for_all":False,
             "observed_profile_codes_extracted":sum(bool(p.get("observed_profile_code")) for p in results),
             "prediction_ready":False,"training_ready":False,
