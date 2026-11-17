@@ -68,10 +68,10 @@ class SourceOnlyReleaseAcceptance(unittest.TestCase):
     def test_source_observation_cannot_be_mistaken_for_complete_predictable_risk_audit(self):
         approval=self.ledger["required_approval"]
         self.assertIs(approval["fmea_completeness_demonstrated"],False)
-        self.assertEqual(approval["top_level_functions_in_source_closure"],76)
-        self.assertEqual(approval["unreviewed_top_level_functions"],47)
+        self.assertEqual(approval["top_level_functions_in_source_closure"],81)
+        self.assertEqual(approval["unreviewed_top_level_functions"],52)
         self.assertEqual(approval["unreviewed_class_methods"],10)
-        self.assertEqual(approval["additional_open_risk_families"],20)
+        self.assertEqual(approval["additional_open_risk_families"],22)
         self.assertIs(approval["source_only_observation_not_certification"],True)
 
     def test_no_fake_live_market_certification(self):
