@@ -1,6 +1,6 @@
 {
   "schema": "kyoto_five_fixed_pre_experiment_criteria.v1",
-  "collector_sha": "247e3b22987ec76d84afe22862ea98c8607cb2d6",
+  "collector_sha": "e3d93491ff4da35176107c58e43f95a8efa28b01",
   "scope": "Nov21/22 Kyoto original source-only acquisition, not prediction or real-result proof",
   "conditions": [
     {
@@ -28,7 +28,7 @@
     43547344697,
     43669118231
   ],
-  "collector_dev_preflight_run": 44019922501,
+  "collector_dev_preflight_run": 44024341610,
   "backup": {
     "run_id": 43805649211,
     "artifact_id": 14198436409,
@@ -37,7 +37,7 @@
   "live_external_result_excluded": true,
   "backup_recovery_policy": "Opportunity-first, do not block after previous run/attempt; 2 scheduled slots per target day and date-based concurrency",
   "live_scheduled_dummy_verified": false,
-  "previous_collector_sha": "eafcf8e13849f340e4bf4c3459347bebc89121da",
-  "previous_collector_dev_preflight_run": 44019233919,
-  "g03_status": "OFFLINE_IDENTITY_AND_ENCRYPTION_CI_PASS_REAL_RACE_CAPTURE_UNPROVEN"
+  "previous_collector_sha": "247e3b22987ec76d84afe22862ea98c8607cb2d6",
+  "previous_collector_dev_preflight_run": 44019922501,
+  "g03_status": "REAL_HISTORICAL_20261107_SNAPSHOTS_RECONCILED_LIVE_20261121_22_UNVERIFIED"
 }
