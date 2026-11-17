@@ -19,7 +19,7 @@ jobs:
     timeout-minutes: 12
     env:
       PYTHONPATH: .
-      CANDIDATE_SHA: ${{ inputs.candidate_sha || '6f4de9c8ad0f65949e2bd4584e7b652cb7459073' }}
+      CANDIDATE_SHA: ${{ inputs.candidate_sha || '17eae0ce3e1ffa04b75398555849740af6a22f0a' }}
     steps:
       - name: Validate exact source SHA before checkout
         shell: bash
