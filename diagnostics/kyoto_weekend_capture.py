@@ -111,6 +111,20 @@ def capture(day: str, channel: str, output: str, *, live: bool,
                 except Exception as exc:
                     out["g04_capture_state"]="G04_EXCEPTION_SOURCE_OR_PARSE_BLOCKED"
                     out["g04_error_class"]=type(exc).__name__
+            # G05 uses exactly the saved same-day racecards, no new network.
+            # Missing or unpublished weather, body weight, workout remain null,
+            # never zero/imputed and never a betting authorization.
+            out["g05_source_contract_saved"]=False
+            if g03.get("complete") is True:
+                try:
+                    from diagnostics.kyoto_g05_conditions import compile_saved
+                    g05=compile_saved(root / "pc_originals",day=day)
+                    out["g05_source_contract_saved"]=True
+                    out["g05_observed_field_values"]=g05["observed_field_values"]
+                    out["g05_workout_source_verified"]=False
+                except Exception as exc:
+                    out["g05_capture_state"]="G05_INCOMPLETE_OR_SOURCE_REJECTED"
+                    out["g05_error_class"]=type(exc).__name__
             for original in (root / "pc_originals").iterdir():
                 if original.is_file():
                     original.rename(root / original.name)
