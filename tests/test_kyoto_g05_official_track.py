@@ -22,6 +22,12 @@ class KyotoTrackTests(unittest.TestCase):
         self.assertFalse(r["data_asof_publication_time_utc_verified"])
         self.assertIsNone(r["cushion_value"])
         self.assertFalse(r["prediction_ready"])
+    def test_official_cp932_track_original_decodes_without_replacement(self):
+        source=html().decode("utf8").encode("cp932")
+        r=parse_kyoto_track(source,DAY,KYOTO_TRACK_PAGE,"2026-11-21T01:01:00Z")
+        self.assertTrue(r["same_day_official_meeting_heading_verified"])
+        self.assertEqual(r["weather"],"晴")
+
     def test_previous_week_not_promoted(self):
         r=parse_kyoto_track(html("20261115"),DAY,KYOTO_TRACK_PAGE,"2026-11-21T01:01:00Z")
         self.assertFalse(r["same_day_official_meeting_heading_verified"])
