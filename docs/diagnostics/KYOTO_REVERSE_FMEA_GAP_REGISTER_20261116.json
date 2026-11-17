@@ -2,7 +2,7 @@
   "schema": "kyoto_fmea_reverse_coverage_v1",
   "reference_day": "2026-11-16",
   "source_branch": "jra-html-diagnostic-20261105",
-  "source_commit": "f834291a2e81d6821353a23434b37123ddcda4f9",
+  "source_commit": "e97f5ab83fda8ef2f9affc7e4407f77b8a51eff5",
   "scope": "Nov21/22 production official-source observation and handoff; not forecast market acceptance",
   "extraction_policy": "Static transitive diagnostics import closure of 7 source entry modules, all top-level functions registered and locked by source Git blob; newly imported modules and newly added functions require inventory expansion. Class-method and runtime dynamic imports are independently declared separate pending scopes.",
   "surfaces": [
@@ -1005,7 +1005,7 @@
     "diagnostics/kyoto_weekend_sp_discovery.py": "b320ced19ebe089869fdcfd4b1b368977720a2bf",
     "diagnostics/kyoto_weekend_postflight.py": "00fefbbec77e35de814c560e04f45004d17617ab",
     "diagnostics/kyoto_weekend_day21_triage.py": "b172831bcbf98f83b101bab5309002c3782d3aa1",
-    "diagnostics/kyoto_nov15_two_original_observer.py": "3ecaad795fecc83a6766cab788447a1f75ad0232",
+    "diagnostics/kyoto_nov15_two_original_observer.py": "09180e1441b2621b24e72c1fa84c23cfca424252",
     "diagnostics/kyoto_sp_observed_source.py": "5918ba68a8518c2842486ad4720ac78d12653d8e",
     "diagnostics/kyoto_nov15_encrypted_evidence.py": "6b867c37b24c69889df7075fe1aa033f50a8e2b4",
     "diagnostics/jra_benchmark_acceptance.py": "edbd6b5b9479fdbf3fc88c7450c0c7ae3260a76f",
@@ -1024,6 +1024,6 @@
     "diagnostics/kyoto_g03_all_races.py": "3962a199d216ebd0e3f3a60aed3d57b688aab725",
     "diagnostics/kyoto_g03_weekend_bridge.py": "5f3e4011f84738a057520434ad83351a7d3e0d27"
   },
-  "revision_note": "G03 delta: frozen old FMEA retained by previous_source_commit; 2 new modules/5 new top-level functions and 2 unresolved blocker families. Synthetic CI does not certify real JRA 12R. Timestamp-provenance correction preserves original saved R12 UTC. G03 parser reuses the existing verified PC parser; rejects wrong venue/day/race/frame and preserves unresolved real-source validation risk. Critical G03 actual-HTML navigation correction: observed 2026-11-07 empty-anchor 12 JRA CNAMEs verified; live 2026-11-21/22 remains unproven. Existing PC observer's 12R visible-label assumption corrected using original observed Kyoto racecard CNAME; no guessed request URLs.",
-  "previous_source_commit": "500661df468f3f539e5ce4d2eddd1ca1a405a547"
+  "revision_note": "G03 delta: frozen old FMEA retained by previous_source_commit; 2 new modules/5 new top-level functions and 2 unresolved blocker families. Synthetic CI does not certify real JRA 12R. Timestamp-provenance correction preserves original saved R12 UTC. G03 parser reuses the existing verified PC parser; rejects wrong venue/day/race/frame and preserves unresolved real-source validation risk. Critical G03 actual-HTML navigation correction: observed 2026-11-07 empty-anchor 12 JRA CNAMEs verified; live 2026-11-21/22 remains unproven. Existing PC observer's 12R visible-label assumption corrected using original observed Kyoto racecard CNAME; no guessed request URLs. Historical mock-only test compatibility preserved; strict 21/22 source identity unchanged.",
+  "previous_source_commit": "f834291a2e81d6821353a23434b37123ddcda4f9"
 }
