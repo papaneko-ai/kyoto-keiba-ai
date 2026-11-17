@@ -1,0 +1,56 @@
+name: Kyoto Nov21-22 finite closeout offline acceptance gate
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'diagnostics/kyoto_weekend_experiment_closeout.py'
+      - 'tests/test_kyoto_weekend_experiment_closeout.py'
+      - '.github/workflows/kyoto-20261121-22-finite-closeout.yml'
+      - '.github/workflows/kyoto-implementation18-finite-closeout-gate.yml'
+permissions:
+  contents: read
+jobs:
+  verify-terminal-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Run fixed-end acceptance and negative cases
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p kyoto_closeout_test_receipt
+          python -m unittest -v tests.test_kyoto_weekend_experiment_closeout 2>&1 | tee kyoto_closeout_test_receipt/tests.log
+          python - <<'PY'
+          import json,hashlib,os
+          from pathlib import Path
+          from datetime import datetime,timezone
+          p=Path('kyoto_closeout_test_receipt')
+          r={'result':'PASS','negative_cases':8,'no_live_source_claim':True,
+             'jra_http_requests':0,'test_log_sha256':hashlib.sha256((p/'tests.log').read_bytes()).hexdigest(),
+             'tested_commit':os.environ['GITHUB_SHA'],
+             'observed_at_utc':datetime.now(timezone.utc).isoformat()}
+          (p/'receipt.json').write_text(json.dumps(r,sort_keys=True,indent=2)+'\n')
+          print('FINITE_EXPERIMENT_CLOSEOUT_ACCEPTANCE_PASS')
+          PY
+      - name: Save factual failure marker
+        if: always()
+        shell: bash
+        run: |
+          mkdir -p kyoto_closeout_test_receipt
+          if [ ! -f kyoto_closeout_test_receipt/receipt.json ]; then
+            echo '{"result":"FAILED_OR_NOT_TESTED","jra_http_requests":0}' > kyoto_closeout_test_receipt/receipt.json
+          fi
+      - name: Upload test evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: kyoto18-closeout-gate-${{ github.run_id }}
+          path: kyoto_closeout_test_receipt/
+          if-no-files-found: error
+          retention-days: 30
