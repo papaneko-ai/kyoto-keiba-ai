@@ -120,7 +120,7 @@ class AllHorseProfile(unittest.TestCase):
         def full_card(url):
             race=source_race(url)
             html=card(count=18,race=race)
-            for n in range(1,19):
+            for n in range(18,0,-1):
                 html=html.replace(f"CNAME=horse{n}".encode(),f"CNAME=pw22{race:02d}{n:02d}%2FAA".encode())
             return html
         proof=acquire_all(day=DAY,root=stage,meeting_raw=meeting(),meeting_url=PARENT,
