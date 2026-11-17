@@ -125,13 +125,26 @@ def capture(*,root,day,fetch,clock,allowed=False):
             if parsed["invalid_rows"]:
                 raise G04Rejected("history_rows_unresolved")
             features=_metadata(raw,name)
+            parsed_file=f"g04_profile_r{race:02d}_h{number:02d}_parsed.json"
+            detail={"schema":"kyoto_g04_individual_prior_form.v1",
+                    "race":race,"horse_number":number,"horse_name":name,
+                    "source_sha256":item["source_sha256"],"captured_at_utc":item["captured_at_utc"],
+                    "source_url":url,"race_cutoff_utc":cutoff.isoformat(),
+                    "demographics":features,"prior_rows":parsed["prior_rows"],
+                    "nonfinish_rows":parsed["nonfinish_rows"],
+                    "administrative_events":parsed["administrative_events"],
+                    "excluded_rows":parsed["excluded_rows"],"history_status":parsed["history_status"],
+                    "prediction_ready":False,"training_ready":False}
+            (root/parsed_file).write_text(
+                json.dumps(detail,ensure_ascii=False,sort_keys=True,indent=2)+"\\n",encoding="utf8")
             item.update(state="PROFILE_AND_PRIOR_FORM_VERIFIED_OFFLINE",
                 profile_verified=True,
                 demographics=features,
-                history_rows=parsed["prior_rows"],prior_finish_count=len(parsed["prior_rows"]),
-                nonfinish_rows=parsed["nonfinish_rows"],
-                administrative_events=parsed["administrative_events"],
-                excluded_rows=parsed["excluded_rows"],
+                parsed_file=parsed_file,
+                prior_finish_count=len(parsed["prior_rows"]),
+                nonfinish_count=len(parsed["nonfinish_rows"]),
+                administrative_event_count=len(parsed["administrative_events"]),
+                excluded_row_count=len(parsed["excluded_rows"]),
                 history_status=parsed["history_status"])
         except Exception as exc:
             item.update(state="SOURCE_OR_PARSE_FAILED",failure_class=type(exc).__name__,
