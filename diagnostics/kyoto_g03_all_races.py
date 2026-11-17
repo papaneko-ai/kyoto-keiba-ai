@@ -66,6 +66,10 @@ def parse(raw, day, race, url, utc):
         raise G03Error("incomplete_roster")
     # Current race jockey, not a horse's most recent *past* jockey.
     # Only a uniquely identifiable official racecard cell may populate it.
+    tables=[table for table in soup.select("table")
+            if all(table.select_one("th."+key) for key in ("horse","num","waku"))]
+    if len(tables)!=1:
+        raise G03Error("racecard_table_missing_or_ambiguous")
     header=tables[0].select_one("tr")
     header_cells=header.find_all("th",recursive=False) if header else []
     rider_columns=[i for i,th in enumerate(header_cells)
