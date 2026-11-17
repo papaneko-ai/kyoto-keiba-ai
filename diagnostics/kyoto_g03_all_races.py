@@ -129,7 +129,7 @@ def acquire_all(*,day,root,meeting_raw,meeting_url,fetch,captured_at_utc,allowed
             (root/filename).write_bytes(raw)
             details=parse(raw,day,race,found[race],captured_at_utc())
             report["races"][str(race)]={"state":"ROSTER_AND_START_VERIFIED_OFFLINE",
-                    "original_file":filename,"original_sha256":details["sha256"],
+                    "original_file":filename,"source_url":found[race],"original_sha256":details["sha256"],
                     "runner_count":details["runner_count"],"start_time_jst":details["start_time_jst"],
                     "local_race_key":details["local_race_key"],"official_race_id_verified":False,
                     "runners":details["runners"],"captured_at_utc":details["utc"]}
