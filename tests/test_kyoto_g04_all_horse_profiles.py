@@ -69,8 +69,11 @@ class AllHorseProfile(unittest.TestCase):
         self.assertTrue(sealed["encrypted_only"])
 
     def test_network_failure_preserves_originals_and_fails_partial(self):
+        injected=[False]
         def bad(url):
-            if len(self.calls)==4:raise TimeoutError("injected")
+            if len(self.calls)==4 and not injected[0]:
+                injected[0]=True
+                raise TimeoutError("injected")
             return self.fetch(url)
         r=self.run_profile(fetch=bad)
         self.assertFalse(r["all_profiles_parsed"])
