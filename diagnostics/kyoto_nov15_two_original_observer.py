@@ -63,6 +63,19 @@ def _single_observed_racecard(meeting_original, meeting_url):
         anchors=observed_links(meeting_original,meeting_url)
     except (LinkRepairRejected,UnicodeError) as exc:
         raise ObservationRejected("observed_racecard_links_invalid") from exc
+    # Real JRA race-selector anchors may have an empty visible label.
+    # Prefer independently observed official Kyoto date/race CNAMEs, never
+    # reconstruct the token or its checksum.
+    from diagnostics.kyoto_g03_all_races import links as g03_links, G03Error
+    try:
+        actual=g03_links(meeting_original,meeting_url,DAY)
+    except G03Error as exc:
+        raise ObservationRejected("g03_official_race_links_invalid") from exc
+    if actual:
+        if DAY in ("20261121","20261122"):
+            return (12,actual[12]) if 12 in actual else None
+        chosen=max(actual)
+        return chosen,actual[chosen]
     choices={}
     for url,label,token in anchors:
         if DAY not in token:
