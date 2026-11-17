@@ -74,16 +74,25 @@ def capture(day: str, channel: str, output: str, *, live: bool,
     root.mkdir()
     if channel == "PC":
         from diagnostics.kyoto_nov15_two_original_observer import observe
+        from diagnostics.kyoto_p1_nov14_official_one_shot_nav import NoRedirect
+        from diagnostics.jra_one_shot_market_capture import RequestPacer
+        from diagnostics.kyoto_g03_weekend_bridge import collect_after_observer
+        pc_client=opener if opener is not None else build_opener(NoRedirect(),HTTPCookieProcessor(CookieJar()))
+        pc_pacer=RequestPacer(min_gap_seconds=2.0)
         try:
             result = observe(
                 root / "pc_originals", now_utc=datetime.now(timezone.utc).isoformat(),
-                opener=opener, allowed=True, include_observed_racecard=True,
-                include_observed_odds_menu=True)
+                opener=pc_client, allowed=True, include_observed_racecard=True,
+                include_observed_odds_menu=True, pacer=pc_pacer)
             # Preserve the full observer receipt with every actual SHA, URL and
             # UTC timestamp. A separate summary is returned to the job log only.
             out = _no_claim(day, channel, result["state"],
                             observed_http_requests_started=result["http_requests_started"],
                             captured_originals=bool(result.get("selection_sha256")))
+            g03=collect_after_observer(original_root=root / "pc_originals",
+                                       day=day,opener=pc_client,pacer=pc_pacer)
+            out["g03_all_race_originals_observed"]=bool(g03.get("complete"))
+            out["g03_network_requests_started"]=g03.get("network_requests_started",0)
             for original in (root / "pc_originals").iterdir():
                 if original.is_file():
                     original.rename(root / original.name)
