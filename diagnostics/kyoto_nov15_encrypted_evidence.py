@@ -16,6 +16,12 @@ FILES={"observer_partial_receipt.json","source_verification.json","sp_discovery_
 # Explicit G03 1R-12R archive allowlist; arbitrary source filenames stay forbidden.
 FILES |= {"g03_official_meeting.html","g03_g03_receipt.json","g03_receipt.json"}
 FILES |= {f"g03_official_racecard_{n:02d}.html" for n in range(1,13)}
+# G04 allowlisted 12R x 18H original and parsed prior-form evidence.
+FILES.add("g04_receipt.json")
+FILES |= {f"g04_profile_r{race:02d}_h{horse:02d}.html"
+          for race in range(1,13) for horse in range(1,19)}
+FILES |= {f"g04_profile_r{race:02d}_h{horse:02d}_parsed.json"
+          for race in range(1,13) for horse in range(1,19)}
 class EvidenceCryptoRejected(ValueError):pass
 
 def _key(s):
