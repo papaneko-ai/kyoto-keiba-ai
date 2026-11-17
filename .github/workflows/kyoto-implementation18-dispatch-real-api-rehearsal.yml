@@ -1,0 +1,73 @@
+name: Kyoto implementation18 real GitHub API dispatch no-JRA rehearsal
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/kyoto-implementation18-dispatch-real-api-rehearsal.yml'
+permissions:
+  contents: read
+  actions: write
+jobs:
+  dispatch-no-jra-probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Real authenticated workflow_dispatch POST, no JRA or production workflow
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p actual_dispatch_rehearsal
+          python - <<'PY'
+          import json,os,time,urllib.request,urllib.error
+          from datetime import datetime,timezone
+          from pathlib import Path
+          endpoint='https://api.github.com/repos/'+os.environ['GITHUB_REPOSITORY']+'/actions/workflows/kyoto-implementation18-external-timer-probe.yml/dispatches'
+          sent=int(time.time())
+          body={'ref':'main','inputs':{'sent_unix':str(sent)}}
+          req=urllib.request.Request(endpoint,data=json.dumps(body,separators=(',',':')).encode('utf-8'),method='POST',
+              headers={'Authorization':'Bearer '+os.environ['GH_TOKEN'],
+                       'Accept':'application/vnd.github+json',
+                       'X-GitHub-Api-Version':'2022-11-28',
+                       'Content-Type':'application/json',
+                       'User-Agent':'Kyoto-AI-no-JRA-rehearsal'})
+          status=None;error=None
+          try:
+              with urllib.request.urlopen(req,timeout=20) as response:
+                  status=response.status
+          except urllib.error.HTTPError as exc:
+              status=exc.code
+              error='HTTP_'+str(exc.code)
+          except Exception as exc:
+              error=type(exc).__name__
+          receipt={'request_time_utc':datetime.fromtimestamp(sent,timezone.utc).isoformat(),
+                   'sent_unix':sent,'http_status':status,'error_code':error,
+                   'kind':'REAL_GITHUB_API_PROBE_ONLY','source_event':os.environ['GITHUB_EVENT_NAME'],
+                   'source_run_id':os.environ['GITHUB_RUN_ID'],
+                   'target_workflow':'kyoto-implementation18-external-timer-probe.yml',
+                   'production_capture_not_invoked':True,'jra_http_requests':0,
+                   'external_timer_provider_proven':False}
+          Path('actual_dispatch_rehearsal/receipt.json').write_text(json.dumps(receipt,indent=2,sort_keys=True))
+          print('GITHUB_API_DISPATCH_HTTP_STATUS='+str(status))
+          print('EXTERNAL_TIMER_PROVIDER_PROVEN=False')
+          print('JRA_HTTP_REQUESTS=0')
+          if status!=204:
+              raise SystemExit('GITHUB_REAL_DISPATCH_NOT_ACCEPTED_'+str(error))
+          PY
+      - name: Factual failure receipt
+        if: always()
+        shell: bash
+        run: |
+          mkdir -p actual_dispatch_rehearsal
+          if [ ! -f actual_dispatch_rehearsal/receipt.json ]; then
+            printf '%s\n' '{"result":"NOT_RUN","production_capture_not_invoked":true,"jra_http_requests":0,"external_timer_provider_proven":false}' > actual_dispatch_rehearsal/receipt.json
+          fi
+      - name: Upload API request evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: kyoto18-real-dispatch-request-${{ github.run_id }}
+          path: actual_dispatch_rehearsal/
+          if-no-files-found: error
+          retention-days: 30
