@@ -1,0 +1,61 @@
+name: Kyoto Nov21-22 finite acquisition experiment closeout
+on:
+  schedule:
+    - cron: '0 5 22 11 *' # 2026-11-22 14:00 JST, one-hour after fixed cutoff
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  close-finite-experiment:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Mandatory deterministic negative cases before any closeout
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p kyoto_weekend_closeout
+          python -m unittest -v tests.test_kyoto_weekend_experiment_closeout 2>&1 | tee kyoto_weekend_closeout/negative_tests.log
+      - name: Close all Nov21 Nov22 observation opportunities, no JRA network
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m diagnostics.kyoto_weekend_experiment_closeout --out kyoto_weekend_closeout/final_receipt.json
+          python - <<'PY'
+          import json,os
+          from pathlib import Path
+          r=json.loads(Path('kyoto_weekend_closeout/final_receipt.json').read_text())
+          with open(os.environ['GITHUB_STEP_SUMMARY'],'a') as f:
+              f.write('## Kyoto source experiment finite closeout\n\n')
+              f.write('Experiment state: **'+r['experiment_status']+'**  \\n')
+              f.write('Data state: **'+r['data_outcome']+'**  \\n')
+              for day in ('20261121','20261122'):
+                  d=r['days'][day]
+                  f.write(day+': '+d['outcome']+', '+str(d['run_count'])+' observed runs  \\n')
+              f.write('\nOriginal authenticity and pre-race odds are NOT inferred from Actions artifacts.\n')
+          PY
+      - name: Preserve factual partial evidence if closeout has an error
+        if: always()
+        shell: bash
+        run: |
+          mkdir -p kyoto_weekend_closeout
+          if [ ! -f kyoto_weekend_closeout/final_receipt.json ]; then
+            printf '%s\n' '{"experiment_status":"CLOSEOUT_EXECUTION_NOT_VERIFIED","source_accepted":false,"prediction_ready":false}' > kyoto_weekend_closeout/nonfinal_error_receipt.json
+          fi
+      - name: Upload complete terminal receipt, or explicit failure record
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: kyoto-nov21-22-finite-closeout-${{ github.run_id }}
+          path: kyoto_weekend_closeout/
+          if-no-files-found: error
+          retention-days: 30
