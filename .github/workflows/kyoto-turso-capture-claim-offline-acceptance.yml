@@ -5,6 +5,9 @@ on:
     paths:
       - diagnostics/kyoto_turso_capture_claims.py
       - tests/test_kyoto_turso_capture_claims.py
+      - diagnostics/kyoto_turso_claim_manual_crossrunner.py
+      - tests/test_kyoto_turso_claim_manual_crossrunner.py
+      - .github/workflows/kyoto-weekend-turso-manual-two-runner-proof.yml
       - .github/workflows/kyoto-turso-capture-claim-offline-acceptance.yml
   workflow_dispatch:
 permissions:
@@ -25,7 +28,7 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p turso_claim_evidence
-          python -m unittest -v tests.test_kyoto_turso_capture_claims 2>&1 | tee turso_claim_evidence/independent_tests.txt
+          python -m unittest -v tests.test_kyoto_turso_capture_claims tests.test_kyoto_turso_claim_manual_crossrunner 2>&1 | tee turso_claim_evidence/independent_tests.txt
       - name: Receipt and exact source SHA
         if: always()
         shell: bash
