@@ -121,6 +121,16 @@ class Tests(unittest.TestCase):
         self.assertEqual(names,{
             "__kyoto_ai_weekend_claims_v1",
             "__kyoto_ai_weekend_claims_isolated_lab_v1"})
+    def test_lab_run_id_claim_never_allowed_in_operational_scope(self):
+        lab=TursoCaptureClaims(url=URL,token=TOKEN,
+            transport=self.remote,namespace="ISOLATED_LAB")
+        lab.prepare_schema()
+        lab_key="lab:44252070334:"+self.k
+        self.assertTrue(lab.claim(claim_key=lab_key,
+            owner="lab_runner_001",now_epoch=10000)["must_fetch"])
+        with self.assertRaisesRegex(ReservationError,"claim_key"):
+            self.a.claim(claim_key=lab_key,
+                owner="github_actions_1",now_epoch=10000)
     def test_unrecognized_namespace_cannot_be_injected(self):
         with self.assertRaisesRegex(ReservationError,"namespace"):
             TursoCaptureClaims(url=URL,token=TOKEN,transport=self.remote,
