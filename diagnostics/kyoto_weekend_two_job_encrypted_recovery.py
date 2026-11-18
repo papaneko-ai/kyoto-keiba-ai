@@ -8,7 +8,7 @@ from diagnostics.kyoto_weekend_capture import seal
 from diagnostics.kyoto_nov15_encrypted_evidence import decrypt_evidence
 DAY="20261121"
 REPO="papaneko-ai/kyoto-keiba-ai"
-RUN="synthetic-20261118"
+RUN="202611180001"
 KEY="ab"*32
 PAYLOAD=b"OFFLINE_FIXTURE_NOT_JRA_PC_ORIGINAL_20261121\n"
 
