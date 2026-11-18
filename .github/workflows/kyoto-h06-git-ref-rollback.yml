@@ -26,6 +26,12 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
+      - name: Install cryptography for existing encrypted-original regression
+        run: python -m pip install cryptography
+      - name: Verify production workflow pinned collector and encrypted-original behavior
+        run: |
+          grep -R -q 'c96df31542cb94435ca36cb4a1b8bd6de938233f' sources/main/.github/workflows/
+          (cd sources/experiment && python -m unittest -v tests.test_kyoto_nov15_encrypted_evidence) 2>&1 | tee h06_crypto_test.log
       - name: Switch refs, fault injection, and restore old SHA
         env:
           KYOTO_H06_SOURCES: sources
@@ -34,5 +40,5 @@ jobs:
         if: always()
         with:
           name: kyoto-h06-real-ref-rollback-${{ github.run_id }}
-          path: h06_ref_rollback_receipt.json
+          path: |\n            h06_ref_rollback_receipt.json\n            h06_crypto_test.log
           if-no-files-found: error
