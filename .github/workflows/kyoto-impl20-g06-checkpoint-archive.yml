@@ -57,16 +57,16 @@ jobs:
       - name: Exact branch source and SHA manifest
         run: |
           set -euo pipefail
-          git fetch origin main jra-html-diagnostic-20261105 experiment/multisource-hybrid-20261117
+          git fetch origin main jra-html-diagnostic-20261105 experiment/multisource-hybrid-20261117 release-candidate/nov21-22-g06-full12-20261118 release-review/nov21-22-full12-g06-20261118
           mkdir -p package/experiment-source
           git archive HEAD | tar -xf - -C package/experiment-source
-          git bundle create package/three-branches.bundle origin/main origin/jra-html-diagnostic-20261105 origin/experiment/multisource-hybrid-20261117
-          git bundle verify package/three-branches.bundle
+          git bundle create package/all-active-branches.bundle origin/main origin/jra-html-diagnostic-20261105 origin/experiment/multisource-hybrid-20261117 origin/release-candidate/nov21-22-g06-full12-20261118 origin/release-review/nov21-22-full12-g06-20261118
+          git bundle verify package/all-active-branches.bundle
           python - <<'PY'
           import subprocess,hashlib,json,pathlib
           root=pathlib.Path("package")
           heads={b:subprocess.check_output(["git","rev-parse","origin/"+b],text=True).strip()
-                 for b in ("main","jra-html-diagnostic-20261105","experiment/multisource-hybrid-20261117")}
+                 for b in ("main","jra-html-diagnostic-20261105","experiment/multisource-hybrid-20261117","release-candidate/nov21-22-g06-full12-20261118","release-review/nov21-22-full12-g06-20261118")}
           digests={}
           for p in sorted(root.rglob("*")):
               if p.is_file():digests[str(p.relative_to(root))]={"bytes":p.stat().st_size,"sha256":hashlib.sha256(p.read_bytes()).hexdigest()}
