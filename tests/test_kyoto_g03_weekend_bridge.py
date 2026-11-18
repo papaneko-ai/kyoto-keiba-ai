@@ -13,6 +13,8 @@ class Bridge(unittest.TestCase):
         t=tempfile.TemporaryDirectory();self.addCleanup(t.cleanup);self.root=Path(t.name)
         env=patch.dict(os.environ,{"KYOTO_TARGET_DAY":DAY})
         env.start();self.addCleanup(env.stop)
+        observer_day=patch("diagnostics.kyoto_nov15_two_original_observer.DAY",DAY)
+        observer_day.start();self.addCleanup(observer_day.stop)
 
     def observer(self,path,**kw):
         root=Path(path);root.mkdir()
@@ -50,6 +52,10 @@ class Bridge(unittest.TestCase):
     def test_all_races_and_existing_aes_gcm(self):
         r,calls=self.run_capture()
         self.assertTrue(r["g03_all_race_originals_observed"])
+        self.assertTrue(r["g06_twelve_race_market_attempted"])
+        self.assertTrue((self.root/"raw"/"g06_source_bundle.tar.gz").is_file())
+        from diagnostics.kyoto_g06_nested_bundle import verify_bundle
+        self.assertGreater(verify_bundle(self.root/"raw"/"g06_source_bundle.tar.gz")["verified_file_count"],12)
         self.assertEqual(len(calls),11)
         receipt=json.loads((self.root/"raw"/"g03_receipt.json").read_text())
         self.assertTrue(receipt["complete"])
