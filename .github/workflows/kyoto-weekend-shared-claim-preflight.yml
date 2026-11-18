@@ -6,6 +6,8 @@ on:
     paths:
       - diagnostics/kyoto_shared_capture_reservation.py
       - tests/test_kyoto_shared_capture_reservation.py
+      - diagnostics/kyoto_shared_capture_http_lab.py
+      - tests/test_kyoto_shared_capture_http_lab.py
       - diagnostics/kyoto_g03_to_g06_input_adapter.py
       - tests/test_kyoto_g03_to_g06_input_adapter.py
       - .github/workflows/kyoto-weekend-shared-claim-preflight.yml
@@ -29,7 +31,7 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p weekend_claim_evidence
-          python -m unittest -v tests.test_kyoto_shared_capture_reservation tests.test_kyoto_g03_to_g06_input_adapter 2>&1 | tee weekend_claim_evidence/tests.txt
+          python -m unittest -v tests.test_kyoto_shared_capture_http_lab tests.test_kyoto_shared_capture_reservation tests.test_kyoto_g03_to_g06_input_adapter 2>&1 | tee weekend_claim_evidence/tests.txt
       - name: Preserve exact source revision
         if: always()
         shell: bash
