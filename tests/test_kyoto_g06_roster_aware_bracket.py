@@ -49,9 +49,9 @@ class RosterAware(unittest.TestCase):
         self.assertEqual(got["pair_count"],36)
     def test_existing_paired_market_chain_for_nine_runner_race(self):
         from diagnostics.jra_market_source_chain import audit_source_originals
-        from tests.test_kyoto_g06_twelve_race_dual_market_gate import race
+        from tests.test_kyoto_g06_twelve_race_dual_market_gate import fixture
         participants=lineup(1)
-        a=race(1)
+        a=fixture(1)
         a["active_runners"]=participants
         rows=[]
         for i in range(1,len(participants)):
