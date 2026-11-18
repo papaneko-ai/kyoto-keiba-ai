@@ -20,12 +20,16 @@ FILES |= {f"g03_official_racecard_{n:02d}.html" for n in range(1,13)}
 FILES.add("g04_receipt.json")
 # G05 archived race conditions and per-horse body weight/unknown workout evidence.
 FILES.add("g05_receipt.json")
+FILES.add("g06_source_bundle.tar.gz")
 FILES |= {"g05_official_kyoto_track.html","g05_track_receipt.json"}
 FILES |= {f"g04_profile_r{race:02d}_h{horse:02d}.html"
           for race in range(1,13) for horse in range(1,19)}
 FILES |= {f"g04_profile_r{race:02d}_h{horse:02d}_parsed.json"
           for race in range(1,13) for horse in range(1,19)}
 class EvidenceCryptoRejected(ValueError):pass
+
+def _file_cap(name):
+    return 75_000_000 if name=="g06_source_bundle.tar.gz" else 1_500_000
 
 def _key(s):
     if type(s) is not str or not re.fullmatch(r"[0-9a-fA-F]{64}",s):
@@ -45,7 +49,7 @@ def encrypt_evidence(source,out,*,key_hex,repo,run_id):
     files=list(src.iterdir())
     if (not files or "receipt.json" not in {p.name for p in files}
         or any(p.is_symlink() or not p.is_file() or p.name not in FILES
-               or p.stat().st_size>1_500_000 for p in files)):
+               or p.stat().st_size>_file_cap(p.name) for p in files)):
         raise EvidenceCryptoRejected("unexpected_original_file")
     payload=io.BytesIO()
     with tarfile.open(fileobj=payload,mode="w:gz") as archive:
@@ -104,7 +108,7 @@ def decrypt_evidence(source,out,*,key_hex,repo,run_id):
                 sorted(x.name for x in members)!=sorted(m["file_names"])):
                 raise EvidenceCryptoRejected("archive_member_mismatch")
             for x in members:
-                if not x.isfile() or x.name not in FILES or x.size>1_500_000:
+                if not x.isfile() or x.name not in FILES or x.size>_file_cap(x.name):
                     raise EvidenceCryptoRejected("unsafe_archive_member")
                 contents[x.name]=archive.extractfile(x).read()
     except (tarfile.TarError,OSError) as exc:
