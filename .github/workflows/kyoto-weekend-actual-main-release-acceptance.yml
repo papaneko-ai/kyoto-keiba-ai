@@ -6,6 +6,7 @@ on:
     paths:
       - diagnostics/kyoto_weekend_actual_main_release_gate.py
       - tests/test_kyoto_weekend_day21_day22_continuity_acceptance.py
+      - tests/test_kyoto_weekend_sp_full_path_acceptance.py
       - diagnostics/kyoto_weekend_reversible_promotion.py
       - tests/test_kyoto_weekend_reversible_promotion.py
       - .github/workflows/kyoto-weekend-actual-main-release-acceptance.yml
@@ -136,6 +137,13 @@ jobs:
               raise SystemExit("PREDICTABLE_FAILURE_COVERAGE_UNPROVEN")
           print("PREDICTABLE_FAILURE_30_OF_30")
           PY
+      - name: Independent Nov21 and Nov22 SP navigation to both odds transports
+        shell: bash
+        run: |
+          set -euo pipefail
+          cp experiment/tests/test_kyoto_weekend_sp_full_path_acceptance.py pinned_collector/tests/
+          (cd pinned_collector && python -m unittest -v tests.test_kyoto_weekend_sp_full_path_acceptance) 2>&1 | tee release_evidence/sp_full_transport.txt
+          rm pinned_collector/tests/test_kyoto_weekend_sp_full_path_acceptance.py
       - name: Confirm repair contains only the two intended paths
         shell: bash
         run: |
