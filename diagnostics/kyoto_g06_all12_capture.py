@@ -100,6 +100,8 @@ def run_twelve(root, *, records, authorized_live_http=False, runner=None,
     for race in range(1,13):
         item=records[race]
         entry={"race":race,"state":"NOT_ATTEMPTED","both_markets_verified":False}
+        lease=None
+        lease_key=None
         if item is None:
             entry["state"]="OFFICIAL_LINK_NOT_OBSERVED"
             results.append(entry)
@@ -235,7 +237,7 @@ def run_twelve(root, *, records, authorized_live_http=False, runner=None,
         except (ValueError,TypeError,KeyError,AttributeError,OSError) as exc:
             entry.update(state="INPUT_OR_CAPTURE_REJECTED",
                          reason=type(exc).__name__+":"+str(exc)[:120])
-            if claim_client is not None and "lease" in locals() and lease and lease.get("must_fetch"):
+            if claim_client is not None and lease and lease.get("must_fetch"):
                 try:
                     claim_client.abandon(claim_key=lease_key,owner=claim_owner,
                         generation=lease["generation"],now_epoch=claim_now_epoch)
