@@ -28,3 +28,11 @@ G06は全12Rの「実」馬連/枠連市場原本、実際のレースと馬番�
 - 11/21・22本番取得器SHA、既存GitHub予約、Secrets、Turso、mainを無断変更しない。
 - 一括取得テストと未来の実市場取得を混同しない。
 - ユーザー承認済みの馬連＋枠連ANDと将来券種追加設計をORへ戻さない。
+
+## 追加実証（同日、初版チェックポイント作成後）
+- `diagnostics/kyoto_extensible_market_quotes.py` は正当な枠連同枠 `(1,1)` を認めるよう修正。馬連 `(1,1)` は拒否。同枠の成立可否は出走馬の枠構成検証で別途照合する。
+- 実験ブランチの `diagnostics/jra_market_source_chain.py` に `kyoto_g06_roster_aware_bracket.py` を接続。京都2026-11-07の12R・148頭の実際の枠構成に対し、成立組番のみを要求する。京都1R（9頭・8枠）の正しい枠連組番は29（8枠間の28組+同枠1組）。この試験では馬連36組。
+- 12R・148頭の枠構成に対して、両市場の全成立組番・価格の **模擬** 行列を生成して既存監査器へ投入。成功・欠損・最終オッズ拒否・過去実原本と模擬値の区別を試験。
+- 最新のGitHub Actions Run [44233729305](https://github.com/papaneko-ai/kyoto-keiba-ai/actions/runs/44233729305) SUCCESS、23件合格、Artifact `14396630920`。
+- 同枠統合回帰 Run [44233277177](https://github.com/papaneko-ai/kyoto-keiba-ai/actions/runs/44233277177) SUCCESS（45件）。複合券種（同枠修正後）Run [44233504929](https://github.com/papaneko-ai/kyoto-keiba-ai/actions/runs/44233504929) SUCCESS（23件）。
+- 正式G06をPASSにはしない。現在の12Rオッズ行列は模擬市場であり、全12Rの発走前実原本は未取得。固定進捗は据置。
