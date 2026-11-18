@@ -1,0 +1,56 @@
+name: Kyoto Nov21-22 frozen production derived G06 12R release candidate
+on:
+  push:
+    branches:
+      - release-candidate/nov21-22-g06-full12-20261118
+    paths:
+      - .github/workflows/kyoto-g06-weekend-release-candidate.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  offline-true-entrypoint:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install 'beautifulsoup4>=4.12,<5' 'cryptography>=43,<47'
+      - name: Frozen weekend capture original G03 and original AES-GCM safety regression
+        env:
+          KYOTO_TARGET_DAY: "20261121"
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p candidate_evidence
+          python -m unittest -q tests.test_kyoto_weekend_retry_guard tests.test_kyoto_weekend_race_parity tests.test_kyoto_weekend_capture tests.test_kyoto_safe_stop_artifact tests.test_kyoto_weekend_end_to_end tests.test_kyoto_weekend_postflight tests.test_kyoto_weekend_interruption_and_pacing tests.test_kyoto_g03_weekend_bridge tests.test_kyoto_g04_all_horse_profiles tests.test_kyoto_g05_conditions tests.test_kyoto_g05_official_track tests.test_kyoto_g05_weekend_bridge 2>&1 | tee candidate_evidence/production_regression.txt
+      - name: Full G06 12R original post, per-market repair, downstream and encrypted bundling
+        env:
+          KYOTO_TARGET_DAY: "20261121"
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m unittest -q tests.test_kyoto_g06_full_twelve_reparse_e2e tests.test_kyoto_g06_nested_bundle tests.test_kyoto_g03_to_g06_input_adapter tests.test_kyoto_g06_all12_capture tests.test_kyoto_g06_item_level_recovery tests.test_kyoto_g06_gap_recovery_plan tests.test_kyoto_g06_market_link_evidence tests.test_kyoto_g06_missing_market_retry tests.test_kyoto_g06_live_recovery_batch tests.test_kyoto_g06_downstream_intake tests.test_kyoto_g06_four_stage_inboxes 2>&1 | tee candidate_evidence/g06_twelve_market_pipeline.txt
+      - name: Official source and encryption negative regression
+        env:
+          KYOTO_TARGET_DAY: "20261115"
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m unittest -q tests.test_kyoto_nov15_two_original_observer tests.test_kyoto_nov15_offline_race_links tests.test_kyoto_nov15_encrypted_evidence tests.test_jra_one_shot_market_capture 2>&1 | tee candidate_evidence/protected_source_crypto.txt
+      - name: Verify parent commit and record exact revision
+        if: always()
+        run: |
+          git rev-parse HEAD > candidate_evidence/candidate_sha.txt
+          sha256sum diagnostics/kyoto_weekend_capture.py diagnostics/kyoto_nov15_encrypted_evidence.py diagnostics/kyoto_g06_all12_capture.py > candidate_evidence/source_sha256.txt
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: kyoto-weekend-g06-production-derived-candidate-${{ github.run_id }}
+          path: candidate_evidence/
+          if-no-files-found: error
+          retention-days: 90
