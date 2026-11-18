@@ -10,8 +10,11 @@ from pathlib import Path
 from unittest.mock import patch
 from diagnostics.kyoto_g06_all12_capture import run_twelve
 from diagnostics.kyoto_shared_capture_reservation import SharedLedger
-from tests.test_kyoto_g06_live_recovery_batch import records
-from tests.test_kyoto_g06_item_level_recovery import setup
+from tests.test_kyoto_g06_full_twelve_reparse_e2e import records as full_records, capture_mock
+
+def records():
+    full=full_records()
+    return {race:full[race] if race==11 else None for race in range(1,13)}
 
 class Tests(unittest.TestCase):
     def setUp(self):
@@ -22,10 +25,7 @@ class Tests(unittest.TestCase):
         self.calls=[]
     def collector(self,out,**kw):
         self.calls.append(kw["race_spec"].race_number)
-        setup(out,"PC",["quinella"])
-        setup(out,"SP",["bracket_quinella"])
-        return {"state":"SOURCE_ONLY","selected_channel":None,
-                "attempts":[{"channel":"PC","state":"SOURCE_FROZEN","reason":None}]}
+        return capture_mock(out,**kw)
     def execute_batch(self,name,slot=0,owner="github_actions_1",collector=None,client=None):
         with patch("diagnostics.kyoto_g06_all12_capture.capture_hybrid",
                    side_effect=collector or self.collector):
