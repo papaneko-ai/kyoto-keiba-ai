@@ -10,7 +10,7 @@ from unittest.mock import Mock
 from diagnostics.kyoto_weekend_sp_discovery import discover,SEED
 from diagnostics.kyoto_sp_observed_source import capture_verified_sp_seed
 
-def html(body):return ("<html><body>"+body+"</body></html>").encode("cp932")
+def html(body):return ("<html><title>オッズ</title><body>"+body+"</body></html>").encode("cp932")
 class Reply:
     status=200
     headers={"Content-Type":"text/html; charset=Shift_JIS"}
