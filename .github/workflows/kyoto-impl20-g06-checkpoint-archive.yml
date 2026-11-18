@@ -53,6 +53,6 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: kyoto-impl21-current-source-${{ github.run_id }}
-          path: KYOTO_IMPLEMENTATION20_G06_SOURCE_CHECKPOINT.zip
+          path: KYOTO_IMPLEMENTATION21_FULL_SOURCE_CHECKPOINT.zip
           if-no-files-found: error
           retention-days: 90
