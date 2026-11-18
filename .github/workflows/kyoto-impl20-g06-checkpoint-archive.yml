@@ -13,6 +13,11 @@ on:
       - .github/workflows/kyoto-weekend-actual-main-release-acceptance.yml
       - tests/test_kyoto_weekend_day21_day22_continuity_acceptance.py
       - docs/KYOTO_AI_IMPL21_PRE_EVENT_READINESS_MILESTONE_20261118.md
+      - docs/KYOTO_AI_IMPL21_PRE_EVENT_READINESS_50PCT_MILESTONE_20261118.md
+      - diagnostics/kyoto_weekend_reversible_promotion.py
+      - tests/test_kyoto_weekend_reversible_promotion.py
+      - diagnostics/kyoto_weekend_two_job_encrypted_recovery.py
+      - .github/workflows/kyoto-weekend-two-job-crypto-e2e.yml
       - tests/test_kyoto_extensible_market_quotes.py
       - tests/test_kyoto_g06_full_real_roster_pair_matrix.py
       - docs/KYOTO_AI_IMPLEMENTATION20_G06_CAPTURE_AND_MARKET_SCHEMA_CHECKPOINT_20261118.md
