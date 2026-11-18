@@ -1,0 +1,35 @@
+name: Kyoto G06 paired-market all-12R capture preflight
+on:
+  push:
+    branches:
+      - experiment/multisource-hybrid-20261117
+    paths:
+      - diagnostics/kyoto_g06_all12_capture.py
+      - tests/test_kyoto_g06_all12_capture.py
+      - .github/workflows/kyoto-g06-all12-capture-preflight.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  offline-batch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install beautifulsoup4 cryptography
+      - name: Verify all-12R acquisition contract with no external HTTP
+        run: |
+          set -o pipefail
+          mkdir -p g06_batch_evidence
+          python -m unittest -v tests.test_kyoto_g06_all12_capture tests.test_kyoto_g06_twelve_race_dual_market_gate tests.test_jra_one_shot_market_capture 2>&1 | tee g06_batch_evidence/tests.txt
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: kyoto-g06-all12-capture-preflight-${{ github.run_id }}
+          path: g06_batch_evidence/
+          if-no-files-found: error
