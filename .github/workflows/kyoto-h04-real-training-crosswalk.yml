@@ -1,0 +1,41 @@
+name: Kyoto H04 archived real training source independent crosswalk
+on:
+  push:
+    branches:
+      - experiment/multisource-hybrid-20261117
+    paths:
+      - diagnostics/kyoto_h04_training_partial.py
+      - tests/test_kyoto_h04_training_partial.py
+      - .github/workflows/kyoto-h04-real-training-crosswalk.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  archived-real-proof:
+    runs-on: ubuntu-latest
+    timeout-minutes: 7
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install beautifulsoup4
+      - uses: actions/download-artifact@v4
+        with:
+          name: kyoto-h04-single-historical-auxiliary-44230539553
+          run-id: 44230539553
+          github-token: ${{ github.token }}
+          path: h04_single_source_evidence
+      - name: Independently compare actual training original against archived JRA race 2 roster
+        run: |
+          mkdir -p h04_crosswalk_proof
+          python -m unittest -v tests.test_kyoto_h04_training_partial 2>&1 | tee h04_crosswalk_proof/test_log.txt
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: kyoto-h04-real-training-crosswalk-${{ github.run_id }}
+          path: h04_crosswalk_proof/
+          if-no-files-found: warn
