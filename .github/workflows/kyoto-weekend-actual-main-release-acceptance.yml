@@ -39,6 +39,41 @@ jobs:
           set -euo pipefail
           mkdir -p release_evidence
           python experiment/diagnostics/kyoto_weekend_actual_main_release_gate.py --main production --collector pinned_collector --experiment experiment --out release_evidence/release_gate.json 2>&1 | tee release_evidence/release_gate.log
+      - name: Verify protected live prerequisites without printing values or making HTTP requests
+        shell: bash
+        env:
+          ENCRYPTION_KEY: ${{ secrets.KYOTO_JRA_ARCHIVE_AES256_HEX }}
+          NOV22_SHA: ${{ vars.KYOTO_NOV22_VERIFIED_COLLECTOR_SHA }}
+          SP21_URL: ${{ vars.KYOTO_NOV21_SP_OFFICIAL_R12_URL }}
+          SP22_URL: ${{ vars.KYOTO_NOV22_SP_OFFICIAL_R12_URL }}
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json,os,re
+          from pathlib import Path
+          from urllib.parse import urlsplit
+          def sp_ok(s):
+              if not s: return False
+              try:
+                  u=urlsplit(s)
+                  return u.scheme=="https" and u.hostname=="sp.jra.jp" and u.path.startswith("/JRADB/") and bool(u.query)
+              except ValueError:
+                  return False
+          result={
+              "schema":"kyoto_weekend_protected_environment_presence.v1",
+              "encryption_key_configured_and_well_formed":bool(re.fullmatch(r"[0-9a-fA-F]{64}",os.environ.get("ENCRYPTION_KEY",""))),
+              "nov22_optional_collector_override_well_formed":bool(re.fullmatch(r"[0-9a-f]{40}",os.environ.get("NOV22_SHA",""))),
+              "nov21_sp_r12_url_present_and_structurally_valid":sp_ok(os.environ.get("SP21_URL","")),
+              "nov22_sp_r12_url_present_and_structurally_valid":sp_ok(os.environ.get("SP22_URL","")),
+              "live_http_requests":0,
+              "secrets_or_values_exported":False,
+              "actual_live_fetch_verified":False
+          }
+          Path("release_evidence/protected_prerequisite_presence.json").write_text(json.dumps(result,sort_keys=True,indent=2)+"\\n")
+          print(json.dumps(result,sort_keys=True))
+          if not result["encryption_key_configured_and_well_formed"]:
+              raise SystemExit("ENCRYPTION_PREREQUISITE_MISSING")
+          PY
       - name: Run frozen production collector offline integration and safety regression
         shell: bash
         working-directory: pinned_collector
