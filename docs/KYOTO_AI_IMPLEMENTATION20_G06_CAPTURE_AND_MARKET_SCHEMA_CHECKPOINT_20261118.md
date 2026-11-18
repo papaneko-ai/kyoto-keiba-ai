@@ -36,3 +36,6 @@ G06は全12Rの「実」馬連/枠連市場原本、実際のレースと馬番�
 - 最新のGitHub Actions Run [44233729305](https://github.com/papaneko-ai/kyoto-keiba-ai/actions/runs/44233729305) SUCCESS、23件合格、Artifact `14396630920`。
 - 同枠統合回帰 Run [44233277177](https://github.com/papaneko-ai/kyoto-keiba-ai/actions/runs/44233277177) SUCCESS（45件）。複合券種（同枠修正後）Run [44233504929](https://github.com/papaneko-ai/kyoto-keiba-ai/actions/runs/44233504929) SUCCESS（23件）。
 - 正式G06をPASSにはしない。現在の12Rオッズ行列は模擬市場であり、全12Rの発走前実原本は未取得。固定進捗は据置。
+
+## 11/18追記：項目別ハイブリッド補完の正式組込み
+ユーザーとの再確認を受け、レース単位でのPC/SP切替だけでは不足するため、馬連・枠連等の不足項目に対するPC↔SP双方向補完・観測済みリンク探索・条件確認済み補助情報源・再取得・原本保存・競合拒否の実装を **G06の残工程に正式追加**。理由の記録は補完の開始点であり、その時点で最終欠測としない。実装タスクG06-HYB-01～06と完了条件は `docs/KYOTO_AI_G06_ITEM_LEVEL_HYBRID_RECOVERY_REQUIRED_WORKPLAN_20261118.md` を正本とする。進捗は本追記では据置。
