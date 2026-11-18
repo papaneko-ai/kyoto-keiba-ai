@@ -14,6 +14,13 @@ on:
       - tests/test_kyoto_weekend_day21_day22_continuity_acceptance.py
       - docs/KYOTO_AI_IMPL21_PRE_EVENT_READINESS_MILESTONE_20261118.md
       - docs/KYOTO_AI_IMPL21_PRE_EVENT_READINESS_50PCT_MILESTONE_20261118.md
+      - docs/KYOTO_AI_IMPL21_PRE_EVENT_READINESS_70PCT_MILESTONE_20261118.md
+      - diagnostics/kyoto_g06_missing_market_retry.py
+      - diagnostics/kyoto_g06_downstream_intake.py
+      - diagnostics/kyoto_g06_four_stage_inboxes.py
+      - tests/test_kyoto_g06_live_recovery_batch.py
+      - tests/test_kyoto_g06_four_stage_inboxes.py
+      - tests/test_kyoto_weekend_sp_full_path_acceptance.py
       - diagnostics/kyoto_weekend_reversible_promotion.py
       - tests/test_kyoto_weekend_reversible_promotion.py
       - diagnostics/kyoto_weekend_two_job_encrypted_recovery.py
