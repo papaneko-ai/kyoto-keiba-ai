@@ -18,10 +18,14 @@ def run():
     with tempfile.TemporaryDirectory(prefix="kyoto_h06_git_") as d:
         work=Path(d)/"sandbox"
         git("init","-q",str(work))
-        git("fetch","-q",str(old),"HEAD:refs/heads/h06-old",cwd=work)
-        old_sha=git("rev-parse","refs/heads/h06-old",cwd=work)
-        git("fetch","-q",str(new),"HEAD:refs/heads/h06-new",cwd=work)
-        new_sha=git("rev-parse","refs/heads/h06-new",cwd=work)
+        # Read exact commit objects through read-only alternates; no remote fetch.
+        old_sha=git("-C",str(old),"rev-parse","HEAD")
+        new_sha=git("-C",str(new),"rev-parse","HEAD")
+        objects=work/".git"/"objects"/"info"/"alternates"
+        objects.parent.mkdir(parents=True,exist_ok=True)
+        objects.write_text(str(old/".git"/"objects")+"\n"+str(new/".git"/"objects")+"\n")
+        assert git("cat-file","-t",old_sha,cwd=work)=="commit"
+        assert git("cat-file","-t",new_sha,cwd=work)=="commit"
         assert old_sha!=new_sha
         ref="refs/heads/isolated-selected-collector"
         git("update-ref",ref,old_sha,cwd=work)
