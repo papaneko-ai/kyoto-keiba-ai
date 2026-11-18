@@ -1,0 +1,35 @@
+name: Kyoto extensible quinella plus bracket market model
+on:
+  push:
+    branches:
+      - experiment/multisource-hybrid-20261117
+    paths:
+      - diagnostics/kyoto_extensible_market_quotes.py
+      - tests/test_kyoto_extensible_market_quotes.py
+      - .github/workflows/kyoto-market-type-composition.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  offline:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install beautifulsoup4 cryptography
+      - name: Verify AND operation and 12R batch evidence without real HTTP
+        run: |
+          set -o pipefail
+          mkdir -p market_proof
+          python -m unittest -v tests.test_kyoto_extensible_market_quotes tests.test_kyoto_g06_all12_capture 2>&1 | tee market_proof/test_log.txt
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: kyoto-composed-market-schema-${{ github.run_id }}
+          path: market_proof/
+          if-no-files-found: error
