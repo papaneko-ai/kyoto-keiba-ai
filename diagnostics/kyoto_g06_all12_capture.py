@@ -13,6 +13,7 @@ from diagnostics.jra_one_shot_market_capture import capture_hybrid, SourceChainE
 from diagnostics.kyoto_g06_item_level_recovery import recover_saved_markets
 from diagnostics.kyoto_g06_gap_recovery_plan import plan_gap_recovery
 from diagnostics.kyoto_g06_market_link_evidence import observed_market_links
+from diagnostics.kyoto_g06_missing_market_retry import recover_one
 
 MARKETS=("quinella","bracket_quinella")
 REQUIRED_ORIGINALS=("official_odds_menu.html","quinella_original.html","bracket_quinella_original.html")
@@ -129,6 +130,52 @@ def run_twelve(root, *, records, authorized_live_http=False, runner=None):
             market_link_proof=observed_market_links(output,race_spec=spec,
                 verified_start_utc=item["verified_start_utc"])
             entry["official_market_link_proof"]=market_link_proof
+            # Live recovery is opt-in, only on the actual collector path.
+            # The immutable initial capture is independently verified first.
+            # A market already verified from either source is never re-fetched.
+            entry["live_market_recovery_attempts"]=[]
+            if authorized_live_http and runner is None and not recovered["both_markets_verified"]:
+                attempts=receipt.get("attempts",[])
+                refusal=any(
+                    any(token in str(a.get("reason") or "").lower()
+                        for token in ("403","429","redirect_forbidden",
+                                      "access_denied","permission","unauthorized"))
+                    for a in attempts if isinstance(a,dict))
+                if not refusal:
+                    for missing in MARKETS:
+                        if recovered["markets"][missing]["state"]=="VERIFIED":
+                            continue
+                        for channel in (item["primary_channel"],
+                                        "SP" if item["primary_channel"]=="PC" else "PC"):
+                            if not market_link_proof[channel]["observed"]:
+                                continue
+                            try:
+                                response=recover_one(root=output,channel=channel,
+                                    market=missing,race_spec=spec,
+                                    active_runners=item["active_runners"],
+                                    verified_start_utc=item["verified_start_utc"],
+                                    authorized_live_http=True)
+                                state=response["state"]
+                                entry["live_market_recovery_attempts"].append(
+                                    {"channel":channel,"market":missing,"state":state})
+                                if "403" in str(response.get("reason","")) or "429" in str(response.get("reason","")):
+                                    break
+                                recovered=recover_saved_markets(output,race_spec=spec,
+                                    active_runners=item["active_runners"],
+                                    verified_start_utc=item["verified_start_utc"])
+                                if recovered["markets"][missing]["state"]=="VERIFIED":
+                                    break
+                            except (SourceChainError,ValueError,OSError) as exc:
+                                entry["live_market_recovery_attempts"].append(
+                                    {"channel":channel,"market":missing,
+                                     "state":"RECOVERY_NOT_EXECUTED",
+                                     "reason":type(exc).__name__+":"+str(exc)[:120]})
+                        # Each existing channel gets at most one bounded
+                        # recovery attempt. No fabricated URL or blind replay.
+                    entry["item_level_recovery"]=recovered
+                else:
+                    entry["live_market_recovery_attempts"].append(
+                        {"state":"GLOBAL_ACCESS_REFUSAL_RETAIN_ORIGINALS"})
             entry["gap_recovery_plan"]=plan_gap_recovery(
                 race_id=spec.race_id,verified_market_receipts=proofs,
                 official_links={ch:proof["observed"] for ch,proof in market_link_proof.items()},
