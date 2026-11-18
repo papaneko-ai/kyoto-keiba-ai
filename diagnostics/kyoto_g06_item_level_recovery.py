@@ -36,8 +36,9 @@ def recover_saved_markets(folder, *, race_spec,active_runners,verified_start_utc
     cutoff=_utc(verified_start_utc)
     verified={}
     blocked=[]
-    for channel in ("PC","SP"):
-        directory=folder/channel.lower()
+    for channel,subdirectory in (("PC","pc"),("SP","sp"),
+                                 ("PC","pc_recovery"),("SP","sp_recovery")):
+        directory=folder/subdirectory
         receipt_file=directory/"receipt.json"
         if receipt_file.is_symlink() or not receipt_file.is_file():
             continue
