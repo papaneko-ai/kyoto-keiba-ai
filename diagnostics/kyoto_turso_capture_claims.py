@@ -63,6 +63,7 @@ class TursoCaptureClaims:
         if not hasattr(transport,"post"):raise ReservationError("transport_required")
         if namespace not in ("OPERATIONAL","ISOLATED_LAB"):
             raise ReservationError("unknown_turso_capture_namespace")
+        self.namespace=namespace
         self.table=LAB_TABLE if namespace=="ISOLATED_LAB" else TABLE
         self.endpoint="https://"+p.hostname+"/v2/pipeline"
         self.token=token
@@ -96,8 +97,10 @@ class TursoCaptureClaims:
         return {"owner":a,"generation":int(b),"expires_at":int(c),
                 "state":d,"receipt_sha256":e}
     def claim(self,*,claim_key,owner,now_epoch,lease_seconds=180):
-        if (not isinstance(claim_key,str) or
-            not re.fullmatch(r"2026112[12]:[0-3]:(0[1-9]|1[0-2]):(PC|SP):(racecard|quinella|bracket_quinella|profile)",claim_key)):
+        pattern=r"2026112[12]:[0-3]:(0[1-9]|1[0-2]):(PC|SP):(racecard|quinella|bracket_quinella|profile)"
+        if self.namespace=="ISOLATED_LAB":
+            pattern=r"(?:lab:[0-9]{8,20}:)?"+pattern
+        if not isinstance(claim_key,str) or not re.fullmatch(pattern,claim_key):
             raise ReservationError("claim_key_invalid")
         if not isinstance(owner,str) or not re.fullmatch(r"[a-zA-Z0-9_-]{5,100}",owner):
             raise ReservationError("owner_invalid")
