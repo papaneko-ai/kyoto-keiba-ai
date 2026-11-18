@@ -5,6 +5,7 @@ on:
       - experiment/multisource-hybrid-20261117
     paths:
       - diagnostics/kyoto_weekend_actual_main_release_gate.py
+      - tests/test_kyoto_weekend_day21_day22_continuity_acceptance.py
       - .github/workflows/kyoto-weekend-actual-main-release-acceptance.yml
   workflow_dispatch:
 permissions:
@@ -106,6 +107,28 @@ jobs:
         run: |
           set -euo pipefail
           KYOTO_TARGET_DAY=20261121 python -m unittest -q tests.test_kyoto_weekend_retry_guard tests.test_kyoto_weekend_race_parity tests.test_kyoto_weekend_capture tests.test_kyoto_safe_stop_artifact tests.test_kyoto_weekend_end_to_end tests.test_kyoto_weekend_postflight tests.test_kyoto_weekend_interruption_and_pacing 2>&1 | tee ../release_evidence/repaired_pinned_collector.txt
+      - name: Run Saturday failure to Sunday full-slot continuity on repaired collector
+        shell: bash
+        run: |
+          set -euo pipefail
+          cp experiment/tests/test_kyoto_weekend_day21_day22_continuity_acceptance.py repaired_candidate/tests/
+          (cd repaired_candidate && python -m unittest -v tests.test_kyoto_weekend_day21_day22_continuity_acceptance) 2>&1 | tee release_evidence/day21_to_day22_continuity.txt
+          rm repaired_candidate/tests/test_kyoto_weekend_day21_day22_continuity_acceptance.py
+      - name: Execute all 30 predicted failure families against actual pinned collector
+        shell: bash
+        working-directory: pinned_collector
+        run: |
+          set -euo pipefail
+          python -m unittest -q tests.test_kyoto_predictable_failure_gate 2>&1 | tee ../release_evidence/production_failure_tests.txt
+          python -m diagnostics.kyoto_predictable_failure_gate --report ../release_evidence/predicted_failures.json 2>&1 | tee ../release_evidence/predicted_failures.log
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          r=json.loads(Path("../release_evidence/predicted_failures.json").read_text())
+          if r.get("count") != 30 or r.get("passing") != 30:
+              raise SystemExit("PREDICTABLE_FAILURE_COVERAGE_UNPROVEN")
+          print("PREDICTABLE_FAILURE_30_OF_30")
+          PY
       - name: Confirm repair contains only the two intended paths
         shell: bash
         run: |
