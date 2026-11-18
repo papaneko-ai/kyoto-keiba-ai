@@ -11,6 +11,7 @@ from hashlib import sha256
 import re
 from diagnostics.jra_official_market_navigation import find_market_links
 from diagnostics.jra_odds_matrix_parser import parse_matrix
+from diagnostics.kyoto_g06_roster_aware_bracket import parse_bracket_with_roster
 from diagnostics.jra_market_integrity_gate import MarketEvidence,check
 from diagnostics.jra_odds_source_archive import freeze_once
 
@@ -58,7 +59,9 @@ def audit_source_originals(menu_raw,market_raw,market_urls,*,race_key,
             raise SourceChainError("both_market_originals_required")
         if not _html_race_identity(raw,race_day,venue,race_number):
             raise SourceChainError("market_race_identity_not_proven")
-        data=parse_matrix(raw,market,expected_runners=len(active_runners) if market=="quinella" else None)
+        data=(parse_bracket_with_roster(raw,active_runners)
+              if market=="bracket_quinella"
+              else parse_matrix(raw,market,expected_runners=len(active_runners)))
         if data["historical_final_detected"]!=phase_final:
             raise SourceChainError("conflicting_market_phases")
         phase="HISTORICAL_FINAL" if historical or phase_final else "LIVE_PRE_RACE"
