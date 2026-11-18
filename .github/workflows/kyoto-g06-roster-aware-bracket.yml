@@ -1,0 +1,34 @@
+name: Kyoto G06 real-roster 12R bracket-eligibility acceptance
+on:
+  push:
+    branches:
+      - experiment/multisource-hybrid-20261117
+    paths:
+      - diagnostics/kyoto_g06_roster_aware_bracket.py
+      - tests/test_kyoto_g06_roster_aware_bracket.py
+      - .github/workflows/kyoto-g06-roster-aware-bracket.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  offline:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install beautifulsoup4
+      - name: Verify 12R actual runner-bracket shapes against synthetic odds
+        run: |
+          set -o pipefail
+          mkdir -p bracket_proof
+          python -m unittest -v tests.test_kyoto_g06_roster_aware_bracket tests.test_jra_market_integrity_gate 2>&1 | tee bracket_proof/tests.txt
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: kyoto-g06-bracket-eligibility-${{ github.run_id }}
+          path: bracket_proof/
