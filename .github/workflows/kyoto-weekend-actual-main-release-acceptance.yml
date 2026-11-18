@@ -152,7 +152,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          python -m unittest -v experiment/tests/test_kyoto_weekend_reversible_promotion.py 2>&1 | tee release_evidence/reversible_promotion_tests.txt
+          (cd experiment && python -m unittest -v tests.test_kyoto_weekend_reversible_promotion) 2>&1 | tee release_evidence/reversible_promotion_tests.txt
           python experiment/diagnostics/kyoto_weekend_reversible_promotion.py --main-workflow production/.github/workflows/kyoto-20261121-22-two-source-production-observer.yml --candidate-workflow production_review/.github/workflows/kyoto-20261121-22-two-source-production-observer.yml --out release_evidence/reversible_production_switch.json
       - name: Save exact revisions and evidence hashes
         if: always()
