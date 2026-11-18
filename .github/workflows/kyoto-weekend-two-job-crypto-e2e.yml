@@ -1,0 +1,58 @@
+name: Kyoto Nov21-22 pre-event independent encrypted recovery E2E
+on:
+  push:
+    branches:
+      - experiment/multisource-hybrid-20261117
+    paths:
+      - diagnostics/kyoto_weekend_two_job_encrypted_recovery.py
+      - .github/workflows/kyoto-weekend-two-job-crypto-e2e.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  produce-encrypted:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: experiment/multisource-hybrid-20261117
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install 'beautifulsoup4>=4.12,<5' 'cryptography>=43,<47'
+      - name: Seal test-only original using the real weekend crypto path
+        run: python -m diagnostics.kyoto_weekend_two_job_encrypted_recovery produce --root "$RUNNER_TEMP"
+      - name: Upload only encrypted fixture and fixture hash receipt
+        uses: actions/upload-artifact@v4
+        with:
+          name: kyoto-synthetic-sealed-e2e-${{ github.run_id }}
+          path: ${{ runner.temp }}/artifact/
+          if-no-files-found: error
+  consume-encrypted:
+    needs: produce-encrypted
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: experiment/multisource-hybrid-20261117
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install 'beautifulsoup4>=4.12,<5' 'cryptography>=43,<47'
+      - name: Download encrypted artifact from the previous isolated job
+        uses: actions/download-artifact@v4
+        with:
+          name: kyoto-synthetic-sealed-e2e-${{ github.run_id }}
+          path: ${{ runner.temp }}/artifact/
+      - name: Independently authenticate, recover SHA-identical original and reject tamper
+        run: python -m diagnostics.kyoto_weekend_two_job_encrypted_recovery consume --root "$RUNNER_TEMP"
+      - name: Store no-plaintext recovery evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: kyoto-synthetic-independent-restoration-${{ github.run_id }}
+          path: ${{ runner.temp }}/recovered_report.json
+          if-no-files-found: error
