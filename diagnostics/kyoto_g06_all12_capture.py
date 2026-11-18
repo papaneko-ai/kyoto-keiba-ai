@@ -10,6 +10,7 @@ from hashlib import sha256
 from datetime import datetime, timezone
 import json
 from diagnostics.jra_one_shot_market_capture import capture_hybrid, SourceChainError
+from diagnostics.kyoto_g06_item_level_recovery import recover_saved_markets
 
 MARKETS=("quinella","bracket_quinella")
 REQUIRED_ORIGINALS=("official_odds_menu.html","quinella_original.html","bracket_quinella_original.html")
@@ -118,6 +119,14 @@ def run_twelve(root, *, records, authorized_live_http=False, runner=None):
                 entry["both_markets_verified"]=verified["state"]=="BOTH_MARKET_ORIGINALS_VERIFIED"
             else:
                 entry["evidence_check"]={"state":"NO_SELECTED_CHANNEL"}
+            recovered=recover_saved_markets(output,race_spec=spec,
+                active_runners=item["active_runners"],
+                verified_start_utc=item["verified_start_utc"])
+            entry["item_level_recovery"]=recovered
+            if recovered["both_markets_verified"]:
+                entry["both_markets_verified"]=True
+                entry["item_level_completed"]=True
+                entry["cross_source_times_not_equated"]=True
         except (ValueError,TypeError,KeyError,AttributeError,OSError) as exc:
             entry.update(state="INPUT_OR_CAPTURE_REJECTED",
                          reason=type(exc).__name__+":"+str(exc)[:120])
