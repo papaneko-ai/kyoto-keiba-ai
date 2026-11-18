@@ -1,0 +1,44 @@
+name: Kyoto weekend shared source-claim and G03-to-G06 offline acceptance
+on:
+  push:
+    branches:
+      - experiment/multisource-hybrid-20261117
+    paths:
+      - diagnostics/kyoto_shared_capture_reservation.py
+      - tests/test_kyoto_shared_capture_reservation.py
+      - diagnostics/kyoto_g03_to_g06_input_adapter.py
+      - tests/test_kyoto_g03_to_g06_input_adapter.py
+      - .github/workflows/kyoto-weekend-shared-claim-preflight.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  cross-process-database:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install 'beautifulsoup4>=4.12,<5' 'cryptography>=43,<47'
+      - name: Atomic claims across spawned independent processes and frozen G03 input
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p weekend_claim_evidence
+          python -m unittest -v tests.test_kyoto_shared_capture_reservation tests.test_kyoto_g03_to_g06_input_adapter 2>&1 | tee weekend_claim_evidence/tests.txt
+      - name: Preserve exact source revision
+        if: always()
+        shell: bash
+        run: |
+          git rev-parse HEAD > weekend_claim_evidence/source_head.txt
+          (cd weekend_claim_evidence && sha256sum *.txt > evidence_sha256.txt)
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: kyoto-weekend-shared-claim-preflight-${{ github.run_id }}
+          path: weekend_claim_evidence/
+          if-no-files-found: error
