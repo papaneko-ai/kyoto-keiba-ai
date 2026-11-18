@@ -40,5 +40,7 @@ jobs:
         if: always()
         with:
           name: kyoto-h06-real-ref-rollback-${{ github.run_id }}
-          path: |\n            h06_ref_rollback_receipt.json\n            h06_crypto_test.log
+          path: |
+            h06_ref_rollback_receipt.json
+            h06_crypto_test.log
           if-no-files-found: error
