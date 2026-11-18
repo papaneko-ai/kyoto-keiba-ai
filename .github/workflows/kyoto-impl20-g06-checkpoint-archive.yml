@@ -5,6 +5,8 @@ on:
       - experiment/multisource-hybrid-20261117
     paths:
       - .github/workflows/kyoto-impl20-g06-checkpoint-archive.yml
+      - diagnostics/kyoto_extensible_market_quotes.py
+      - tests/test_kyoto_extensible_market_quotes.py
   workflow_dispatch:
 permissions:
   contents: read
