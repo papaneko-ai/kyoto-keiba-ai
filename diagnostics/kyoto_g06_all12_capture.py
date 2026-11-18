@@ -197,4 +197,16 @@ def run_twelve(root, *, records, authorized_live_http=False, runner=None):
         "actual_wager_authorized":False,"production_cutover_authorized":False,
         "records":results}
     (base/"g06_batch_receipt.json").write_text(json.dumps(summary,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
+    # Production-oriented invocation stages the verified original data
+    # immediately after the full batch; optional custom runners remain
+    # standalone so existing test and migration contracts are preserved.
+    if runner is None:
+        try:
+            from diagnostics.kyoto_g06_downstream_intake import prepare_intake
+            stage=prepare_intake(base,records=records)
+            summary["downstream_intake_created"]=True
+            summary["downstream_source_ready_races"]=stage["paired_source_races"]
+        except (ValueError,TypeError,KeyError,OSError) as exc:
+            summary["downstream_intake_created"]=False
+            summary["downstream_intake_error"]=type(exc).__name__+":"+str(exc)[:130]
     return summary
