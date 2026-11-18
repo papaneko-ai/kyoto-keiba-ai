@@ -26,7 +26,7 @@ class Tests(unittest.TestCase):
         setup(out,"SP",["bracket_quinella"])
         return {"state":"SOURCE_ONLY","selected_channel":None,
                 "attempts":[{"channel":"PC","state":"SOURCE_FROZEN","reason":None}]}
-    def run(self,name,slot=0,owner="github_actions_1",collector=None,client=None):
+    def execute_batch(self,name,slot=0,owner="github_actions_1",collector=None,client=None):
         with patch("diagnostics.kyoto_g06_all12_capture.capture_hybrid",
                    side_effect=collector or self.collector):
             return run_twelve(self.root/name,records=records(),
@@ -34,7 +34,7 @@ class Tests(unittest.TestCase):
                    claim_client=client or self.db,claim_slot=slot,
                    claim_owner=owner,claim_now_epoch=10000)
     def test_single_owned_slot_executes_one_race_once(self):
-        first=self.run("run_first")
+        first=self.execute_batch("run_first")
         second=self.run("run_second",owner="streamlit_node_1")
         self.assertEqual(self.calls,[11])
         self.assertEqual(first["verified_dual_market_races"],1)
