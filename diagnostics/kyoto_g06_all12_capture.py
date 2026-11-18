@@ -239,8 +239,10 @@ def run_twelve(root, *, records, authorized_live_http=False, runner=None,
                          reason=type(exc).__name__+":"+str(exc)[:120])
             if claim_client is not None and lease and lease.get("must_fetch"):
                 try:
-                    claim_client.abandon(claim_key=lease_key,owner=claim_owner,
+                    released=claim_client.abandon(claim_key=lease_key,owner=claim_owner,
                         generation=lease["generation"],now_epoch=claim_now_epoch)
+                    entry["claim_commit_state"]=(
+                        "RELEASED_FOR_RETRY" if released["released"] else "FENCE_REJECTED")
                 except Exception:
                     entry["claim_commit_state"]="RELEASE_UNCONFIRMED_LEASE_EXPIRES"
         results.append(entry)
