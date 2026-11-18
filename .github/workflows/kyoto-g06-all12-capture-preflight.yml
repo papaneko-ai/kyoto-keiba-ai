@@ -7,8 +7,10 @@ on:
       - diagnostics/kyoto_g06_all12_capture.py
       - diagnostics/kyoto_g06_item_level_recovery.py
       - diagnostics/kyoto_g06_gap_recovery_plan.py
+      - diagnostics/kyoto_g06_market_link_evidence.py
       - tests/test_kyoto_g06_item_level_recovery.py
       - tests/test_kyoto_g06_gap_recovery_plan.py
+      - tests/test_kyoto_g06_market_link_evidence.py
       - tests/test_kyoto_g06_all12_capture.py
       - .github/workflows/kyoto-g06-all12-capture-preflight.yml
   workflow_dispatch:
@@ -30,7 +32,7 @@ jobs:
         run: |
           set -o pipefail
           mkdir -p g06_batch_evidence
-          python -m unittest -v tests.test_kyoto_g06_gap_recovery_plan tests.test_kyoto_g06_item_level_recovery tests.test_kyoto_g06_all12_capture tests.test_kyoto_hybrid_multi_source tests.test_kyoto_g06_twelve_race_dual_market_gate tests.test_jra_one_shot_market_capture 2>&1 | tee g06_batch_evidence/tests.txt
+          python -m unittest -v tests.test_kyoto_g06_market_link_evidence tests.test_kyoto_g06_gap_recovery_plan tests.test_kyoto_g06_item_level_recovery tests.test_kyoto_g06_all12_capture tests.test_kyoto_hybrid_multi_source tests.test_kyoto_g06_twelve_race_dual_market_gate tests.test_jra_one_shot_market_capture 2>&1 | tee g06_batch_evidence/tests.txt
       - uses: actions/upload-artifact@v4
         if: always()
         with:
