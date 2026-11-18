@@ -1,0 +1,71 @@
+name: Kyoto Nov21-22 actual-production pinned-collector release acceptance
+on:
+  push:
+    branches:
+      - experiment/multisource-hybrid-20261117
+    paths:
+      - diagnostics/kyoto_weekend_actual_main_release_gate.py
+      - .github/workflows/kyoto-weekend-actual-main-release-acceptance.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  true-production-preflight:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          path: production
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          ref: c96df31542cb94435ca36cb4a1b8bd6de938233f
+          path: pinned_collector
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          ref: experiment/multisource-hybrid-20261117
+          path: experiment
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install only existing bounded test dependencies
+        run: python -m pip install 'beautifulsoup4>=4.12,<5' 'cryptography>=43,<47'
+      - name: Compare actual main schedule and pinned collector to experimental G06
+        run: |
+          set -euo pipefail
+          mkdir -p release_evidence
+          python experiment/diagnostics/kyoto_weekend_actual_main_release_gate.py --main production --collector pinned_collector --experiment experiment --out release_evidence/release_gate.json 2>&1 | tee release_evidence/release_gate.log
+      - name: Run frozen production collector offline integration and safety regression
+        shell: bash
+        working-directory: pinned_collector
+        run: |
+          set -euo pipefail
+          mkdir -p ../release_evidence
+          KYOTO_TARGET_DAY=20261121 python -m unittest -q tests.test_kyoto_weekend_retry_guard tests.test_kyoto_weekend_race_parity tests.test_kyoto_weekend_capture tests.test_kyoto_safe_stop_artifact tests.test_kyoto_weekend_end_to_end tests.test_kyoto_weekend_postflight tests.test_kyoto_weekend_interruption_and_pacing 2>&1 | tee ../release_evidence/pinned_day21.txt
+          KYOTO_TARGET_DAY=20261115 python -m unittest -q tests.test_kyoto_nov15_two_original_observer tests.test_kyoto_nov15_offline_race_links tests.test_kyoto_nov15_encrypted_evidence 2>&1 | tee ../release_evidence/pinned_source.txt
+      - name: Run latest experimental G06 full offline recovery regression independently
+        shell: bash
+        working-directory: experiment
+        run: |
+          set -euo pipefail
+          python -m unittest -q tests.test_kyoto_g06_market_link_evidence tests.test_kyoto_g06_gap_recovery_plan tests.test_kyoto_g06_item_level_recovery tests.test_kyoto_g06_all12_capture tests.test_kyoto_hybrid_multi_source tests.test_kyoto_g06_twelve_race_dual_market_gate 2>&1 | tee ../release_evidence/g06_experiment.txt
+      - name: Save exact revisions and evidence hashes
+        if: always()
+        shell: bash
+        run: |
+          mkdir -p release_evidence
+          git -C production rev-parse HEAD > release_evidence/main_head.txt
+          git -C pinned_collector rev-parse HEAD > release_evidence/collector_head.txt
+          git -C experiment rev-parse HEAD > release_evidence/experiment_head.txt
+          (cd release_evidence && sha256sum *.json *.txt *.log 2>/dev/null > evidence_sha256.txt) || true
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: kyoto-weekend-true-production-acceptance-${{ github.run_id }}
+          path: release_evidence/
+          if-no-files-found: error
+          retention-days: 90
