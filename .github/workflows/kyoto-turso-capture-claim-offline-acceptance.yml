@@ -1,0 +1,40 @@
+name: Kyoto remote Turso claim protocol isolated acceptance
+on:
+  push:
+    branches: [experiment/multisource-hybrid-20261117]
+    paths:
+      - diagnostics/kyoto_turso_capture_claims.py
+      - tests/test_kyoto_turso_capture_claims.py
+      - .github/workflows/kyoto-turso-capture-claim-offline-acceptance.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  remote-protocol-simulation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Two isolated clients, one remote SQL database - offline only
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p turso_claim_evidence
+          python -m unittest -v tests.test_kyoto_turso_capture_claims 2>&1 | tee turso_claim_evidence/independent_tests.txt
+      - name: Receipt and exact source SHA
+        if: always()
+        shell: bash
+        run: |
+          git rev-parse HEAD > turso_claim_evidence/commit.txt
+          sha256sum diagnostics/kyoto_turso_capture_claims.py tests/test_kyoto_turso_capture_claims.py > turso_claim_evidence/source_sha256.txt
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: kyoto-turso-claim-contract-offline-${{ github.run_id }}
+          path: turso_claim_evidence/
+          if-no-files-found: error
