@@ -32,7 +32,12 @@ def mock_collector(out,*,primary_channel,race_spec,**kwargs):
         data[k]=raw
         steps.append({"step":k,"bytes":len(raw),"sha256":sha256(raw).hexdigest(),
                       "captured_at_utc":"2026-11-21T01:00:00Z"})
-    receipt={"state":"SOURCE_FROZEN","pre_race_prices_accepted":True,"request_receipts":steps}
+    receipt={"state":"SOURCE_FROZEN","pre_race_prices_accepted":True,
+             "request_receipts":steps,
+             "market_receipt":{"classification":"VALIDATED_LIVE_MARKETS_NOT_PREDICTION_RELEASED",
+                "markets":{m:{"phase":"LIVE_PRE_RACE","pre_race_usable":True,
+                              "source_sha256":next(z["sha256"] for z in steps if z["step"]==m)}
+                           for m in ("quinella","bracket_quinella")}}}
     (folder/"receipt.json").write_text(json.dumps(receipt))
     return {"state":"SOURCE_ONLY_PRIMARY","selected_channel":"PC"}
 class Tests(unittest.TestCase):
@@ -55,6 +60,35 @@ class Tests(unittest.TestCase):
             got=run_twelve(Path(tmp)/"proof",records=records,runner=mock_collector)
             self.assertEqual(got["verified_dual_market_races"],11)
             self.assertEqual(got["records"][1]["state"],"INPUT_OR_CAPTURE_REJECTED")
+    def test_cross_day_batch_rejected(self):
+        records=samples()
+        records[6]["race_spec"]=spec(6).__class__(**{
+            **spec(6).__dict__,"race_day":"20261122"})
+        with tempfile.TemporaryDirectory() as tmp:
+            with self.assertRaisesRegex(ValueError,"cross_day"):
+                run_twelve(Path(tmp)/"proof",records=records,runner=mock_collector)
+    def test_after_start_receipt_rejected(self):
+        def late(out,**kwargs):
+            x=mock_collector(out,**kwargs)
+            p=Path(out)/"pc"/"receipt.json"
+            data=json.loads(p.read_text())
+            data["request_receipts"][-1]["captured_at_utc"]="2026-11-21T06:00:00Z"
+            p.write_text(json.dumps(data))
+            return x
+        with tempfile.TemporaryDirectory() as tmp:
+            got=run_twelve(Path(tmp)/"proof",records=samples(),runner=late)
+            self.assertEqual(got["verified_dual_market_races"],0)
+    def test_missing_validation_chain_rejected(self):
+        def unproven(out,**kwargs):
+            x=mock_collector(out,**kwargs)
+            p=Path(out)/"pc"/"receipt.json"
+            data=json.loads(p.read_text())
+            del data["market_receipt"]
+            p.write_text(json.dumps(data))
+            return x
+        with tempfile.TemporaryDirectory() as tmp:
+            got=run_twelve(Path(tmp)/"proof",records=samples(),runner=unproven)
+            self.assertEqual(got["verified_dual_market_races"],0)
     def test_no_partial_overwrite(self):
         with tempfile.TemporaryDirectory() as tmp:
             p=Path(tmp)/"proof";p.mkdir()
