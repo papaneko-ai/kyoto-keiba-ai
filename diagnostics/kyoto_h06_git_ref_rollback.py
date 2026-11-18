@@ -2,7 +2,11 @@
 import subprocess,tempfile,json,hashlib,os,datetime
 from pathlib import Path
 def git(*args,cwd=None):
-    return subprocess.run(["git",*args],cwd=cwd,check=True,text=True,capture_output=True).stdout.strip()
+    p=subprocess.run(["git",*args],cwd=cwd,check=False,text=True,capture_output=True)
+    if p.returncode:
+        where=subprocess.run(["git","show-ref"],cwd=cwd,check=False,text=True,capture_output=True)
+        raise RuntimeError(f"git command failed {args} cwd={cwd} stdout={p.stdout!r} stderr={p.stderr!r} refs={where.stdout!r} referr={where.stderr!r}")
+    return p.stdout.strip()
 def hashes(path):
     return {str(p.relative_to(path)):hashlib.sha256(p.read_bytes()).hexdigest()
             for p in path.rglob("*") if p.is_file() and ".git" not in p.parts}
