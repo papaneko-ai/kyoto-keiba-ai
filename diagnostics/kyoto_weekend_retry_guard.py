@@ -7,6 +7,8 @@ concurrency serializes execution; both schedule slots are bounded and finite.
 import argparse
 import os
 
+EARLY={"20261121":("15 0 21 11 *","15 1 21 11 *"),
+       "20261122":("15 0 22 11 *","15 1 22 11 *")}
 PRIMARY={"20261121":"5 2 21 11 *","20261122":"10 2 22 11 *"}
 BACKUP={"20261121":"50 2 21 11 *","20261122":"55 2 22 11 *"}
 CAPTURE_STEPS=("Capture official PC observed originals",
@@ -19,15 +21,17 @@ def evaluate(day,run_id,event,cron,runs,jobs_by_run):
         raise RetryGuardRejected("RUN_HISTORY_UNVERIFIED_NO_HTTP")
     if event not in ("schedule","workflow_dispatch"):
         raise RetryGuardRejected("INVALID_EVENT_NO_HTTP")
-    if event=="schedule" and cron not in (PRIMARY[day],BACKUP[day]):
+    if event=="schedule" and cron not in (*EARLY[day],PRIMARY[day],BACKUP[day]):
         raise RetryGuardRejected("UNEXPECTED_CRON_NO_HTTP")
     if len(runs)>100:
         raise RetryGuardRejected("SAME_DAY_HISTORY_NEEDS_PAGINATION_NO_HTTP")
-    # One primary and one backup slot each day. Previous run count, job
+    # Two earlier observation slots plus primary and backup each day. Previous run count, job
     # conclusion, or attempted GET is not a reason to waste the backup slot:
     # success can mean safe-stop with no official originals or incomplete odds.
     # Same-day GitHub concurrency is the actual overlapping-network guard.
     previous=[r for r in runs if str(r.get("id"))!=str(run_id)]
+    if event=="schedule" and cron in EARLY[day]:
+        return "EARLY_OBSERVATION_ALLOWED_INDEPENDENT_OF_PRIOR_RUN"
     if event=="schedule" and cron==BACKUP[day]:
         return ("BACKUP_ALLOWED_AFTER_PRIOR_RUN" if previous
                 else "BACKUP_ALLOWED_MISSING_PRIMARY")
@@ -39,7 +43,7 @@ def evaluate(day,run_id,event,cron,runs,jobs_by_run):
 def verify_github(day,run_id,event,cron,repo,token):
     """Never make Github API history availability an extra pre-HTTP veto.
 
-    The workflow itself has only two predeclared scheduled entries per day,
+    The workflow itself has four predeclared scheduled entries per day,
     and its day-based concurrency serializes their network activity.
     The exact actual event/cron is checked locally without HTTP.
     """
