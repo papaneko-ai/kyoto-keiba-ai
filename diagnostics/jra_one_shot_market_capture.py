@@ -545,7 +545,7 @@ def capture(out,*,channel,verified_start_utc,active_runners,now_utc=None,opener=
 def capture_hybrid(out, *, primary_channel, verified_start_utc, active_runners,
                    race_spec, authorized_live_http=False, now_utc=None,
                    openers=None, capture_fn=None, expected_named_runners=None,
-                   independent_crosscheck=False):
+                   independent_crosscheck=False,shared_pacer=None):
     """Use the existing official PC/SP capturer; try other source once on error.
 
     Source-only diagnostic: never allows wagers, prediction promotion or
@@ -595,7 +595,7 @@ def capture_hybrid(out, *, primary_channel, verified_start_utc, active_runners,
         raise SourceChainError("hybrid_run_directory_not_empty")
     folder.mkdir(parents=True, exist_ok=True)
     runner=capture_fn or capture
-    shared_pacer=RequestPacer() if authorized_live_http else None
+    shared_pacer=shared_pacer or (RequestPacer() if authorized_live_http else None)
     outcomes=[]
     def one(channel):
         channel_dir=folder / channel.lower()
