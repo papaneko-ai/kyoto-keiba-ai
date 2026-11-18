@@ -100,6 +100,11 @@ def prepare_intake(root,*,records):
         "actual_wagers_enabled":False,
         "races":output}
     out=root/"g06_downstream_input_receipt.json"
+    from diagnostics.kyoto_g06_four_stage_inboxes import publish_inboxes
+    # Materialize all four stage inputs before declaring handoff complete.
+    manifest=publish_inboxes(root,source_receipt=result)
+    result["four_stage_handoff_manifest_sha256"]=sha256(
+        (root/"next_stage_inboxes"/"manifest.json").read_bytes()).hexdigest()
     with out.open("x",encoding="utf-8") as f:
         json.dump(result,f,ensure_ascii=False,sort_keys=True,indent=2)
         f.write("\n")
