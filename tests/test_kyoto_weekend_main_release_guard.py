@@ -5,7 +5,8 @@ from pathlib import Path
 
 WF=Path(".github/workflows/kyoto-20261121-22-two-source-production-observer.yml")
 REG=Path("docs/diagnostics/KYOTO_20261116_INDEPENDENT_RELEASE_BLOCKERS.json")
-PIN="c96df31542cb94435ca36cb4a1b8bd6de938233f"
+PIN="a96a249250cb074c451e746228a6775169c025ed"
+HISTORIC_APPROVED_PIN="c96df31542cb94435ca36cb4a1b8bd6de938233f"
 
 class SourceOnlyReleaseAcceptance(unittest.TestCase):
     @classmethod
@@ -17,6 +18,8 @@ class SourceOnlyReleaseAcceptance(unittest.TestCase):
     def test_both_dated_jobs_use_fixed_sha_and_fault_injection(self):
         self.assertEqual(self.workflow.count("ref: ${{ env.COLLECTOR_SHA }}"),2)
         self.assertIn(PIN,self.workflow)
+        self.assertNotIn(HISTORIC_APPROVED_PIN,self.workflow)
+        self.assertEqual(self.workflow.count(PIN),6)
         self.assertEqual(self.workflow.count("tests.test_kyoto_weekend_interruption_and_pacing"),2)
         self.assertEqual(self.workflow.count("GITHUB_RUN_ATTEMPT"),2)
         self.assertEqual(self.workflow.count("ENCRYPTION_KEY_REQUIRED_NO_HTTP"),2)
@@ -42,7 +45,7 @@ class SourceOnlyReleaseAcceptance(unittest.TestCase):
 
     def test_both_lanes_verify_exact_12r_before_any_jra_http(self):
         self.assertEqual(self.workflow.count("tests.test_kyoto_weekend_race_parity"),2)
-        self.assertEqual(self.ledger["required_approval"]["approved_commit_sha"],PIN)
+        self.assertEqual(self.ledger["required_approval"]["approved_commit_sha"],HISTORIC_APPROVED_PIN)
 
     def test_both_schedules_and_no_global_hard_block(self):
         self.assertIn("cron: '5 2 21 11 *'",self.workflow)
@@ -60,7 +63,7 @@ class SourceOnlyReleaseAcceptance(unittest.TestCase):
 
     def test_two_critical_defects_have_test_proof(self):
         self.assertEqual(self.ledger["status"],"OBSERVATION_ONLY_CANDIDATE_OFFLINE_VERIFIED")
-        self.assertEqual(self.ledger["required_approval"]["approved_commit_sha"],PIN)
+        self.assertEqual(self.ledger["required_approval"]["approved_commit_sha"],HISTORIC_APPROVED_PIN)
         for issue in ("KW-001","KW-002"):
             self.assertEqual(self.issues[issue]["state"],"FIXED_AND_OFFLINE_REGRESSION_VERIFIED")
             self.assertIn("CI run",self.issues[issue]["fix_evidence"])
