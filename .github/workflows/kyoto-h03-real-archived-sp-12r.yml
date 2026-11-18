@@ -1,0 +1,32 @@
+name: Kyoto H03 historical SP actual twelve-race evidence probe
+on:
+  push:
+    branches:
+      - experiment/multisource-hybrid-20261117
+    paths:
+      - diagnostics/kyoto_h03_real_archived_sp_replay.py
+      - .github/workflows/kyoto-h03-real-archived-sp-12r.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  historical-sp-evidence:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install beautifulsoup4
+      - name: Retrieve only observed 2026-11-07 SP racecards and compare 148-horse frozen roster
+        run: python -m diagnostics.kyoto_h03_real_archived_sp_replay
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: kyoto-h03-historical-sp-real-12r-${{ github.run_id }}
+          path: h03_archived_sp_evidence/
+          if-no-files-found: warn
+          retention-days: 30
