@@ -105,6 +105,26 @@ class Tests(unittest.TestCase):
                     "libsql://evil.turso.io@other.org","https://production.turso.io/?role=admin"):
             with self.subTest(url=url),self.assertRaises(ReservationError):
                 TursoCaptureClaims(url=url,token=TOKEN,transport=self.remote)
+    def test_lab_namespace_is_disjoint_from_real_collector_table(self):
+        lab=TursoCaptureClaims(url=URL,token=TOKEN,
+             transport=self.remote,namespace="ISOLATED_LAB")
+        lab.prepare_schema()
+        x=lab.claim(claim_key=self.k,owner="lab_runner_001",now_epoch=10000)
+        self.assertTrue(x["must_fetch"])
+        self.assertIsNone(self.a.observe(self.k))
+        self.assertTrue(self.a.claim(claim_key=self.k,owner="github_actions_1",
+            now_epoch=10000)["must_fetch"])
+        self.assertEqual(lab.observe(self.k)["owner"],"lab_runner_001")
+        with sqlite3.connect(self.remote.path) as db:
+            names={r[0] for r in db.execute(
+                "SELECT name FROM sqlite_master WHERE type='table'")}
+        self.assertEqual(names,{
+            "__kyoto_ai_weekend_claims_v1",
+            "__kyoto_ai_weekend_claims_isolated_lab_v1"})
+    def test_unrecognized_namespace_cannot_be_injected(self):
+        with self.assertRaisesRegex(ReservationError,"namespace"):
+            TursoCaptureClaims(url=URL,token=TOKEN,transport=self.remote,
+                namespace="OPERATIONAL; DROP TABLE")
     def test_no_plain_sql_interpolated_user_input(self):
         self.a.claim(claim_key=self.k,owner="github_actions_1",now_epoch=10000)
         queries=[r["stmt"] for p in self.remote.history for r in p["requests"]
