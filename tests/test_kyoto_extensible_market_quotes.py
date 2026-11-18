@@ -23,6 +23,14 @@ class MultiMarket(unittest.TestCase):
     def test_unordered_not_canonical_rejected(self):
         with self.assertRaises(MarketQuoteError):
             q("quinella",(2,1)).validated(cutoff_utc=CUTOFF)
+    def test_same_frame_bracket_pair_can_be_held_for_roster_validation(self):
+        quote=q("bracket_quinella",(1,1))
+        result=combine_market_quotes([quote,q("quinella",(1,2))],cutoff_utc=CUTOFF)
+        self.assertTrue(result["supports_quinella_and_bracket_together"])
+        self.assertFalse(result["recommendations_ready"])
+    def test_duplicate_horse_in_quinella_invalid(self):
+        with self.assertRaises(MarketQuoteError):
+            q("quinella",(1,1)).validated(cutoff_utc=CUTOFF)
     def test_frame_out_of_bounds(self):
         with self.assertRaises(MarketQuoteError):
             q("bracket_quinella",(1,9)).validated(cutoff_utc=CUTOFF)
