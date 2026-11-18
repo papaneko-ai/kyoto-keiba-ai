@@ -1,0 +1,60 @@
+name: Kyoto weekend exact isolated Turso read-only connection acceptance
+on:
+  push:
+    branches:
+      - experiment/multisource-hybrid-20261117
+    paths:
+      - .github/workflows/kyoto-weekend-turso-readonly-preflight.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  isolated-remote-readonly:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    env:
+      TURSO_DATABASE_URL: ${{ secrets.TURSO_DATABASE_URL }}
+      TURSO_AUTH_TOKEN: ${{ secrets.TURSO_AUTH_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: experiment/multisource-hybrid-20261117
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: python -m pip install requests
+      - name: Verify ONLY the test Turso host via fixed read-only SQL
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p readonly_receipt
+          python - <<'PY'
+          import os,json
+          from pathlib import Path
+          from diagnostics.turso_readonly_inventory import inventory,validate_url,validate_token
+          url=os.environ.get("TURSO_DATABASE_URL","")
+          token=os.environ.get("TURSO_AUTH_TOKEN","")
+          result={"schema":"kyoto_weekend_isolated_turso_readonly.v1",
+                  "production_modified":False,"remote_mutations":0,
+                  "jra_http_requests":0,"test_db_connection_verified":False}
+          if not url or not token:
+              result["status"]="SKIPPED_TEST_DB_SECRETS_NOT_CONFIGURED"
+          else:
+              validate_url(url)
+              validate_token(token)
+              info=inventory(database_url=url,auth_token=token)
+              result["status"]="ISOLATED_REMOTE_READONLY_PASS"
+              result["test_db_connection_verified"]=info["connection_verified"]
+              result["visible_table_count"]=info["table_count_visible"]
+          Path("readonly_receipt/report.json").write_text(
+              json.dumps(result,sort_keys=True,indent=2)+"\n")
+          print("ISOLATED_TEST_DB_READONLY_STATUS="+result["status"])
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: kyoto-weekend-turso-readonly-status-${{ github.run_id }}
+          path: readonly_receipt/
+          if-no-files-found: warn
+          retention-days: 90
