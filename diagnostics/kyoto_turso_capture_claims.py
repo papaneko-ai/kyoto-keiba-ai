@@ -11,6 +11,7 @@ from urllib.parse import urlsplit
 from diagnostics.kyoto_shared_capture_reservation import key,ReservationError
 
 TABLE="__kyoto_ai_weekend_claims_v1"
+LAB_TABLE="__kyoto_ai_weekend_claims_isolated_lab_v1"
 CREATE=(f"CREATE TABLE IF NOT EXISTS {TABLE} ("
         "claim_key TEXT PRIMARY KEY NOT NULL,"
         "owner TEXT NOT NULL,"
@@ -49,7 +50,7 @@ def _rows(payload):
         raise TursoClaimUnconfirmed("remote_rows_unconfirmed") from None
 
 class TursoCaptureClaims:
-    def __init__(self,*,url,token,transport):
+    def __init__(self,*,url,token,transport,namespace="OPERATIONAL"):
         if not isinstance(url,str):raise ReservationError("db_url_required")
         p=urlsplit(url)
         # Never write P6 isolated lab or accidentally target local filesystem.
@@ -60,6 +61,9 @@ class TursoCaptureClaims:
         if not isinstance(token,str) or len(token)<16 or any(c.isspace() for c in token):
             raise ReservationError("remote_claim_token_required")
         if not hasattr(transport,"post"):raise ReservationError("transport_required")
+        if namespace not in ("OPERATIONAL","ISOLATED_LAB"):
+            raise ReservationError("unknown_turso_capture_namespace")
+        self.table=LAB_TABLE if namespace=="ISOLATED_LAB" else TABLE
         self.endpoint="https://"+p.hostname+"/v2/pipeline"
         self.token=token
         self.transport=transport
@@ -82,10 +86,10 @@ class TursoCaptureClaims:
         except Exception:
             raise TursoClaimUnconfirmed("mutation_or_read_unconfirmed_no_blind_retry") from None
     def prepare_schema(self):
-        self._single(CREATE)
-        return {"schema":TABLE,"prepared":True,"unrelated_tables_modified":False}
+        self._single(CREATE.replace(TABLE,self.table))
+        return {"schema":self.table,"prepared":True,"unrelated_tables_modified":False}
     def observe(self,claim_key):
-        data=self._single(READ,claim_key)
+        data=self._single(READ.replace(TABLE,self.table),claim_key)
         if not data:return None
         if len(data[0])!=5:raise TursoClaimUnconfirmed("read_shape_unconfirmed")
         a,b,c,d,e=data[0]
@@ -99,7 +103,7 @@ class TursoCaptureClaims:
             raise ReservationError("owner_invalid")
         if type(now_epoch) is not int or now_epoch<=0 or type(lease_seconds) is not int or not 30<=lease_seconds<=600:
             raise ReservationError("lease_parameters_invalid")
-        result=self._single(CLAIM,claim_key,owner,now_epoch+lease_seconds,now_epoch)
+        result=self._single(CLAIM.replace(TABLE,self.table),claim_key,owner,now_epoch+lease_seconds,now_epoch)
         if len(result)==1:
             if len(result[0])!=4 or result[0][0]!=owner or result[0][3]!="LEASED":
                 raise TursoClaimUnconfirmed("claim_owner_not_proven")
@@ -117,10 +121,10 @@ class TursoCaptureClaims:
     def complete(self,*,claim_key,owner,generation,sha256):
         if type(generation) is not int or generation<1 or not isinstance(sha256,str) or not re.fullmatch(r"[a-f0-9]{64}",sha256):
             raise ReservationError("completion_invalid")
-        rows=self._single(COMPLETE,sha256,claim_key,owner,generation)
+        rows=self._single(COMPLETE.replace(TABLE,self.table),sha256,claim_key,owner,generation)
         return {"state":"COMMITTED" if rows else "FENCE_REJECTED","committed":bool(rows)}
     def abandon(self,*,claim_key,owner,generation,now_epoch):
         if type(generation) is not int or generation<1 or type(now_epoch) is not int:
             raise ReservationError("abandon_invalid")
-        rows=self._single(ABANDON,now_epoch,claim_key,owner,generation)
+        rows=self._single(ABANDON.replace(TABLE,self.table),now_epoch,claim_key,owner,generation)
         return {"released":bool(rows)}
