@@ -12,6 +12,7 @@ import json
 from diagnostics.jra_one_shot_market_capture import capture_hybrid, SourceChainError
 from diagnostics.kyoto_g06_item_level_recovery import recover_saved_markets
 from diagnostics.kyoto_g06_gap_recovery_plan import plan_gap_recovery
+from diagnostics.kyoto_g06_market_link_evidence import observed_market_links
 
 MARKETS=("quinella","bracket_quinella")
 REQUIRED_ORIGINALS=("official_odds_menu.html","quinella_original.html","bracket_quinella_original.html")
@@ -125,9 +126,12 @@ def run_twelve(root, *, records, authorized_live_http=False, runner=None):
                 verified_start_utc=item["verified_start_utc"])
             entry["item_level_recovery"]=recovered
             proofs={m:recovered["markets"][m]["selected"] for m in MARKETS}
+            market_link_proof=observed_market_links(output,race_spec=spec,
+                verified_start_utc=item["verified_start_utc"])
+            entry["official_market_link_proof"]=market_link_proof
             entry["gap_recovery_plan"]=plan_gap_recovery(
                 race_id=spec.race_id,verified_market_receipts=proofs,
-                official_links={"PC":bool(spec.pc_racecard_url),"SP":bool(spec.sp_racecard_url)},
+                official_links={ch:proof["observed"] for ch,proof in market_link_proof.items()},
                 attempt_history=[],now_utc=datetime.now(timezone.utc).isoformat(),
                 cutoff_utc=item["verified_start_utc"])
             if recovered["both_markets_verified"]:
