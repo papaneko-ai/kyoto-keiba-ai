@@ -7,13 +7,14 @@ Never authorizes prediction or production deployment on its own.
 from __future__ import annotations
 from pathlib import Path
 from hashlib import sha256
+from datetime import datetime, timezone
 import json
 from diagnostics.jra_one_shot_market_capture import capture_hybrid, SourceChainError
 
 MARKETS=("quinella","bracket_quinella")
 REQUIRED_ORIGINALS=("official_odds_menu.html","quinella_original.html","bracket_quinella_original.html")
 
-def _verify_saved_channel(folder):
+def _verify_saved_channel(folder, *, verified_start_utc):
     """Independently verify both saved market files against immutable request receipts."""
     receipt_path=folder/"receipt.json"
     if not receipt_path.is_file() or receipt_path.is_symlink():
@@ -21,6 +22,25 @@ def _verify_saved_channel(folder):
     try:
         receipt=json.loads(receipt_path.read_text(encoding="utf-8"))
         steps={x["step"]:x for x in receipt["request_receipts"]}
+        chain=receipt.get("market_receipt")
+        if not isinstance(chain,dict) or chain.get("classification")!="VALIDATED_LIVE_MARKETS_NOT_PREDICTION_RELEASED":
+            return {"state":"MARKET_VALIDATION_CHAIN_NOT_PROVEN"}
+        phases=chain.get("markets",{})
+        if set(phases)!=set(MARKETS) or any(
+                phases[k].get("phase")!="LIVE_PRE_RACE"
+                or phases[k].get("pre_race_usable") is not True
+                for k in MARKETS):
+            return {"state":"MARKET_PHASE_OR_INTEGRITY_NOT_VALIDATED"}
+        try:
+            cutoff=datetime.fromisoformat(verified_start_utc.replace("Z","+00:00"))
+            if cutoff.tzinfo is None or cutoff.utcoffset()!=timezone.utc.utcoffset(None):
+                return {"state":"INVALID_CUTOFF"}
+            for step in ("odds_menu",)+MARKETS:
+                seen=datetime.fromisoformat(steps[step]["captured_at_utc"].replace("Z","+00:00"))
+                if seen.tzinfo is None or seen.utcoffset()!=timezone.utc.utcoffset(None) or seen>=cutoff:
+                    return {"state":"MARKET_NOT_CAPTURED_BEFORE_START","step":step}
+        except (ValueError,TypeError,KeyError,AttributeError):
+            return {"state":"INVALID_CAPTURE_TIME"}
         for market,name in (("odds_menu",REQUIRED_ORIGINALS[0]),
                             ("quinella",REQUIRED_ORIGINALS[1]),
                             ("bracket_quinella",REQUIRED_ORIGINALS[2])):
@@ -32,6 +52,8 @@ def _verify_saved_channel(folder):
                 return {"state":"ORIGINAL_RECEIPT_MISMATCH","market":market}
         if receipt.get("state")!="SOURCE_FROZEN" or receipt.get("pre_race_prices_accepted") is not True:
             return {"state":"SOURCE_NOT_FROZEN"}
+        if any(phases[k].get("source_sha256")!=steps[k]["sha256"] for k in MARKETS):
+            return {"state":"MARKET_CHAIN_ORIGINAL_SHA_MISMATCH"}
         return {"state":"BOTH_MARKET_ORIGINALS_VERIFIED",
                 "market_shas":{m:steps[m]["sha256"] for m in MARKETS},
                 "capture_times_utc":{m:steps[m]["captured_at_utc"] for m in MARKETS}}
@@ -55,6 +77,11 @@ def run_twelve(root, *, records, authorized_live_http=False, runner=None):
     base.mkdir()
     results=[]
     collector=runner or capture_hybrid
+    observed_days={item["race_spec"].race_day for item in records.values()
+                   if isinstance(item,dict) and "race_spec" in item
+                   and hasattr(item["race_spec"],"race_day")}
+    if len(observed_days)>1:
+        raise SourceChainError("cross_day_batch_mixing_forbidden")
     for race in range(1,13):
         item=records[race]
         entry={"race":race,"state":"NOT_ATTEMPTED","both_markets_verified":False}
@@ -86,7 +113,7 @@ def run_twelve(root, *, records, authorized_live_http=False, runner=None):
             entry["state"]=receipt.get("state","UNKNOWN")
             entry["selected_channel"]=receipt.get("selected_channel")
             if entry["selected_channel"] in ("PC","SP"):
-                verified=_verify_saved_channel(output/entry["selected_channel"].lower())
+                verified=_verify_saved_channel(output/entry["selected_channel"].lower(), verified_start_utc=item["verified_start_utc"])
                 entry["evidence_check"]=verified
                 entry["both_markets_verified"]=verified["state"]=="BOTH_MARKET_ORIGINALS_VERIFIED"
             else:
