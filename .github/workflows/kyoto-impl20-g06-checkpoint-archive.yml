@@ -1,0 +1,53 @@
+name: Kyoto implementation20 G06 source checkpoint archive
+on:
+  push:
+    branches:
+      - experiment/multisource-hybrid-20261117
+    paths:
+      - .github/workflows/kyoto-impl20-g06-checkpoint-archive.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  snapshot:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Exact branch source and SHA manifest
+        run: |
+          set -euo pipefail
+          git fetch origin main jra-html-diagnostic-20261105 experiment/multisource-hybrid-20261117
+          mkdir -p package/experiment-source
+          git archive HEAD | tar -xf - -C package/experiment-source
+          git bundle create package/three-branches.bundle origin/main origin/jra-html-diagnostic-20261105 origin/experiment/multisource-hybrid-20261117
+          git bundle verify package/three-branches.bundle
+          python - <<'PY'
+          import subprocess,hashlib,json,pathlib
+          root=pathlib.Path("package")
+          heads={b:subprocess.check_output(["git","rev-parse","origin/"+b],text=True).strip()
+                 for b in ("main","jra-html-diagnostic-20261105","experiment/multisource-hybrid-20261117")}
+          digests={}
+          for p in sorted(root.rglob("*")):
+              if p.is_file():digests[str(p.relative_to(root))]={"bytes":p.stat().st_size,"sha256":hashlib.sha256(p.read_bytes()).hexdigest()}
+          (root/"MANIFEST.json").write_text(json.dumps({"schema":"kyoto_impl20_g06_checkpoint.v1","heads":heads,"files":digests,"secrets_included":False,"turso_database_included":False},indent=2)+"\n")
+          print(json.dumps({"heads":heads,"files":len(digests)}))
+          PY
+          python - <<'PY'
+          import pathlib,zipfile,hashlib
+          root=pathlib.Path("package")
+          target=pathlib.Path("KYOTO_IMPLEMENTATION20_G06_SOURCE_CHECKPOINT.zip")
+          with zipfile.ZipFile(target,"w",zipfile.ZIP_DEFLATED,compresslevel=7) as z:
+              for p in sorted(root.rglob("*")):
+                  if p.is_file():z.write(p,arcname=str(p))
+          print("ZIP_SHA256",hashlib.sha256(target.read_bytes()).hexdigest())
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: kyoto-impl20-g06-current-source-${{ github.run_id }}
+          path: KYOTO_IMPLEMENTATION20_G06_SOURCE_CHECKPOINT.zip
+          if-no-files-found: error
+          retention-days: 90
