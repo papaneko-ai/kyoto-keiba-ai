@@ -1,0 +1,36 @@
+name: Kyoto G07 all item provenance and two-way fault preflight
+on:
+  push:
+    branches:
+      - experiment/multisource-hybrid-20261117
+    paths:
+      - diagnostics/kyoto_g07_all_item_preflight.py
+      - tests/test_kyoto_g07_all_item_preflight.py
+      - .github/workflows/kyoto-g07-all-item-preflight.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  g07-isolated-preflight:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install beautifulsoup4 cryptography
+      - name: Validate 12R x 148H field provenance, failed sources and crypto
+        run: |
+          mkdir -p g07_proof
+          set -o pipefail
+          python -m unittest -v tests.test_kyoto_g07_all_item_preflight tests.test_jra_p1_failover_offline tests.test_kyoto_nov15_encrypted_evidence 2>&1 | tee g07_proof/tests.txt
+          python -m diagnostics.kyoto_g07_all_item_preflight > g07_proof/matrix.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: kyoto-g07-12r-148h-encryption-${{ github.run_id }}
+          path: g07_proof/
+          if-no-files-found: error
