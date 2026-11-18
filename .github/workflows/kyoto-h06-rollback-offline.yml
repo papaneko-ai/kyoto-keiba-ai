@@ -1,0 +1,38 @@
+name: Kyoto H06 independent offline rollback check
+on:
+  push:
+    branches:
+      - experiment/multisource-hybrid-20261117
+    paths:
+      - 'diagnostics/kyoto_h06_isolated_rollback.py'
+      - '.github/workflows/kyoto-h06-rollback-offline.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  isolated-rollback:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: sources/experiment
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          path: sources/main
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Validate isolated fault injection and restoration
+        env:
+          KYOTO_H06_SOURCES: sources
+        run: python sources/experiment/diagnostics/kyoto_h06_isolated_rollback.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: kyoto-h06-independent-offline-${{ github.run_id }}
+          path: h06_receipt.json
+          if-no-files-found: warn
