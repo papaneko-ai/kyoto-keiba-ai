@@ -65,7 +65,8 @@ def _verify_saved_channel(folder, *, verified_start_utc):
         return {"state":"CORRUPT_CHANNEL_RECEIPT"}
 
 def run_twelve(root, *, records, authorized_live_http=False, runner=None,
-               request_pacer=None,openers=None):
+               request_pacer=None,openers=None,claim_client=None,claim_slot=None,
+               claim_owner=None,claim_now_epoch=None):
     """records: 12 entries indexed 1..12; missing links explicitly None.
 
     Requires a fresh output directory. Every valid record carries an existing
@@ -79,6 +80,13 @@ def run_twelve(root, *, records, authorized_live_http=False, runner=None,
         raise SourceChainError("new_output_directory_required")
     if type(authorized_live_http) is not bool:
         raise SourceChainError("authorization_boolean_required")
+    if claim_client is not None and (not authorized_live_http or runner is not None):
+        raise SourceChainError("remote_claims_live_default_collector_only")
+    if claim_client is not None and (
+        type(claim_slot) is not int or not 0<=claim_slot<=3
+        or type(claim_owner) is not str or not claim_owner
+        or type(claim_now_epoch) is not int or claim_now_epoch<=0):
+        raise SourceChainError("remote_claim_scope_invalid")
     base.mkdir()
     results=[]
     collector=runner or capture_hybrid
@@ -112,6 +120,25 @@ def run_twelve(root, *, records, authorized_live_http=False, runner=None,
             if tuple(tuple(x[:2]) for x in item["expected_named_runners"])!=tuple(item["active_runners"]):
                 raise SourceChainError("runner_reference_identity_mismatch")
             output=base/f"r{race:02d}"
+            lease=None
+            if claim_client is not None:
+                from diagnostics.kyoto_shared_capture_reservation import key
+                lease_key=key(day=spec.race_day,slot=claim_slot,race=race,
+                              channel=item["primary_channel"],market="racecard")
+                try:
+                    lease=claim_client.claim(claim_key=lease_key,owner=claim_owner,
+                        now_epoch=claim_now_epoch)
+                except Exception as exc:
+                    entry["claim_state"]="COORDINATOR_UNCONFIRMED"
+                    entry["claim_error_class"]=type(exc).__name__
+                    # Do not invent a completed acquisition and do not start
+                    # uncoordinated requests when cross-host mode was chosen.
+                    raise SourceChainError("remote_claim_unconfirmed_no_http") from None
+                entry["claim_state"]=lease["state"]
+                if not lease.get("must_fetch"):
+                    entry["state"]="SHARED_SLOT_OWNED_OR_DONE_REUSE_NEXT_SLOT"
+                    results.append(entry)
+                    continue
             receipt=collector(output,primary_channel=item["primary_channel"],
                 verified_start_utc=item["verified_start_utc"],
                 active_runners=item["active_runners"],race_spec=spec,
@@ -190,9 +217,30 @@ def run_twelve(root, *, records, authorized_live_http=False, runner=None,
                 entry["both_markets_verified"]=True
                 entry["item_level_completed"]=True
                 entry["cross_source_times_not_equated"]=True
+            if claim_client is not None and lease and lease["must_fetch"]:
+                import hashlib
+                try:
+                    if entry["both_markets_verified"]:
+                        digest=hashlib.sha256((output/"pc"/"receipt.json").read_bytes()).hexdigest() if (output/"pc"/"receipt.json").is_file() else hashlib.sha256((output/"sp"/"receipt.json").read_bytes()).hexdigest()
+                        committed=claim_client.complete(claim_key=lease_key,owner=claim_owner,
+                            generation=lease["generation"],sha256=digest)
+                        entry["claim_commit_state"]=committed["state"]
+                    else:
+                        released=claim_client.abandon(claim_key=lease_key,owner=claim_owner,
+                            generation=lease["generation"],now_epoch=claim_now_epoch)
+                        entry["claim_commit_state"]="RELEASED_FOR_RETRY" if released["released"] else "FENCE_REJECTED"
+                except Exception as exc:
+                    entry["claim_commit_state"]="COORDINATOR_COMMIT_UNCONFIRMED"
+                    entry["claim_error_class"]=type(exc).__name__
         except (ValueError,TypeError,KeyError,AttributeError,OSError) as exc:
             entry.update(state="INPUT_OR_CAPTURE_REJECTED",
                          reason=type(exc).__name__+":"+str(exc)[:120])
+            if claim_client is not None and "lease" in locals() and lease and lease.get("must_fetch"):
+                try:
+                    claim_client.abandon(claim_key=lease_key,owner=claim_owner,
+                        generation=lease["generation"],now_epoch=claim_now_epoch)
+                except Exception:
+                    entry["claim_commit_state"]="RELEASE_UNCONFIRMED_LEASE_EXPIRES"
         results.append(entry)
     summary={"schema":"kyoto_g06_all12_source_capture.v1",
         "total_races":12,"verified_dual_market_races":sum(x["both_markets_verified"] for x in results),
