@@ -93,6 +93,35 @@ def capture(day: str, channel: str, output: str, *, live: bool,
                                        day=day,opener=pc_client,pacer=pc_pacer)
             out["g03_all_race_originals_observed"]=bool(g03.get("complete"))
             out["g03_network_requests_started"]=g03.get("network_requests_started",0)
+            # G06 starts from exact G03 saved official URLs, named rosters
+            # and verified race times. Partial G03 does not cancel the rest.
+            # Existing PC opener and pacer are reused; no synthetic SP link.
+            out["g06_twelve_race_market_attempted"]=False
+            try:
+                from diagnostics.kyoto_g03_to_g06_input_adapter import records_from_g03
+                from diagnostics.kyoto_g06_all12_capture import run_twelve
+                from diagnostics.kyoto_g06_nested_bundle import bundle_g06
+                source_inputs=records_from_g03(root/"pc_originals",day=day)
+                if any(x is not None for x in source_inputs.values()):
+                    g06_root=root/"g06_unsealed"
+                    try:
+                        markets=run_twelve(g06_root,records=source_inputs,
+                            authorized_live_http=live,
+                            request_pacer=pc_pacer,openers={"PC":pc_client})
+                        out["g06_twelve_race_market_attempted"]=True
+                        out["g06_paired_market_races"]=markets["verified_dual_market_races"]
+                        out["g06_markets_prediction_authorized"]=False
+                        out["g06_downstream_inbox_created"]=bool(markets.get("downstream_intake_created"))
+                    except Exception as exc:
+                        out["g06_source_state"]="MARKET_BATCH_EXCEPTION_PARTIAL_ORIGINALS_SAVED"
+                        out["g06_error_class"]=type(exc).__name__
+                    finally:
+                        if g06_root.is_dir():
+                            archive=bundle_g06(g06_root,root/"g06_source_bundle.tar.gz")
+                            out["g06_nested_originals_sealed_in_parent"]=archive["state"]
+            except Exception as exc:
+                out["g06_source_state"]="G03_TO_G06_INTEGRATION_NOT_VERIFIED"
+                out["g06_error_class"]=type(exc).__name__
             # G04 follows only independently revalidated G03 originals.
             # Reuse the same official-only, no-redirect and paced GET client.
             # A G04 failure must not discard the successful G03 originals.
