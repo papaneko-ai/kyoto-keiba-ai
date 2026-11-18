@@ -6,6 +6,8 @@ on:
     paths:
       - diagnostics/kyoto_weekend_actual_main_release_gate.py
       - tests/test_kyoto_weekend_day21_day22_continuity_acceptance.py
+      - diagnostics/kyoto_weekend_reversible_promotion.py
+      - tests/test_kyoto_weekend_reversible_promotion.py
       - .github/workflows/kyoto-weekend-actual-main-release-acceptance.yml
   workflow_dispatch:
 permissions:
@@ -35,6 +37,11 @@ jobs:
           ref: release-candidate/nov21-22-eight-window-20261118
           path: repaired_candidate
           fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          ref: release-review/nov21-22-eight-window-20261118
+          path: production_review
           persist-credentials: false
       - uses: actions/setup-python@v5
         with:
@@ -141,6 +148,12 @@ jobs:
           if changed!=expected:raise SystemExit("CANDIDATE_SCOPE_VIOLATION")
           print("PINNED_SOURCE_MINIMAL_PATCH_VERIFIED")
           PY
+      - name: Validate exact reversible production switch and deliberate failures
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m unittest -v experiment/tests/test_kyoto_weekend_reversible_promotion.py 2>&1 | tee release_evidence/reversible_promotion_tests.txt
+          python experiment/diagnostics/kyoto_weekend_reversible_promotion.py --main-workflow production/.github/workflows/kyoto-20261121-22-two-source-production-observer.yml --candidate-workflow production_review/.github/workflows/kyoto-20261121-22-two-source-production-observer.yml --out release_evidence/reversible_production_switch.json
       - name: Save exact revisions and evidence hashes
         if: always()
         shell: bash
