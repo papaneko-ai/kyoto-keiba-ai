@@ -9,7 +9,7 @@ from pathlib import Path
 from hashlib import sha256
 from datetime import datetime, timezone
 import json
-from diagnostics.jra_one_shot_market_capture import capture_hybrid, SourceChainError
+from diagnostics.jra_one_shot_market_capture import capture_hybrid, SourceChainError, RequestPacer
 from diagnostics.kyoto_g06_item_level_recovery import recover_saved_markets
 from diagnostics.kyoto_g06_gap_recovery_plan import plan_gap_recovery
 from diagnostics.kyoto_g06_market_link_evidence import observed_market_links
@@ -64,7 +64,8 @@ def _verify_saved_channel(folder, *, verified_start_utc):
     except (ValueError,KeyError,TypeError,OSError):
         return {"state":"CORRUPT_CHANNEL_RECEIPT"}
 
-def run_twelve(root, *, records, authorized_live_http=False, runner=None):
+def run_twelve(root, *, records, authorized_live_http=False, runner=None,
+               request_pacer=None,openers=None):
     """records: 12 entries indexed 1..12; missing links explicitly None.
 
     Requires a fresh output directory. Every valid record carries an existing
@@ -81,6 +82,8 @@ def run_twelve(root, *, records, authorized_live_http=False, runner=None):
     base.mkdir()
     results=[]
     collector=runner or capture_hybrid
+    if request_pacer is None and authorized_live_http and runner is None:
+        request_pacer=RequestPacer()
     observed_days={item["race_spec"].race_day for item in records.values()
                    if isinstance(item,dict) and "race_spec" in item
                    and hasattr(item["race_spec"],"race_day")}
@@ -113,7 +116,8 @@ def run_twelve(root, *, records, authorized_live_http=False, runner=None):
                 verified_start_utc=item["verified_start_utc"],
                 active_runners=item["active_runners"],race_spec=spec,
                 authorized_live_http=authorized_live_http,
-                expected_named_runners=item["expected_named_runners"])
+                expected_named_runners=item["expected_named_runners"],
+                **({"shared_pacer":request_pacer,"openers":openers} if runner is None else {}))
             entry["state"]=receipt.get("state","UNKNOWN")
             entry["selected_channel"]=receipt.get("selected_channel")
             if entry["selected_channel"] in ("PC","SP"):
@@ -154,7 +158,8 @@ def run_twelve(root, *, records, authorized_live_http=False, runner=None):
                                     market=missing,race_spec=spec,
                                     active_runners=item["active_runners"],
                                     verified_start_utc=item["verified_start_utc"],
-                                    authorized_live_http=True)
+                                    authorized_live_http=True,pacer=request_pacer,
+                                    opener=(openers or {}).get(channel))
                                 state=response["state"]
                                 entry["live_market_recovery_attempts"].append(
                                     {"channel":channel,"market":missing,"state":state})
