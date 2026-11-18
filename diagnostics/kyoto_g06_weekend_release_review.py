@@ -3,7 +3,7 @@ from pathlib import Path
 from hashlib import sha256
 import json,re
 OLD="c96df31542cb94435ca36cb4a1b8bd6de938233f"
-NEW="9ddca088cfbbc7b0ae26667a21f18477ab4ecd17"
+NEW="a96a249250cb074c451e746228a6775169c025ed"
 WORKFLOW=".github/workflows/kyoto-20261121-22-two-source-production-observer.yml"
 CRONS=("15 0 21 11 *","15 1 21 11 *","5 2 21 11 *","50 2 21 11 *",
        "15 0 22 11 *","15 1 22 11 *","10 2 22 11 *","55 2 22 11 *")
