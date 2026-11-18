@@ -105,9 +105,17 @@ def capture(day: str, channel: str, output: str, *, live: bool,
                 if any(x is not None for x in source_inputs.values()):
                     g06_root=root/"g06_unsealed"
                     try:
+                        from diagnostics.kyoto_weekend_remote_claim_runtime import active_claims_for_weekend
+                        claim_context=active_claims_for_weekend(day) if live else {"enabled":False}
+                        claim_options={k:v for k,v in claim_context.items()
+                           if k in ("claim_client","claim_slot","claim_owner","claim_now_epoch")}
                         markets=run_twelve(g06_root,records=source_inputs,
                             authorized_live_http=live,
-                            request_pacer=pc_pacer,openers={"PC":pc_client})
+                            request_pacer=pc_pacer,openers={"PC":pc_client},
+                            **claim_options)
+                        out["g06_shared_claim_state"]=(
+                            "ACTIVE_ISOLATED_TURSO" if claim_context["enabled"]
+                            else "OPTIONAL_COORDINATION_NOT_CONFIGURED")
                         out["g06_twelve_race_market_attempted"]=True
                         out["g06_paired_market_races"]=markets["verified_dual_market_races"]
                         out["g06_markets_prediction_authorized"]=False
