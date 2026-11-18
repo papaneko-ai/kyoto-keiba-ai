@@ -37,8 +37,7 @@ class Tests(unittest.TestCase):
         self.assertIn("state=ACQUIRED",outputs)
         self.assertIn("state=ACTIVE_LEASE",outputs)
     def test_failed_confirmation_is_denied_by_actual_client_function(self):
-        with patch.object(cli,"client",wraps=cli.client) as ignored:
-            pass
+        self.mock_client.stop()
         # No network is initiated when explicit CLI approval is missing.
         with patch.dict(os.environ,{"KYOTO_TURSO_LAB_CONFIRM":"NO"}):
             with self.assertRaisesRegex(cli.ManualProofRejected,"approval"):
