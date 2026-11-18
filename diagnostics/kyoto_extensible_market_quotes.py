@@ -49,7 +49,7 @@ class MarketQuote:
         nums=self.combination
         if (type(nums) is not tuple or len(nums)!=size or
                 any(type(x) is not int or x<1 or x>18 for x in nums) or
-                len(set(nums))!=size):
+                (self.bet_type!="bracket_quinella" and len(set(nums))!=size)):
             raise MarketQuoteError("combination_invalid")
         if not ordered and tuple(sorted(nums))!=nums:
             raise MarketQuoteError("unordered_market_must_be_canonical")
