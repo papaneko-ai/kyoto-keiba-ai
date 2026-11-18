@@ -71,6 +71,6 @@ class Tests(unittest.TestCase):
             root=Path(td)/"batch"
             run_twelve(root,records=records(),runner=dual_capture)
             prepare_intake(root,records=records())
-            with self.assertRaises(FileExistsError):
+            with self.assertRaisesRegex(SourceChainError,"already_published"):
                 prepare_intake(root,records=records())
 if __name__=="__main__":unittest.main()
