@@ -38,6 +38,14 @@ class BatchHttpRecovery(unittest.TestCase):
                  "diagnostics.kyoto_g06_all12_capture.recover_one",side_effect=repair),patch(
                  "diagnostics.kyoto_g06_missing_market_retry.http_fetch",side_effect=fake_http):
                 outcome=run_twelve(Path(td)/"batch",records=records(),authorized_live_http=True)
+            from diagnostics.kyoto_g06_four_stage_inboxes import read_inboxes
+            stages=read_inboxes(Path(td)/"batch")
+            self.assertTrue(outcome["downstream_intake_created"])
+            self.assertEqual(outcome["downstream_source_ready_races"],1)
+            self.assertEqual(len(stages["P4"]["races"][10]["payload"]["markets"]),2)
+            self.assertEqual(stages["G07"]["races"][10]["payload"]["horses"][0]["number"],1)
+            self.assertFalse(stages["P5"]["prediction_or_trade_authorized"])
+            self.assertFalse(stages["P6"]["prediction_or_trade_authorized"])
         self.assertEqual(outcome["verified_dual_market_races"],1)
         self.assertEqual(len(calls),1)
         self.assertEqual(outcome["records"][10]["live_market_recovery_attempts"][0]["state"],
