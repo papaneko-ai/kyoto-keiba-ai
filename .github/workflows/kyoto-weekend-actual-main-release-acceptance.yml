@@ -88,6 +88,12 @@ jobs:
         run: |
           set -euo pipefail
           python -m unittest -q tests.test_kyoto_g06_market_link_evidence tests.test_kyoto_g06_gap_recovery_plan tests.test_kyoto_g06_item_level_recovery tests.test_kyoto_g06_all12_capture tests.test_kyoto_hybrid_multi_source tests.test_kyoto_g06_twelve_race_dual_market_gate 2>&1 | tee ../release_evidence/g06_experiment.txt
+      - name: Prove all eight actual production cron windows reach collector guard
+        working-directory: experiment
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m unittest -v tests.test_kyoto_weekend_retry_guard tests.test_kyoto_weekend_main_schedule_parity 2>&1 | tee ../release_evidence/eight_window_guard.txt
       - name: Save exact revisions and evidence hashes
         if: always()
         shell: bash
