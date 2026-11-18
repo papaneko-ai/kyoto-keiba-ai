@@ -1,0 +1,31 @@
+name: Kyoto H04 single-page historical auxiliary feasibility
+on:
+  push:
+    branches:
+      - experiment/multisource-hybrid-20261117
+    paths:
+      - diagnostics/kyoto_h04_auxiliary_single_page_probe.py
+      - .github/workflows/kyoto-h04-single-auxiliary-source.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  historical-one-page:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install beautifulsoup4
+      - name: Observe one public non-JRA training page without repeating requests
+        run: python -m diagnostics.kyoto_h04_auxiliary_single_page_probe
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: kyoto-h04-single-historical-auxiliary-${{ github.run_id }}
+          path: h04_single_source_evidence/
+          if-no-files-found: warn
