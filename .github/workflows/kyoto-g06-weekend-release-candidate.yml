@@ -5,6 +5,13 @@ on:
       - release-candidate/nov21-22-g06-full12-20261118
     paths:
       - .github/workflows/kyoto-g06-weekend-release-candidate.yml
+      - diagnostics/kyoto_weekend_capture.py
+      - diagnostics/kyoto_g06_all12_capture.py
+      - diagnostics/kyoto_turso_capture_claims.py
+      - diagnostics/kyoto_weekend_remote_claim_runtime.py
+      - tests/test_kyoto_g06_claim_execution.py
+      - tests/test_kyoto_turso_capture_claims.py
+      - tests/test_kyoto_weekend_remote_claim_runtime.py
   workflow_dispatch:
 permissions:
   contents: read
@@ -34,7 +41,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          python -m unittest -q tests.test_kyoto_g06_full_twelve_reparse_e2e tests.test_kyoto_g06_nested_bundle tests.test_kyoto_g03_to_g06_input_adapter tests.test_kyoto_g06_all12_capture tests.test_kyoto_g06_item_level_recovery tests.test_kyoto_g06_gap_recovery_plan tests.test_kyoto_g06_market_link_evidence tests.test_kyoto_g06_missing_market_retry tests.test_kyoto_g06_live_recovery_batch tests.test_kyoto_g06_downstream_intake tests.test_kyoto_g06_four_stage_inboxes 2>&1 | tee candidate_evidence/g06_twelve_market_pipeline.txt
+          python -m unittest -q tests.test_kyoto_g06_claim_execution tests.test_kyoto_weekend_remote_claim_runtime tests.test_kyoto_turso_capture_claims tests.test_kyoto_g06_full_twelve_reparse_e2e tests.test_kyoto_g06_nested_bundle tests.test_kyoto_g03_to_g06_input_adapter tests.test_kyoto_g06_all12_capture tests.test_kyoto_g06_item_level_recovery tests.test_kyoto_g06_gap_recovery_plan tests.test_kyoto_g06_market_link_evidence tests.test_kyoto_g06_missing_market_retry tests.test_kyoto_g06_live_recovery_batch tests.test_kyoto_g06_downstream_intake tests.test_kyoto_g06_four_stage_inboxes 2>&1 | tee candidate_evidence/g06_twelve_market_pipeline.txt
       - name: Official source and encryption negative regression
         env:
           KYOTO_TARGET_DAY: "20261115"
