@@ -1,4 +1,4 @@
-name: Kyoto implementation20 G06 source checkpoint archive
+name: Kyoto implementation21 migration full-source checkpoint archive
 on:
   push:
     branches:
@@ -9,6 +9,7 @@ on:
       - tests/test_kyoto_extensible_market_quotes.py
       - tests/test_kyoto_g06_full_real_roster_pair_matrix.py
       - docs/KYOTO_AI_IMPLEMENTATION20_G06_CAPTURE_AND_MARKET_SCHEMA_CHECKPOINT_20261118.md
+      - docs/KYOTO_AI_G06_ITEM_LEVEL_HYBRID_RECOVERY_REQUIRED_WORKPLAN_20261118.md
   workflow_dispatch:
 permissions:
   contents: read
@@ -37,13 +38,13 @@ jobs:
           digests={}
           for p in sorted(root.rglob("*")):
               if p.is_file():digests[str(p.relative_to(root))]={"bytes":p.stat().st_size,"sha256":hashlib.sha256(p.read_bytes()).hexdigest()}
-          (root/"MANIFEST.json").write_text(json.dumps({"schema":"kyoto_impl20_g06_checkpoint.v1","heads":heads,"files":digests,"secrets_included":False,"turso_database_included":False},indent=2)+"\n")
+          (root/"MANIFEST.json").write_text(json.dumps({"schema":"kyoto_impl21_source_checkpoint.v1","heads":heads,"files":digests,"secrets_included":False,"turso_database_included":False},indent=2)+"\n")
           print(json.dumps({"heads":heads,"files":len(digests)}))
           PY
           python - <<'PY'
           import pathlib,zipfile,hashlib
           root=pathlib.Path("package")
-          target=pathlib.Path("KYOTO_IMPLEMENTATION20_G06_SOURCE_CHECKPOINT.zip")
+          target=pathlib.Path("KYOTO_IMPLEMENTATION21_FULL_SOURCE_CHECKPOINT.zip")
           with zipfile.ZipFile(target,"w",zipfile.ZIP_DEFLATED,compresslevel=7) as z:
               for p in sorted(root.rglob("*")):
                   if p.is_file():z.write(p,arcname=str(p))
@@ -51,7 +52,7 @@ jobs:
           PY
       - uses: actions/upload-artifact@v4
         with:
-          name: kyoto-impl20-g06-current-source-${{ github.run_id }}
+          name: kyoto-impl21-current-source-${{ github.run_id }}
           path: KYOTO_IMPLEMENTATION20_G06_SOURCE_CHECKPOINT.zip
           if-no-files-found: error
           retention-days: 90
