@@ -7,6 +7,8 @@ on:
       - .github/workflows/kyoto-impl20-g06-checkpoint-archive.yml
       - diagnostics/kyoto_extensible_market_quotes.py
       - tests/test_kyoto_extensible_market_quotes.py
+      - tests/test_kyoto_g06_full_real_roster_pair_matrix.py
+      - docs/KYOTO_AI_IMPLEMENTATION20_G06_CAPTURE_AND_MARKET_SCHEMA_CHECKPOINT_20261118.md
   workflow_dispatch:
 permissions:
   contents: read
