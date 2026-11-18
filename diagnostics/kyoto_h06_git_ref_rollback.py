@@ -14,10 +14,10 @@ def run():
     with tempfile.TemporaryDirectory(prefix="kyoto_h06_git_") as d:
         work=Path(d)/"sandbox"
         git("init","-q",str(work))
-        git("fetch","-q",str(old),"HEAD",cwd=work)
-        old_sha=git("rev-parse","FETCH_HEAD",cwd=work)
-        git("fetch","-q",str(new),"HEAD",cwd=work)
-        new_sha=git("rev-parse","FETCH_HEAD",cwd=work)
+        git("fetch","-q",str(old),"HEAD:refs/heads/h06-old",cwd=work)
+        old_sha=git("rev-parse","refs/heads/h06-old",cwd=work)
+        git("fetch","-q",str(new),"HEAD:refs/heads/h06-new",cwd=work)
+        new_sha=git("rev-parse","refs/heads/h06-new",cwd=work)
         assert old_sha!=new_sha
         ref="refs/heads/isolated-selected-collector"
         git("update-ref",ref,old_sha,cwd=work)
