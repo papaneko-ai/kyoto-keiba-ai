@@ -1,0 +1,33 @@
+name: Kyoto H03 SP lifecycle and G06 paired-market offline regression
+on:
+  push:
+    branches:
+      - experiment/multisource-hybrid-20261117
+    paths:
+      - diagnostics/kyoto_h03_page_lifecycle.py
+      - tests/test_kyoto_h03_page_lifecycle.py
+      - .github/workflows/kyoto-h03-page-lifecycle-regression.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  offline-proof:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install beautifulsoup4
+      - name: Validate expired SP page and G06 paired-market gate
+        run: |
+          mkdir -p lifecycle_proof
+          python -m unittest -v tests.test_kyoto_h03_page_lifecycle tests.test_kyoto_g06_twelve_race_dual_market_gate 2>&1 | tee lifecycle_proof/test_log.txt
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: kyoto-h03-lifecycle-${{ github.run_id }}
+          path: lifecycle_proof/
