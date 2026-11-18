@@ -26,7 +26,7 @@ jobs:
           persist-credentials: false
       - uses: actions/checkout@v4
         with:
-          ref: 9ddca088cfbbc7b0ae26667a21f18477ab4ecd17
+          ref: a96a249250cb074c451e746228a6775169c025ed
           path: verified_collector
           persist-credentials: false
       - uses: actions/checkout@v4
