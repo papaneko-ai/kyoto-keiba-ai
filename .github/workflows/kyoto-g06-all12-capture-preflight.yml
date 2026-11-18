@@ -10,6 +10,7 @@ on:
       - diagnostics/kyoto_weekend_capture.py
       - diagnostics/kyoto_nov15_encrypted_evidence.py
       - tests/test_kyoto_g06_nested_bundle.py
+      - tests/test_kyoto_g06_full_twelve_reparse_e2e.py
       - tests/test_kyoto_g03_to_g06_input_adapter.py
       - tests/test_kyoto_g03_weekend_bridge.py
       - diagnostics/kyoto_g06_item_level_recovery.py
@@ -46,7 +47,7 @@ jobs:
         run: |
           set -o pipefail
           mkdir -p g06_batch_evidence
-          python -m unittest -v tests.test_kyoto_g06_nested_bundle tests.test_kyoto_g03_to_g06_input_adapter tests.test_kyoto_g03_weekend_bridge tests.test_kyoto_g06_four_stage_inboxes tests.test_kyoto_g06_downstream_intake tests.test_kyoto_g06_live_recovery_batch tests.test_kyoto_g06_missing_market_retry tests.test_kyoto_g06_market_link_evidence tests.test_kyoto_g06_gap_recovery_plan tests.test_kyoto_g06_item_level_recovery tests.test_kyoto_g06_all12_capture tests.test_kyoto_hybrid_multi_source tests.test_kyoto_g06_twelve_race_dual_market_gate tests.test_jra_one_shot_market_capture 2>&1 | tee g06_batch_evidence/tests.txt
+          python -m unittest -v tests.test_kyoto_g06_full_twelve_reparse_e2e tests.test_kyoto_g06_nested_bundle tests.test_kyoto_g03_to_g06_input_adapter tests.test_kyoto_g03_weekend_bridge tests.test_kyoto_g06_four_stage_inboxes tests.test_kyoto_g06_downstream_intake tests.test_kyoto_g06_live_recovery_batch tests.test_kyoto_g06_missing_market_retry tests.test_kyoto_g06_market_link_evidence tests.test_kyoto_g06_gap_recovery_plan tests.test_kyoto_g06_item_level_recovery tests.test_kyoto_g06_all12_capture tests.test_kyoto_hybrid_multi_source tests.test_kyoto_g06_twelve_race_dual_market_gate tests.test_jra_one_shot_market_capture 2>&1 | tee g06_batch_evidence/tests.txt
       - uses: actions/upload-artifact@v4
         if: always()
         with:
