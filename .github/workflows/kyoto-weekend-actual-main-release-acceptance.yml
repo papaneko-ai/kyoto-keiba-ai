@@ -29,6 +29,11 @@ jobs:
           ref: experiment/multisource-hybrid-20261117
           path: experiment
           persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          ref: release-candidate/nov21-22-eight-window-20261118
+          path: repaired_candidate
+          persist-credentials: false
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
@@ -94,6 +99,24 @@ jobs:
         run: |
           set -euo pipefail
           python -m unittest -v tests.test_kyoto_weekend_retry_guard tests.test_kyoto_weekend_main_schedule_parity 2>&1 | tee ../release_evidence/eight_window_guard.txt
+      - name: Rehearse pinned-collector-derived repair candidate with complete production safety tests
+        working-directory: repaired_candidate
+        shell: bash
+        run: |
+          set -euo pipefail
+          KYOTO_TARGET_DAY=20261121 python -m unittest -q tests.test_kyoto_weekend_retry_guard tests.test_kyoto_weekend_race_parity tests.test_kyoto_weekend_capture tests.test_kyoto_safe_stop_artifact tests.test_kyoto_weekend_end_to_end tests.test_kyoto_weekend_postflight tests.test_kyoto_weekend_interruption_and_pacing 2>&1 | tee ../release_evidence/repaired_pinned_collector.txt
+      - name: Confirm repair contains only the two intended paths
+        shell: bash
+        run: |
+          set -euo pipefail
+          git -C repaired_candidate diff --name-only c96df31542cb94435ca36cb4a1b8bd6de938233f HEAD | tee release_evidence/candidate_changed_files.txt
+          python - <<'PY'
+          from pathlib import Path
+          changed=set(Path("release_evidence/candidate_changed_files.txt").read_text().splitlines())
+          expected={"diagnostics/kyoto_weekend_retry_guard.py","tests/test_kyoto_weekend_retry_guard.py"}
+          if changed!=expected:raise SystemExit("CANDIDATE_SCOPE_VIOLATION")
+          print("PINNED_SOURCE_MINIMAL_PATCH_VERIFIED")
+          PY
       - name: Save exact revisions and evidence hashes
         if: always()
         shell: bash
@@ -102,6 +125,7 @@ jobs:
           git -C production rev-parse HEAD > release_evidence/main_head.txt
           git -C pinned_collector rev-parse HEAD > release_evidence/collector_head.txt
           git -C experiment rev-parse HEAD > release_evidence/experiment_head.txt
+          git -C repaired_candidate rev-parse HEAD > release_evidence/repaired_candidate_head.txt
           (cd release_evidence && sha256sum *.json *.txt *.log 2>/dev/null > evidence_sha256.txt) || true
       - uses: actions/upload-artifact@v4
         if: always()
