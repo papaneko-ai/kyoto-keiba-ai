@@ -47,6 +47,27 @@ class RosterAware(unittest.TestCase):
         runners=lineup(11)
         got=parse_bracket_with_roster(market(runners),runners)
         self.assertEqual(got["pair_count"],36)
+    def test_existing_paired_market_chain_for_nine_runner_race(self):
+        from diagnostics.jra_market_source_chain import audit_source_originals
+        from tests.test_kyoto_g06_twelve_race_dual_market_gate import race
+        participants=lineup(1)
+        a=race(1)
+        a["active_runners"]=participants
+        rows=[]
+        for i in range(1,len(participants)):
+            cells=[str(i)]
+            for j in range(i+1,len(participants)+1):
+                cells.extend([str(j),"3.2"])
+            rows.append('<table class="basic narrow-xy umaren">'+" ".join(cells)+'</table>')
+        a["market_raw"]["quinella"]=(
+            "<html><title>馬連オッズ</title><body>2026年11月21日 京都 1レース 発売中"+
+            "".join(rows)+"</body></html>").encode("cp932")
+        a["market_raw"]["bracket_quinella"]=market(participants)
+        output=audit_source_originals(**a)
+        self.assertEqual(output["classification"],"VALIDATED_LIVE_MARKETS_NOT_PREDICTION_RELEASED")
+        self.assertEqual(output["markets"]["quinella"]["pair_count"],36)
+        self.assertEqual(output["markets"]["bracket_quinella"]["pair_count"],29)
+        self.assertFalse(output["prediction_ready"])
     def test_immutable_original_hash_changes_on_byte_edit(self):
         runners=lineup(1)
         first=market(runners)
