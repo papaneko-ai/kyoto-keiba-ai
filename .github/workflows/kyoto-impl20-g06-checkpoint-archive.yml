@@ -29,6 +29,7 @@ on:
       - .github/workflows/kyoto-g06-weekend-release-review.yml
       - .github/workflows/kyoto-weekend-shared-claim-preflight.yml
       - docs/KYOTO_AI_IMPL21_PRE_EVENT_80PCT_REMOTE_CLAIM_AND_APPROVAL_GATE_20261118.md
+      - docs/KYOTO_AI_IMPL21_PR3_MAIN_MERGE_VERIFIED_90PCT_20261118.md
       - diagnostics/kyoto_turso_capture_claims.py
       - tests/test_kyoto_turso_capture_claims.py
       - diagnostics/kyoto_turso_claim_manual_crossrunner.py
