@@ -1,0 +1,52 @@
+name: Kyoto full-12R G06 immutable eight-window production review
+on:
+  push:
+    branches:
+      - experiment/multisource-hybrid-20261117
+    paths:
+      - diagnostics/kyoto_g06_weekend_release_review.py
+      - .github/workflows/kyoto-g06-weekend-release-review.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  byte-exact-review:
+    runs-on: ubuntu-latest
+    timeout-minutes: 9
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          path: production
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          ref: release-review/nov21-22-full12-g06-20261118
+          path: proposed_release
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          ref: 9ddca088cfbbc7b0ae26667a21f18477ab4ecd17
+          path: verified_collector
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          ref: experiment/multisource-hybrid-20261117
+          path: experiment
+          persist-credentials: false
+      - name: Compare actual main, review-only 6 pins, and sealed G06 source path
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p release_review
+          python experiment/diagnostics/kyoto_g06_weekend_release_review.py production proposed_release verified_collector release_review/verified_proposal.json | tee release_review/verified.log
+          git -C production rev-parse HEAD > release_review/main_sha.txt
+          git -C proposed_release rev-parse HEAD > release_review/review_sha.txt
+          git -C verified_collector rev-parse HEAD > release_review/collector_sha.txt
+          (cd release_review && sha256sum *.json *.txt *.log > manifest_sha256.txt)
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: kyoto-g06-full12-review-only-proof-${{ github.run_id }}
+          path: release_review/
+          if-no-files-found: error
