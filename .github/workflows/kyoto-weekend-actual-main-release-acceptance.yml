@@ -33,6 +33,7 @@ jobs:
         with:
           ref: release-candidate/nov21-22-eight-window-20261118
           path: repaired_candidate
+          fetch-depth: 0
           persist-credentials: false
       - uses: actions/setup-python@v5
         with:
