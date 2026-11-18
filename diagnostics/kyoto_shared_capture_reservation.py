@@ -78,3 +78,18 @@ class SharedLedger:
         except Exception:
             self.db.execute("ROLLBACK")
             raise
+
+    def abandon(self,*,claim_key,owner,generation,now_epoch):
+        """Release a failed fetch so another worker can retry in the same slot."""
+        if type(generation) is not int or generation<1 or type(now_epoch) is not int:
+            raise ReservationError("abandon_parameters_invalid")
+        self._begin()
+        try:
+            changed=self.db.execute(
+                "UPDATE capture_claims SET expires_at=? WHERE claim_key=? AND owner=? AND generation=? AND state='LEASED'",
+                (now_epoch,claim_key,owner,generation)).rowcount
+            self.db.execute("COMMIT")
+            return {"released":changed==1}
+        except Exception:
+            self.db.execute("ROLLBACK")
+            raise
