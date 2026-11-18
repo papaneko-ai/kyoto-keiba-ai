@@ -142,7 +142,7 @@ jobs:
         run: |
           set -euo pipefail
           cp experiment/tests/test_kyoto_weekend_sp_full_path_acceptance.py pinned_collector/tests/
-          (cd pinned_collector && python -m unittest -v tests.test_kyoto_weekend_sp_full_path_acceptance) 2>&1 | tee release_evidence/sp_full_transport.txt
+          (cd pinned_collector && python -m unittest -v tests.test_kyoto_weekend_sp_full_path_acceptance tests.test_kyoto_weekend_sp_discovery tests.test_jra_official_link_repair) 2>&1 | tee release_evidence/pc_sp_official_discovery_and_repair.txt
           rm pinned_collector/tests/test_kyoto_weekend_sp_full_path_acceptance.py
       - name: Confirm repair contains only the two intended paths
         shell: bash
