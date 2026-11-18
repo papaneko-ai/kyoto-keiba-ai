@@ -5,6 +5,7 @@ on:
       - experiment/multisource-hybrid-20261117
     paths:
       - diagnostics/kyoto_g06_roster_aware_bracket.py
+      - diagnostics/jra_market_source_chain.py
       - tests/test_kyoto_g06_roster_aware_bracket.py
       - .github/workflows/kyoto-g06-roster-aware-bracket.yml
   workflow_dispatch:
@@ -26,7 +27,7 @@ jobs:
         run: |
           set -o pipefail
           mkdir -p bracket_proof
-          python -m unittest -v tests.test_kyoto_g06_roster_aware_bracket tests.test_jra_market_integrity_gate 2>&1 | tee bracket_proof/tests.txt
+          python -m unittest -v tests.test_kyoto_g06_roster_aware_bracket tests.test_jra_market_integrity_gate tests.test_jra_market_source_chain tests.test_jra_odds_matrix_parser tests.test_kyoto_g06_twelve_race_dual_market_gate 2>&1 | tee bracket_proof/tests.txt
       - uses: actions/upload-artifact@v4
         if: always()
         with:
