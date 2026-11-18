@@ -13,6 +13,8 @@ class Bridge(unittest.TestCase):
         t=tempfile.TemporaryDirectory();self.addCleanup(t.cleanup);self.root=Path(t.name)
         env=patch.dict(os.environ,{"KYOTO_TARGET_DAY":DAY})
         env.start();self.addCleanup(env.stop)
+        observer_day=patch("diagnostics.kyoto_nov15_two_original_observer.DAY",DAY)
+        observer_day.start();self.addCleanup(observer_day.stop)
 
     def observer(self,path,**kw):
         root=Path(path);root.mkdir()
