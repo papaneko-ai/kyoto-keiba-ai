@@ -1,0 +1,38 @@
+name: Kyoto H06 isolated Git ref switch and rollback
+on:
+  push:
+    branches:
+      - experiment/multisource-hybrid-20261117
+    paths:
+      - 'diagnostics/kyoto_h06_git_ref_rollback.py'
+      - '.github/workflows/kyoto-h06-git-ref-rollback.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  independent-git-switch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: sources/experiment
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          path: sources/main
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Switch refs, fault injection, and restore old SHA
+        env:
+          KYOTO_H06_SOURCES: sources
+        run: python sources/experiment/diagnostics/kyoto_h06_git_ref_rollback.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: kyoto-h06-real-ref-rollback-${{ github.run_id }}
+          path: h06_ref_rollback_receipt.json
+          if-no-files-found: error
