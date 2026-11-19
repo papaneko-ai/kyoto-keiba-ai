@@ -134,7 +134,7 @@ def run_twelve(root, *, records, authorized_live_http=False, runner=None,
                     lease_now=int(claim_clock()) if claim_clock is not None else claim_now_epoch
                     if lease_now<=0:raise SourceChainError("remote_claim_clock_invalid")
                     lease=claim_client.claim(claim_key=lease_key,owner=claim_owner,
-                        now_epoch=lease_now,lease_seconds=600)
+                        now_epoch=lease_now,lease_seconds=1800)
                 except Exception as exc:
                     entry["claim_state"]="COORDINATOR_UNCONFIRMED"
                     entry["claim_error_class"]=type(exc).__name__
