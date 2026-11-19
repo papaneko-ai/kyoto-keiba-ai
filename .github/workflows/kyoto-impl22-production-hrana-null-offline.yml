@@ -22,5 +22,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
+      - name: Install existing G06 parser dependency
+        run: python -m pip install 'beautifulsoup4>=4.12,<5'
       - name: Validate production claim reader and weekend runtime without outbound HTTP
         run: python -m unittest -v tests.test_kyoto_impl22_production_null_regression tests.test_kyoto_turso_capture_claims tests.test_kyoto_weekend_remote_claim_runtime tests.test_kyoto_weekend_production_workflow tests.test_kyoto_g06_claim_execution
