@@ -43,14 +43,25 @@ def attempt_active_lease(service,run_id: str,now_epoch: int) -> dict:
     """Explicit write attempt only. Must never claim the lease if it is unheld."""
     k=proof_key(run_id)
     found=service.observe(k)
-    if not found or found["state"]!="LEASED" or found["expires_at"]<=now_epoch:
+    expected_owner="lab_"+run_id+"_streamlit_hold"
+    if (not found or found["state"]!="LEASED"
+        or found["expires_at"]<=now_epoch
+        or found["owner"]!=expected_owner):
         return {"status":"NOT_VERIFIED","reason":"NO_ACTIVE_GITHUB_LEASE"}
-    # Race after read remains possible; do not claim pass if acquired.
+    original_generation=found["generation"]
+    # A single atomic contender attempt; never retry an uncertain mutation.
     result=service.claim(claim_key=k,owner="streamlit_lab_proof_20261119",
                          now_epoch=now_epoch,lease_seconds=600)
-    if result["state"]=="ACTIVE_LEASE" and result["must_fetch"] is False:
-        return {"status":"REMOTE_LEASE_RESPECTED","must_fetch":False}
-    return {"status":"NOT_VERIFIED","reason":"LEASE_CHANGED_OR_ACQUIRED"}
+    if result["state"]!="ACTIVE_LEASE" or result["must_fetch"] is not False:
+        return {"status":"NOT_VERIFIED","reason":"LEASE_CHANGED_OR_ACQUIRED"}
+    persisted=service.observe(k)
+    if (not persisted or persisted["state"]!="LEASED"
+        or persisted["owner"]!=expected_owner
+        or persisted["generation"]!=original_generation
+        or persisted["expires_at"]<=now_epoch):
+        return {"status":"NOT_VERIFIED","reason":"POST_CHECK_FAILED"}
+    return {"status":"REMOTE_LEASE_RESPECTED","must_fetch":False,
+            "owner_unchanged":True,"generation_unchanged":True}
 
 def render():
     import streamlit as st
