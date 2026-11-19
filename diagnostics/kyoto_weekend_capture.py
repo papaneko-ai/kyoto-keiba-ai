@@ -141,18 +141,30 @@ def capture(day: str, channel: str, output: str, *, live: bool,
             except Exception as exc:
                 out["g06_source_state"]="G03_TO_G06_INTEGRATION_NOT_VERIFIED"
                 out["g06_error_class"]=type(exc).__name__
+            # Independently recheck valid G03 race originals before downstream
+            # G04/G05. Full-12 certification is not weakened by this path.
+            partial_verified=[]
+            try:
+                from diagnostics.kyoto_g03_independent_partial import verify_partial
+                partial_proof=verify_partial(root/"pc_originals",expected_day=day)
+                partial_verified=partial_proof["verified_race_numbers"]
+                out["g03_independently_verified_races"]=partial_verified
+                out["g03_partial_source_excluded"]=partial_proof["excluded_races"]
+            except Exception as exc:
+                out["g03_partial_proof_error_class"]=type(exc).__name__
             # G04 follows only independently revalidated G03 originals.
             # Reuse the same official-only, no-redirect and paced GET client.
             # A G04 failure must not discard the successful G03 originals.
             out["g04_all_horse_profiles_parsed"]=False
-            if g03.get("complete") is True:
+            if partial_verified:
                 try:
                     from diagnostics.kyoto_g04_all_horse_profiles import capture as g04_capture
                     from diagnostics.kyoto_nov15_two_original_observer import _read
                     g04=g04_capture(
                         root=root / "pc_originals",day=day,
                         fetch=lambda url: (pc_pacer.before_request(),_read(pc_client,url))[1],
-                        clock=lambda:datetime.now(timezone.utc).isoformat(),allowed=True)
+                        clock=lambda:datetime.now(timezone.utc).isoformat(),allowed=True,
+                        allow_partial=not bool(g03.get("complete")))
                     out["g04_all_horse_profiles_parsed"]=bool(g04["all_profiles_parsed"])
                     out["g04_profiles_verified"]=g04["profile_verified_count"]
                     out["g04_profiles_expected"]=g04["expected_horses"]
@@ -163,10 +175,11 @@ def capture(day: str, channel: str, output: str, *, live: bool,
             # Missing or unpublished weather, body weight, workout remain null,
             # never zero/imputed and never a betting authorization.
             out["g05_source_contract_saved"]=False
-            if g03.get("complete") is True:
+            if partial_verified:
                 try:
                     from diagnostics.kyoto_g05_conditions import compile_saved
-                    g05=compile_saved(root / "pc_originals",day=day)
+                    g05=compile_saved(root / "pc_originals",day=day,
+                        allow_partial=not bool(g03.get("complete")))
                     out["g05_source_contract_saved"]=True
                     out["g05_observed_field_values"]=g05["observed_field_values"]
                     out["g05_workout_source_verified"]=False
@@ -177,7 +190,7 @@ def capture(day: str, channel: str, output: str, *, live: bool,
             # At 09:15 it may still show an earlier meeting; preserve bytes,
             # never promote stale data. Existing shared pacer/no-redirect remains.
             out["g05_kyoto_track_source_saved"]=False
-            if g03.get("complete") is True:
+            if partial_verified:
                 try:
                     from diagnostics.kyoto_g05_official_track import capture_kyoto_track
                     from diagnostics.kyoto_nov15_two_original_observer import _read
