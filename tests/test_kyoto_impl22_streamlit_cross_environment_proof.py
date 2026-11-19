@@ -36,9 +36,15 @@ class StreamlitCrossEnvTests(unittest.TestCase):
         self.gh.claim(claim_key=self.k,owner="lab_"+self.id+"_contender_first",now_epoch=10000)
         self.assertEqual(observe_finished_gh_run(self.st,self.id)["status"],"NOT_VERIFIED")
     def test_no_duplicate_fetch_when_other_host_owns_lease(self):
-        self.gh.claim(claim_key=self.k,owner="lab_"+self.id+"_contender_first",now_epoch=10000,lease_seconds=600)
+        self.gh.claim(claim_key=self.k,owner="lab_"+self.id+"_streamlit_hold",now_epoch=10000,lease_seconds=600)
         result=attempt_active_lease(self.st,self.id,now_epoch=10010)
-        self.assertEqual(result,{"status":"REMOTE_LEASE_RESPECTED","must_fetch":False})
+        self.assertEqual(result,{"status":"REMOTE_LEASE_RESPECTED","must_fetch":False,"owner_unchanged":True,"generation_unchanged":True})
+    def test_ordinary_runner_lease_does_not_falsely_pass(self):
+        self.gh.claim(claim_key=self.k,owner="lab_"+self.id+"_contender_first",now_epoch=10000,lease_seconds=600)
+        before=self.st.observe(self.k)
+        out=attempt_active_lease(self.st,self.id,now_epoch=10010)
+        self.assertEqual(out["reason"],"NO_ACTIVE_GITHUB_LEASE")
+        self.assertEqual(self.st.observe(self.k),before)
     def test_no_mutation_when_lease_expired(self):
         self.gh.claim(claim_key=self.k,owner="lab_"+self.id+"_contender_first",now_epoch=10000,lease_seconds=30)
         before=self.st.observe(self.k)
