@@ -1,0 +1,25 @@
+name: Kyoto impl22 Streamlit cross-environment offline gate
+on:
+  push:
+    branches:
+      - feature/impl22-streamlit-isolated-turso-proof-20261119
+    paths:
+      - streamlit_turso_cross_environment_proof_impl22.py
+      - tests/test_kyoto_impl22_streamlit_cross_environment_proof.py
+      - .github/workflows/kyoto-impl22-streamlit-crossenv-offline.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  streamlit-crossenv-offline:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Run isolated simulated cross-environment plus existing Turso claim regressions
+        run: python -m unittest -v tests.test_kyoto_impl22_streamlit_cross_environment_proof tests.test_kyoto_impl22_hrana_null_wire_regression tests.test_kyoto_turso_capture_claims
