@@ -66,7 +66,7 @@ def _metadata(raw,expected_name):
             "jockey_current":None,"jockey_current_verified":False,
             "jra_horse_id":None,"jra_horse_id_verified":False}
 
-def capture(*,root,day,fetch,clock,allowed=False):
+def capture(*,root,day,fetch,clock,allowed=False,allow_partial=False):
     """G03 must already be saved/verified; fetch must use existing paced _read.
 
     Caller is responsible for pacing, no-redirect, bounded GET, and replacing
@@ -77,14 +77,21 @@ def capture(*,root,day,fetch,clock,allowed=False):
         raise G04Rejected("bad_race_day")
     root=Path(root)
     if root.is_symlink() or not root.is_dir():raise G04Rejected("bad_source_directory")
-    try:proof=verify_g03(root,expected_day=day)
-    except G03ProofRejected as exc:raise G04Rejected("g03_not_independently_verified") from exc
-    if proof["races_verified"]!=12:raise G04Rejected("not_all_12_races")
+    if allow_partial:
+        from diagnostics.kyoto_g03_independent_partial import verify_partial
+        proof=verify_partial(root,expected_day=day)
+        selected=proof["verified_race_numbers"]
+        if not selected:raise G04Rejected("no_independently_verified_races")
+    else:
+        try:proof=verify_g03(root,expected_day=day)
+        except G03ProofRejected as exc:raise G04Rejected("g03_not_independently_verified") from exc
+        if proof["races_verified"]!=12:raise G04Rejected("not_all_12_races")
+        selected=list(range(1,13))
     receipt=json.loads((root/"g03_receipt.json").read_text(encoding="utf8"))
     entries=receipt["races"]
     pending=[]
     seen=set()
-    for race in range(1,13):
+    for race in selected:
         info=entries[str(race)]
         if not re.fullmatch(r"(?:[01][0-9]|2[0-3]):[0-5][0-9]",info["start_time_jst"]):
             raise G04Rejected("unverified_start_time")
@@ -168,10 +175,11 @@ def capture(*,root,day,fetch,clock,allowed=False):
     missing=[{"race":p["race"],"horse_number":p["horse_number"],"reason":p.get("failure_reason")}
              for p in results if not p["profile_verified"]]
     report={"schema":"kyoto_g04_all_horses.v1","day":day,
-            "verified_g03_races":12,"expected_horses":len(pending),
+            "verified_g03_races":len(selected),"selected_races":selected,
+            "partial_g03_source":len(selected)!=12,"expected_horses":len(pending),
             "profile_verified_count":len(pending)-len(missing),
             "missing_profiles":missing,
-            "all_profiles_parsed":not missing,
+            "all_profiles_parsed":not missing and len(selected)==12,
             "current_jockey_verified_for_all":all(p["current_jockey_source_verified"] for p in results),
             "jra_permanent_ids_verified_for_all":False,
             "observed_profile_codes_extracted":sum(bool(p.get("observed_profile_code")) for p in results),
