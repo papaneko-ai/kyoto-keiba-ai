@@ -17,8 +17,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 4
     env:
-      TURSO_DATABASE_URL: ${{ secrets.TURSO_DATABASE_URL }}
-      TURSO_AUTH_TOKEN: ${{ secrets.TURSO_AUTH_TOKEN }}
+      TURSO_DATABASE_URL: ${{ secrets.KYOTO_LAB_TURSO_DATABASE_URL }}
+      TURSO_AUTH_TOKEN: ${{ secrets.KYOTO_LAB_TURSO_AUTH_TOKEN }}
       KYOTO_TURSO_LAB_CONFIRM: ${{ inputs.confirm_isolated_test_db_only }}
     steps:
       - uses: actions/checkout@v4
@@ -39,8 +39,8 @@ jobs:
       state: ${{ steps.acquire.outputs.state }}
       must_fetch: ${{ steps.acquire.outputs.must_fetch }}
     env:
-      TURSO_DATABASE_URL: ${{ secrets.TURSO_DATABASE_URL }}
-      TURSO_AUTH_TOKEN: ${{ secrets.TURSO_AUTH_TOKEN }}
+      TURSO_DATABASE_URL: ${{ secrets.KYOTO_LAB_TURSO_DATABASE_URL }}
+      TURSO_AUTH_TOKEN: ${{ secrets.KYOTO_LAB_TURSO_AUTH_TOKEN }}
       KYOTO_TURSO_LAB_CONFIRM: ${{ inputs.confirm_isolated_test_db_only }}
     steps:
       - uses: actions/checkout@v4
@@ -62,8 +62,8 @@ jobs:
       state: ${{ steps.acquire.outputs.state }}
       must_fetch: ${{ steps.acquire.outputs.must_fetch }}
     env:
-      TURSO_DATABASE_URL: ${{ secrets.TURSO_DATABASE_URL }}
-      TURSO_AUTH_TOKEN: ${{ secrets.TURSO_AUTH_TOKEN }}
+      TURSO_DATABASE_URL: ${{ secrets.KYOTO_LAB_TURSO_DATABASE_URL }}
+      TURSO_AUTH_TOKEN: ${{ secrets.KYOTO_LAB_TURSO_AUTH_TOKEN }}
       KYOTO_TURSO_LAB_CONFIRM: ${{ inputs.confirm_isolated_test_db_only }}
     steps:
       - uses: actions/checkout@v4
@@ -82,8 +82,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 4
     env:
-      TURSO_DATABASE_URL: ${{ secrets.TURSO_DATABASE_URL }}
-      TURSO_AUTH_TOKEN: ${{ secrets.TURSO_AUTH_TOKEN }}
+      TURSO_DATABASE_URL: ${{ secrets.KYOTO_LAB_TURSO_DATABASE_URL }}
+      TURSO_AUTH_TOKEN: ${{ secrets.KYOTO_LAB_TURSO_AUTH_TOKEN }}
       KYOTO_TURSO_LAB_CONFIRM: ${{ inputs.confirm_isolated_test_db_only }}
       FIRST_STATE: ${{ needs.first-independent-runner.outputs.state }}
       SECOND_STATE: ${{ needs.second-independent-runner.outputs.state }}
