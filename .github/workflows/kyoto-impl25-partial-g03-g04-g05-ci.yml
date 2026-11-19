@@ -1,0 +1,37 @@
+name: Impl25 verified 11-of-12 G03 continuity independent CI
+on:
+  push:
+    branches: [fix/impl25-g03-partial-g04-g05-preservation-20261119]
+  pull_request:
+    branches: [jra-html-diagnostic-20261105]
+permissions:
+  contents: read
+jobs:
+  verify-partial-source-no-http:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install existing local parser dependencies
+        run: python -m pip install 'beautifulsoup4>=4.12,<5' 'cryptography>=43,<47'
+      - name: Targeted repair and unchanged full-12 source integrity regressions
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p proof
+          python -m unittest -v             tests.test_kyoto_impl25_partial_source_continuation             tests.test_kyoto_g03_proof_verify             tests.test_kyoto_g04_all_horse_profiles             tests.test_kyoto_g05_conditions 2>&1 | tee proof/test_log.txt
+          grep -q 'OK' proof/test_log.txt
+          echo 'IMPL25_PARTIAL_G03_G04_G05_INDEPENDENT_REGRESSIONS_PASS'
+      - name: Save repair evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: impl25-g03-partial-g04-g05-${{ github.run_id }}
+          path: proof/
+          if-no-files-found: warn
+          retention-days: 90
