@@ -22,10 +22,17 @@ jobs:
       KYOTO_SHARED_CLAIM_TURSO_URL: ${{ vars.KYOTO_SHARED_CLAIM_TURSO_URL }}
       KYOTO_SHARED_CLAIM_TURSO_TOKEN: ${{ secrets.KYOTO_SHARED_CLAIM_TURSO_TOKEN }}
     steps:
-      - name: Checkout exact reviewed code and new isolated proof
+      - name: Checkout proof script at exact triggering commit
         uses: actions/checkout@v4
         with:
           ref: ${{ github.sha }}
+          path: impl24_proof
+          persist-credentials: false
+      - name: Checkout immutable proven claim runtime separately
+        uses: actions/checkout@v4
+        with:
+          ref: ba6b62bdbb25abf5605ea3b2b2ecb7f288b1d320
+          path: verified_collector
           persist-credentials: false
       - uses: actions/setup-python@v5
         with:
@@ -34,4 +41,9 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          python -m diagnostics.kyoto_impl24_production_claim_write_proof
+          test -f impl24_proof/diagnostics/kyoto_impl24_production_claim_write_proof.py
+          test -f verified_collector/diagnostics/kyoto_turso_capture_claims.py
+          test -f verified_collector/diagnostics/kyoto_weekend_remote_claim_runtime.py
+          cp impl24_proof/diagnostics/kyoto_impl24_production_claim_write_proof.py verified_collector/diagnostics/
+          cd verified_collector
+          PYTHONPATH=. python -m diagnostics.kyoto_impl24_production_claim_write_proof
