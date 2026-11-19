@@ -6,6 +6,7 @@ on:
     paths:
       - diagnostics/kyoto_g06_all12_capture.py
       - diagnostics/kyoto_weekend_remote_claim_runtime.py
+      - tests/test_kyoto_impl23_pc_to_g06_real_lease.py
       - tests/test_kyoto_impl23_weekend_entrypoint_claim.py
       - diagnostics/kyoto_weekend_capture.py
       - tests/test_kyoto_impl23_claim_continuation.py
@@ -32,6 +33,7 @@ jobs:
           PYTHONPATH: .
         run: |
           python -m unittest -q \
+            tests.test_kyoto_impl23_pc_to_g06_real_lease \
             tests.test_kyoto_impl23_weekend_entrypoint_claim \
             tests.test_kyoto_impl23_claim_continuation \
             tests.test_kyoto_impl23_production_claim_activation \
