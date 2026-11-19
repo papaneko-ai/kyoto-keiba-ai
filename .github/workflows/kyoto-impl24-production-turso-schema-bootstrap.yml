@@ -42,7 +42,7 @@ jobs:
           host=os.getenv("KYOTO_SHARED_CLAIM_APPROVED_PRODUCTION_HOST","")
           url=os.getenv("KYOTO_SHARED_CLAIM_TURSO_URL","")
           token=os.getenv("KYOTO_SHARED_CLAIM_TURSO_TOKEN","")
-          if not re.fullmatch(r"[a-z0-9-]+(?:\\.[a-z0-9-]+)*\\.turso\\.io",host):
+          if not re.fullmatch(r"[a-z0-9-]+(?:\.[a-z0-9-]+)*\.turso\.io",host):
               raise SystemExit("PRODUCTION_HOST_NOT_CONFIGURED")
           if host==EXPECTED_HOST or "test" in host or "lab" in host:
               raise SystemExit("EXPERIMENT_HOST_FORBIDDEN")
