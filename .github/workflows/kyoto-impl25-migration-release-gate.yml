@@ -1,0 +1,115 @@
+name: Kyoto implementation25 migration ZIP integrity enforcement
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'diagnostics/kyoto_impl25_migration_release_gate.py'
+      - 'tests/test_kyoto_impl25_migration_release_gate.py'
+      - '.github/workflows/kyoto-impl25-migration-release-gate.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'diagnostics/kyoto_impl25_migration_release_gate.py'
+      - 'tests/test_kyoto_impl25_migration_release_gate.py'
+      - '.github/workflows/kyoto-impl25-migration-release-gate.yml'
+  workflow_dispatch:
+    inputs:
+      candidate_artifact_id:
+        description: "GitHub Actions artifact id containing ONE proposed migration ZIP"
+        required: true
+        type: string
+      prior_artifact_id:
+        description: "GitHub Actions artifact id containing ONE previous complete backup ZIP"
+        required: true
+        type: string
+permissions:
+  contents: read
+  actions: read
+jobs:
+  destructive-regression:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Reject document-only ZIPs, missing sources, modified ancestors and invalid manifests
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m unittest -v tests.test_kyoto_impl25_migration_release_gate 2>&1 | tee migration_gate_regression.log
+          grep -q "Ran 10 tests" migration_gate_regression.log
+          grep -q "OK" migration_gate_regression.log
+          echo "IMPL25_MIGRATION_10_OF_10_DESTRUCTIVE_GATES_PASS"
+      - name: Save regression evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: impl25-migration-gate-regression-${{ github.run_id }}
+          path: migration_gate_regression.log
+          if-no-files-found: warn
+          retention-days: 90
+  certify-real-zip:
+    if: ${{ github.event_name == 'workflow_dispatch' }}
+    needs: [destructive-regression]
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      GH_TOKEN: ${{ github.token }}
+      CANDIDATE_ID: ${{ inputs.candidate_artifact_id }}
+      PRIOR_ID: ${{ inputs.prior_artifact_id }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Download both immutable GitHub Action artifacts; refuse unknown inputs
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ "$CANDIDATE_ID" =~ ^[0-9]{5,20}$ ]]
+          [[ "$PRIOR_ID" =~ ^[0-9]{5,20}$ ]]
+          mkdir -p inspected
+          gh api "repos/$GITHUB_REPOSITORY/actions/artifacts/$CANDIDATE_ID/zip" > inspected/candidate_wrapper.zip
+          gh api "repos/$GITHUB_REPOSITORY/actions/artifacts/$PRIOR_ID/zip" > inspected/prior_wrapper.zip
+          python - <<'PY'
+          import zipfile
+          from pathlib import Path
+          for kind in ('candidate','prior'):
+              with zipfile.ZipFile('inspected/'+kind+'_wrapper.zip') as wrapper:
+                  candidates=[i for i in wrapper.infolist() if i.filename.lower().endswith('.zip') and not i.is_dir()]
+                  if len(candidates)!=1:
+                      raise SystemExit('REJECTED_EXPECT_EXACTLY_ONE_ZIP_IN_ARTIFACT:'+kind)
+                  data=wrapper.read(candidates[0])
+              target=Path('inspected/'+kind+'.zip')
+              target.write_bytes(data)
+          PY
+      - name: Complete-source label requires latest main+dev snapshot; verify size and all nested sources
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m diagnostics.kyoto_impl25_migration_release_gate \
+            inspected/candidate.zip --previous inspected/prior.zip \
+            --require-current-source --receipt inspected/MIGRATION_RELEASE_GATE_RECEIPT.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          r=json.loads(Path('inspected/MIGRATION_RELEASE_GATE_RECEIPT.json').read_text())
+          if r['certification']!='CURRENT_COMPLETE_SOURCE':
+              raise SystemExit('CURRENT_SOURCE_CERTIFICATION_NOT_GRANTED')
+          print('MIGRATION_ZIP_VERIFIED_FULL_CURRENT_SOURCE')
+          PY
+      - name: Publish ONLY verified full-source ZIP and receipt; failures never publish
+        uses: actions/upload-artifact@v4
+        with:
+          name: KYOTO_VERIFIED_COMPLETE_MIGRATION_${{ github.run_id }}
+          path: |
+            inspected/candidate.zip
+            inspected/MIGRATION_RELEASE_GATE_RECEIPT.json
+          if-no-files-found: error
+          retention-days: 90
