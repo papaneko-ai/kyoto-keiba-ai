@@ -53,4 +53,14 @@ class Tests(unittest.TestCase):
             self.assertEqual(first["g06_shared_claim_state"],"CONFIGURED_PRODUCTION_TURSO")
             self.assertTrue((root/"first"/"g06_source_bundle.tar.gz").is_file())
             self.assertTrue((root/"second"/"g06_source_bundle.tar.gz").is_file())
+            import json,tarfile
+            with tarfile.open(root/"first"/"g06_source_bundle.tar.gz","r:gz") as archive:
+                evidence=json.load(archive.extractfile("g06_shared_claim_evidence.json"))
+            self.assertEqual(evidence["counts"]["committed"],1)
+            self.assertEqual(evidence["counts"]["acquired"],1)
+            self.assertFalse(evidence["production_claim_certified"])
+            with tarfile.open(root/"second"/"g06_source_bundle.tar.gz","r:gz") as archive:
+                second_evidence=json.load(archive.extractfile("g06_shared_claim_evidence.json"))
+            self.assertEqual(second_evidence["counts"]["skipped"],1)
+            self.assertFalse(second_evidence["production_claim_certified"])
 if __name__=="__main__":unittest.main()
