@@ -40,11 +40,23 @@ def _text(v):
 def _stmt(sql,args):
     return {"type":"execute","stmt":{"sql":sql,
             "args":[_text(arg) for arg in args],"want_rows":True}}
+def _cell(value):
+    """Decode Hrana v2 scalar cells; a NULL cell has no 'value' key."""
+    if type(value) is not dict:
+        raise ValueError("remote_cell_invalid")
+    kind=value.get("type")
+    if kind=="null" and set(value)=={"type"}:
+        return None
+    if kind in ("text","integer") and type(value.get("value")) is str:
+        return value["value"]
+    raise ValueError("remote_cell_type_invalid")
+
 def _rows(payload):
     try:
         rows=payload["rows"]
         if not isinstance(rows,list) or len(rows)>1:raise ValueError()
-        return [[v["value"] for v in row] for row in rows]
+        if any(not isinstance(row,list) for row in rows):raise ValueError()
+        return [[_cell(v) for v in row] for row in rows]
     except (TypeError,ValueError,KeyError,IndexError):
         raise TursoClaimUnconfirmed("remote_rows_unconfirmed") from None
 
