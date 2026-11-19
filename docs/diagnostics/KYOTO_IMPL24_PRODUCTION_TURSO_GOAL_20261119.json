@@ -1,0 +1,74 @@
+{
+  "schema": "kyoto_impl24_production_turso_goal.v1",
+  "updated_date_jst": "2026-11-19",
+  "primary_goal": "PRODUCTION_TURSO_DEDICATED_CONNECTION_OPERATIONALLY_VERIFIED",
+  "status": "NOT_COMPLETE",
+  "evidence": {
+    "main_before_this_governance_change": "51ebeff67941e51759a1dfbfca19517d31fb6b51",
+    "production_readonly_actions_run": 44460603005,
+    "release_ci_run": 44466007897,
+    "release_ci": "success",
+    "pr13": "merged",
+    "pr14": "merged",
+    "collector_sha": "ba6b62bdbb25abf5605ea3b2b2ecb7f288b1d320",
+    "development_branch": "jra-html-diagnostic-20261105"
+  },
+  "preserved_verified_work": [
+    "cross-host GitHub Actions/Streamlit isolated Turso reservation and collision prevention",
+    "Hrana NULL decoding correction",
+    "G06 claim code integrated in pinned collector",
+    "optional production preflight cannot block PC originals"
+  ],
+  "protected_surfaces": [
+    "kyoto-keiba-ai-test",
+    "__kyoto_ai_weekend_claims_isolated_lab_v1",
+    "8 scheduled slots",
+    "PC/SP independent collection",
+    "AES-GCM encrypted originals",
+    "P1-P8; ALG01-13; EVO01-08"
+  ],
+  "prod_db_candidate": "kyoto-keiba-ai-prod (not created or approved)",
+  "prod_table": "__kyoto_ai_weekend_claims_v1",
+  "gates": [
+    {
+      "id": "P1",
+      "description": "Choose and verify physically separate production Turso database and ownership",
+      "verified": false
+    },
+    {
+      "id": "P2",
+      "description": "Provision correct production schema using existing TursoCaptureClaims.CREATE (do not touch lab)",
+      "verified": false
+    },
+    {
+      "id": "P3",
+      "description": "Set production host, URL and token securely in Actions variables/secrets; inspect names only, never values",
+      "verified": false
+    },
+    {
+      "id": "P4",
+      "description": "Production-specific read/write and atomic claim observation verified, no repeated lab experiment",
+      "verified": false
+    },
+    {
+      "id": "P5",
+      "description": "Explicitly authorize production activation and verify existing G06 weekend capture wiring without altering source controls",
+      "verified": false
+    }
+  ],
+  "status_metric": {
+    "verified_gates": 0,
+    "total_gates": 5,
+    "percentage": 0,
+    "meaning": "production-only completion; existing lab successes not recounted"
+  },
+  "live_status": {
+    "nov21_22_capture_verified": false,
+    "real_meetings_6": 0,
+    "practical_lower_bound_100": 0
+  },
+  "security": "No DB token, credential, full connection string or plaintext original in this file.",
+  "restart_invariant": "Read this ledger and latest GitHub HEAD/PR/Actions first. Never call previously proven lab work incomplete. No completion claim until gate evidence recorded.",
+  "blocking_dependency": "No Turso administration connector or GitHub Actions variable/secret write capability available in this session; requires external authenticated provisioning or an authorized connector.",
+  "next_action": "Create/identify isolated production Turso DB and credential, then configure Actions. Do not set ACTIVATE=YES before schema and read/write checks."
+}
