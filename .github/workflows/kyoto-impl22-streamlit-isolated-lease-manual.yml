@@ -1,0 +1,33 @@
+name: Kyoto isolated Streamlit cross-environment active lease (manual only)
+on:
+  workflow_dispatch:
+    inputs:
+      confirm_lab_only:
+        description: "Enter YES-ISOLATED-CLAIMS-ONLY to create ONE synthetic 600-second lease in kyoto-keiba-ai-test"
+        required: true
+        default: "NO"
+permissions:
+  contents: read
+concurrency:
+  group: kyoto-impl22-streamlit-lab-lease-${{ github.run_id }}
+  cancel-in-progress: false
+jobs:
+  hold-isolated-test-lease:
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.confirm_lab_only == 'YES-ISOLATED-CLAIMS-ONLY' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      TURSO_DATABASE_URL: ${{ secrets.KYOTO_LAB_TURSO_DATABASE_URL }}
+      TURSO_AUTH_TOKEN: ${{ secrets.KYOTO_LAB_TURSO_AUTH_TOKEN }}
+      KYOTO_TURSO_LAB_CONFIRM: ${{ inputs.confirm_lab_only }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: 400794576a65409f8e877f4da7532359d23e6452
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: python -m pip install requests
+      - name: Establish ONLY ephemeral lab lease for separately authenticated Streamlit probe
+        run: python -m diagnostics.kyoto_turso_streamlit_held_lease
