@@ -42,7 +42,7 @@ class SharedLedger:
             raise ReservationError("claim_key_invalid")
         if not isinstance(owner,str) or not re.fullmatch(r"[a-zA-Z0-9_-]{5,100}",owner):
             raise ReservationError("owner_invalid")
-        if type(now_epoch) is not int or now_epoch<=0 or type(lease_seconds) is not int or not 30<=lease_seconds<=600:
+        if type(now_epoch) is not int or now_epoch<=0 or type(lease_seconds) is not int or not 30<=lease_seconds<=1800:
             raise ReservationError("lease_parameters_invalid")
         self._begin()
         try:

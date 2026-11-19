@@ -66,7 +66,7 @@ def _verify_saved_channel(folder, *, verified_start_utc):
 
 def run_twelve(root, *, records, authorized_live_http=False, runner=None,
                request_pacer=None,openers=None,claim_client=None,claim_slot=None,
-               claim_owner=None,claim_now_epoch=None):
+               claim_owner=None,claim_now_epoch=None,claim_clock=None):
     """records: 12 entries indexed 1..12; missing links explicitly None.
 
     Requires a fresh output directory. Every valid record carries an existing
@@ -80,6 +80,8 @@ def run_twelve(root, *, records, authorized_live_http=False, runner=None,
         raise SourceChainError("new_output_directory_required")
     if type(authorized_live_http) is not bool:
         raise SourceChainError("authorization_boolean_required")
+    if claim_clock is not None and not callable(claim_clock):
+        raise SourceChainError("remote_claim_clock_invalid")
     if claim_client is not None and (not authorized_live_http or runner is not None):
         raise SourceChainError("remote_claims_live_default_collector_only")
     if claim_client is not None and (
@@ -102,6 +104,7 @@ def run_twelve(root, *, records, authorized_live_http=False, runner=None,
         entry={"race":race,"state":"NOT_ATTEMPTED","both_markets_verified":False}
         lease=None
         lease_key=None
+        lease_now=None
         if item is None:
             entry["state"]="OFFICIAL_LINK_NOT_OBSERVED"
             results.append(entry)
@@ -128,8 +131,10 @@ def run_twelve(root, *, records, authorized_live_http=False, runner=None,
                 lease_key=key(day=spec.race_day,slot=claim_slot,race=race,
                               channel=item["primary_channel"],market="racecard")
                 try:
+                    lease_now=int(claim_clock()) if claim_clock is not None else claim_now_epoch
+                    if lease_now<=0:raise SourceChainError("remote_claim_clock_invalid")
                     lease=claim_client.claim(claim_key=lease_key,owner=claim_owner,
-                        now_epoch=claim_now_epoch)
+                        now_epoch=lease_now,lease_seconds=1800)
                 except Exception as exc:
                     entry["claim_state"]="COORDINATOR_UNCONFIRMED"
                     entry["claim_error_class"]=type(exc).__name__
@@ -229,18 +234,18 @@ def run_twelve(root, *, records, authorized_live_http=False, runner=None,
                         entry["claim_commit_state"]=committed["state"]
                     else:
                         released=claim_client.abandon(claim_key=lease_key,owner=claim_owner,
-                            generation=lease["generation"],now_epoch=claim_now_epoch)
+                            generation=lease["generation"],now_epoch=(int(claim_clock()) if claim_clock is not None else lease_now))
                         entry["claim_commit_state"]="RELEASED_FOR_RETRY" if released["released"] else "FENCE_REJECTED"
                 except Exception as exc:
                     entry["claim_commit_state"]="COORDINATOR_COMMIT_UNCONFIRMED"
                     entry["claim_error_class"]=type(exc).__name__
-        except (ValueError,TypeError,KeyError,AttributeError,OSError) as exc:
+        except (SourceChainError,ValueError,TypeError,KeyError,AttributeError,OSError) as exc:
             entry.update(state="INPUT_OR_CAPTURE_REJECTED",
                          reason=type(exc).__name__+":"+str(exc)[:120])
             if claim_client is not None and lease and lease.get("must_fetch"):
                 try:
                     released=claim_client.abandon(claim_key=lease_key,owner=claim_owner,
-                        generation=lease["generation"],now_epoch=claim_now_epoch)
+                        generation=lease["generation"],now_epoch=(int(claim_clock()) if claim_clock is not None else lease_now))
                     entry["claim_commit_state"]=(
                         "RELEASED_FOR_RETRY" if released["released"] else "FENCE_REJECTED")
                 except Exception:

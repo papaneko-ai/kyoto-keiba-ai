@@ -48,9 +48,21 @@ def active_claims_for_weekend(day,*,environ=None,transport=None,now_epoch=None):
     if cron not in CRON_SLOTS[day]:
         raise ReservationError("scheduled_slot_not_recognized")
     url=env.get("KYOTO_SHARED_CLAIM_TURSO_URL","")
-    expected="libsql://"+EXPECTED_HOST
-    if url!=expected:
-        raise ReservationError("isolated_remote_database_not_approved")
+    target=env.get("KYOTO_SHARED_CLAIM_TARGET","LAB")
+    if target=="LAB":
+        if url!="libsql://"+EXPECTED_HOST:
+            raise ReservationError("isolated_remote_database_not_approved")
+    elif target=="PRODUCTION":
+        if env.get("KYOTO_SHARED_CLAIM_PRODUCTION_APPROVED")!="YES":
+            raise ReservationError("production_shared_claim_approval_required")
+        approved_host=env.get("KYOTO_SHARED_CLAIM_APPROVED_PRODUCTION_HOST","")
+        if (not re.fullmatch(r"[a-z0-9-]+(?:\.[a-z0-9-]+)*\.turso\.io",approved_host)
+            or approved_host==EXPECTED_HOST):
+            raise ReservationError("production_coordinator_host_not_approved")
+        if url not in ("libsql://"+approved_host,"https://"+approved_host):
+            raise ReservationError("production_coordinator_target_mismatch")
+    else:
+        raise ReservationError("shared_claim_target_invalid")
     token=env.get("KYOTO_SHARED_CLAIM_TURSO_TOKEN","")
     if not isinstance(token,str) or len(token)<16:
         raise ReservationError("shared_claim_token_missing")
@@ -63,4 +75,5 @@ def active_claims_for_weekend(day,*,environ=None,transport=None,now_epoch=None):
            transport=transport or UrllibTransport())
     return {"enabled":True,"claim_client":client,
             "claim_slot":CRON_SLOTS[day][cron],"claim_owner":owner,
-            "claim_now_epoch":int(time.time()) if now_epoch is None else now_epoch}
+            "claim_now_epoch":int(time.time()) if now_epoch is None else now_epoch,
+            "claim_clock":time.time if now_epoch is None else (lambda: now_epoch)}

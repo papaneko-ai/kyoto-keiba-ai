@@ -33,7 +33,7 @@ class FakeRemote:
                     values=[v["value"] for v in item["args"]]
                     c=db.execute(item["sql"],values)
                     fields=(c.fetchall() if c.description else [])
-                    rows=[[{"type":"text","value":str(v) if v is not None else None} for v in row] for row in fields]
+                    rows=[[({"type":"null"} if v is None else {"type":"integer" if type(v) is int else "text","value":str(v)}) for v in row] for row in fields]
                     results.append({"type":"ok","response":{"type":"execute","result":{"rows":rows}}})
                 db.commit()
             if self.fail_after_commit:

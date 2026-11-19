@@ -40,11 +40,23 @@ def _text(v):
 def _stmt(sql,args):
     return {"type":"execute","stmt":{"sql":sql,
             "args":[_text(arg) for arg in args],"want_rows":True}}
+def _cell(value):
+    """Decode Hrana v2 scalar cells; a NULL cell has no 'value' key."""
+    if type(value) is not dict:
+        raise ValueError("remote_cell_invalid")
+    kind=value.get("type")
+    if kind=="null" and set(value)=={"type"}:
+        return None
+    if kind in ("text","integer") and type(value.get("value")) is str:
+        return value["value"]
+    raise ValueError("remote_cell_type_invalid")
+
 def _rows(payload):
     try:
         rows=payload["rows"]
         if not isinstance(rows,list) or len(rows)>1:raise ValueError()
-        return [[v["value"] for v in row] for row in rows]
+        if any(not isinstance(row,list) for row in rows):raise ValueError()
+        return [[_cell(v) for v in row] for row in rows]
     except (TypeError,ValueError,KeyError,IndexError):
         raise TursoClaimUnconfirmed("remote_rows_unconfirmed") from None
 
@@ -97,7 +109,7 @@ class TursoCaptureClaims:
             raise ReservationError("claim_key_invalid")
         if not isinstance(owner,str) or not re.fullmatch(r"[a-zA-Z0-9_-]{5,100}",owner):
             raise ReservationError("owner_invalid")
-        if type(now_epoch) is not int or now_epoch<=0 or type(lease_seconds) is not int or not 30<=lease_seconds<=600:
+        if type(now_epoch) is not int or now_epoch<=0 or type(lease_seconds) is not int or not 30<=lease_seconds<=1800:
             raise ReservationError("lease_parameters_invalid")
         result=self._single(CLAIM,claim_key,owner,now_epoch+lease_seconds,now_epoch)
         if len(result)==1:

@@ -1,0 +1,54 @@
+name: Impl23 shared claim production integration offline review
+on:
+  push:
+    branches:
+      - feature/impl23-production-shared-claim-20261119
+    paths:
+      - diagnostics/kyoto_g06_all12_capture.py
+      - diagnostics/kyoto_impl23_claim_preflight.py
+      - tests/test_kyoto_impl23_claim_preflight.py
+      - tests/test_kyoto_impl23_lease_window.py
+      - tests/test_kyoto_impl23_lease_clock.py
+      - diagnostics/kyoto_weekend_remote_claim_runtime.py
+      - tests/test_kyoto_impl23_pc_to_g06_real_lease.py
+      - tests/test_kyoto_impl23_weekend_entrypoint_claim.py
+      - diagnostics/kyoto_weekend_capture.py
+      - diagnostics/kyoto_g06_claim_evidence.py
+      - diagnostics/kyoto_g06_nested_bundle.py
+      - tests/test_kyoto_impl23_claim_evidence.py
+      - tests/test_kyoto_impl23_claim_continuation.py
+      - tests/test_kyoto_impl23_production_claim_activation.py
+      - .github/workflows/kyoto-impl23-shared-claim-offline-review.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  offline-g06-claim-proofs:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install offline parser dependencies
+        run: python -m pip install 'beautifulsoup4>=4.12,<5' 'cryptography>=43,<47'
+      - name: Regression (no JRA HTTP or Turso credentials)
+        env:
+          PYTHONPATH: .
+        run: |
+          python -m unittest -q \
+            tests.test_kyoto_impl23_claim_preflight \
+            tests.test_kyoto_impl23_lease_window \
+            tests.test_kyoto_impl23_lease_clock \
+            tests.test_kyoto_impl23_claim_evidence \
+            tests.test_kyoto_impl23_pc_to_g06_real_lease \
+            tests.test_kyoto_impl23_weekend_entrypoint_claim \
+            tests.test_kyoto_impl23_claim_continuation \
+            tests.test_kyoto_impl23_production_claim_activation \
+            tests.test_kyoto_g06_claim_execution \
+            tests.test_kyoto_g06_full_twelve_reparse_e2e \
+            tests.test_kyoto_weekend_remote_claim_runtime \
+            tests.test_kyoto_turso_capture_claims

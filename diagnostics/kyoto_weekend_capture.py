@@ -108,14 +108,25 @@ def capture(day: str, channel: str, output: str, *, live: bool,
                         from diagnostics.kyoto_weekend_remote_claim_runtime import active_claims_for_weekend
                         claim_context=active_claims_for_weekend(day) if live else {"enabled":False}
                         claim_options={k:v for k,v in claim_context.items()
-                           if k in ("claim_client","claim_slot","claim_owner","claim_now_epoch")}
+                           if k in ("claim_client","claim_slot","claim_owner","claim_now_epoch","claim_clock")}
                         markets=run_twelve(g06_root,records=source_inputs,
                             authorized_live_http=live,
                             request_pacer=pc_pacer,openers={"PC":pc_client},
                             **claim_options)
+                        # Configuration is not evidence of a completed remote lease.
                         out["g06_shared_claim_state"]=(
-                            "ACTIVE_ISOLATED_TURSO" if claim_context["enabled"]
+                            ("CONFIGURED_PRODUCTION_TURSO" if os.getenv("KYOTO_SHARED_CLAIM_TARGET")=="PRODUCTION"
+                             else "CONFIGURED_ISOLATED_TURSO") if claim_context["enabled"]
                             else "OPTIONAL_COORDINATION_NOT_CONFIGURED")
+                        if claim_context["enabled"]:
+                            from diagnostics.kyoto_g06_claim_evidence import summarize_claims
+                            claim_evidence=summarize_claims(markets.get("records",[]), day=day,
+                                slot=claim_context["claim_slot"])
+                            out["g06_shared_claim_evidence"]=claim_evidence["status"]
+                            evidence_path=g06_root/"g06_shared_claim_evidence.json"
+                            with evidence_path.open("x",encoding="utf8") as evidence_file:
+                                json.dump(claim_evidence,evidence_file,sort_keys=True,indent=2)
+                                evidence_file.write("\n")
                         out["g06_twelve_race_market_attempted"]=True
                         out["g06_paired_market_races"]=markets["verified_dual_market_races"]
                         out["g06_markets_prediction_authorized"]=False
