@@ -85,6 +85,18 @@ class TursoCaptureClaims:
             if output["type"]!="execute":raise ValueError()
             return _rows(output["result"])
         except Exception:
+            # Only classify isolated-lab SELECT failures. Never output a raw
+            # response, SQL data, credential, URL or exception message.
+            if self.namespace=="ISOLATED_LAB" and sql.lstrip().upper().startswith("SELECT "):
+                if "response" not in locals():
+                    category="transport"
+                else:
+                    status=getattr(response,"status_code",None)
+                    if type(status) is int and status!=200:
+                        category="http_"+str(status) if status in (400,401,403,408,409,423,429,500,502,503,504) else "http_other"
+                    else:
+                        category="response_shape"
+                raise TursoClaimUnconfirmed("isolated_read_"+category) from None
             raise TursoClaimUnconfirmed("mutation_or_read_unconfirmed_no_blind_retry") from None
     def prepare_schema(self):
         self._single(CREATE.replace(TABLE,self.table))
