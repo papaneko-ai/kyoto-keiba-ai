@@ -114,7 +114,8 @@ def capture(day: str, channel: str, output: str, *, live: bool,
                             request_pacer=pc_pacer,openers={"PC":pc_client},
                             **claim_options)
                         out["g06_shared_claim_state"]=(
-                            "ACTIVE_ISOLATED_TURSO" if claim_context["enabled"]
+                            ("ACTIVE_PRODUCTION_TURSO" if os.getenv("KYOTO_SHARED_CLAIM_TARGET")=="PRODUCTION"
+                             else "ACTIVE_ISOLATED_TURSO") if claim_context["enabled"]
                             else "OPTIONAL_COORDINATION_NOT_CONFIGURED")
                         out["g06_twelve_race_market_attempted"]=True
                         out["g06_paired_market_races"]=markets["verified_dual_market_races"]
