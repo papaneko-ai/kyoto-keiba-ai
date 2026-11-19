@@ -1,0 +1,100 @@
+name: Kyoto ISOLATED Turso weekend claim two-runner manual acceptance
+on:
+  workflow_dispatch:
+    inputs:
+      confirm_isolated_test_db_only:
+        description: "Enter YES-ISOLATED-CLAIMS-ONLY; writes only new synthetic lease table in kyoto-keiba-ai-test"
+        required: true
+        default: "NO"
+permissions:
+  contents: read
+concurrency:
+  group: kyoto-weekend-isolated-claim-manual-${{ github.run_id }}
+  cancel-in-progress: false
+jobs:
+  setup-isolated-table:
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.confirm_isolated_test_db_only == 'YES-ISOLATED-CLAIMS-ONLY' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    env:
+      TURSO_DATABASE_URL: ${{ secrets.KYOTO_LAB_TURSO_DATABASE_URL }}
+      TURSO_AUTH_TOKEN: ${{ secrets.KYOTO_LAB_TURSO_AUTH_TOKEN }}
+      KYOTO_TURSO_LAB_CONFIRM: ${{ inputs.confirm_isolated_test_db_only }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: 9d420b0e4eeada936a89fc14a7798b7592eeba4c
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: python -m pip install requests
+      - name: Verify exact non-production Turso host and create ONLY isolated claims table
+        run: python -m diagnostics.kyoto_turso_claim_manual_crossrunner setup
+  first-independent-runner:
+    needs: setup-isolated-table
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    outputs:
+      state: ${{ steps.acquire.outputs.state }}
+      must_fetch: ${{ steps.acquire.outputs.must_fetch }}
+    env:
+      TURSO_DATABASE_URL: ${{ secrets.KYOTO_LAB_TURSO_DATABASE_URL }}
+      TURSO_AUTH_TOKEN: ${{ secrets.KYOTO_LAB_TURSO_AUTH_TOKEN }}
+      KYOTO_TURSO_LAB_CONFIRM: ${{ inputs.confirm_isolated_test_db_only }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: 9d420b0e4eeada936a89fc14a7798b7592eeba4c
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: python -m pip install requests
+      - name: Concurrent claimant A on isolated Turso
+        id: acquire
+        run: python -m diagnostics.kyoto_turso_claim_manual_crossrunner contender-first
+  second-independent-runner:
+    needs: setup-isolated-table
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    outputs:
+      state: ${{ steps.acquire.outputs.state }}
+      must_fetch: ${{ steps.acquire.outputs.must_fetch }}
+    env:
+      TURSO_DATABASE_URL: ${{ secrets.KYOTO_LAB_TURSO_DATABASE_URL }}
+      TURSO_AUTH_TOKEN: ${{ secrets.KYOTO_LAB_TURSO_AUTH_TOKEN }}
+      KYOTO_TURSO_LAB_CONFIRM: ${{ inputs.confirm_isolated_test_db_only }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: 9d420b0e4eeada936a89fc14a7798b7592eeba4c
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: python -m pip install requests
+      - name: Concurrent claimant B on same isolated Turso
+        id: acquire
+        run: python -m diagnostics.kyoto_turso_claim_manual_crossrunner contender-second
+  independent-remote-verifier:
+    needs: [first-independent-runner, second-independent-runner]
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    env:
+      TURSO_DATABASE_URL: ${{ secrets.KYOTO_LAB_TURSO_DATABASE_URL }}
+      TURSO_AUTH_TOKEN: ${{ secrets.KYOTO_LAB_TURSO_AUTH_TOKEN }}
+      KYOTO_TURSO_LAB_CONFIRM: ${{ inputs.confirm_isolated_test_db_only }}
+      FIRST_STATE: ${{ needs.first-independent-runner.outputs.state }}
+      SECOND_STATE: ${{ needs.second-independent-runner.outputs.state }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: 9d420b0e4eeada936a89fc14a7798b7592eeba4c
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: python -m pip install requests
+      - name: Authenticate persisted singleton claim, fence, complete, reuse
+        run: python -m diagnostics.kyoto_turso_claim_manual_crossrunner verify
