@@ -108,7 +108,7 @@ def capture(day: str, channel: str, output: str, *, live: bool,
                         from diagnostics.kyoto_weekend_remote_claim_runtime import active_claims_for_weekend
                         claim_context=active_claims_for_weekend(day) if live else {"enabled":False}
                         claim_options={k:v for k,v in claim_context.items()
-                           if k in ("claim_client","claim_slot","claim_owner","claim_now_epoch")}
+                           if k in ("claim_client","claim_slot","claim_owner","claim_now_epoch","claim_clock")}
                         markets=run_twelve(g06_root,records=source_inputs,
                             authorized_live_http=live,
                             request_pacer=pc_pacer,openers={"PC":pc_client},
