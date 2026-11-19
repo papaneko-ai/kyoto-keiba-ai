@@ -1,0 +1,64 @@
+name: Impl24 production Turso claims schema bootstrap (manual only)
+on:
+  workflow_dispatch:
+    inputs:
+      confirmation:
+        description: "Type IMPL24-CREATE-PRODUCTION-CLAIMS-ONLY; creates only dedicated production claims table"
+        required: true
+        type: string
+permissions:
+  contents: read
+concurrency:
+  group: kyoto-impl24-production-claims-schema
+  cancel-in-progress: false
+jobs:
+  prepare-production-claims:
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.confirmation == 'IMPL24-CREATE-PRODUCTION-CLAIMS-ONLY' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      KYOTO_SHARED_CLAIM_APPROVED_PRODUCTION_HOST: ${{ vars.KYOTO_SHARED_CLAIM_APPROVED_PRODUCTION_HOST }}
+      KYOTO_SHARED_CLAIM_TURSO_URL: ${{ vars.KYOTO_SHARED_CLAIM_TURSO_URL }}
+      KYOTO_SHARED_CLAIM_TURSO_TOKEN: ${{ secrets.KYOTO_SHARED_CLAIM_TURSO_TOKEN }}
+    steps:
+      - name: Checkout existing tested implementation (immutable pin)
+        uses: actions/checkout@v4
+        with:
+          ref: ba6b62bdbb25abf5605ea3b2b2ecb7f288b1d320
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Create only isolated production claim table using existing SQL, then read back
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json, os, re
+          from urllib.parse import urlsplit
+          from diagnostics.kyoto_turso_capture_claims import TursoCaptureClaims, TABLE
+          from diagnostics.kyoto_weekend_remote_claim_runtime import UrllibTransport
+          from diagnostics.kyoto_turso_isolated_virtual_store import EXPECTED_HOST
+          host=os.getenv("KYOTO_SHARED_CLAIM_APPROVED_PRODUCTION_HOST","")
+          url=os.getenv("KYOTO_SHARED_CLAIM_TURSO_URL","")
+          token=os.getenv("KYOTO_SHARED_CLAIM_TURSO_TOKEN","")
+          if not re.fullmatch(r"[a-z0-9-]+(?:\.[a-z0-9-]+)*\.turso\.io",host):
+              raise SystemExit("PRODUCTION_HOST_NOT_CONFIGURED")
+          if host==EXPECTED_HOST or "test" in host or "lab" in host:
+              raise SystemExit("EXPERIMENT_HOST_FORBIDDEN")
+          if url not in ("libsql://"+host,"https://"+host):
+              raise SystemExit("PRODUCTION_URL_MISMATCH")
+          if len(token)<16 or any(c.isspace() for c in token):
+              raise SystemExit("PRODUCTION_TOKEN_NOT_CONFIGURED")
+          if urlsplit(url).hostname!=host:
+              raise SystemExit("PRODUCTION_HOST_MISMATCH")
+          print("PRODUCTION_TARGET_MATCHED_NO_EXPERIMENT_DB")
+          client=TursoCaptureClaims(url=url,token=token,transport=UrllibTransport())
+          result=client.prepare_schema()
+          if result.get("schema")!=TABLE or result.get("prepared") is not True:
+              raise SystemExit("PRODUCTION_SCHEMA_NOT_VERIFIED")
+          client.observe("20261121:0:01:PC:racecard")
+          print("PRODUCTION_SCHEMA_CREATED_AND_READ_CONFIRMED")
+          print(json.dumps({"table":TABLE,"status":"SCHEMA_PREPARED_READ_VERIFIED",
+                            "claim_write_verified":False,"capture_active":False},sort_keys=True))
+          PY
