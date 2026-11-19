@@ -1,10 +1,5 @@
 name: Kyoto ISOLATED Turso weekend claim two-runner manual acceptance
 on:
-  push:
-    branches:
-      - experiment/multisource-hybrid-20261117
-    paths:
-      - docs/KYOTO_AI_ISOLATED_TURSO_CLAIM_APPROVAL_20261118.md
   workflow_dispatch:
     inputs:
       confirm_isolated_test_db_only:
@@ -18,13 +13,13 @@ concurrency:
   cancel-in-progress: false
 jobs:
   setup-isolated-table:
-    if: ${{ (github.event_name == 'workflow_dispatch' && inputs.confirm_isolated_test_db_only == 'YES-ISOLATED-CLAIMS-ONLY') || (github.event_name == 'push' && contains(github.event.head_commit.message, 'ISOLATED_TURSO_CLAIM_WRITE_APPROVED')) }}
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.confirm_isolated_test_db_only == 'YES-ISOLATED-CLAIMS-ONLY' }}
     runs-on: ubuntu-latest
     timeout-minutes: 4
     env:
-      TURSO_DATABASE_URL: ${{ secrets.TURSO_DATABASE_URL }}
-      TURSO_AUTH_TOKEN: ${{ secrets.TURSO_AUTH_TOKEN }}
-      KYOTO_TURSO_LAB_CONFIRM: ${{ (github.event_name == 'push' && 'YES-ISOLATED-CLAIMS-ONLY') || inputs.confirm_isolated_test_db_only }}
+      TURSO_DATABASE_URL: ${{ secrets.KYOTO_LAB_TURSO_DATABASE_URL }}
+      TURSO_AUTH_TOKEN: ${{ secrets.KYOTO_LAB_TURSO_AUTH_TOKEN }}
+      KYOTO_TURSO_LAB_CONFIRM: ${{ inputs.confirm_isolated_test_db_only }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -44,9 +39,9 @@ jobs:
       state: ${{ steps.acquire.outputs.state }}
       must_fetch: ${{ steps.acquire.outputs.must_fetch }}
     env:
-      TURSO_DATABASE_URL: ${{ secrets.TURSO_DATABASE_URL }}
-      TURSO_AUTH_TOKEN: ${{ secrets.TURSO_AUTH_TOKEN }}
-      KYOTO_TURSO_LAB_CONFIRM: ${{ (github.event_name == 'push' && 'YES-ISOLATED-CLAIMS-ONLY') || inputs.confirm_isolated_test_db_only }}
+      TURSO_DATABASE_URL: ${{ secrets.KYOTO_LAB_TURSO_DATABASE_URL }}
+      TURSO_AUTH_TOKEN: ${{ secrets.KYOTO_LAB_TURSO_AUTH_TOKEN }}
+      KYOTO_TURSO_LAB_CONFIRM: ${{ inputs.confirm_isolated_test_db_only }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -67,9 +62,9 @@ jobs:
       state: ${{ steps.acquire.outputs.state }}
       must_fetch: ${{ steps.acquire.outputs.must_fetch }}
     env:
-      TURSO_DATABASE_URL: ${{ secrets.TURSO_DATABASE_URL }}
-      TURSO_AUTH_TOKEN: ${{ secrets.TURSO_AUTH_TOKEN }}
-      KYOTO_TURSO_LAB_CONFIRM: ${{ (github.event_name == 'push' && 'YES-ISOLATED-CLAIMS-ONLY') || inputs.confirm_isolated_test_db_only }}
+      TURSO_DATABASE_URL: ${{ secrets.KYOTO_LAB_TURSO_DATABASE_URL }}
+      TURSO_AUTH_TOKEN: ${{ secrets.KYOTO_LAB_TURSO_AUTH_TOKEN }}
+      KYOTO_TURSO_LAB_CONFIRM: ${{ inputs.confirm_isolated_test_db_only }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -87,9 +82,9 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 4
     env:
-      TURSO_DATABASE_URL: ${{ secrets.TURSO_DATABASE_URL }}
-      TURSO_AUTH_TOKEN: ${{ secrets.TURSO_AUTH_TOKEN }}
-      KYOTO_TURSO_LAB_CONFIRM: ${{ (github.event_name == 'push' && 'YES-ISOLATED-CLAIMS-ONLY') || inputs.confirm_isolated_test_db_only }}
+      TURSO_DATABASE_URL: ${{ secrets.KYOTO_LAB_TURSO_DATABASE_URL }}
+      TURSO_AUTH_TOKEN: ${{ secrets.KYOTO_LAB_TURSO_AUTH_TOKEN }}
+      KYOTO_TURSO_LAB_CONFIRM: ${{ inputs.confirm_isolated_test_db_only }}
       FIRST_STATE: ${{ needs.first-independent-runner.outputs.state }}
       SECOND_STATE: ${{ needs.second-independent-runner.outputs.state }}
     steps:
