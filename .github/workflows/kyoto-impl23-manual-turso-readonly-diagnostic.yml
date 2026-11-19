@@ -42,4 +42,4 @@ jobs:
           python -m unittest -q tests.test_kyoto_impl23_unactivated_readonly_probe tests.test_kyoto_impl23_manual_probe tests.test_kyoto_impl23_claim_preflight
       - name: No-JRA no-mutation production table read probe
         run: |
-          python -m diagnostics.kyoto_impl23_unactivated_readonly_probe --day "${{ inputs.race_day }}" --manual-read-only
+          python -m diagnostics.kyoto_impl23_unactivated_readonly_probe --day "${{ inputs.race_day }}"
