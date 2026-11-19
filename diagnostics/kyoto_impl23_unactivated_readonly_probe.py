@@ -34,7 +34,7 @@ def probe(day,*,environ=None,transport=None):
     host=env['KYOTO_SHARED_CLAIM_APPROVED_PRODUCTION_HOST']
     url=env['KYOTO_SHARED_CLAIM_TURSO_URL']
     p=urlsplit(url)
-    if (not re.fullmatch(r'[a-z0-9-]+(?:\\.[a-z0-9-]+)*\\.turso\\.io',host)
+    if (not re.fullmatch(r'[a-z0-9-]+(?:\.[a-z0-9-]+)*\.turso\.io',host)
         or host==EXPECTED_HOST or p.hostname!=host
         or p.scheme not in ('libsql','https') or p.path not in ('','/')
         or p.query or p.fragment or p.port is not None or p.username or p.password):
