@@ -1,0 +1,25 @@
+name: Kyoto impl22 isolated read collision offline regression
+on:
+  push:
+    branches:
+      - fix/impl22-turso-read-collision-20261119
+    paths:
+      - 'diagnostics/kyoto_turso_capture_claims.py'
+      - 'tests/test_kyoto_impl22_real_collision_read_reconciliation.py'
+      - '.github/workflows/kyoto-impl22-isolated-read-collision-offline.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  isolated-read-only-regression:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: No external HTTP, Secrets or database writes
+        run: python -m unittest -v tests.test_kyoto_impl22_real_collision_read_reconciliation tests.test_kyoto_turso_capture_claims tests.test_kyoto_turso_claim_manual_crossrunner
