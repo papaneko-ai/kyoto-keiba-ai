@@ -9,6 +9,9 @@ on:
       - tests/test_kyoto_impl23_pc_to_g06_real_lease.py
       - tests/test_kyoto_impl23_weekend_entrypoint_claim.py
       - diagnostics/kyoto_weekend_capture.py
+      - diagnostics/kyoto_g06_claim_evidence.py
+      - diagnostics/kyoto_g06_nested_bundle.py
+      - tests/test_kyoto_impl23_claim_evidence.py
       - tests/test_kyoto_impl23_claim_continuation.py
       - tests/test_kyoto_impl23_production_claim_activation.py
       - .github/workflows/kyoto-impl23-shared-claim-offline-review.yml
@@ -33,6 +36,7 @@ jobs:
           PYTHONPATH: .
         run: |
           python -m unittest -q \
+            tests.test_kyoto_impl23_claim_evidence \
             tests.test_kyoto_impl23_pc_to_g06_real_lease \
             tests.test_kyoto_impl23_weekend_entrypoint_claim \
             tests.test_kyoto_impl23_claim_continuation \
