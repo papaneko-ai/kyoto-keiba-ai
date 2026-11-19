@@ -1,0 +1,37 @@
+name: Impl24 production Turso synthetic claim write proof (manual only)
+on:
+  workflow_dispatch:
+    inputs:
+      confirmation:
+        description: "Type IMPL24-PROVE-PRODUCTION-CLAIMS-ONLY; synthetic key only, never a race key"
+        type: string
+        required: true
+permissions:
+  contents: read
+concurrency:
+  group: kyoto-impl24-production-claim-proof
+  cancel-in-progress: false
+jobs:
+  prove-production-claim:
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.confirmation == 'IMPL24-PROVE-PRODUCTION-CLAIMS-ONLY' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    env:
+      KYOTO_IMPL24_PROOF_CONFIRMATION: ${{ inputs.confirmation }}
+      KYOTO_SHARED_CLAIM_APPROVED_PRODUCTION_HOST: ${{ vars.KYOTO_SHARED_CLAIM_APPROVED_PRODUCTION_HOST }}
+      KYOTO_SHARED_CLAIM_TURSO_URL: ${{ vars.KYOTO_SHARED_CLAIM_TURSO_URL }}
+      KYOTO_SHARED_CLAIM_TURSO_TOKEN: ${{ secrets.KYOTO_SHARED_CLAIM_TURSO_TOKEN }}
+    steps:
+      - name: Checkout exact reviewed code and new isolated proof
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Prove production-only synthetic write, competing owners, receipt, cleanup
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m diagnostics.kyoto_impl24_production_claim_write_proof
