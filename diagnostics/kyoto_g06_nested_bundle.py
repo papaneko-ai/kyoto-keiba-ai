@@ -21,7 +21,7 @@ def _accepted(name):
         return len(parts)==2
     if re.fullmatch(r"r(0[1-9]|1[0-2])",parts[0]):
         return 2<=len(parts)<=5
-    return len(parts)==1 and name in ("g06_batch_receipt.json","g06_downstream_input_receipt.json")
+    return len(parts)==1 and name in ("g06_batch_receipt.json","g06_downstream_input_receipt.json","g06_shared_claim_evidence.json")
 def bundle_g06(source,target):
     source,target=Path(source),Path(target)
     if not source.is_dir() or source.is_symlink() or target.exists() or target.is_symlink() or not target.parent.is_dir():
