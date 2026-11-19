@@ -75,4 +75,5 @@ def active_claims_for_weekend(day,*,environ=None,transport=None,now_epoch=None):
            transport=transport or UrllibTransport())
     return {"enabled":True,"claim_client":client,
             "claim_slot":CRON_SLOTS[day][cron],"claim_owner":owner,
-            "claim_now_epoch":int(time.time()) if now_epoch is None else now_epoch}
+            "claim_now_epoch":int(time.time()) if now_epoch is None else now_epoch,
+            "claim_clock":time.time if now_epoch is None else (lambda: now_epoch)}
