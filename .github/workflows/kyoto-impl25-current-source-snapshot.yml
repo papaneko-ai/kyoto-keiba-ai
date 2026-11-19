@@ -1,0 +1,83 @@
+name: Kyoto implementation25 actual current source snapshot with history
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/kyoto-impl25-current-source-snapshot.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  snapshot-current-repository:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Construct current main and development snapshots plus verified git history
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p snapshot/source/main snapshot/source/development snapshot/source/history
+          MAIN_SHA="$(git rev-parse HEAD)"
+          DEV_REF="refs/remotes/origin/jra-html-diagnostic-20261105"
+          git show-ref --verify --quiet "$DEV_REF"
+          DEV_SHA="$(git rev-parse "$DEV_REF")"
+          git cat-file -e "$DEV_SHA^{commit}"
+          git archive --format=tar "$MAIN_SHA" | tar -x -C snapshot/source/main
+          git archive --format=tar "$DEV_SHA" | tar -x -C snapshot/source/development
+          git bundle create snapshot/source/history/repository-all-refs.bundle --all
+          git bundle verify snapshot/source/history/repository-all-refs.bundle > snapshot/GIT_BUNDLE_VERIFIED.txt 2>&1
+          printf '%s\n' "$MAIN_SHA" > snapshot/MAIN_SHA.txt
+          printf '%s\n' "$DEV_SHA" > snapshot/DEVELOPMENT_SHA.txt
+          python - <<'PY'
+          from pathlib import Path
+          import datetime,hashlib,json,zipfile
+          src=Path('snapshot')
+          files=[p for p in src.rglob('*') if p.is_file()]
+          mains=[p for p in files if str(p).startswith('snapshot/source/main/')]
+          devs=[p for p in files if str(p).startswith('snapshot/source/development/')]
+          main_py=sum(p.suffix=='.py' for p in mains)
+          dev_py=sum(p.suffix=='.py' for p in devs)
+          if len(mains)<40 or len(devs)<1000 or dev_py<500 or main_py<10:
+              raise SystemExit('SOURCE_SET_ABNORMALLY_SMALL_FAIL_CLOSED')
+          if not (src/'source/history/repository-all-refs.bundle').is_file():
+              raise SystemExit('HISTORY_BUNDLE_MISSING')
+          manifest={
+            'schema':'kyoto_impl25_current_main_dev_snapshot.v1',
+            'created_at_utc':datetime.datetime.now(datetime.timezone.utc).isoformat(),
+            'main_sha':(src/'MAIN_SHA.txt').read_text().strip(),
+            'development_sha':(src/'DEVELOPMENT_SHA.txt').read_text().strip(),
+            'main_file_count':len(mains),
+            'development_file_count':len(devs),
+            'main_python_count':main_py,
+            'development_python_count':dev_py,
+            'bundle_verified':True,
+            'files':{str(p.relative_to(src)):{
+                'bytes':p.stat().st_size,
+                'sha256':hashlib.sha256(p.read_bytes()).hexdigest()} for p in sorted(files)}}
+          (src/'SNAPSHOT_MANIFEST.json').write_text(json.dumps(manifest,indent=2,sort_keys=True)+'\n')
+          out=Path('KYOTO_IMPL25_CURRENT_MAIN_DEV_SOURCE_AND_HISTORY.zip')
+          with zipfile.ZipFile(out,'w',zipfile.ZIP_DEFLATED,compresslevel=6,allowZip64=True) as z:
+              for p in sorted(src.rglob('*')):
+                  if p.is_file():z.write(p,str(p))
+          with zipfile.ZipFile(out) as z:
+              if z.testzip():raise SystemExit('CURRENT_ZIP_CRC_FAILED')
+              m=json.loads(z.read('snapshot/SNAPSHOT_MANIFEST.json'))
+              for rel,record in m['files'].items():
+                  if hashlib.sha256(z.read('snapshot/'+rel)).hexdigest()!=record['sha256']:
+                      raise SystemExit('CURRENT_SOURCE_HASH_MISMATCH:'+rel)
+          print('IMPL25_CURRENT_MAIN_DEV_AND_HISTORY_SOURCE_ZIP_VERIFIED',out.stat().st_size,len(mains),len(devs))
+          PY
+      - name: Upload verified current code snapshot with both HEADs
+        uses: actions/upload-artifact@v4
+        with:
+          name: KYOTO_IMPL25_CURRENT_MAIN_DEV_SNAPSHOT_${{ github.run_id }}
+          path: KYOTO_IMPL25_CURRENT_MAIN_DEV_SOURCE_AND_HISTORY.zip
+          if-no-files-found: error
+          retention-days: 90
