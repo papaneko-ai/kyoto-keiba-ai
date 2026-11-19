@@ -234,7 +234,7 @@ def run_twelve(root, *, records, authorized_live_http=False, runner=None,
                 except Exception as exc:
                     entry["claim_commit_state"]="COORDINATOR_COMMIT_UNCONFIRMED"
                     entry["claim_error_class"]=type(exc).__name__
-        except (ValueError,TypeError,KeyError,AttributeError,OSError) as exc:
+        except (SourceChainError,ValueError,TypeError,KeyError,AttributeError,OSError) as exc:
             entry.update(state="INPUT_OR_CAPTURE_REJECTED",
                          reason=type(exc).__name__+":"+str(exc)[:120])
             if claim_client is not None and lease and lease.get("must_fetch"):
