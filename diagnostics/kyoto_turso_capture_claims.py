@@ -79,6 +79,18 @@ class TursoCaptureClaims:
             if response.status_code!=200:raise ValueError()
             body=response.json()
             results=body["results"]
+            # Hrana v2 reports per-statement failures inside HTTP 200.
+            # Identify only an allowlisted code, never an error message.
+            if (self.namespace=="ISOLATED_LAB"
+                and sql.lstrip().upper().startswith("SELECT ")
+                and isinstance(results,list) and len(results)==2
+                and isinstance(results[0],dict) and results[0].get("type")=="error"):
+                err=results[0].get("error")
+                code=err.get("code") if isinstance(err,dict) else None
+                allowed={"SQLITE_BUSY","SQLITE_LOCKED","SQLITE_CONSTRAINT",
+                         "SQLITE_ERROR","SQLITE_SCHEMA","SQLITE_READONLY"}
+                lab_error_code=code if type(code) is str and code in allowed else "OTHER"
+                raise ValueError()
             if len(results)!=2 or results[0]["type"]!="ok" or results[1]["type"]!="ok":
                 raise ValueError()
             output=results[0]["response"]
@@ -88,7 +100,9 @@ class TursoCaptureClaims:
             # Only classify isolated-lab SELECT failures. Never output a raw
             # response, SQL data, credential, URL or exception message.
             if self.namespace=="ISOLATED_LAB" and sql.lstrip().upper().startswith("SELECT "):
-                if "response" not in locals():
+                if "lab_error_code" in locals():
+                    category="sql_"+lab_error_code.lower()
+                elif "response" not in locals():
                     category="transport"
                 else:
                     status=getattr(response,"status_code",None)
