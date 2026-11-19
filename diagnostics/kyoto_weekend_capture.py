@@ -164,7 +164,7 @@ def capture(day: str, channel: str, output: str, *, live: bool,
                         root=root / "pc_originals",day=day,
                         fetch=lambda url: (pc_pacer.before_request(),_read(pc_client,url))[1],
                         clock=lambda:datetime.now(timezone.utc).isoformat(),allowed=True,
-                        allow_partial=not bool(g03.get("complete")))
+                        allow_partial=(not bool(g03.get("complete")) or len(partial_verified)<12))
                     out["g04_all_horse_profiles_parsed"]=bool(g04["all_profiles_parsed"])
                     out["g04_profiles_verified"]=g04["profile_verified_count"]
                     out["g04_profiles_expected"]=g04["expected_horses"]
@@ -179,7 +179,7 @@ def capture(day: str, channel: str, output: str, *, live: bool,
                 try:
                     from diagnostics.kyoto_g05_conditions import compile_saved
                     g05=compile_saved(root / "pc_originals",day=day,
-                        allow_partial=not bool(g03.get("complete")))
+                        allow_partial=(not bool(g03.get("complete")) or len(partial_verified)<12))
                     out["g05_source_contract_saved"]=True
                     out["g05_observed_field_values"]=g05["observed_field_values"]
                     out["g05_workout_source_verified"]=False
