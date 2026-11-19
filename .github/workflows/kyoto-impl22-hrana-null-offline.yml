@@ -1,0 +1,26 @@
+name: Kyoto impl22 Hrana NULL root-cause regression
+on:
+  push:
+    branches:
+      - fix/impl22-hrana-null-decoding-20261119
+    paths:
+      - diagnostics/kyoto_turso_capture_claims.py
+      - tests/test_kyoto_turso_capture_claims.py
+      - tests/test_kyoto_impl22_hrana_null_wire_regression.py
+      - .github/workflows/kyoto-impl22-hrana-null-offline.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  offline-regression:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Verify true Hrana NULL format, claim and fence, safe diagnostics
+        run: python -m unittest -v tests.test_kyoto_impl22_hrana_null_wire_regression tests.test_kyoto_impl22_hrana_statement_error tests.test_kyoto_impl22_select_error_categories tests.test_kyoto_impl22_real_collision_read_reconciliation tests.test_kyoto_turso_capture_claims tests.test_kyoto_turso_claim_manual_crossrunner
