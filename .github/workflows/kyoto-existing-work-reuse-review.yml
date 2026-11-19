@@ -1,0 +1,47 @@
+name: Kyoto reuse verified work before new development
+on:
+  pull_request:
+    branches:
+      - main
+    types: [opened, synchronize, reopened, edited]
+  workflow_dispatch:
+permissions:
+  contents: read
+  pull-requests: read
+jobs:
+  reuse-existing-evidence:
+    runs-on: ubuntu-latest
+    timeout-minutes: 7
+    steps:
+      - name: Read existing authoritative development inventory (not a new experiment)
+        uses: actions/checkout@v4
+        with:
+          ref: jra-html-diagnostic-20261105
+          path: existing-research
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Run already-existing 25-area code and intent preflight
+        run: |
+          cd existing-research
+          python -m diagnostics.kyoto_development_preflight
+      - name: Require traceable reuse justification on new main PRs
+        if: ${{ github.event_name == 'pull_request' }}
+        env:
+          PR_BODY: ${{ github.event.pull_request.body }}
+        run: |
+          python - <<'PY'
+          import os,re
+          body=os.environ.get('PR_BODY','')
+          required=('Existing evidence:', 'Change type:', 'Unverified boundary:')
+          missing=[key for key in required if key.lower() not in body.lower()]
+          if missing:
+              raise SystemExit('MISSING_REUSE_PROOF_FIELDS: '+','.join(missing))
+          m=re.search(r'Change type:\s*(REUSE|REPAIR|INTEGRATE|NEW)\b',body,re.IGNORECASE)
+          if not m:
+              raise SystemExit('CHANGE_CLASSIFICATION_REQUIRED')
+          if m.group(1).upper()=='NEW':
+              raise SystemExit('NEW_REQUIRES_EXISTING_INVENTORY_UPDATE_AND_EXPLICIT_REVIEW')
+          print('EXISTING_RESEARCH_REUSE_EVIDENCE_REFERENCED')
+          PY
