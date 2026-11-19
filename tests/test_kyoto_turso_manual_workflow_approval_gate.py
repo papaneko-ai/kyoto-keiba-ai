@@ -13,7 +13,10 @@ class ApprovalGateTests(unittest.TestCase):
         self.assertNotIn("ISOLATED_TURSO_CLAIM_WRITE_APPROVED", content)
         self.assertIn("github.event_name == 'workflow_dispatch'", content)
         self.assertEqual(content.count("${{ inputs.confirm_isolated_test_db_only }}"), 4)
-        self.assertEqual(content.count("secrets.TURSO_AUTH_TOKEN"), 4)
+        self.assertEqual(content.count("secrets.KYOTO_LAB_TURSO_AUTH_TOKEN"), 4)
+        self.assertEqual(content.count("secrets.KYOTO_LAB_TURSO_DATABASE_URL"), 4)
+        self.assertNotIn("secrets.TURSO_AUTH_TOKEN", content)
+        self.assertNotIn("secrets.TURSO_DATABASE_URL", content)
 
 if __name__ == "__main__":
     unittest.main()
