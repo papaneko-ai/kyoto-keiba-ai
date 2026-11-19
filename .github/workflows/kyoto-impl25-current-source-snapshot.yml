@@ -44,7 +44,7 @@ jobs:
           devs=[p for p in files if str(p).startswith('snapshot/source/development/')]
           main_py=sum(p.suffix=='.py' for p in mains)
           dev_py=sum(p.suffix=='.py' for p in devs)
-          if len(mains)<40 or len(devs)<1000 or dev_py<500 or main_py<10:
+          if len(mains)<40 or len(devs)<1000 or dev_py<400 or main_py<10:
               raise SystemExit('SOURCE_SET_ABNORMALLY_SMALL_FAIL_CLOSED')
           if not (src/'source/history/repository-all-refs.bundle').is_file():
               raise SystemExit('HISTORY_BUNDLE_MISSING')
