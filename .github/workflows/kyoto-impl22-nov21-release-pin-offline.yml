@@ -1,0 +1,50 @@
+name: Kyoto Nov21-22 Impl22 release pin offline acceptance
+on:
+  push:
+    branches:
+      - release/impl22-nov21-22-source-repoint-review-20261119
+    paths:
+      - .github/workflows/kyoto-20261121-22-two-source-production-observer.yml
+      - .github/workflows/kyoto-impl22-nov21-release-pin-offline.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  release-source-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Verify all eight slots and exact immutable collector SHA
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          s=Path('.github/workflows/kyoto-20261121-22-two-source-production-observer.yml').read_text()
+          new='578fafda6c086ee5b17e15a8e79b305a4c0184c6'
+          assert s.count('cron:')==8
+          assert s.count(new)==6
+          assert 'a96a249250cb074c451e746228a6775169c025ed' not in s
+          assert s.count('ref: ${{ env.COLLECTOR_SHA }}')==2
+          assert s.count('DAY21_SOURCE_UNEXPECTED_NO_HTTP')==2
+          assert s.count('DAY22_CANDIDATE_NOT_PREFLIGHT_VERIFIED_NO_HTTP')==2
+          assert s.count('uses: actions/upload-artifact@v4')==2
+          assert '  push:' not in s
+          assert 'KYOTO_SHARED_CLAIM_ACTIVATE' not in s
+          print('PINNED_SOURCE_OFFLINE_RELEASE_CONTRACT_PASS; shared claim still not active')
+          PY
+      - uses: actions/checkout@v4
+        with:
+          repository: papaneko-ai/kyoto-keiba-ai
+          ref: 578fafda6c086ee5b17e15a8e79b305a4c0184c6
+          path: pinned-collector
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install 'beautifulsoup4>=4.12,<5'
+      - name: Test the exact scheduled immutable collector without JRA or Turso HTTP
+        working-directory: pinned-collector
+        run: python -m unittest -v tests.test_kyoto_impl22_production_null_regression tests.test_kyoto_turso_capture_claims tests.test_kyoto_weekend_remote_claim_runtime tests.test_kyoto_g06_claim_execution
