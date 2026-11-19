@@ -111,10 +111,12 @@ class TursoCaptureClaims:
                 try:
                     data=self._single(READ.replace(TABLE,self.table),claim_key)
                     break
-                except TursoClaimUnconfirmed:
+                except TursoClaimUnconfirmed as exc:
                     if attempt==2:
+                        # Exc is already a strictly allowlisted category.
+                        # Include no transport payload or exception details.
                         raise TursoClaimUnconfirmed(
-                            "isolated_read_unconfirmed_after_3_safe_attempts") from None
+                            "isolated_read_unconfirmed_after_3_safe_attempts:"+str(exc)) from None
                     time.sleep(0.15*(attempt+1))
         else:
             data=self._single(READ.replace(TABLE,self.table),claim_key)
