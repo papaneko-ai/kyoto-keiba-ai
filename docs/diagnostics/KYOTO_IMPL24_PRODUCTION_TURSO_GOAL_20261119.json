@@ -2,7 +2,7 @@
   "schema": "kyoto_impl24_production_turso_goal.v1",
   "updated_date_jst": "2026-11-19",
   "primary_goal": "PRODUCTION_TURSO_DEDICATED_CONNECTION_OPERATIONALLY_VERIFIED",
-  "status": "NOT_COMPLETE",
+  "status": "PRODUCTION_SCHEMA_READ_CONFIRMED_PENDING_CLAIM_WRITE_AND_ACTIVATION",
   "evidence": {
     "main_before_this_governance_change": "51ebeff67941e51759a1dfbfca19517d31fb6b51",
     "production_readonly_actions_run": 44460603005,
@@ -11,7 +11,12 @@
     "pr13": "merged",
     "pr14": "merged",
     "collector_sha": "ba6b62bdbb25abf5605ea3b2b2ecb7f288b1d320",
-    "development_branch": "jra-html-diagnostic-20261105"
+    "development_branch": "jra-html-diagnostic-20261105",
+    "production_schema_actions_run": 44470772288,
+    "production_schema_actions_job": 135379408877,
+    "production_schema_outcome": "PRODUCTION_SCHEMA_CREATED_AND_READ_CONFIRMED",
+    "actual_claim_write_verified": false,
+    "capture_active": false
   },
   "preserved_verified_work": [
     "cross-host GitHub Actions/Streamlit isolated Turso reservation and collision prevention",
@@ -33,17 +38,20 @@
     {
       "id": "P1",
       "description": "Choose and verify physically separate production Turso database and ownership",
-      "verified": false
+      "verified": true,
+      "evidence": "User screenshot of kyoto-keiba-ai-prod creation plus runtime host isolation Run 44470772288"
     },
     {
       "id": "P2",
       "description": "Provision correct production schema using existing TursoCaptureClaims.CREATE (do not touch lab)",
-      "verified": false
+      "verified": true,
+      "evidence": "Run 44470772288 schema CREATE and SELECT succeeded on prod"
     },
     {
       "id": "P3",
       "description": "Set production host, URL and token securely in Actions variables/secrets; inspect names only, never values",
-      "verified": false
+      "verified": true,
+      "evidence": "User reported Secret and Vars registration; authenticated production CREATE and SELECT verified in Run 44470772288"
     },
     {
       "id": "P4",
@@ -57,10 +65,10 @@
     }
   ],
   "status_metric": {
-    "verified_gates": 0,
+    "verified_gates": 3,
     "total_gates": 5,
-    "percentage": 0,
-    "meaning": "production-only completion; existing lab successes not recounted"
+    "percentage": 60,
+    "meaning": "Production DB, schema and authenticated connection evidenced; actual atomic claim write and activation not proven"
   },
   "live_status": {
     "nov21_22_capture_verified": false,
@@ -69,6 +77,6 @@
   },
   "security": "No DB token, credential, full connection string or plaintext original in this file.",
   "restart_invariant": "Read this ledger and latest GitHub HEAD/PR/Actions first. Never call previously proven lab work incomplete. No completion claim until gate evidence recorded.",
-  "blocking_dependency": "No Turso administration connector or GitHub Actions variable/secret write capability available in this session; requires external authenticated provisioning or an authorized connector.",
-  "next_action": "Create/identify isolated production Turso DB and credential, then configure Actions. Do not set ACTIVATE=YES before schema and read/write checks."
+  "blocking_dependency": "Production-only synthetic claim write and exclusive reservation proof (P4), followed by explicit approval and activation (P5). No repeated isolated lab tests.",
+  "next_action": "Prepare manual-only non-scheduled production synthetic claim proof; do not write real race keys; do not activate source capture until proof and explicit approval."
 }
