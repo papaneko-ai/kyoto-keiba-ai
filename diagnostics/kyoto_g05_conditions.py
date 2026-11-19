@@ -81,18 +81,25 @@ def _body_weights(raw,expected_numbers):
     if set(result)!=set(expected_numbers):raise G05Rejected("body_weight_roster_mismatch")
     return result
 
-def compile_saved(root,*,day,expected_cutoff_utc=None):
+def compile_saved(root,*,day,expected_cutoff_utc=None,allow_partial=False):
     root=Path(root)
     if type(day) is not str or not _DAY.fullmatch(day):
         raise G05Rejected("day_invalid")
     if root.is_symlink() or not root.is_dir():
         raise G05Rejected("source_root_invalid")
-    proof=verify_g03(root,expected_day=day)
-    if proof["races_verified"]!=12:raise G05Rejected("not_all_12r_proven")
+    if allow_partial:
+        from diagnostics.kyoto_g03_independent_partial import verify_partial
+        proof=verify_partial(root,expected_day=day)
+        selected=proof["verified_race_numbers"]
+        if not selected:raise G05Rejected("no_independently_verified_races")
+    else:
+        proof=verify_g03(root,expected_day=day)
+        if proof["races_verified"]!=12:raise G05Rejected("not_all_12r_proven")
+        selected=list(range(1,13))
     receipt=json.loads((root/"g03_receipt.json").read_text(encoding="utf8"))
     if (root/"g05_receipt.json").exists():raise G05Rejected("g05_receipt_already_exists")
     results={};verified_values=0
-    for race in range(1,13):
+    for race in selected:
         info=receipt["races"][str(race)]
         path=root/f"g03_official_racecard_{race:02d}.html"
         raw=path.read_bytes()
@@ -126,14 +133,16 @@ def compile_saved(root,*,day,expected_cutoff_utc=None):
                             "original_sha256":sha,"observed_source_url":info["source_url"],
                             "track":track,"horses":mass}
     report={"schema":"kyoto_g05_source_evidence.v1","day":day,
-            "g03_races_verified":12,"races":results,"observed_field_values":verified_values,
+            "g03_races_verified":len(selected),"selected_races":selected,
+            "partial_g03_source":len(selected)!=12,"races":results,"observed_field_values":verified_values,
             "weather_going_bodyweight_path_prepared":True,
             "workout_external_source_discovered":False,
             "workout_status":"SOURCE_NOT_INDEPENDENTLY_OBSERVED",
             "unverified_publication_timestamps":True,
             "empty_is_not_zero":True,
             "future_jra_capture_claimed":False,"prediction_ready":False,
-            "pre_event_source_contract_testable":True}
+            "pre_event_source_contract_testable":True,
+            "full_twelve_race_data_verified":len(selected)==12}
     (root/"g05_receipt.json").write_text(
         json.dumps(report,ensure_ascii=False,sort_keys=True,indent=2)+"\n",
         encoding="utf8")
