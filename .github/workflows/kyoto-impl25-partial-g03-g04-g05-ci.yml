@@ -25,6 +25,16 @@ jobs:
           set -euo pipefail
           mkdir -p proof
           python -m unittest -v             tests.test_kyoto_impl25_partial_source_continuation             tests.test_kyoto_g03_proof_verify             tests.test_kyoto_g04_all_horse_profiles             tests.test_kyoto_g05_conditions 2>&1 | tee proof/test_log.txt
+          KYOTO_TARGET_DAY=20261121 python -m unittest -v \
+            tests.test_kyoto_weekend_capture \
+            tests.test_kyoto_weekend_end_to_end \
+            tests.test_kyoto_weekend_interruption_and_pacing \
+            tests.test_kyoto_g03_to_g06_input_adapter \
+            tests.test_kyoto_g06_all12_capture \
+            tests.test_kyoto_g06_claim_execution \
+            tests.test_kyoto_impl23_production_claim_activation \
+            tests.test_kyoto_impl23_pc_to_g06_real_lease \
+            tests.test_kyoto_weekend_production_workflow 2>&1 | tee -a proof/test_log.txt
           grep -q 'OK' proof/test_log.txt
           echo 'IMPL25_PARTIAL_G03_G04_G05_INDEPENDENT_REGRESSIONS_PASS'
       - name: Save repair evidence
