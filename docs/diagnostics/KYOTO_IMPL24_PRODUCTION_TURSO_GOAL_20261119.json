@@ -21,7 +21,11 @@
     "production_synthetic_claim_actions_job": 135382363272,
     "synthetic_competing_owners": "ONE_OWNER_ONLY",
     "synthetic_done_receipt_verified": true,
-    "synthetic_key_cleanup_verified": true
+    "synthetic_key_cleanup_verified": true,
+    "production_activation_user_approved": true,
+    "production_activation_user_approval_date_jst": "2026-11-19",
+    "production_activation_source": "User explicitly approved activation in implementation24 conversation; not a report that repository variables are set.",
+    "production_activation_variables_verified": false
   },
   "preserved_verified_work": [
     "cross-host GitHub Actions/Streamlit isolated Turso reservation and collision prevention",
@@ -83,6 +87,6 @@
   },
   "security": "No DB token, credential, full connection string or plaintext original in this file.",
   "restart_invariant": "Read this ledger and latest GitHub HEAD/PR/Actions first. Never call previously proven lab work incomplete. No completion claim until gate evidence recorded.",
-  "blocking_dependency": "P5 explicit activation approval and verified scheduled G06 handoff; no changes to eight slots, SP lane or AES-GCM",
-  "next_action": "With explicit user approval, set repository variables KYOTO_SHARED_CLAIM_PRODUCTION_APPROVED=YES and KYOTO_SHARED_CLAIM_ACTIVATE=YES. Verify using read-only configuration and unchanged main observer; do not rerun isolated lab."
+  "blocking_dependency": "User has explicitly approved activation; repository variable write action is unavailable through current GitHub connector. Two repository Actions variables need to be set YES via GitHub UI and configuration independently verified before P5 can be certified.",
+  "next_action": "Set KYOTO_SHARED_CLAIM_PRODUCTION_APPROVED=YES and KYOTO_SHARED_CLAIM_ACTIVATE=YES in repository Actions Variables (not Secrets); verify names/values via authorized UI or workflow read-only receipt; do not change collector, eight slots, or runtime."
 }
