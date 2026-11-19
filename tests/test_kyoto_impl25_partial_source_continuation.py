@@ -108,6 +108,32 @@ class PartialSourceTests(unittest.TestCase):
         r=verify_partial(self.root,expected_day=DAY)
         self.assertNotIn(7,r["verified_race_numbers"])
 
+    def test_nominal_all12_but_one_poststart_still_retains_11_safe_g05(self):
+        self.originals("G05")
+        # Full roster can be downloaded while one early race has already started.
+        # A nominally complete 12R receipt must not taint later race data.
+        self.report["races"]["7"]["captured_at_utc"]="2026-11-21T23:00:00Z"
+        self.write()
+        verified=verify_partial(self.root,expected_day=DAY)
+        self.assertEqual(verified["verified_race_count"],11)
+        preserved=compile_saved(self.root,day=DAY,allow_partial=True)
+        self.assertEqual(preserved["g03_races_verified"],11)
+        self.assertFalse(preserved["full_twelve_race_data_verified"])
+
+    def test_nominal_all12_poststart_source_refuses_profile_promotions(self):
+        self.originals("G04")
+        self.report["races"]["7"]["captured_at_utc"]="2026-11-21T23:00:00Z"
+        self.write()
+        def get(url):
+            token=parse_qs(urlsplit(url).query)["CNAME"][0]
+            return profile(f"競走馬{int(token[-5:-3])}")
+        result=capture(root=self.root,day=DAY,fetch=get,
+            clock=lambda:"2026-11-21T00:01:00Z",
+            allowed=True,allow_partial=True)
+        self.assertEqual(result["verified_g03_races"],11)
+        self.assertEqual(result["profile_verified_count"],33)
+        self.assertFalse(result["all_profiles_parsed"])
+
     def test_wrong_day_rejects_all(self):
         self.originals("G04")
         with self.assertRaisesRegex(PartialProofRejected,"day_mismatch"):
