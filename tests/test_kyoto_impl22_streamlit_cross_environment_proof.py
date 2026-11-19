@@ -3,6 +3,10 @@ import hashlib
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
+import os
+import time
+from diagnostics.kyoto_turso_streamlit_held_lease import create_hold
 from diagnostics.kyoto_turso_capture_claims import TursoCaptureClaims
 from tests.test_kyoto_turso_capture_claims import FakeRemote,URL,TOKEN
 from streamlit_turso_cross_environment_proof_impl22 import (
@@ -18,6 +22,18 @@ class StreamlitCrossEnvTests(unittest.TestCase):
         self.gh.prepare_schema()
         self.id="44443836669"
         self.k=proof_key(self.id)
+    def test_github_hold_is_created_and_streamlit_cannot_steal(self):
+        with patch("diagnostics.kyoto_turso_streamlit_held_lease.client",return_value=self.gh), patch(
+            "diagnostics.kyoto_turso_streamlit_held_lease.synthetic_key",return_value=self.k), patch.dict(
+            os.environ,{"GITHUB_RUN_ID":self.id}):
+            out=create_hold()
+        self.assertEqual(out["state"],"LEASED")
+        found=self.gh.observe(self.k)
+        self.assertTrue(0 < found["expires_at"]-int(time.time()) <= 600)
+        self.assertEqual(found["owner"],"lab_"+self.id+"_streamlit_hold")
+        result=attempt_active_lease(self.st,self.id,int(time.time()))
+        self.assertEqual(result["status"],"REMOTE_LEASE_RESPECTED")
+        self.assertEqual(self.gh.observe(self.k),found)
     def test_strict_run_id(self):
         for v in ("../x","123","44443836669 ","123456789012345678901"):
             with self.assertRaises(ValueError):proof_key(v)
