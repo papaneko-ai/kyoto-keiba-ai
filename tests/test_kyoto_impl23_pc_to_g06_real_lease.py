@@ -50,7 +50,7 @@ class Tests(unittest.TestCase):
             self.assertTrue(second["g06_twelve_race_market_attempted"])
             self.assertEqual(first["g06_paired_market_races"],1)
             self.assertEqual(second["g06_paired_market_races"],0)
-            self.assertEqual(first["g06_shared_claim_state"],"ACTIVE_PRODUCTION_TURSO")
+            self.assertEqual(first["g06_shared_claim_state"],"CONFIGURED_PRODUCTION_TURSO")
             self.assertTrue((root/"first"/"g06_source_bundle.tar.gz").is_file())
             self.assertTrue((root/"second"/"g06_source_bundle.tar.gz").is_file())
 if __name__=="__main__":unittest.main()
