@@ -2,7 +2,7 @@
   "schema": "kyoto_impl24_production_turso_goal.v1",
   "updated_date_jst": "2026-11-19",
   "primary_goal": "PRODUCTION_TURSO_DEDICATED_CONNECTION_OPERATIONALLY_VERIFIED",
-  "status": "PRODUCTION_CLAIM_ATOMIC_WRITE_VERIFIED_PENDING_ACTIVATION",
+  "status": "PRODUCTION_TURSO_CONFIGURATION_AND_G06_WIRING_READY_AWAIT_LIVE_SCHEDULE",
   "evidence": {
     "main_before_this_governance_change": "51ebeff67941e51759a1dfbfca19517d31fb6b51",
     "production_readonly_actions_run": 44460603005,
@@ -16,7 +16,7 @@
     "production_schema_actions_job": 135379408877,
     "production_schema_outcome": "PRODUCTION_SCHEMA_CREATED_AND_READ_CONFIRMED",
     "actual_claim_write_verified": true,
-    "capture_active": false,
+    "capture_active": "ARMED_FOR_SCHEDULED_RUN_ONLY",
     "production_synthetic_claim_actions_run": 44471660821,
     "production_synthetic_claim_actions_job": 135382363272,
     "synthetic_competing_owners": "ONE_OWNER_ONLY",
@@ -25,7 +25,10 @@
     "production_activation_user_approved": true,
     "production_activation_user_approval_date_jst": "2026-11-19",
     "production_activation_source": "User explicitly approved activation in implementation24 conversation; not a report that repository variables are set.",
-    "production_activation_variables_verified": false
+    "production_activation_variables_verified": true,
+    "production_activation_ui": "User screenshot 2026-11-19 shows repository Variables KYOTO_SHARED_CLAIM_PRODUCTION_APPROVED=YES and KYOTO_SHARED_CLAIM_ACTIVATE=YES; host+URL variables present.",
+    "production_g06_wiring": "main workflow kyoto-20261121-22-two-source-production-observer.yml PC job env passes activation, target PRODUCTION, approval, host, URL, token into immutable collector; diagnostics/kyoto_weekend_capture.py calls active_claims_for_weekend() for live PC G06; only schedule recognized; SP fallback remains separate.",
+    "real_schedule_run_verified": false
   },
   "preserved_verified_work": [
     "cross-host GitHub Actions/Streamlit isolated Turso reservation and collision prevention",
@@ -71,14 +74,15 @@
     {
       "id": "P5",
       "description": "Explicitly authorize production activation and verify existing G06 weekend capture wiring without altering source controls",
-      "verified": false
+      "verified": true,
+      "evidence": "User explicit approval in conversation, UI screenshot both Variables YES on 2026-11-19; static wiring verified in main workflow and immutable collector; production Run 44471660821 proved writes. LIVE SCHEDULE NOT YET EXECUTED."
     }
   ],
   "status_metric": {
-    "verified_gates": 4,
+    "verified_gates": 5,
     "total_gates": 5,
-    "percentage": 80,
-    "meaning": "Dedicated production connection and synthetic atomic write verified; scheduled G06 activation still off"
+    "percentage": 100,
+    "meaning": "Production Turso configuration armed and proven synthetic write; not evidence of live Nov21/22 run or real race capture"
   },
   "live_status": {
     "nov21_22_capture_verified": false,
@@ -87,6 +91,6 @@
   },
   "security": "No DB token, credential, full connection string or plaintext original in this file.",
   "restart_invariant": "Read this ledger and latest GitHub HEAD/PR/Actions first. Never call previously proven lab work incomplete. No completion claim until gate evidence recorded.",
-  "blocking_dependency": "User has explicitly approved activation; repository variable write action is unavailable through current GitHub connector. Two repository Actions variables need to be set YES via GitHub UI and configuration independently verified before P5 can be certified.",
-  "next_action": "Set KYOTO_SHARED_CLAIM_PRODUCTION_APPROVED=YES and KYOTO_SHARED_CLAIM_ACTIVATE=YES in repository Actions Variables (not Secrets); verify names/values via authorized UI or workflow read-only receipt; do not change collector, eight slots, or runtime."
+  "blocking_dependency": "Next scheduled 2026-11-21/22 actual source acquisition and claims: run outcome, SHA, UTC, odds, PC/SP fallback, results. Do not rerun previously successful synthetic lab tests.",
+  "next_action": "Before racing dates verify schedule/readiness through existing checks without unnecessary HTTP; after scheduled runs inspect actual logs and originals. Production config is armed, not yet executed by the schedule."
 }
