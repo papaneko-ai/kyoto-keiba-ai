@@ -51,7 +51,7 @@ class Tests(unittest.TestCase):
         self.assertEqual(args["claim_slot"],0)
         self.assertEqual(args["claim_client"].endpoint,"https://"+HOST+"/v2/pipeline")
         self.assertEqual(args["claim_owner"],"github_44444444000_pc-originals-independent")
-        self.assertEqual(result["g06_shared_claim_state"],"ACTIVE_PRODUCTION_TURSO")
+        self.assertEqual(result["g06_shared_claim_state"],"CONFIGURED_PRODUCTION_TURSO")
     def test_inactive_production_entrypoint_preserves_existing_path(self):
         result,args=self.scenario(False)
         self.assertNotIn("claim_client",args)
