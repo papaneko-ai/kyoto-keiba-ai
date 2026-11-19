@@ -27,7 +27,7 @@ class Tests(unittest.TestCase):
                     authorized_live_http=True,claim_client=Coordinator(),
                     claim_slot=0,claim_owner='github_actions_owner',
                     claim_now_epoch=10000,claim_clock=lambda:next(times))
-            self.assertEqual([x[1:] for x in seen],[(10000,600),(10350,600)])
+            self.assertEqual([x[1:] for x in seen],[(10000,1800),(10350,1800)])
             self.assertEqual(result['verified_dual_market_races'],2)
 
 if __name__=='__main__': unittest.main()
