@@ -5,7 +5,7 @@ from pathlib import Path
 
 WF=Path(".github/workflows/kyoto-20261121-22-two-source-production-observer.yml")
 REG=Path("docs/diagnostics/KYOTO_20261116_INDEPENDENT_RELEASE_BLOCKERS.json")
-PIN="ba6b62bdbb25abf5605ea3b2b2ecb7f288b1d320"
+PIN="139cba807761f7f74d5c44a44f06d5070fd3f47b"
 HISTORIC_APPROVED_PIN="c96df31542cb94435ca36cb4a1b8bd6de938233f"
 
 class SourceOnlyReleaseAcceptance(unittest.TestCase):
