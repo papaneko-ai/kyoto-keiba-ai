@@ -90,7 +90,22 @@ class TursoCaptureClaims:
         self._single(CREATE.replace(TABLE,self.table))
         return {"schema":self.table,"prepared":True,"unrelated_tables_modified":False}
     def observe(self,claim_key):
-        data=self._single(READ.replace(TABLE,self.table),claim_key)
+        # The isolated laboratory can reconcile a transient failed SELECT.
+        # Only reads are repeated: INSERT/UPDATE/DDL must never be blindly replayed.
+        # Keep operational (production) semantics completely unchanged.
+        if self.namespace=="ISOLATED_LAB":
+            import time
+            for attempt in range(3):
+                try:
+                    data=self._single(READ.replace(TABLE,self.table),claim_key)
+                    break
+                except TursoClaimUnconfirmed:
+                    if attempt==2:
+                        raise TursoClaimUnconfirmed(
+                            "isolated_read_unconfirmed_after_3_safe_attempts") from None
+                    time.sleep(0.15*(attempt+1))
+        else:
+            data=self._single(READ.replace(TABLE,self.table),claim_key)
         if not data:return None
         if len(data[0])!=5:raise TursoClaimUnconfirmed("read_shape_unconfirmed")
         a,b,c,d,e=data[0]
