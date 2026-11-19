@@ -1,0 +1,127 @@
+{
+  "schema": "kyoto_multisource_prediction_data_guard.v1",
+  "date_jst": "2026-11-19",
+  "purpose": "Prevent odds-only completion claims and unrecoverable validation gaps for Nov21-22. Reuse existing approved original collectors; do not modify the live schedule.",
+  "existing_collector_pin": "ba6b62bdbb25abf5605ea3b2b2ecb7f288b1d320",
+  "overall_evaluation_rule": "No assertion of comprehensive pre-race predictive-data acquisition until categories have separate evidence, completeness and missingness receipts. Market odds alone are not sufficient. A missing source may remain unavailable despite operational attempts; preserve successful originals and status rather than block all.",
+  "categories": [
+    {
+      "id": "G03_RACECARDS",
+      "description": "12 races, runners, horse number, frame number, name, race times, official profile navigation, jockey, assigned weight",
+      "stage": "G03",
+      "existing_sources": "kyoto_g03_weekend_bridge.py; kyoto_g03_proof_verify.py",
+      "evidence_rule": "Only observed official pre-race original + SHA/UTC; retain all partial originals",
+      "priority": "Core prediction input",
+      "status": "IMPLEMENTATION_OR_SOURCE_SCOPE_ONLY_NOT_LIVE_VERIFIED"
+    },
+    {
+      "id": "G04_PROFILES",
+      "description": "Horse sex, age, trainer, parentage and history profile HTML/parsed records",
+      "stage": "G04",
+      "existing_sources": "kyoto_g04_all_horse_profiles.py",
+      "evidence_rule": "No guessed profile link; pre-start cutoff; report verified_count/expected; partial originals preserved",
+      "priority": "Core prediction input",
+      "status": "IMPLEMENTATION_OR_SOURCE_SCOPE_ONLY_NOT_LIVE_VERIFIED"
+    },
+    {
+      "id": "G04_PRIOR_FORM",
+      "description": "Past runs, time-series features, results prior to race start",
+      "stage": "G04",
+      "existing_sources": "jra_prior_form_offline.py; kyoto_g04_all_horse_profiles.py",
+      "evidence_rule": "Exclude post-cutoff races; track unresolved rows and missing profiles",
+      "priority": "Core prediction input",
+      "status": "IMPLEMENTATION_OR_SOURCE_SCOPE_ONLY_NOT_LIVE_VERIFIED"
+    },
+    {
+      "id": "G03_CURRENT_JOCKEY_WEIGHT",
+      "description": "Scheduled jockey and assigned carry weight",
+      "stage": "G03/G04",
+      "existing_sources": "kyoto_g04_all_horse_profiles.py",
+      "evidence_rule": "Source-verified current jockey distinct from prior jockey; do not synthesize",
+      "priority": "Core prediction input",
+      "status": "IMPLEMENTATION_OR_SOURCE_SCOPE_ONLY_NOT_LIVE_VERIFIED"
+    },
+    {
+      "id": "G05_TRACK_WEATHER",
+      "description": "Observed weather, turf/dirt going",
+      "stage": "G05",
+      "existing_sources": "kyoto_g05_conditions.py",
+      "evidence_rule": "Save observed value or explicit MISSING with original SHA and UTC",
+      "priority": "Core if published",
+      "status": "IMPLEMENTATION_OR_SOURCE_SCOPE_ONLY_NOT_LIVE_VERIFIED"
+    },
+    {
+      "id": "G05_BODY_WEIGHT",
+      "description": "Body mass and change per horse",
+      "stage": "G05",
+      "existing_sources": "kyoto_g05_conditions.py",
+      "evidence_rule": "May not be published early; preserve missingness; no future data leakage",
+      "priority": "Supplementary if published",
+      "status": "IMPLEMENTATION_OR_SOURCE_SCOPE_ONLY_NOT_LIVE_VERIFIED"
+    },
+    {
+      "id": "G05_WORKOUT",
+      "description": "Workout/training data and provenance",
+      "stage": "G05",
+      "existing_sources": "kyoto_g05_conditions.py",
+      "evidence_rule": "Current code explicitly says independent source unverified; never report collected",
+      "priority": "Unresolved source",
+      "status": "IMPLEMENTATION_OR_SOURCE_SCOPE_ONLY_NOT_LIVE_VERIFIED"
+    },
+    {
+      "id": "G06_QUINELLA",
+      "description": "Pre-start 馬連 odds, market state and originals",
+      "stage": "G06",
+      "existing_sources": "kyoto_g06_all12_capture.py",
+      "evidence_rule": "Observed official market link, original SHA/UTC, pre-start sale checks",
+      "priority": "Core market",
+      "status": "IMPLEMENTATION_OR_SOURCE_SCOPE_ONLY_NOT_LIVE_VERIFIED"
+    },
+    {
+      "id": "G06_BRACKET_QUINELLA",
+      "description": "Pre-start 枠連 odds, market state and originals",
+      "stage": "G06",
+      "existing_sources": "kyoto_g06_all12_capture.py",
+      "evidence_rule": "Observed official market link, original SHA/UTC, pre-start sale checks",
+      "priority": "Core market",
+      "status": "IMPLEMENTATION_OR_SOURCE_SCOPE_ONLY_NOT_LIVE_VERIFIED"
+    },
+    {
+      "id": "POST_RESULTS_PAYOUTS",
+      "description": "Official finish order, winning combinations and payout figures",
+      "stage": "P6",
+      "existing_sources": "Later results reconciliation",
+      "evidence_rule": "Collect only when results officially final; never use in pre-race features",
+      "priority": "Post-race validation",
+      "status": "IMPLEMENTATION_OR_SOURCE_SCOPE_ONLY_NOT_LIVE_VERIFIED"
+    },
+    {
+      "id": "DERIVED_FEATURES",
+      "description": "Distance/course suitability, form trend, pace, growth, rest, odds distortion, model calibration",
+      "stage": "P2-P5",
+      "existing_sources": "Existing ALG01-13 design; derived feature layer",
+      "evidence_rule": "Derived only from frozen pre-race originals and source timestamps",
+      "priority": "Research / model",
+      "status": "IMPLEMENTATION_OR_SOURCE_SCOPE_ONLY_NOT_LIVE_VERIFIED"
+    }
+  ],
+  "critical_cross_checks": [
+    "Every candidate feature must have a pre-race cutoff, matching day/race/horse identity, source SHA256 and captured UTC.",
+    "Record per race and horse completeness, explicit reason for missing/unpublished/parse failure, and independently preserve successful original bytes even if another source fails.",
+    "Do not label G04/G05 multi-data acquired solely on basis of G03/G06 odds or 12-race slot workflow passing.",
+    "At present G04 and G05 run after G03 all-12 complete: if G03 incomplete, preserve originals and report G04/G05 not executed; do not equate that with no data available; inspect as a prospective capture improvement without delaying Nov21-22 or changing pinned code unsafely.",
+    "Post-result final results and payout data never treated as pre-race information.",
+    "Workout independently observed source is not established in current G05 code: explicit unresolved gap.",
+    "Multi-source PC/SP and supplementary source support is a requirement; do not infer official SP URLs from PC; record source-specific proof.",
+    "11/21 and 11/22 live run receipts need per-category results, not only aggregated odds success."
+  ],
+  "protected": [
+    "Existing eight cron slots",
+    "Immutable collector pin",
+    "AES-GCM originals",
+    "Dedicated production Turso and lab isolation",
+    "No duplicate historical tests",
+    "P1-P8 ALG01-13 EVO01-08"
+  ],
+  "status": "REQUIREMENT_LOCKED_BUT_LIVE_MULTIDATA_NOT_VERIFIED"
+}
