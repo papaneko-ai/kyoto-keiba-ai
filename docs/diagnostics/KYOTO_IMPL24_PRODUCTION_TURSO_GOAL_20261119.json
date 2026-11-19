@@ -2,7 +2,7 @@
   "schema": "kyoto_impl24_production_turso_goal.v1",
   "updated_date_jst": "2026-11-19",
   "primary_goal": "PRODUCTION_TURSO_DEDICATED_CONNECTION_OPERATIONALLY_VERIFIED",
-  "status": "PRODUCTION_SCHEMA_READ_CONFIRMED_PENDING_CLAIM_WRITE_AND_ACTIVATION",
+  "status": "PRODUCTION_CLAIM_ATOMIC_WRITE_VERIFIED_PENDING_ACTIVATION",
   "evidence": {
     "main_before_this_governance_change": "51ebeff67941e51759a1dfbfca19517d31fb6b51",
     "production_readonly_actions_run": 44460603005,
@@ -15,8 +15,13 @@
     "production_schema_actions_run": 44470772288,
     "production_schema_actions_job": 135379408877,
     "production_schema_outcome": "PRODUCTION_SCHEMA_CREATED_AND_READ_CONFIRMED",
-    "actual_claim_write_verified": false,
-    "capture_active": false
+    "actual_claim_write_verified": true,
+    "capture_active": false,
+    "production_synthetic_claim_actions_run": 44471660821,
+    "production_synthetic_claim_actions_job": 135382363272,
+    "synthetic_competing_owners": "ONE_OWNER_ONLY",
+    "synthetic_done_receipt_verified": true,
+    "synthetic_key_cleanup_verified": true
   },
   "preserved_verified_work": [
     "cross-host GitHub Actions/Streamlit isolated Turso reservation and collision prevention",
@@ -32,7 +37,7 @@
     "AES-GCM encrypted originals",
     "P1-P8; ALG01-13; EVO01-08"
   ],
-  "prod_db_candidate": "kyoto-keiba-ai-prod (not created or approved)",
+  "prod_db_candidate": "kyoto-keiba-ai-prod (created, schema and authenticated read/write independently evidenced)",
   "prod_table": "__kyoto_ai_weekend_claims_v1",
   "gates": [
     {
@@ -56,7 +61,8 @@
     {
       "id": "P4",
       "description": "Production-specific read/write and atomic claim observation verified, no repeated lab experiment",
-      "verified": false
+      "verified": true,
+      "evidence": "Run 44471660821 job 135382363272 production synthetic UPSERT: exactly one owner, second rejected, DONE receipt verified, key deleted; no live race claim"
     },
     {
       "id": "P5",
@@ -65,10 +71,10 @@
     }
   ],
   "status_metric": {
-    "verified_gates": 3,
+    "verified_gates": 4,
     "total_gates": 5,
-    "percentage": 60,
-    "meaning": "Production DB, schema and authenticated connection evidenced; actual atomic claim write and activation not proven"
+    "percentage": 80,
+    "meaning": "Dedicated production connection and synthetic atomic write verified; scheduled G06 activation still off"
   },
   "live_status": {
     "nov21_22_capture_verified": false,
@@ -77,6 +83,6 @@
   },
   "security": "No DB token, credential, full connection string or plaintext original in this file.",
   "restart_invariant": "Read this ledger and latest GitHub HEAD/PR/Actions first. Never call previously proven lab work incomplete. No completion claim until gate evidence recorded.",
-  "blocking_dependency": "Production-only synthetic claim write and exclusive reservation proof (P4), followed by explicit approval and activation (P5). No repeated isolated lab tests.",
-  "next_action": "Prepare manual-only non-scheduled production synthetic claim proof; do not write real race keys; do not activate source capture until proof and explicit approval."
+  "blocking_dependency": "P5 explicit activation approval and verified scheduled G06 handoff; no changes to eight slots, SP lane or AES-GCM",
+  "next_action": "With explicit user approval, set repository variables KYOTO_SHARED_CLAIM_PRODUCTION_APPROVED=YES and KYOTO_SHARED_CLAIM_ACTIVATE=YES. Verify using read-only configuration and unchanged main observer; do not rerun isolated lab."
 }
