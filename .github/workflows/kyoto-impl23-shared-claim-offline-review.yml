@@ -6,6 +6,8 @@ on:
     paths:
       - diagnostics/kyoto_g06_all12_capture.py
       - diagnostics/kyoto_weekend_remote_claim_runtime.py
+      - tests/test_kyoto_impl23_weekend_entrypoint_claim.py
+      - diagnostics/kyoto_weekend_capture.py
       - tests/test_kyoto_impl23_claim_continuation.py
       - tests/test_kyoto_impl23_production_claim_activation.py
       - .github/workflows/kyoto-impl23-shared-claim-offline-review.yml
@@ -23,11 +25,14 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
+      - name: Install offline parser dependencies
+        run: python -m pip install 'beautifulsoup4>=4.12,<5' 'cryptography>=43,<47'
       - name: Regression (no JRA HTTP or Turso credentials)
         env:
           PYTHONPATH: .
         run: |
           python -m unittest -q \
+            tests.test_kyoto_impl23_weekend_entrypoint_claim \
             tests.test_kyoto_impl23_claim_continuation \
             tests.test_kyoto_impl23_production_claim_activation \
             tests.test_kyoto_g06_claim_execution \
