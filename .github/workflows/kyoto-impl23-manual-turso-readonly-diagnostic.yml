@@ -32,14 +32,14 @@ jobs:
       - name: Fetch immutable reviewed diagnostic only
         uses: actions/checkout@v4
         with:
-          ref: 4385e547c9845f670e56dfa95f5f03ebd2d27b15
+          ref: adff6efba191c5e08f272e37c2cf30d0a0dd1eb3
           persist-credentials: false
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
       - name: Offline regression before optional remote SELECT
         run: |
-          python -m unittest -q tests.test_kyoto_impl23_manual_probe tests.test_kyoto_impl23_claim_preflight
+          python -m unittest -q tests.test_kyoto_impl23_unactivated_readonly_probe tests.test_kyoto_impl23_manual_probe tests.test_kyoto_impl23_claim_preflight
       - name: No-JRA no-mutation production table read probe
         run: |
-          python -m diagnostics.kyoto_impl23_claim_preflight --day "${{ inputs.race_day }}" --manual-read-only
+          python -m diagnostics.kyoto_impl23_unactivated_readonly_probe --day "${{ inputs.race_day }}" --manual-read-only
