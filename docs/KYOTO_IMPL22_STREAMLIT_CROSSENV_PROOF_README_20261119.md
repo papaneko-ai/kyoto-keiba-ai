@@ -36,3 +36,12 @@
 - For safety, restrict app access where supported; the in-app password is an extra gate, **not a guarantee of private deployment**.
 - On first launch, check that the app requests a diagnostic password; authentication alone does not prove database access. Then use run ID `44443836669` for READ-ONLY verification, with no lab write.
 - Save only a redacted screenshot showing the result. If credentials are missing, stop; do not modify the existing production Streamlit app.
+
+## Nov 19 manual live lease acceptance (not yet executed)
+- Manual-only workflow on main: `.github/workflows/kyoto-impl22-streamlit-isolated-lease-manual.yml`, pinned to offline-validated code `400794576a65409f8e877f4da7532359d23e6452`.
+- To use: Actions -> `Kyoto isolated Streamlit cross-environment active lease (manual only)` -> Run workflow, choose `main` and confirmation `YES-ISOLATED-CLAIMS-ONLY` (replace the entire default `NO`).
+- Read the **new hold workflow Run ID** and confirm its `hold-isolated-test-lease` job completed successfully and printed `LAB_STREAMLIT_GITHUB_LEASE_READY=TRUE`.
+- Within the 600-second active lease, open the *already deployed separate* Streamlit diagnostic app, authenticate, enter **that new Run ID**; put `YES-ISOLATED-STREAMLIT-LAB-ONLY` in its *write test* confirmation field and click `有効なGitHubリースへの競合を確認` once.
+- PASS screen must have `status=REMOTE_LEASE_RESPECTED`, `must_fetch=false`, `owner_unchanged=true`, `generation_unchanged=true`. Check the GitHub lease job SUCCESS and the app response; save redacted evidence. Never treat `NOT_VERIFIED` or an expired lease as pass.
+- No extra test DB secret registration should be necessary if the existing separately configured diagnostic app is active; app code must refresh to the current feature branch commit.
+- This is an explicitly authorized synthetic-only lab lease. No production modifications and no extra JRA requests.
