@@ -5,6 +5,8 @@ on:
       - feature/impl23-production-shared-claim-20261119
     paths:
       - diagnostics/kyoto_g06_all12_capture.py
+      - diagnostics/kyoto_impl23_claim_preflight.py
+      - tests/test_kyoto_impl23_claim_preflight.py
       - tests/test_kyoto_impl23_lease_window.py
       - tests/test_kyoto_impl23_lease_clock.py
       - diagnostics/kyoto_weekend_remote_claim_runtime.py
@@ -38,6 +40,7 @@ jobs:
           PYTHONPATH: .
         run: |
           python -m unittest -q \
+            tests.test_kyoto_impl23_claim_preflight \
             tests.test_kyoto_impl23_lease_window \
             tests.test_kyoto_impl23_lease_clock \
             tests.test_kyoto_impl23_claim_evidence \
