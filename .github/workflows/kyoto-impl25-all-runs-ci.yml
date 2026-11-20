@@ -25,7 +25,7 @@ jobs:
       - name: Check real pinned production scope without changing collector
         uses: actions/checkout@v4
         with:
-          ref: 324a76fd57ea9c660d984fcc4fc373cba4e30109
+          ref: c2e7acd00b1e0d4c3a56c9ea1c4a642146789bd6
           path: pinned_source
           persist-credentials: false
       - name: Verify fixed eight slots, G04/G05 partial path and limited SP scope
@@ -37,11 +37,16 @@ jobs:
           source=Path('pinned_source/diagnostics/kyoto_weekend_capture.py').read_text()
           handoff=Path('.github/workflows/kyoto-20261121-22-result-handoff.yml').read_text()
           assert observer.count('- cron:')==8
-          assert observer.count('324a76fd57ea9c660d984fcc4fc373cba4e30109')==6
+          assert observer.count('c2e7acd00b1e0d4c3a56c9ea1c4a642146789bd6')==6
           assert source.index('verify_partial(')<source.index('g04=g04_capture(')
           assert source.index('g04=g04_capture(')<source.index('markets=run_twelve(')
           assert source.index('g05=compile_saved(')<source.index('markets=run_twelve(')
           assert 'allow_partial=(not bool(g03.get("complete")) or len(partial_verified)<12)' in source
+          # A malformed individual G03 race must not erase verified G06 peers.
+          adapter=Path('pinned_source/diagnostics/kyoto_g03_to_g06_input_adapter.py').read_text()
+          assert 'skip_invalid_races=True,rejections=rejected_inputs' in source
+          assert 'LOCAL_G03_INPUT_REJECTED' in adapter
+          assert 'if not skip_invalid_races:' in adapter
           assert 'capture_verified_sp_seed(' in source and 'race_number=12' in source
           assert 'KYOTO_NOV22_VERIFIED_COLLECTOR_SHA' in observer
           assert 'KYOTO_JRA_ARCHIVE_AES256_HEX' in observer
@@ -50,6 +55,7 @@ jobs:
           report={"schema":"kyoto_impl25_source_scope.v1","production_cron_slots":8,
               "g03_partial_to_g04_g05_supported":True,
               "g04_g05_precede_g06":True,
+              "g06_racewise_invalid_input_isolated":True,
               "sp_full12_coverage_verified":False,
               "independent_workout_source_verified":False,
               "market_live_timing_verified":False,
