@@ -74,7 +74,8 @@ class CrossLaneLeaseTests(unittest.TestCase):
     def test_g06_claim_uses_shared_identity_only_when_coordinator_selected(self):
         from diagnostics.kyoto_g06_all12_capture import run_twelve
         from unittest.mock import patch
-        from tests.test_kyoto_g06_claim_execution import records, Tests as ExistingG06
+        from tests.test_kyoto_g06_claim_execution import records
+        from tests.test_kyoto_g06_full_twelve_reparse_e2e import capture_mock
         with tempfile.TemporaryDirectory() as root:
             temp=Path(root)
             ledger=SharedLedger(temp/"leases.sqlite")
@@ -85,7 +86,7 @@ class CrossLaneLeaseTests(unittest.TestCase):
                 observed.append(kw["claim_key"])
                 return orig_claim(**kw)
             with patch("diagnostics.kyoto_g06_all12_capture.capture_hybrid",
-                       side_effect=ExistingG06.collector.__get__(type("S",(),{"calls":[]})(),ExistingG06)):
+                       side_effect=capture_mock):
                 with patch.object(ledger,"claim",side_effect=watch):
                     run_twelve(temp/"batch",records=records(),authorized_live_http=True,
                                claim_client=ledger,claim_slot=0,claim_owner="github_pc_worker",
