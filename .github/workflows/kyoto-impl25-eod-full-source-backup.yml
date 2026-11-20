@@ -14,18 +14,18 @@ jobs:
       - name: Full clone of exact production main commit
         uses: actions/checkout@v4
         with:
-          ref: f082897ed8db3bce7f2e2e467e27e3d0e8e7a3a8
+          ref: cf01fc834a90ed49227e6e6f7ac53f6449bf4199
           fetch-depth: 0
           persist-credentials: false
       - name: Verify immutable production source and eight slots
         run: |
           set -euo pipefail
-          test "$(git rev-parse HEAD)" = "f082897ed8db3bce7f2e2e467e27e3d0e8e7a3a8"
+          test "$(git rev-parse HEAD)" = "cf01fc834a90ed49227e6e6f7ac53f6449bf4199"
           python - <<'PY'
           from pathlib import Path
           s=Path('.github/workflows/kyoto-20261121-22-two-source-production-observer.yml').read_text()
           assert s.count('- cron:')==8
-          assert s.count('d45f3c9067eee3375c4d9e3ffd908d076f42595a')==6
+          assert s.count('6355e8704bdf4427140f37f199eb8feb1a897621')==6
           assert 'KYOTO_SHARED_CLAIM_TURSO_TOKEN' in s
           assert 'KYOTO_JRA_ARCHIVE_AES256_HEX' in s
           assert 'KYOTO_NOV22_VERIFIED_COLLECTOR_SHA' in s
@@ -36,29 +36,29 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p impl25_full_migration_pack
-          git archive --format=zip --output=impl25_full_migration_pack/production_main_source.zip "f082897ed8db3bce7f2e2e467e27e3d0e8e7a3a8"
+          git archive --format=zip --output=impl25_full_migration_pack/production_main_source.zip "cf01fc834a90ed49227e6e6f7ac53f6449bf4199"
           unzip -t impl25_full_migration_pack/production_main_source.zip > /dev/null
-          git branch backup-impl25-source "f082897ed8db3bce7f2e2e467e27e3d0e8e7a3a8"
+          git branch backup-impl25-source "cf01fc834a90ed49227e6e6f7ac53f6449bf4199"
           git bundle create impl25_full_migration_pack/full_repository_history.bundle --all
           git bundle verify impl25_full_migration_pack/full_repository_history.bundle
           mkdir -p impl25_recovery_test
           git clone --quiet --no-checkout impl25_full_migration_pack/full_repository_history.bundle impl25_recovery_test/clone
-          git -C impl25_recovery_test/clone cat-file -e "f082897ed8db3bce7f2e2e467e27e3d0e8e7a3a8^{commit}"
-          git -C impl25_recovery_test/clone checkout --quiet --detach "f082897ed8db3bce7f2e2e467e27e3d0e8e7a3a8"
-          test "$(git -C impl25_recovery_test/clone rev-parse HEAD)" = "f082897ed8db3bce7f2e2e467e27e3d0e8e7a3a8"
+          git -C impl25_recovery_test/clone cat-file -e "cf01fc834a90ed49227e6e6f7ac53f6449bf4199^{commit}"
+          git -C impl25_recovery_test/clone checkout --quiet --detach "cf01fc834a90ed49227e6e6f7ac53f6449bf4199"
+          test "$(git -C impl25_recovery_test/clone rev-parse HEAD)" = "cf01fc834a90ed49227e6e6f7ac53f6449bf4199"
           mkdir -p impl25_recovery_test/archive
           cd impl25_recovery_test/archive
           unzip -q ../../impl25_full_migration_pack/production_main_source.zip
           test -f .github/workflows/kyoto-20261121-22-two-source-production-observer.yml
           cd ../..
-          printf '%s\n' 'IMPLEMENTATION_25_SOURCE_BACKUP' 'main_sha=f082897ed8db3bce7f2e2e467e27e3d0e8e7a3a8' 'collector_sha=d45f3c9067eee3375c4d9e3ffd908d076f42595a' 'race_days=20261121,20261122' 'scheduled_slots=8' 'content=git-archive-and-full-history-bundle' 'excluded=Turso_live_database,GitHub_Secrets,Actions_artifact_bytes' > impl25_full_migration_pack/README.txt
+          printf '%s\n' 'IMPLEMENTATION_25_SOURCE_BACKUP' 'main_sha=cf01fc834a90ed49227e6e6f7ac53f6449bf4199' 'collector_sha=6355e8704bdf4427140f37f199eb8feb1a897621' 'race_days=20261121,20261122' 'scheduled_slots=8' 'content=git-archive-and-full-history-bundle' 'excluded=Turso_live_database,GitHub_Secrets,Actions_artifact_bytes' > impl25_full_migration_pack/README.txt
           (cd impl25_full_migration_pack && sha256sum production_main_source.zip full_repository_history.bundle README.txt > FILE_SHA256.txt)
           python - <<'PY'
           import json,hashlib,pathlib
           root=pathlib.Path('impl25_full_migration_pack')
           files=['production_main_source.zip','full_repository_history.bundle','README.txt']
           manifest={'schema':'kyoto_impl25_full_source_backup.v1',
-                    'main_sha':'f082897ed8db3bce7f2e2e467e27e3d0e8e7a3a8','collector_sha':'d45f3c9067eee3375c4d9e3ffd908d076f42595a',
+                    'main_sha':'cf01fc834a90ed49227e6e6f7ac53f6449bf4199','collector_sha':'6355e8704bdf4427140f37f199eb8feb1a897621',
                     'source_archive_crc_pass':True,'git_bundle_verify_pass':True,'restored_head_match':True,
                     'scheduled_slots':8,'db_and_secrets_not_exported':True,
                     'files':{n:{'bytes':(root/n).stat().st_size,'sha256':hashlib.sha256((root/n).read_bytes()).hexdigest()} for n in files}}
