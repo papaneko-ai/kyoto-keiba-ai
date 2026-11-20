@@ -68,18 +68,29 @@ def verify_bundle(path):
     if path.is_symlink() or not path.is_file() or path.stat().st_size>MAX_TOTAL:
         raise BundleError("invalid_bundle")
     data={}
+    extracted_total=0
     with tarfile.open(path,mode="r:gz") as tar:
         members=tar.getmembers()
         if len(members)>MAX_FILES+1:raise BundleError("unbounded_tar_members")
         for m in members:
             if not m.isfile() or not _accepted(m.name) and m.name!="g06_bundle_manifest.json":
                 raise BundleError("unsafe_member")
+            if m.size < 0 or m.size > 1_500_000:
+                raise BundleError("oversized_member")
+            # The producer enforces 75 MB total. The verifier must enforce
+            # the same bound on extracted bytes, not just compressed bytes.
+            extracted_total+=m.size
+            if extracted_total>MAX_TOTAL+1_500_000:
+                raise BundleError("unbounded_extracted_total")
             raw=tar.extractfile(m).read(1_500_001)
-            if len(raw)>1_500_000:raise BundleError("oversized_member")
+            if len(raw)!=m.size or len(raw)>1_500_000:
+                raise BundleError("member_size_mismatch")
             if m.name in data:raise BundleError("duplicate_member")
             data[m.name]=raw
     try:manifest=json.loads(data.pop("g06_bundle_manifest.json"))
     except (KeyError,ValueError) as exc:raise BundleError("missing_bundle_manifest") from exc
+    if sum(len(raw) for raw in data.values())>MAX_TOTAL:
+        raise BundleError("unbounded_original_total")
     if manifest.get("schema")!="kyoto_g06_nested_bundle.v1" or set(manifest.get("files",{}))!=set(data):
         raise BundleError("bundle_file_set_mismatch")
     for name,raw in data.items():
