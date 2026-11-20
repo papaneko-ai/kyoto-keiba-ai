@@ -34,7 +34,18 @@ def summarize(ledger,jobs,sha):
                     "required":value["requires"],"formal_pass":False}
     if proven["P0"]<20:
         gates["D4"]["status"]="BLOCKED"
-    final_go=False
+    names={"D1":"static_and_function_calls","D2":"end_to_end_12R",
+           "D3":"destructive_fault_injection","D4":"risk_and_incident_regression",
+           "D5":"performance_and_deadlines","D6":"independent_report_and_decision"}
+    for label,field in names.items():
+        qualification=ledger.get("final_gate",{}).get("checks",{}).get(field,{})
+        if all_ci and qualification.get("status")=="PASS" and qualification.get("proof"):
+            gates[label]["status"]="PASS"
+            gates[label]["formal_pass"]=True
+            gates[label]["proof"]=qualification["proof"]
+    final_go=(all_ci and proven["P0"]==20 and
+              all(v["formal_pass"] for v in gates.values()) and
+              not any(x.get("status")!="CLOSED" for x in incs))
     return {
         "schema":"kyoto_impl26_final_evidence_verdict.v1",
         "generated_utc":datetime.now(timezone.utc).isoformat(),
