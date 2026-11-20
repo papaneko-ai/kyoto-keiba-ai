@@ -1,0 +1,75 @@
+name: Kyoto Impl25 source and git history release backup proof
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/kyoto-impl25-eod-full-source-backup.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  build-and-restore:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Full clone of exact production main commit
+        uses: actions/checkout@v4
+        with:
+          ref: 2b6780ba10cec62f0c1221a1969a4eabac1f546b
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Verify immutable production source and eight slots
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "2b6780ba10cec62f0c1221a1969a4eabac1f546b"
+          python - <<'PY'
+          from pathlib import Path
+          s=Path('.github/workflows/kyoto-20261121-22-two-source-production-observer.yml').read_text()
+          assert s.count('- cron:')==8
+          assert s.count('324a76fd57ea9c660d984fcc4fc373cba4e30109')==6
+          assert 'KYOTO_SHARED_CLAIM_TURSO_TOKEN' in s
+          assert 'KYOTO_JRA_ARCHIVE_AES256_HEX' in s
+          assert 'KYOTO_NOV22_VERIFIED_COLLECTOR_SHA' in s
+          print('SOURCE_HEAD_AND_EIGHT_SLOT_PROTECTED')
+          PY
+      - name: Build source ZIP and repository git bundle with recovery verification
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p impl25_full_migration_pack
+          git archive --format=zip --output=impl25_full_migration_pack/production_main_source.zip "2b6780ba10cec62f0c1221a1969a4eabac1f546b"
+          unzip -t impl25_full_migration_pack/production_main_source.zip > /dev/null
+          git branch backup-impl25-source "2b6780ba10cec62f0c1221a1969a4eabac1f546b"
+          git bundle create impl25_full_migration_pack/full_repository_history.bundle --all
+          git bundle verify impl25_full_migration_pack/full_repository_history.bundle
+          mkdir -p impl25_recovery_test
+          git clone --quiet --no-checkout impl25_full_migration_pack/full_repository_history.bundle impl25_recovery_test/clone
+          git -C impl25_recovery_test/clone cat-file -e "2b6780ba10cec62f0c1221a1969a4eabac1f546b^{commit}"
+          git -C impl25_recovery_test/clone checkout --quiet --detach "2b6780ba10cec62f0c1221a1969a4eabac1f546b"
+          test "$(git -C impl25_recovery_test/clone rev-parse HEAD)" = "2b6780ba10cec62f0c1221a1969a4eabac1f546b"
+          mkdir -p impl25_recovery_test/archive
+          cd impl25_recovery_test/archive
+          unzip -q ../../impl25_full_migration_pack/production_main_source.zip
+          test -f .github/workflows/kyoto-20261121-22-two-source-production-observer.yml
+          cd ../..
+          printf '%s\n' 'IMPLEMENTATION_25_SOURCE_BACKUP' 'main_sha=2b6780ba10cec62f0c1221a1969a4eabac1f546b' 'collector_sha=324a76fd57ea9c660d984fcc4fc373cba4e30109' 'race_days=20261121,20261122' 'scheduled_slots=8' 'content=git-archive-and-full-history-bundle' 'excluded=Turso_live_database,GitHub_Secrets,Actions_artifact_bytes' > impl25_full_migration_pack/README.txt
+          (cd impl25_full_migration_pack && sha256sum production_main_source.zip full_repository_history.bundle README.txt > FILE_SHA256.txt)
+          python - <<'PY'
+          import json,hashlib,pathlib
+          root=pathlib.Path('impl25_full_migration_pack')
+          files=['production_main_source.zip','full_repository_history.bundle','README.txt']
+          manifest={'schema':'kyoto_impl25_full_source_backup.v1',
+                    'main_sha':'2b6780ba10cec62f0c1221a1969a4eabac1f546b','collector_sha':'324a76fd57ea9c660d984fcc4fc373cba4e30109',
+                    'source_archive_crc_pass':True,'git_bundle_verify_pass':True,'restored_head_match':True,
+                    'scheduled_slots':8,'db_and_secrets_not_exported':True,
+                    'files':{n:{'bytes':(root/n).stat().st_size,'sha256':hashlib.sha256((root/n).read_bytes()).hexdigest()} for n in files}}
+          (root/'MANIFEST.json').write_text(json.dumps(manifest,sort_keys=True,indent=2)+'\n')
+          print('SOURCE_AND_GIT_HISTORY_RESTORED_WITH_EXACT_HEAD')
+          PY
+          test "$(find impl25_full_migration_pack -maxdepth 1 -type f | wc -l)" -eq 5
+      - name: Publish full source and Git history bundle together
+        uses: actions/upload-artifact@v4
+        with:
+          name: kyoto-impl25-main-history-recovery-20261120
+          path: impl25_full_migration_pack/
+          retention-days: 90
+          if-no-files-found: error
