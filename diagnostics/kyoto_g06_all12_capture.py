@@ -144,7 +144,7 @@ def run_twelve(root, *, records, authorized_live_http=False, runner=None,
             if claim_client is not None:
                 from diagnostics.kyoto_shared_capture_reservation import key
                 lease_key=key(day=spec.race_day,slot=claim_slot,race=race,
-                              channel=item["primary_channel"],market="racecard")
+                              channel="SHARED",market="racecard")
                 try:
                     lease_now=int(claim_clock()) if claim_clock is not None else claim_now_epoch
                     if lease_now<=0:raise SourceChainError("remote_claim_clock_invalid")

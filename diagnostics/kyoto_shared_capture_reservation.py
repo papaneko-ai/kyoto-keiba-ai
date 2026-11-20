@@ -13,7 +13,7 @@ from pathlib import Path
 
 VALID_DAY=frozenset(("20261121","20261122"))
 VALID_MARKET=frozenset(("racecard","quinella","bracket_quinella","profile"))
-VALID_CHANNEL=frozenset(("PC","SP"))
+VALID_CHANNEL=frozenset(("PC","SP","SHARED"))
 class ReservationError(ValueError):pass
 def key(*,day,slot,race,channel,market):
     if day not in VALID_DAY or type(slot) is not int or not 0<=slot<=3:
@@ -38,7 +38,7 @@ class SharedLedger:
     def _begin(self):self.db.execute("BEGIN IMMEDIATE")
     def claim(self,*,claim_key,owner,now_epoch,lease_seconds=180):
         if (not isinstance(claim_key,str) or
-            not re.fullmatch(r"2026112[12]:[0-3]:(0[1-9]|1[0-2]):(PC|SP):(racecard|quinella|bracket_quinella|profile)",claim_key)):
+            not re.fullmatch(r"2026112[12]:[0-3]:(0[1-9]|1[0-2]):(PC|SP|SHARED):(racecard|quinella|bracket_quinella|profile)",claim_key)):
             raise ReservationError("claim_key_invalid")
         if not isinstance(owner,str) or not re.fullmatch(r"[a-zA-Z0-9_-]{5,100}",owner):
             raise ReservationError("owner_invalid")

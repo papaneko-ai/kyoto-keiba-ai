@@ -1,0 +1,54 @@
+name: Impl27 R07 cross-lane claims targeted gate
+on:
+  pull_request:
+    paths:
+      - 'diagnostics/kyoto_shared_capture_reservation.py'
+      - 'diagnostics/kyoto_turso_capture_claims.py'
+      - 'diagnostics/kyoto_g06_all12_capture.py'
+      - 'diagnostics/kyoto_sp_all12_observed_capture.py'
+      - 'diagnostics/kyoto_weekend_capture.py'
+      - 'tests/test_kyoto_impl27_r07_sp_takeover.py'
+      - 'tests/test_kyoto_impl27_r07_shared_lane_lease.py'
+      - '.github/workflows/kyoto-impl27-r07-targeted-ci.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  r07-cross-lane-lease:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install runtime parser dependency for G06 fixture imports
+        run: python -m pip install 'beautifulsoup4>=4.12,<5' 'cryptography>=43,<47'
+      - name: Run targeted cross-channel real-SQL offline race tests
+        run: |
+          python -m unittest -v \
+            tests.test_kyoto_impl27_r07_shared_lane_lease \
+            tests.test_kyoto_impl27_r07_sp_takeover \
+            tests.test_kyoto_turso_capture_claims \
+            tests.test_kyoto_g06_claim_execution \
+            tests.test_kyoto_impl23_pc_to_g06_real_lease
+      - name: Validate protected operational boundary
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          from diagnostics.kyoto_shared_capture_reservation import key
+          a=key(day="20261121",slot=0,race=11,channel="SHARED",market="racecard")
+          assert a=="20261121:0:11:SHARED:racecard",a
+          observer=Path(".github/workflows/kyoto-20261121-22-two-source-production-observer.yml").read_text()
+          # Frozen historical collector includes four original slots only.
+          # Production main's eight slots are checked independently.
+          assert observer.count("- cron: '")==4
+          assert "needs: pc-originals-independent" in observer
+          # The frozen collector snapshot is not the present-day main workflow; do not
+          # confuse a historical checkout with the independently verified main pin.
+          assert "COLLECTOR_SHA" in observer
+          assert "KYOTO_JRA_ARCHIVE_AES256_HEX" in observer
+          print("R07_PROTECTED_BOUNDARY_PASS")
+          PY
