@@ -25,7 +25,7 @@ jobs:
       - name: Check real pinned production scope without changing collector
         uses: actions/checkout@v4
         with:
-          ref: d45f3c9067eee3375c4d9e3ffd908d076f42595a
+          ref: 6355e8704bdf4427140f37f199eb8feb1a897621
           path: pinned_source
           persist-credentials: false
       - name: Verify fixed eight slots, G04/G05 partial path and limited SP scope
@@ -37,7 +37,7 @@ jobs:
           source=Path('pinned_source/diagnostics/kyoto_weekend_capture.py').read_text()
           handoff=Path('.github/workflows/kyoto-20261121-22-result-handoff.yml').read_text()
           assert observer.count('- cron:')==8
-          assert observer.count('d45f3c9067eee3375c4d9e3ffd908d076f42595a')==6
+          assert observer.count('6355e8704bdf4427140f37f199eb8feb1a897621')==6
           assert source.index('verify_partial(')<source.index('g04=g04_capture(')
           assert source.index('g04=g04_capture(')<source.index('markets=run_twelve(')
           assert source.index('g05=compile_saved(')<source.index('markets=run_twelve(')
@@ -62,6 +62,10 @@ jobs:
           assert 'g06_sealing_reserve_deadline=pc_capture_start_monotonic+1020.0' in source
           assert 'capture_deadline_monotonic=g06_sealing_reserve_deadline' in source
           assert 'time_budget_reserved_for_sealing_races' in g06
+          # C09 only inventories independently observed SP navigation.
+          discovery=Path('pinned_source/diagnostics/kyoto_weekend_sp_discovery.py').read_text()
+          assert 'observed_kyoto_race_candidates(raw,url,day)' in discovery
+          assert '"full_twelve_race_sp_fallback_verified":False' in discovery
           assert 'capture_verified_sp_seed(' in source and 'race_number=12' in source
           assert 'KYOTO_NOV22_VERIFIED_COLLECTOR_SHA' in observer
           assert 'KYOTO_JRA_ARCHIVE_AES256_HEX' in observer
@@ -74,6 +78,7 @@ jobs:
               "g04_market_reserve_budget_active":True,
               "g06_global_deadline_for_sealing_enabled":True,
               "g06_racewise_invalid_input_isolated":True,
+              "sp_observed_navigation_per_race_inventoried":True,
               "sp_full12_coverage_verified":False,
               "independent_workout_source_verified":False,
               "market_live_timing_verified":False,
