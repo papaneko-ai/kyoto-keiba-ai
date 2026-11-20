@@ -12,14 +12,14 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: c41ebdeabe019cac134c140aab932d84d1765f22
+          ref: 5cab170d10891bbe7e939f117a898b3f12867702
           persist-credentials: false
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
       - run: python -m pip install 'beautifulsoup4>=4.12,<5' 'cryptography>=43,<47'
       - name: Verify immutable source SHA
-        run: test "$(git rev-parse HEAD)" = "c41ebdeabe019cac134c140aab932d84d1765f22"
+        run: test "$(git rev-parse HEAD)" = "5cab170d10891bbe7e939f117a898b3f12867702"
       - name: No-JRA-HTTP new fault injection and existing G03-G06/Turso/AES regressions
         env:
           KYOTO_TARGET_DAY: '20261121'
