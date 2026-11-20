@@ -1,0 +1,62 @@
+name: Impl26 production Turso read-only proof
+on:
+  push:
+    branches: [audit/impl26-broad-final-suite-20261120]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  production-schema-read-only:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      PYTHONPATH: .
+      KYOTO_SHARED_CLAIM_ACTIVATE: ${{ vars.KYOTO_SHARED_CLAIM_ACTIVATE || 'NO' }}
+      KYOTO_SHARED_CLAIM_TARGET: PRODUCTION
+      KYOTO_SHARED_CLAIM_PRODUCTION_APPROVED: ${{ vars.KYOTO_SHARED_CLAIM_PRODUCTION_APPROVED || 'NO' }}
+      KYOTO_SHARED_CLAIM_APPROVED_PRODUCTION_HOST: ${{ vars.KYOTO_SHARED_CLAIM_APPROVED_PRODUCTION_HOST }}
+      KYOTO_SHARED_CLAIM_TURSO_URL: ${{ vars.KYOTO_SHARED_CLAIM_TURSO_URL }}
+      KYOTO_SHARED_CLAIM_TURSO_TOKEN: ${{ secrets.KYOTO_SHARED_CLAIM_TURSO_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: de2544c1e9f9951a265419461267146b4023c2ab
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Force only scheduled-slot configuration for a read-only table SELECT
+        env:
+          GITHUB_EVENT_NAME: schedule
+          GITHUB_EVENT_SCHEDULE: '15 0 21 11 *'
+        run: |
+          set -euo pipefail
+          mkdir -p safe_turso_evidence
+          python - <<'PY'
+          import json,os
+          from pathlib import Path
+          from diagnostics.kyoto_impl23_claim_preflight import check
+          env=dict(os.environ)
+          env['GITHUB_EVENT_NAME']='schedule'
+          env['GITHUB_EVENT_SCHEDULE']='15 0 21 11 *'
+          result=check('20261121',environ=env)
+          Path('safe_turso_evidence/readonly.json').write_text(json.dumps(result,sort_keys=True)+chr(10))
+          print('TURSO_READONLY_STATUS',result.get('status'))
+          PY
+          python - <<'PY'
+          import json
+          p='safe_turso_evidence/readonly.json'
+          r=json.load(open(p))
+          if r.get('status')!='REMOTE_COORDINATOR_READ_AND_TABLE_VERIFIED':
+              raise SystemExit('TURSO_PRODUCTION_READONLY_NOT_PROVED')
+          assert r['remote_write_verified'] is False
+          assert r['production_claim_certified'] is False
+          print('TURSO_PRODUCTION_TABLE_SELECT_VERIFIED_WRITE_UNTESTED')
+          PY
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: kyoto-impl26-production-turso-readonly-${{ github.run_id }}
+          path: safe_turso_evidence/
+          retention-days: 90
+          if-no-files-found: warn

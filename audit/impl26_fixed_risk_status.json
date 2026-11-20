@@ -30,20 +30,28 @@
       "priority": "P0",
       "description": "UTC日時窓と開催日不一致による停止",
       "required_evidence": "正常/境界/遅延開始を区別した試験",
-      "status": "OPEN",
-      "proof": [],
+      "status": "MITIGATED_WITH_PROOF",
+      "proof": [
+        "tests/test_kyoto_weekend_retry_guard.py: unsupported day, invalid event, late-primary, day22 independence regression",
+        "Run 44676736139 destructive-and-turso SUCCESS",
+        "main pre-HTTP guard validates exact event day, UTC window and immutable SHA before network"
+      ],
       "owner": "implementation26",
-      "notes": "未認定。証拠を照合した後に更新する。"
+      "notes": "取得前のソース制限・否定系試験。実開催HTTPの成否は別判定。"
     },
     {
       "id": "R04",
       "priority": "P0",
       "description": "AES鍵欠損・誤り",
       "required_evidence": "Secret存在・復号整合と鍵非公開",
-      "status": "OPEN",
-      "proof": [],
+      "status": "MITIGATED_WITH_PROOF",
+      "proof": [
+        "Run 44676198191 pre-weekend-settings-hazard-check SUCCESS: ARCHIVE_AES256_SECRET_FORMAT_VALID",
+        "Run 44676736139 collector-full12-and-aes SUCCESS: sealed originals roundtrip and bad-key rejection unit suite",
+        "Secret not exposed; only format/negative tests asserted"
+      ],
       "owner": "implementation26",
-      "notes": "未認定。証拠を照合した後に更新する。"
+      "notes": "保存/停止回復の事前模擬証拠による認定。実開催の検証とは別。"
     },
     {
       "id": "R05",
@@ -65,10 +73,14 @@
       "priority": "P0",
       "description": "Turso本番接続設定の不備",
       "required_evidence": "実接続・共有予約の読み取り可能性",
-      "status": "OPEN",
-      "proof": [],
+      "status": "MITIGATED_WITH_PROOF",
+      "proof": [
+        "Run 44677451421 SUCCESS real production Turso SELECT-only schema probe using sealed credential",
+        "diagnostics/kyoto_impl23_claim_preflight.py check(day, environ simulated scheduled slot) returned REMOTE_COORDINATOR_READ_AND_TABLE_VERIFIED",
+        "Confirmed remote_write_verified=false: production claim write/lease not exercised; R07 duplicate-race proof remains separate"
+      ],
       "owner": "implementation26",
-      "notes": "未認定。証拠を照合した後に更新する。"
+      "notes": "本番共有予約テーブルの実読取確認。書込み・別実行環境の競合はR07に残し、変更していない。"
     },
     {
       "id": "R07",
@@ -95,10 +107,14 @@
       "priority": "P0",
       "description": "concurrencyの待ち行列・予定枠損失",
       "required_evidence": "4枠が互いに潰れない証拠",
-      "status": "OPEN",
-      "proof": [],
+      "status": "MITIGATED_WITH_PROOF",
+      "proof": [
+        "main workflow cancel-in-progress:false, queue:max, date-separated concurrency and 8 cron entries",
+        "main PC20 + SP12 minutes; shortest scheduled interval 45 minutes, calculated bound 32 < 45 without external scheduler lag",
+        "Run 44674536797 and Run 44676736139 static and scheduling contract SUCCESS"
+      ],
       "owner": "implementation26",
-      "notes": "未認定。証拠を照合した後に更新する。"
+      "notes": "自分のジョブの相殺・キュー上書き対策。外部起動遅延はR01として別に残す。"
     },
     {
       "id": "R10",
@@ -199,10 +215,14 @@
       "priority": "P0",
       "description": "SP設定URL欠損/不整合",
       "required_evidence": "実在公式R12経路と安全停止・自動探索",
-      "status": "OPEN",
-      "proof": [],
+      "status": "MITIGATED_WITH_PROOF",
+      "proof": [
+        "tests/test_kyoto_weekend_sp_discovery.py: absent observed anchor does not fabricate URL, adversarial host rejected, two navigation paths, wrong day and late link tests",
+        "tests/test_kyoto_sp_all12_observed_capture.py: saved SHA validated, ambiguous link skipped and all12 AES roundtrip",
+        "Run 44676736139 collector-full12-and-aes SUCCESS"
+      ],
       "owner": "implementation26",
-      "notes": "未認定。証拠を照合した後に更新する。"
+      "notes": "取得前のソース制限・否定系試験。実開催HTTPの成否は別判定。"
     },
     {
       "id": "R20",
@@ -306,10 +326,14 @@
       "priority": "P0",
       "description": "強制終了/例外中の原本消失",
       "required_evidence": "部分原本からAES封入までの障害注入",
-      "status": "OPEN",
-      "proof": [],
+      "status": "MITIGATED_WITH_PROOF",
+      "proof": [
+        "Run 44676736139 destructive-and-turso SUCCESS: weekend interruption, partial-original preservation, safe-stop, fault injection",
+        "Run 44674277544 candidate SP all12 AES destructive suite SUCCESS",
+        "Production observer PC/SP always() seal-only and artifact upload steps present in main"
+      ],
       "owner": "implementation26",
-      "notes": "未認定。証拠を照合した後に更新する。"
+      "notes": "保存/停止回復の事前模擬証拠による認定。実開催の検証とは別。"
     },
     {
       "id": "R30",
