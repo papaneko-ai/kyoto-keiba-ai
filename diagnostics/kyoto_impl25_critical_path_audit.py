@@ -37,7 +37,7 @@ def audit(collector_text: str, workflow_text: str) -> dict:
     cron = re.findall(r"(?m)^\s*- cron: ['\"]([^'\"]+)['\"]", workflow_text)
     if len(cron) != 8 or len(set(cron)) != 8:
         raise ValueError("eight_independent_schedule_slots_not_confirmed")
-    pin = re.findall(r"920b9767f7328f7b461ce97bbd36ad42fe17dc48", workflow_text)
+    pin = re.findall(r"c7dfaec54a6d7127a41d2e29321e7b54c63bc947", workflow_text)
     if not pin:
         raise ValueError("expected_immutable_collector_pin_missing")
     sequential_sp = bool(re.search(r"sp-originals-independent:.*?needs:\s*pc-originals-independent", workflow_text, re.S))
@@ -55,8 +55,8 @@ def audit(collector_text: str, workflow_text: str) -> dict:
         "duration_measured": False,
         "race_day_success_proven": False,
         "all_races_and_horses_proven": False,
-        "audit_disposition": "CRITICAL_PATH_AT_RISK_REQUIRES_LIVE_TIMING_EVIDENCE"
-            if positions["g04"] > positions["g06"] else "ORDER_RISK_NOT_OBSERVED",
+        "audit_disposition": "PROFILE_DEFERRED_BEHIND_MARKETS" if positions["g04"] > positions["g06"]
+            else "PROFILE_FIRST_MARKET_DELAY_UNMEASURED",
     }
 
 

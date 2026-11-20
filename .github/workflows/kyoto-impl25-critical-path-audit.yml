@@ -23,7 +23,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: papaneko-ai/kyoto-keiba-ai
-          ref: 920b9767f7328f7b461ce97bbd36ad42fe17dc48
+          ref: c7dfaec54a6d7127a41d2e29321e7b54c63bc947
           path: pinned_collector
           persist-credentials: false
       - name: Inspect stage order and bound without any JRA HTTP
@@ -38,9 +38,9 @@ jobs:
           assert d['scheduled_slot_count']==8
           assert d['pc_timeout_minutes']==20
           assert d['sp_timeout_minutes']==12
-          assert d['g04_after_g06'] and d['sp_waits_for_pc_completion']
+          assert not d['g04_after_g06'] and d['sp_waits_for_pc_completion']
           assert d['no_external_http_performed'] and not d['duration_measured']
-          print('STATIC_CRITICAL_PATH_RISK_PROVEN; NOT A LIVE_CAPTURE_SUCCESS')
+          print('PROFILE_FIRST_ORDER_VERIFIED_MARKET_TIMING_UNMEASURED; NOT A LIVE_CAPTURE_SUCCESS')
           PY
       - uses: actions/upload-artifact@v4
         with:

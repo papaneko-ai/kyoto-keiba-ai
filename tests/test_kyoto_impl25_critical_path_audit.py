@@ -5,10 +5,10 @@ from diagnostics.kyoto_impl25_critical_path_audit import audit
 
 COLLECTOR = """
 g03=collect_after_observer(
-markets=run_twelve(
 g04=g04_capture(
 g05=compile_saved(
 track=capture_kyoto_track(
+markets=run_twelve(
 """
 WORKFLOW = """
 on:
@@ -29,7 +29,7 @@ jobs:
     needs: pc-originals-independent
     timeout-minutes: 12
     env:
-      COLLECTOR_SHA: '920b9767f7328f7b461ce97bbd36ad42fe17dc48'
+      COLLECTOR_SHA: 'c7dfaec54a6d7127a41d2e29321e7b54c63bc947'
 """
 
 
@@ -38,7 +38,7 @@ class TimingAuditTests(unittest.TestCase):
         a = audit(COLLECTOR, WORKFLOW)
         self.assertEqual(a["scheduled_slot_count"], 8)
         self.assertEqual(a["pc_timeout_minutes"], 20)
-        self.assertTrue(a["g04_after_g06"])
+        self.assertFalse(a["g04_after_g06"])
         self.assertFalse(a["duration_measured"])
         self.assertFalse(a["race_day_success_proven"])
 
@@ -52,12 +52,12 @@ class TimingAuditTests(unittest.TestCase):
 
     def test_missing_immutable_pin_fails(self):
         with self.assertRaisesRegex(ValueError, "expected_immutable"):
-            audit(COLLECTOR, WORKFLOW.replace("920b9767f7328f7b461ce97bbd36ad42fe17dc48", "bad"))
+            audit(COLLECTOR, WORKFLOW.replace("c7dfaec54a6d7127a41d2e29321e7b54c63bc947", "bad"))
 
     def test_reordering_is_reported_not_assumed_safe(self):
-        reordered = COLLECTOR.replace("markets=run_twelve(\ng04=g04_capture(", "g04=g04_capture(\nmarkets=run_twelve(")
+        reordered = COLLECTOR.replace("g04=g04_capture(\ng05=compile_saved(\ntrack=capture_kyoto_track(\nmarkets=run_twelve(", "markets=run_twelve(\ng04=g04_capture(\ng05=compile_saved(\ntrack=capture_kyoto_track(")
         a = audit(reordered, WORKFLOW)
-        self.assertFalse(a["g04_after_g06"])
+        self.assertTrue(a["g04_after_g06"])
         self.assertFalse(a["race_day_success_proven"])
 
 
