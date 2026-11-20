@@ -129,10 +129,12 @@ def capture(day: str, channel: str, output: str, *, live: bool,
                         root=root / "pc_originals",day=day,
                         fetch=lambda url: (pc_pacer.before_request(),_read(pc_client,url))[1],
                         clock=lambda:datetime.now(timezone.utc).isoformat(),allowed=True,
-                        allow_partial=(not bool(g03.get("complete")) or len(partial_verified)<12))
+                        allow_partial=(not bool(g03.get("complete")) or len(partial_verified)<12),
+                        isolate_invalid_links=True)
                     out["g04_all_horse_profiles_parsed"]=bool(g04["all_profiles_parsed"])
                     out["g04_profiles_verified"]=g04["profile_verified_count"]
                     out["g04_profiles_expected"]=g04["expected_horses"]
+                    out["g04_profiles_invalid_navigation"]=g04["invalid_profile_navigation_count"]
                 except Exception as exc:
                     out["g04_capture_state"]="G04_EXCEPTION_SOURCE_OR_PARSE_BLOCKED"
                     out["g04_error_class"]=type(exc).__name__
