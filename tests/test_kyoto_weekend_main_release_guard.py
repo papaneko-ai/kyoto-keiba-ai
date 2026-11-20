@@ -5,7 +5,8 @@ from pathlib import Path
 
 WF=Path(".github/workflows/kyoto-20261121-22-two-source-production-observer.yml")
 REG=Path("docs/diagnostics/KYOTO_20261116_INDEPENDENT_RELEASE_BLOCKERS.json")
-PIN="920b9767f7328f7b461ce97bbd36ad42fe17dc48"
+NOV21_PIN="de2544c1e9f9951a265419461267146b4023c2ab"
+NOV22_BASELINE_PIN="989aaba017c5450fed91b383421f5d2da53c6c69"
 HISTORIC_APPROVED_PIN="c96df31542cb94435ca36cb4a1b8bd6de938233f"
 
 class SourceOnlyReleaseAcceptance(unittest.TestCase):
@@ -17,9 +18,15 @@ class SourceOnlyReleaseAcceptance(unittest.TestCase):
 
     def test_both_dated_jobs_use_fixed_sha_and_fault_injection(self):
         self.assertEqual(self.workflow.count("ref: ${{ env.COLLECTOR_SHA }}"),2)
-        self.assertIn(PIN,self.workflow)
         self.assertNotIn(HISTORIC_APPROVED_PIN,self.workflow)
-        self.assertEqual(self.workflow.count(PIN),6)
+        # Current production explicitly pins Nov21, with an independent
+        # Nov22 baseline or separately reviewed approved override.
+        self.assertEqual(self.workflow.count(NOV21_PIN),4)
+        self.assertEqual(self.workflow.count(NOV22_BASELINE_PIN),4)
+        self.assertEqual(self.workflow.count(
+            f"assert os.environ['COLLECTOR_SHA']=='{NOV21_PIN}'"),2)
+        self.assertIn("DAY22_CANDIDATE_NOT_PREFLIGHT_VERIFIED_NO_HTTP",self.workflow)
+        self.assertEqual(self.workflow.count("KYOTO_NOV22_VERIFIED_COLLECTOR_SHA"),2)
         self.assertEqual(self.workflow.count("tests.test_kyoto_weekend_interruption_and_pacing"),2)
         self.assertEqual(self.workflow.count("GITHUB_RUN_ATTEMPT"),2)
         self.assertEqual(self.workflow.count("ENCRYPTION_KEY_REQUIRED_NO_HTTP"),2)
