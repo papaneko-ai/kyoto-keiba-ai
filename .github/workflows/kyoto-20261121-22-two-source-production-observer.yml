@@ -166,6 +166,8 @@ jobs:
       - name: Upload only AES-GCM ciphertext or safe-stop receipt
         id: upload_pc_primary
         if: always()
+        # A retry that saves verified ciphertext must recover first-upload failure.
+        continue-on-error: true
         uses: actions/upload-artifact@v4
         with:
           name: kyoto-pc-${{ github.run_id }}-${{ env.KYOTO_TARGET_DAY }}
@@ -185,10 +187,12 @@ jobs:
   sp-originals-independent:
     # Source lanes remain independent, but network execution is serialized.
     # PC failure must NOT prevent SP fallback.
-    needs: pc-originals-independent
+    # R08 proposed early-start: no official SP HTTP until the PC request step is
+    # independently observed completed; no speculative concurrent JRA traffic.
     if: ${{ always() && (github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.confirmation == 'NOV21-22-OBSERVE-READ-ONLY')) }}
     runs-on: ubuntu-latest
-    timeout-minutes: 12
+    # Includes up to 20m waiting for verified PC source completion plus SP 12m.
+    timeout-minutes: 35
     env:
       PYTHONPATH: .
       KYOTO_TARGET_DAY: ${{ ((github.event.schedule == '15 0 21 11 *' || github.event.schedule == '15 1 21 11 *' || github.event.schedule == '5 2 21 11 *' || github.event.schedule == '50 2 21 11 *' || inputs.race_day == '20261121')) && '20261121' || '20261122' }}
@@ -282,9 +286,18 @@ jobs:
           print('SP_STATIC_PRE_HTTP_GUARDS_ACCEPTED')
           PY
           python -m diagnostics.kyoto_weekend_retry_guard --day "$KYOTO_TARGET_DAY"
-      - name: Cross-job HTTP separation before any official SP request
+      - name: Checkout immutable workflow control scripts separately from frozen source
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          path: impl27_workflow_control
+          persist-credentials: false
+      - name: Verify PC JRA request step completed before any official SP HTTP
         shell: bash
-        run: sleep 3
+        run: |
+          set -euo pipefail
+          python impl27_workflow_control/audit/impl27_r08_pc_source_barrier.py \
+            --repo "$GITHUB_REPOSITORY" --run-id "$GITHUB_RUN_ID" --wait-seconds 1190
       - name: Independently verified SP link, otherwise record zero-request stop
         shell: bash
         run: |
@@ -305,6 +318,8 @@ jobs:
       - name: Upload only AES-GCM ciphertext or safe-stop receipt
         id: upload_sp_primary
         if: always()
+        # A retry that saves verified ciphertext must recover first-upload failure.
+        continue-on-error: true
         uses: actions/upload-artifact@v4
         with:
           name: kyoto-sp-${{ github.run_id }}-${{ env.KYOTO_TARGET_DAY }}
