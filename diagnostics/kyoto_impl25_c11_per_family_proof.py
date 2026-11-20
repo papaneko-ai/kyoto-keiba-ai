@@ -164,7 +164,8 @@ def assess(root,day):
                     source.get("state")=="OBSERVED" and source.get("value") is not None and
                     source.get("source_sha256")==race_sha and
                     source.get("source_original")==f"g03_official_racecard_{race:02d}.html" and
-                    source.get("captured_at_utc")==original.get("captured_at_utc"))
+                    utc(source.get("captured_at_utc")) is not None and
+                    utc(source.get("captured_at_utc"))==utc(original.get("captured_at_utc")))
                 fields[key]={"state":"SHA_UTC_BOUND" if valid else "MISSING_OR_UNVERIFIED",
                              "value":source.get("value") if valid else None,
                              "missing_reason":None if valid else (
@@ -182,7 +183,8 @@ def assess(root,day):
                   source.get("value") is not None and
                   source.get("source_sha256")==race_sha and
                   source.get("source_original")==f"g03_official_racecard_{race:02d}.html" and
-                  source.get("captured_at_utc")==original.get("captured_at_utc"))
+                  utc(source.get("captured_at_utc")) is not None and
+                    utc(source.get("captured_at_utc"))==utc(original.get("captured_at_utc")))
             track[key]={"state":"SHA_UTC_BOUND" if good else "MISSING_OR_UNVERIFIED",
                         "value":source.get("value") if good else None}
         output[str(race)]={"g03":{"state":"SHA_UTC_PRESTART_VERIFIED" if race in verified else "MISSING_OR_UNVERIFIED",
