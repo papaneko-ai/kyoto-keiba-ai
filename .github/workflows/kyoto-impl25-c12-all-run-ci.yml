@@ -54,7 +54,9 @@ jobs:
           assert production.count('- cron:')==8
           assert '39ab17261597c0ccc5901bb47b478d0c2d4c7656' in handoff
           assert production.count('989aaba017c5450fed91b383421f5d2da53c6c69')==6
-          assert 'all-four-day21-run-aggregation:' in handoff\n          release_handoff=Path('release_review/.github/workflows/kyoto-20261121-22-result-handoff.yml').read_text()\n          assert 'on:' in release_handoff
+          assert 'all-four-day21-run-aggregation:' in handoff
+          release_handoff=Path('release_review/.github/workflows/kyoto-20261121-22-result-handoff.yml').read_text()
+          assert 'on:' in release_handoff
           assert '"full_live_jra_coverage_proved":False' in source
           assert '"automatic_patch_or_secret_edit_authorized":False' in source
           assert 'assess_lane(target,day=day' in source
