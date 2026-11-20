@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - audit/impl26-final-gate-tracking-20261120
+      - fix/impl26-r31-retry-incident-proof-20261120
   workflow_dispatch:
 permissions:
   contents: read
