@@ -178,9 +178,54 @@ jobs:
           print("FINAL_AUDIT_OFFLINE_ONLY")
           PY
 
+  pre-http-benchmark:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    env:
+      PYTHONPATH: .
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: de2544c1e9f9951a265419461267146b4023c2ab
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install 'beautifulsoup4>=4.12,<5' 'cryptography>=43,<47'
+      - name: Measure exact PC and SP mandatory pre-HTTP suites with no JRA requests
+        run: |
+          python - <<'PY'
+          import os,subprocess,sys,time,json
+          groups={
+            "PC":[
+              ("20261121",["tests.test_kyoto_g04_all_horse_profiles"]),
+              ("20261121",["tests.test_kyoto_g05_conditions","tests.test_kyoto_g05_official_track","tests.test_kyoto_g05_weekend_bridge"]),
+              ("20261121",["tests.test_kyoto_weekend_retry_guard","tests.test_kyoto_weekend_race_parity","tests.test_kyoto_weekend_capture","tests.test_kyoto_safe_stop_artifact","tests.test_kyoto_weekend_end_to_end","tests.test_kyoto_weekend_postflight","tests.test_kyoto_weekend_interruption_and_pacing"]),
+              ("20261115",["tests.test_kyoto_nov15_two_original_observer","tests.test_kyoto_nov15_offline_race_links","tests.test_kyoto_nov15_encrypted_evidence"]),
+              ("20261121",["tests.test_kyoto_impl23_claim_preflight","tests.test_kyoto_impl23_lease_window","tests.test_kyoto_impl23_lease_clock","tests.test_kyoto_impl23_claim_evidence","tests.test_kyoto_impl23_pc_to_g06_real_lease","tests.test_kyoto_impl23_weekend_entrypoint_claim","tests.test_kyoto_impl23_production_claim_activation","tests.test_kyoto_impl23_claim_continuation","tests.test_kyoto_g06_claim_execution"]),
+              ("20261121",["tests.test_kyoto_predictable_failure_gate"])],
+            "SP":[
+              ("20261121",["tests.test_kyoto_weekend_retry_guard","tests.test_kyoto_weekend_race_parity","tests.test_kyoto_weekend_capture","tests.test_kyoto_safe_stop_artifact","tests.test_kyoto_weekend_end_to_end","tests.test_kyoto_weekend_postflight","tests.test_kyoto_weekend_interruption_and_pacing","tests.test_kyoto_sp_all12_observed_capture"]),
+              ("20261115",["tests.test_kyoto_sp_observed_source"]),
+              ("20261121",["tests.test_kyoto_impl23_claim_preflight","tests.test_kyoto_impl23_lease_window","tests.test_kyoto_impl23_lease_clock","tests.test_kyoto_impl23_claim_evidence","tests.test_kyoto_impl23_pc_to_g06_real_lease","tests.test_kyoto_impl23_weekend_entrypoint_claim","tests.test_kyoto_impl23_production_claim_activation","tests.test_kyoto_impl23_claim_continuation","tests.test_kyoto_g06_claim_execution"]),
+              ("20261121",["tests.test_kyoto_predictable_failure_gate"])]
+          }
+          out={}
+          for lane,items in groups.items():
+              start=time.monotonic()
+              for day,tests in items:
+                  env=dict(os.environ,KYOTO_TARGET_DAY=day)
+                  subprocess.run([sys.executable,"-m","unittest","-q",*tests],env=env,check=True)
+              env=dict(os.environ,KYOTO_TARGET_DAY="20261121")
+              subprocess.run([sys.executable,"-m","diagnostics.kyoto_predictable_failure_gate","--report",f"{lane}_30.json"],env=env,check=True)
+              out[lane]=round(time.monotonic()-start,3)
+          print("OFFLINE_BEFORE_JRA_DURATION_SECONDS",json.dumps(out,sort_keys=True))
+          if out["PC"]>120 or out["SP"]>90:
+              raise SystemExit("PRE_HTTP_BUDGET_VIOLATION")
+          PY
   final-verdict:
     if: always()
-    needs: [full-static-and-contracts, collector-full12-and-aes, destructive-and-turso, time-and-night-before]
+    needs: [full-static-and-contracts, collector-full12-and-aes, destructive-and-turso, time-and-night-before, pre-http-benchmark]
     runs-on: ubuntu-latest
     timeout-minutes: 5
     env:
