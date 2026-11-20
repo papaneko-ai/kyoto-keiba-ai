@@ -82,6 +82,10 @@ def summarize(day, entries, *, total_count=None, pagination_complete=True):
                 "ciphertext_authenticated":state.get("ciphertext_authenticated") is True,
                 "source_original_sha_utc_checked":state.get("source_original_sha_utc_checked") is True,
                 "both_raw_market_originals_sha_utc_verified":state.get("both_raw_market_originals_sha_utc_verified") is True,
+                "c11_family_evidence_state":state.get("c11_family_evidence_state",
+                    "NOT_APPLICABLE_OR_NOT_RECOMPUTED"),
+                "c11_verified_counts":state.get("c11_verified_counts",{})
+                    if state.get("c11_family_evidence_state")=="RECOMPUTED_SOURCE_SHA_UTC_MATCH" else {},
                 "official_live_market_accepted":False,
                 "prediction_ready":False,
                 "error_class":state.get("error_class"),
@@ -103,6 +107,8 @@ def summarize(day, entries, *, total_count=None, pagination_complete=True):
             continue
         for lane in LANES:
             x=e["lanes"][lane]
+            if lane=="PC" and x.get("c11_family_evidence_state")!="RECOMPUTED_SOURCE_SHA_UTC_MATCH":
+                problems.append("C11_G03_G06_FAMILY_COUNTS_NOT_RECOMPUTED")
             if x["job_state"]!="ARTIFACT_RETAINED_CONTENT_UNVERIFIED" or not x["ciphertext_authenticated"] or not x["source_original_sha_utc_checked"]:
                 problems.append("SOURCE_OR_CIPHERTEXT_GAP_REQUIRES_REVIEW")
                 break
