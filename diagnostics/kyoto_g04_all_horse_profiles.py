@@ -66,13 +66,13 @@ def _metadata(raw,expected_name):
             "jockey_current":None,"jockey_current_verified":False,
             "jra_horse_id":None,"jra_horse_id_verified":False}
 
-def capture(*,root,day,fetch,clock,allowed=False,allow_partial=False):
+def capture(*,root,day,fetch,clock,allowed=False,allow_partial=False,\n            isolate_invalid_links=False):
     """G03 must already be saved/verified; fetch must use existing paced _read.
 
     Caller is responsible for pacing, no-redirect, bounded GET, and replacing
     the ephemeral directory with the existing encrypted-only artifact.
     """
-    if allowed is not True:raise G04Rejected("profile_capture_not_authorized")
+    if allowed is not True:raise G04Rejected("profile_capture_not_authorized")\n    if type(isolate_invalid_links) is not bool:raise G04Rejected("invalid_link_isolation_mode")
     if type(day) is not str or not re.fullmatch(r"20[0-9]{6}",day):
         raise G04Rejected("bad_race_day")
     root=Path(root)
@@ -100,12 +100,31 @@ def capture(*,root,day,fetch,clock,allowed=False,allow_partial=False):
             number=horse["number"];name=horse["name"]
             if type(number) is not int or not 1<=number<=18 or not name:
                 raise G04Rejected("invalid_g03_horse_identity")
-            url=trusted_url(horse["profile_navigation"])
             key=(race,number)
             if key in seen:raise G04Rejected("duplicate_runner")
             seen.add(key)
+            try:
+                url=trusted_url(horse["profile_navigation"])
+                if isolate_invalid_links and url in seen_urls:
+                    raise G04Rejected("duplicate_profile_url_identity")
+            except (PlanningError,G04Rejected,ValueError,TypeError,KeyError) as exc:
+                if not isolate_invalid_links:
+                    raise
+                rejected.append({"race":race,"horse_number":number,"horse_name":name,
+                    "source_url":None,"source_kind":"JRA_PC_OBSERVED_RACECARD_PROFILE_LINK",
+                    "observed_profile_code":None,"observed_profile_code_attested_as_permanent_id":False,
+                    "current_jockey":horse.get("current_jockey"),
+                    "current_jockey_source_verified":False,
+                    "current_assigned_weight_kg":horse.get("assigned_weight_kg"),
+                    "race_cutoff_utc":cutoff.isoformat(),
+                    "raw_original_file":None,"state":"INVALID_OR_DUPLICATE_PROFILE_NAVIGATION",
+                    "profile_verified":False,"prediction_ready":False,"training_ready":False,
+                    "failure_class":type(exc).__name__,
+                    "failure_reason":"invalid_or_duplicate_official_profile_navigation"})
+                continue
+            seen_urls.add(url)
             pending.append((race,number,name,url,cutoff,horse.get("current_jockey"),horse.get("assigned_weight_kg")))
-    if not 2<=len(pending)<=MAX_HORSES:raise G04Rejected("runner_volume_invalid")
+    if not 2<=len(pending)+len(rejected)<=MAX_HORSES:raise G04Rejected("runner_volume_invalid")
     urls=[item[3] for item in pending]
     if len(urls)!=len(set(urls)):raise G04Rejected("duplicate_profile_url_identity")
     if (root/"g04_receipt.json").exists():
@@ -172,7 +191,7 @@ def capture(*,root,day,fetch,clock,allowed=False,allow_partial=False):
             item.update(state="SOURCE_OR_PARSE_FAILED",failure_class=type(exc).__name__,
                         failure_reason=str(exc)[:130])
         results.append(item)
-    missing=[{"race":p["race"],"horse_number":p["horse_number"],"reason":p.get("failure_reason")}
+    results.extend(rejected)\n    results.sort(key=lambda p:(p["race"],p["horse_number"]))\n    missing=[{"race":p["race"],"horse_number":p["horse_number"],"reason":p.get("failure_reason")}
              for p in results if not p["profile_verified"]]
     report={"schema":"kyoto_g04_all_horses.v1","day":day,
             "verified_g03_races":len(selected),"selected_races":selected,
