@@ -25,7 +25,7 @@ jobs:
       - name: Check real pinned production scope without changing collector
         uses: actions/checkout@v4
         with:
-          ref: 9fb884c3362a1097bdcf0849d974d8fdeab6faaa
+          ref: 324a76fd57ea9c660d984fcc4fc373cba4e30109
           path: pinned_source
           persist-credentials: false
       - name: Verify fixed eight slots, G04/G05 partial path and limited SP scope
@@ -37,7 +37,7 @@ jobs:
           source=Path('pinned_source/diagnostics/kyoto_weekend_capture.py').read_text()
           handoff=Path('.github/workflows/kyoto-20261121-22-result-handoff.yml').read_text()
           assert observer.count('- cron:')==8
-          assert observer.count('9fb884c3362a1097bdcf0849d974d8fdeab6faaa')==6
+          assert observer.count('324a76fd57ea9c660d984fcc4fc373cba4e30109')==6
           assert source.index('verify_partial(')<source.index('g04=g04_capture(')
           assert source.index('g04=g04_capture(')<source.index('markets=run_twelve(')
           assert source.index('g05=compile_saved(')<source.index('markets=run_twelve(')
