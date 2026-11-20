@@ -16,14 +16,14 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: 35d55236edfdd346f0ad8ce6b63f9c49153e8ad1
+          ref: fa7afe56396c3f2aaa3c873833714cb8ba3570d5
           persist-credentials: false
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
       - run: python -m pip install 'beautifulsoup4>=4.12,<5' 'cryptography>=43,<47'
       - name: Check exact C12 handoff source commit
-        run: test "$(git rev-parse HEAD)" = "35d55236edfdd346f0ad8ce6b63f9c49153e8ad1"
+        run: test "$(git rev-parse HEAD)" = "fa7afe56396c3f2aaa3c873833714cb8ba3570d5"
       - name: Run all-run/PC-SP/AES regressions with no external requests
         run: |
           set -euo pipefail
@@ -46,7 +46,7 @@ jobs:
           source=Path('diagnostics/kyoto_impl25_c12_all_runs_handoff.py').read_text()
           assert handoff.count('- cron:')==1
           assert production.count('- cron:')==8
-          assert '35d55236edfdd346f0ad8ce6b63f9c49153e8ad1' in handoff
+          assert 'fa7afe56396c3f2aaa3c873833714cb8ba3570d5' in handoff
           assert production.count('989aaba017c5450fed91b383421f5d2da53c6c69')==6
           assert 'all-four-day21-run-aggregation:' in handoff
           assert '"full_live_jra_coverage_proved":False' in source
