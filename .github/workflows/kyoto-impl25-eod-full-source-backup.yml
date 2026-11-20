@@ -14,13 +14,13 @@ jobs:
       - name: Full clone of exact production main commit
         uses: actions/checkout@v4
         with:
-          ref: 61d41a9d4b4186c51597e87546a0c94323cee499
+          ref: a98085fab2743397e8f77f17c8a62d8c587c84e1
           fetch-depth: 0
           persist-credentials: false
       - name: Verify immutable production source and eight slots
         run: |
           set -euo pipefail
-          test "$(git rev-parse HEAD)" = "61d41a9d4b4186c51597e87546a0c94323cee499"
+          test "$(git rev-parse HEAD)" = "a98085fab2743397e8f77f17c8a62d8c587c84e1"
           python - <<'PY'
           from pathlib import Path
           s=Path('.github/workflows/kyoto-20261121-22-two-source-production-observer.yml').read_text()
@@ -36,29 +36,29 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p impl25_full_migration_pack
-          git archive --format=zip --output=impl25_full_migration_pack/production_main_source.zip "61d41a9d4b4186c51597e87546a0c94323cee499"
+          git archive --format=zip --output=impl25_full_migration_pack/production_main_source.zip "a98085fab2743397e8f77f17c8a62d8c587c84e1"
           unzip -t impl25_full_migration_pack/production_main_source.zip > /dev/null
-          git branch backup-impl25-source "61d41a9d4b4186c51597e87546a0c94323cee499"
+          git branch backup-impl25-source "a98085fab2743397e8f77f17c8a62d8c587c84e1"
           git bundle create impl25_full_migration_pack/full_repository_history.bundle --all
           git bundle verify impl25_full_migration_pack/full_repository_history.bundle
           mkdir -p impl25_recovery_test
           git clone --quiet --no-checkout impl25_full_migration_pack/full_repository_history.bundle impl25_recovery_test/clone
-          git -C impl25_recovery_test/clone cat-file -e "61d41a9d4b4186c51597e87546a0c94323cee499^{commit}"
-          git -C impl25_recovery_test/clone checkout --quiet --detach "61d41a9d4b4186c51597e87546a0c94323cee499"
-          test "$(git -C impl25_recovery_test/clone rev-parse HEAD)" = "61d41a9d4b4186c51597e87546a0c94323cee499"
+          git -C impl25_recovery_test/clone cat-file -e "a98085fab2743397e8f77f17c8a62d8c587c84e1^{commit}"
+          git -C impl25_recovery_test/clone checkout --quiet --detach "a98085fab2743397e8f77f17c8a62d8c587c84e1"
+          test "$(git -C impl25_recovery_test/clone rev-parse HEAD)" = "a98085fab2743397e8f77f17c8a62d8c587c84e1"
           mkdir -p impl25_recovery_test/archive
           cd impl25_recovery_test/archive
           unzip -q ../../impl25_full_migration_pack/production_main_source.zip
           test -f .github/workflows/kyoto-20261121-22-two-source-production-observer.yml
           cd ../..
-          printf '%s\n' 'IMPLEMENTATION_25_SOURCE_BACKUP' 'main_sha=61d41a9d4b4186c51597e87546a0c94323cee499' 'collector_sha=989aaba017c5450fed91b383421f5d2da53c6c69' 'race_days=20261121,20261122' 'scheduled_slots=8' 'content=git-archive-and-full-history-bundle' 'excluded=Turso_live_database,GitHub_Secrets,Actions_artifact_bytes' > impl25_full_migration_pack/README.txt
+          printf '%s\n' 'IMPLEMENTATION_25_SOURCE_BACKUP' 'main_sha=a98085fab2743397e8f77f17c8a62d8c587c84e1' 'collector_sha=989aaba017c5450fed91b383421f5d2da53c6c69' 'race_days=20261121,20261122' 'scheduled_slots=8' 'content=git-archive-and-full-history-bundle' 'excluded=Turso_live_database,GitHub_Secrets,Actions_artifact_bytes' > impl25_full_migration_pack/README.txt
           (cd impl25_full_migration_pack && sha256sum production_main_source.zip full_repository_history.bundle README.txt > FILE_SHA256.txt)
           python - <<'PY'
           import json,hashlib,pathlib
           root=pathlib.Path('impl25_full_migration_pack')
           files=['production_main_source.zip','full_repository_history.bundle','README.txt']
           manifest={'schema':'kyoto_impl25_full_source_backup.v1',
-                    'main_sha':'61d41a9d4b4186c51597e87546a0c94323cee499','collector_sha':'989aaba017c5450fed91b383421f5d2da53c6c69',
+                    'main_sha':'a98085fab2743397e8f77f17c8a62d8c587c84e1','collector_sha':'989aaba017c5450fed91b383421f5d2da53c6c69',
                     'source_archive_crc_pass':True,'git_bundle_verify_pass':True,'restored_head_match':True,
                     'scheduled_slots':8,'db_and_secrets_not_exported':True,
                     'files':{n:{'bytes':(root/n).stat().st_size,'sha256':hashlib.sha256((root/n).read_bytes()).hexdigest()} for n in files}}
