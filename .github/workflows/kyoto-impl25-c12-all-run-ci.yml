@@ -3,6 +3,7 @@ on:
   pull_request:
     paths:
       - '.github/workflows/kyoto-impl25-c12-all-run-ci.yml'
+      - '.github/workflows/kyoto-20261121-22-result-handoff.yml'
   workflow_dispatch:
 permissions:
   contents: read
@@ -57,6 +58,11 @@ jobs:
           assert 'all-four-day21-run-aggregation:' in handoff
           release_handoff=Path('release_review/.github/workflows/kyoto-20261121-22-result-handoff.yml').read_text()
           assert 'on:' in release_handoff
+          assert release_handoff.count('- cron:')==1
+          assert 'all-four-day21-run-aggregation:' in release_handoff
+          assert 'f0c73884447a27fa76d3cbf872dec65885937786' in release_handoff
+          assert 'KYOTO_JRA_ARCHIVE_AES256_HEX' in release_handoff
+          assert 'path: day21_all_runs_handoff/' in release_handoff
           assert '"full_live_jra_coverage_proved":False' in source
           assert '"automatic_patch_or_secret_edit_authorized":False' in source
           assert 'assess_lane(target,day=day' in source
