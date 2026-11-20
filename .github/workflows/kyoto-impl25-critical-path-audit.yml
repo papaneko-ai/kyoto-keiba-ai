@@ -1,0 +1,49 @@
+name: Kyoto Impl25 critical-path read-only proof
+on:
+  pull_request:
+    paths:
+      - 'diagnostics/kyoto_impl25_critical_path_audit.py'
+      - 'tests/test_kyoto_impl25_critical_path_audit.py'
+      - '.github/workflows/kyoto-impl25-critical-path-audit.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  static-critical-path:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: No-network unit tests
+        run: python -m unittest -q tests.test_kyoto_impl25_critical_path_audit
+      - name: Read immutable production collector
+        uses: actions/checkout@v4
+        with:
+          repository: papaneko-ai/kyoto-keiba-ai
+          ref: 920b9767f7328f7b461ce97bbd36ad42fe17dc48
+          path: pinned_collector
+          persist-credentials: false
+      - name: Inspect stage order and bound without any JRA HTTP
+        run: |
+          python -m diagnostics.kyoto_impl25_critical_path_audit \
+            --collector pinned_collector/diagnostics/kyoto_weekend_capture.py \
+            --workflow .github/workflows/kyoto-20261121-22-two-source-production-observer.yml \
+            --out impl25_critical_path_report.json
+          python - <<'PY'
+          import json
+          d=json.load(open('impl25_critical_path_report.json'))
+          assert d['scheduled_slot_count']==8
+          assert d['pc_timeout_minutes']==20
+          assert d['sp_timeout_minutes']==12
+          assert d['g04_after_g06'] and d['sp_waits_for_pc_completion']
+          assert d['no_external_http_performed'] and not d['duration_measured']
+          print('STATIC_CRITICAL_PATH_RISK_PROVEN; NOT A LIVE_CAPTURE_SUCCESS')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: impl25-critical-path-read-only
+          path: impl25_critical_path_report.json
+          if-no-files-found: error
