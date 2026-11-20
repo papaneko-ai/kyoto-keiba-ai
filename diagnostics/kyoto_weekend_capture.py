@@ -10,6 +10,7 @@ import json
 import os
 import re
 import shutil
+import time
 from datetime import datetime, timezone
 from http.cookiejar import CookieJar
 from pathlib import Path
@@ -79,6 +80,9 @@ def capture(day: str, channel: str, output: str, *, live: bool,
         from diagnostics.kyoto_g03_weekend_bridge import collect_after_observer
         pc_client=opener if opener is not None else build_opener(NoRedirect(),HTTPCookieProcessor(CookieJar()))
         pc_pacer=RequestPacer(min_gap_seconds=2.0)
+        # Reserve ~10 of the PC job's 20 minutes for markets/sealing.
+        # This clock starts before observer/G03; no per-stage resetting.
+        g04_market_reserve_deadline=time.monotonic()+600.0
         try:
             result = observe(
                 root / "pc_originals", now_utc=datetime.now(timezone.utc).isoformat(),
@@ -130,11 +134,14 @@ def capture(day: str, channel: str, output: str, *, live: bool,
                         fetch=lambda url: (pc_pacer.before_request(),_read(pc_client,url))[1],
                         clock=lambda:datetime.now(timezone.utc).isoformat(),allowed=True,
                         allow_partial=(not bool(g03.get("complete")) or len(partial_verified)<12),
-                        isolate_invalid_links=True)
+                        isolate_invalid_links=True,
+                        deadline_monotonic=g04_market_reserve_deadline,
+                        monotonic=time.monotonic)
                     out["g04_all_horse_profiles_parsed"]=bool(g04["all_profiles_parsed"])
                     out["g04_profiles_verified"]=g04["profile_verified_count"]
                     out["g04_profiles_expected"]=g04["expected_horses"]
                     out["g04_profiles_invalid_navigation"]=g04["invalid_profile_navigation_count"]
+                    out["g04_profiles_deferred_for_g06_budget"]=g04["time_budget_reserved_for_g06_count"]
                 except Exception as exc:
                     out["g04_capture_state"]="G04_EXCEPTION_SOURCE_OR_PARSE_BLOCKED"
                     out["g04_error_class"]=type(exc).__name__
