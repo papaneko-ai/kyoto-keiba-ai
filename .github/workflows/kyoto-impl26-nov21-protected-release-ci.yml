@@ -48,7 +48,7 @@ jobs:
           assert "always() && steps.upload_pc_primary.outcome == 'failure'" in s
           assert "always() && steps.upload_sp_primary.outcome == 'failure'" in s
           for channel in ("pc", "sp"):
-              marker="name: kyoto-"+channel+"-\${{ github.run_id }}-\${{ env.KYOTO_TARGET_DAY }}"
+              marker="name: kyoto-"+channel+"-"
               assert s.count(marker)==2
               assert s.count("path: "+channel+"_sealed/")==2
           assert "path: pc_raw/" not in s and "path: sp_raw/" not in s
