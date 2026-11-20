@@ -1,0 +1,29 @@
+name: Impl26 fixed-risk and final bug gate integrity
+on:
+  push:
+    branches:
+      - audit/impl26-final-gate-tracking-20261120
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  validate-fixed-a-to-d:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Parse exact A-D requirements and fixed 40 risks
+        run: python -I audit/verify_impl26_final_gate.py
+      - name: Destructive no-false-GO test
+        shell: bash
+        run: |
+          if python -I audit/verify_impl26_final_gate.py --require-go; then
+            echo "ERROR: premature GO was allowed"
+            exit 1
+          fi
+          echo "PASS: unverified stage D is correctly rejected"
