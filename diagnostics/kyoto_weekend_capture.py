@@ -260,12 +260,16 @@ def capture(day: str, channel: str, output: str, *, live: bool,
             except Exception as exc:
                 out["g06_source_state"]="G03_TO_G06_INTEGRATION_NOT_VERIFIED"
                 out["g06_error_class"]=type(exc).__name__
+            for original in (root / "pc_originals").iterdir():
+                if original.is_file():
+                    original.rename(root / original.name)
+            (root / "pc_originals").rmdir()
             # C11 audits the final set of already saved G03-G06 source bytes,
             # including the now-bundled G06. No additional HTTP; any failure
             # must not discard originals or delay the AES source archive.
             try:
                 from diagnostics.kyoto_impl25_c11_per_family_proof import save as save_c11_proof
-                proof=save_c11_proof(root/"pc_originals",day)
+                proof=save_c11_proof(root,day)
                 out["c11_per_family_source_proof_saved"]=True
                 out["c11_g03_verified_races"]=proof["g03_verified_races"]
                 out["c11_g04_verified_profiles"]=proof["g04_verified_profiles"]
@@ -274,10 +278,6 @@ def capture(day: str, channel: str, output: str, *, live: bool,
             except Exception as exc:
                 out["c11_per_family_source_proof_saved"]=False
                 out["c11_error_class"]=type(exc).__name__
-            for original in (root / "pc_originals").iterdir():
-                if original.is_file():
-                    original.rename(root / original.name)
-            (root / "pc_originals").rmdir()
             return out
         except Exception as exc:
             out = _no_claim(day, channel, "PC_CAPTURE_EXCEPTION",
