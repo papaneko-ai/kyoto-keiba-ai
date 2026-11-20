@@ -406,7 +406,54 @@
       "notes": "未認定。証拠を照合した後に更新する。"
     }
   ],
-  "incidents": [],
+  "incidents": [
+    {
+      "incident_id": "INC-20261120-44674577790-source-sha-contract",
+      "first_seen_utc": "2026-11-20T04:28:03Z",
+      "run_id": "44674577790",
+      "job_id": "136083243525",
+      "symptom": "Main release acceptance test rejects deployed Nov21 immutable collector SHA because test expects obsolete 920b9767...",
+      "risk_ids": [
+        "R05",
+        "R37"
+      ],
+      "root_cause_status": "PROVED",
+      "root_cause_evidence": [
+        "tests/test_kyoto_weekend_main_release_guard.py stale constant",
+        "CI Run 44674577790 failed job 136083243525"
+      ],
+      "same_cause_search": "Check tests and five-condition source-contract checks referencing fixed SHA",
+      "repair_branch": "fix/impl26-main-release-test-dual-pin-20261120",
+      "repair_commit": "a0d63dc56e9ff388e1281634caf570b636e11f24",
+      "regression_ci_run": "44675738195",
+      "production_approval": "NOT_MERGED",
+      "rollback_sha": "39b67de503e87b8f7d702b7820c3a52d3f12b321",
+      "status": "BLOCKED_WITH_REASON",
+      "closure_evidence": "PR #63 awaits separate main acceptance review; five-condition CI still failing"
+    },
+    {
+      "incident_id": "INC-20261120-44674553811-reuse-proof",
+      "first_seen_utc": "2026-11-20T04:27:50Z",
+      "run_id": "44674553811",
+      "job_id": "136083167587",
+      "symptom": "Production PR #61 reuse-evidence gate failed for missing required text headings",
+      "risk_ids": [
+        "R38"
+      ],
+      "root_cause_status": "PROVED",
+      "root_cause_evidence": [
+        "CI Run 44674553811 MISSING_REUSE_PROOF_FIELDS"
+      ],
+      "same_cause_search": "Review PR reuse-evidence template and documentation release gates",
+      "repair_branch": null,
+      "repair_commit": null,
+      "regression_ci_run": null,
+      "production_approval": "NOT_APPLICABLE",
+      "rollback_sha": "a98085fab2743397e8f77f17c8a62d8c587c84e1",
+      "status": "BLOCKED_WITH_REASON",
+      "closure_evidence": "Historical PR #61 body was non-conformant; incident remains open for recurrence prevention"
+    }
+  ],
   "final_gate": {
     "status": "NO_GO_NOT_EXECUTED",
     "checks": {
