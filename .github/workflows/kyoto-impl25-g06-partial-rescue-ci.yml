@@ -1,0 +1,67 @@
+name: Kyoto Impl25 partial G06 original rescue independent CI
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/kyoto-impl25-g06-partial-rescue-ci.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  immutable-candidate-offline-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    env:
+      PYTHONPATH: .
+      KYOTO_TARGET_DAY: '20261121'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: 324a76fd57ea9c660d984fcc4fc373cba4e30109
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install 'beautifulsoup4>=4.12,<5' 'cryptography>=43,<47'
+      - name: Verify source pinned and no JRA HTTP
+        run: test "$(git rev-parse HEAD)" = "324a76fd57ea9c660d984fcc4fc373cba4e30109"
+      - name: Run destructive partial-rescue AES and existing core regressions
+        run: |
+          set -euo pipefail
+          python -m unittest -q \
+            tests.test_kyoto_impl25_g06_interrupted_rescue \
+            tests.test_kyoto_impl25_independent_track_continuation \
+            tests.test_kyoto_impl25_g04_priority \
+            tests.test_kyoto_weekend_capture \
+            tests.test_kyoto_weekend_end_to_end \
+            tests.test_kyoto_weekend_postflight \
+            tests.test_kyoto_weekend_interruption_and_pacing \
+            tests.test_kyoto_g04_all_horse_profiles \
+            tests.test_kyoto_g05_conditions \
+            tests.test_kyoto_g05_official_track \
+            tests.test_kyoto_g05_weekend_bridge \
+            tests.test_kyoto_g06_claim_execution \
+            tests.test_kyoto_impl23_weekend_entrypoint_claim \
+            tests.test_kyoto_impl23_claim_preflight \
+            tests.test_kyoto_impl23_lease_window \
+            tests.test_kyoto_impl23_lease_clock \
+            tests.test_kyoto_impl23_claim_evidence \
+            tests.test_kyoto_impl23_pc_to_g06_real_lease \
+            tests.test_kyoto_impl23_production_claim_activation \
+            tests.test_kyoto_impl23_claim_continuation \
+            tests.test_kyoto_weekend_race_parity \
+            tests.test_kyoto_nov15_encrypted_evidence \
+            tests.test_kyoto_weekend_retry_guard
+      - name: Verify failure rescue cannot masquerade as market success
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          src=Path('diagnostics/kyoto_g06_nested_bundle.py').read_text()
+          capture=Path('diagnostics/kyoto_weekend_capture.py').read_text()
+          assert 'INTERRUPTED_BATCH_PARTIAL_ORIGINALS_ONLY' in src
+          assert '"verified_dual_market_races":0' in src
+          assert '"prediction_ready":False' in src
+          assert 'if str(exc)!="batch_receipt_missing":' in capture
+          assert 'bundle_interrupted_g06(' in capture
+          assert 'encrypt_evidence(src,dst' in capture
+          print('INTERRUPTED_ORIGINALS_RECOVERY_NO_MARKET_AUTHENTICATION')
+          PY
