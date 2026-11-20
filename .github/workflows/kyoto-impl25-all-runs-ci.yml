@@ -25,7 +25,7 @@ jobs:
       - name: Check real pinned production scope without changing collector
         uses: actions/checkout@v4
         with:
-          ref: eba10b24f4e0b05513de291343400b406ec320ed
+          ref: 989aaba017c5450fed91b383421f5d2da53c6c69
           path: pinned_source
           persist-credentials: false
       - name: Verify fixed eight slots, G04/G05 partial path and limited SP scope
@@ -37,7 +37,7 @@ jobs:
           source=Path('pinned_source/diagnostics/kyoto_weekend_capture.py').read_text()
           handoff=Path('.github/workflows/kyoto-20261121-22-result-handoff.yml').read_text()
           assert observer.count('- cron:')==8
-          assert observer.count('eba10b24f4e0b05513de291343400b406ec320ed')==6
+          assert observer.count('989aaba017c5450fed91b383421f5d2da53c6c69')==6
           assert source.index('verify_partial(')<source.index('g04=g04_capture(')
           assert source.index('g04=g04_capture(')<source.index('markets=run_twelve(')
           assert source.index('g05=compile_saved(')<source.index('markets=run_twelve(')
@@ -71,6 +71,13 @@ jobs:
           assert 'save_auxiliary_coverage(root/"pc_originals",day)' in source
           assert '"workout_source_independently_verified":False' in aux
           assert 'FILES.add("c10_auxiliary_coverage_receipt.json")' in crypto
+          family=Path('pinned_source/diagnostics/kyoto_impl25_c11_per_family_proof.py').read_text()
+          crypto=Path('pinned_source/diagnostics/kyoto_nov15_encrypted_evidence.py').read_text()
+          assert 'proof=save_c11_proof(root,day)' in source
+          assert 'verify_bundle(path)' in family
+          assert '_verify_saved_channel(' in family
+          assert '"jra_network_origin_authenticated_by_this_report":False' in family
+          assert 'FILES.add("c11_per_family_source_proof.json")' in crypto
           assert 'capture_verified_sp_seed(' in source and 'race_number=12' in source
           assert 'KYOTO_NOV22_VERIFIED_COLLECTOR_SHA' in observer
           assert 'KYOTO_JRA_ARCHIVE_AES256_HEX' in observer
@@ -85,6 +92,7 @@ jobs:
               "g06_racewise_invalid_input_isolated":True,
               "sp_observed_navigation_per_race_inventoried":True,
               "c10_auxiliary_workout_source_remains_unverified":True,
+              "c11_per_family_source_proof_enabled":True,
               "sp_full12_coverage_verified":False,
               "independent_workout_source_verified":False,
               "market_live_timing_verified":False,
