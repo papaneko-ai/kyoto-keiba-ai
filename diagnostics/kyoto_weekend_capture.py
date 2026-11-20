@@ -214,7 +214,17 @@ def capture(day: str, channel: str, output: str, *, live: bool,
                         out["g06_error_class"]=type(exc).__name__
                     finally:
                         if g06_root.is_dir():
-                            archive=bundle_g06(g06_root,root/"g06_source_bundle.tar.gz")
+                            from diagnostics.kyoto_g06_nested_bundle import (
+                                BundleError,bundle_interrupted_g06)
+                            try:
+                                archive=bundle_g06(g06_root,root/"g06_source_bundle.tar.gz")
+                            except BundleError as exc:
+                                if str(exc)!="batch_receipt_missing":
+                                    raise
+                                # Recover only previously saved bytes, not market
+                                # success claims; existing AES-GCM seals the bundle.
+                                archive=bundle_interrupted_g06(
+                                    g06_root,root/"g06_source_bundle.tar.gz")
                             out["g06_nested_originals_sealed_in_parent"]=archive["state"]
             except Exception as exc:
                 out["g06_source_state"]="G03_TO_G06_INTEGRATION_NOT_VERIFIED"
