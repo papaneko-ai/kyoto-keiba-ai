@@ -478,10 +478,15 @@
       "priority": "P1",
       "description": "Actions成功とJRA原本成功の混同",
       "required_evidence": "レース/市場/馬/項目別証拠評価",
-      "status": "OPEN",
-      "proof": [],
+      "status": "MITIGATED_WITH_PROOF",
+      "proof": [
+        "Independent GitHub Actions Run 44680453107 SUCCESS: C12 full-run aggregation and source artifact triage regression, missing-run negative test",
+        "Source diagnostics/kyoto_impl25_c12_all_runs_handoff.py at f0c73884447a27fa76d3cbf872dec65885937786 separates job_conclusion/ciphertext_authenticated/source_original_sha_utc_checked/both_raw_market_originals_sha_utc_verified/c11_verified_counts and never infers official_live_market_accepted from a green CI",
+        "All-run report retains full_live_jra_coverage_proved=false and missing_run_count_lower_bound when no four scheduled runs; source attribution and actual count separately recorded",
+        "Main source-only pipeline Run 44679900418 SUCCESS after R31 retry, no claim of authenticated markets"
+      ],
       "owner": "implementation26",
-      "notes": "未認定。証拠を照合した後に更新する。",
+      "notes": "Actions成功と原本の真実性を分離する対策の模擬・否定系認定。実開催の市場真正性はR15で別確認。",
       "next_evidence": "Actions成功と原本/市場/馬の取得成功を別軸で集計",
       "review_due_utc": "2026-11-21T12:30:00Z",
       "triage_complete": true
