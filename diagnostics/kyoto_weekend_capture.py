@@ -179,7 +179,11 @@ def capture(day: str, channel: str, output: str, *, live: bool,
                 from diagnostics.kyoto_g03_to_g06_input_adapter import records_from_g03
                 from diagnostics.kyoto_g06_all12_capture import run_twelve
                 from diagnostics.kyoto_g06_nested_bundle import bundle_g06
-                source_inputs=records_from_g03(root/"pc_originals",day=day)
+                rejected_inputs={}
+                source_inputs=records_from_g03(root/"pc_originals",day=day,
+                    skip_invalid_races=True,rejections=rejected_inputs)
+                out["g06_individual_race_input_rejections"]=rejected_inputs
+                out["g06_individual_race_inputs_usable"]=sum(x is not None for x in source_inputs.values())
                 if any(x is not None for x in source_inputs.values()):
                     g06_root=root/"g06_unsealed"
                     try:
