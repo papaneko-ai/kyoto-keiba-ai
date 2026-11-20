@@ -61,7 +61,7 @@ jobs:
           capture=Path('diagnostics/kyoto_weekend_capture.py').read_text()
           assert 'isolate_invalid_links=True' in capture
           assert 'deadline_monotonic=g04_market_reserve_deadline' in capture
-          assert 'g04_market_reserve_deadline=time.monotonic()+600.0' in capture
+          assert 'g04_market_reserve_deadline=pc_capture_start_monotonic+600.0' in capture
           assert 'time_budget_reserved_for_g06_count' in src
           g06=Path('diagnostics/kyoto_g06_all12_capture.py').read_text()
           assert 'capture_deadline_monotonic=g06_sealing_reserve_deadline' in capture
