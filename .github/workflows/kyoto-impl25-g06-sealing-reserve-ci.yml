@@ -1,0 +1,76 @@
+name: Kyoto Impl25 G06 market sealing reserve CI
+on:
+  pull_request:
+    paths: ['.github/workflows/kyoto-impl25-g06-sealing-reserve-ci.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  immutable-g04-fault-injection:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: d45f3c9067eee3375c4d9e3ffd908d076f42595a
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install 'beautifulsoup4>=4.12,<5' 'cryptography>=43,<47'
+      - name: Verify immutable source SHA
+        run: test "$(git rev-parse HEAD)" = "d45f3c9067eee3375c4d9e3ffd908d076f42595a"
+      - name: No-JRA-HTTP new fault injection and existing G03-G06/Turso/AES regressions
+        env:
+          KYOTO_TARGET_DAY: '20261121'
+        run: |
+          set -euo pipefail
+          python -m unittest -q \
+            tests.test_kyoto_impl25_g06_market_sealing_reserve \
+            tests.test_kyoto_impl25_g04_market_time_reserve \
+            tests.test_kyoto_impl25_g04_horsewise_quarantine \
+            tests.test_kyoto_g04_all_horse_profiles \
+            tests.test_kyoto_impl25_g06_racewise_isolation \
+            tests.test_kyoto_impl25_g06_interrupted_rescue \
+            tests.test_kyoto_impl25_independent_track_continuation \
+            tests.test_kyoto_impl25_g04_priority \
+            tests.test_kyoto_weekend_capture \
+            tests.test_kyoto_weekend_end_to_end \
+            tests.test_kyoto_weekend_postflight \
+            tests.test_kyoto_weekend_interruption_and_pacing \
+            tests.test_kyoto_g05_conditions \
+            tests.test_kyoto_g05_official_track \
+            tests.test_kyoto_g05_weekend_bridge \
+            tests.test_kyoto_g06_claim_execution \
+            tests.test_kyoto_impl23_weekend_entrypoint_claim \
+            tests.test_kyoto_impl23_claim_preflight \
+            tests.test_kyoto_impl23_lease_window \
+            tests.test_kyoto_impl23_lease_clock \
+            tests.test_kyoto_impl23_claim_evidence \
+            tests.test_kyoto_impl23_pc_to_g06_real_lease \
+            tests.test_kyoto_impl23_production_claim_activation \
+            tests.test_kyoto_impl23_claim_continuation \
+            tests.test_kyoto_weekend_race_parity \
+            tests.test_kyoto_nov15_encrypted_evidence \
+            tests.test_kyoto_weekend_retry_guard
+      - name: Check no false profile success or protected bypass
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          src=Path('diagnostics/kyoto_g04_all_horse_profiles.py').read_text()
+          capture=Path('diagnostics/kyoto_weekend_capture.py').read_text()
+          assert 'isolate_invalid_links=True' in capture
+          assert 'deadline_monotonic=g04_market_reserve_deadline' in capture
+          assert 'g04_market_reserve_deadline=time.monotonic()+600.0' in capture
+          assert 'time_budget_reserved_for_g06_count' in src
+          g06=Path('diagnostics/kyoto_g06_all12_capture.py').read_text()
+          assert 'capture_deadline_monotonic=g06_sealing_reserve_deadline' in capture
+          assert 'g06_sealing_reserve_deadline=pc_capture_start_monotonic+1020.0' in capture
+          assert 'time_budget_reserved_for_sealing_races' in g06
+          assert 'invalid_profile_navigation_count' in src
+          assert '"profile_verified":False' in src
+          assert 'verify_partial(root,expected_day=day)' in src
+          assert 'encrypt_evidence(src,dst' in capture
+          assert 'active_claims_for_weekend(day)' in capture
+          print('G06_MARKET_DEADLINE_SEALING_RESERVE_VERIFIED')
+          PY
