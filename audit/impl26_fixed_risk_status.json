@@ -73,10 +73,14 @@
       "priority": "P0",
       "description": "Turso本番接続設定の不備",
       "required_evidence": "実接続・共有予約の読み取り可能性",
-      "status": "OPEN",
-      "proof": [],
+      "status": "MITIGATED_WITH_PROOF",
+      "proof": [
+        "Run 44677451421 SUCCESS real production Turso SELECT-only schema probe using sealed credential",
+        "diagnostics/kyoto_impl23_claim_preflight.py check(day, environ simulated scheduled slot) returned REMOTE_COORDINATOR_READ_AND_TABLE_VERIFIED",
+        "Confirmed remote_write_verified=false: production claim write/lease not exercised; R07 duplicate-race proof remains separate"
+      ],
       "owner": "implementation26",
-      "notes": "未認定。証拠を照合した後に更新する。"
+      "notes": "本番共有予約テーブルの実読取確認。書込み・別実行環境の競合はR07に残し、変更していない。"
     },
     {
       "id": "R07",
