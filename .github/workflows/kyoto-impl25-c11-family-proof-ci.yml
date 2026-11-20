@@ -1,0 +1,55 @@
+name: Kyoto Impl25 C11 per-family source proof independent CI
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/kyoto-impl25-c11-family-proof-ci.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  immutable-c11-source-integrity:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: eb509daa066cfd2a53b6870b08571aba3fa623da
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install 'beautifulsoup4>=4.12,<5' 'cryptography>=43,<47'
+      - name: Verify immutable candidate commit
+        run: test "$(git rev-parse HEAD)" = "eb509daa066cfd2a53b6870b08571aba3fa623da"
+      - name: Independent no-network G03-G06 SHA UTC market and AES regressions
+        env:
+          KYOTO_TARGET_DAY: '20261121'
+        run: |
+          set -euo pipefail
+          python -m unittest -q \
+            tests.test_kyoto_impl25_c11_per_family_proof \
+            tests.test_kyoto_impl25_c10_auxiliary_coverage \
+            tests.test_kyoto_g03_all_races \
+            tests.test_kyoto_g04_all_horse_profiles \
+            tests.test_kyoto_g05_conditions \
+            tests.test_kyoto_g06_all12_capture \
+            tests.test_kyoto_g06_nested_bundle \
+            tests.test_kyoto_weekend_end_to_end \
+            tests.test_kyoto_weekend_postflight \
+            tests.test_kyoto_impl25_g06_interrupted_rescue \
+            tests.test_kyoto_nov15_encrypted_evidence
+      - name: Verify local proof never authenticates network or permits wagers
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('diagnostics/kyoto_impl25_c11_per_family_proof.py').read_text()
+          c=Path('diagnostics/kyoto_weekend_capture.py').read_text()
+          aes=Path('diagnostics/kyoto_nov15_encrypted_evidence.py').read_text()
+          assert '"prediction_ready":False' in p
+          assert '"jra_network_origin_authenticated_by_this_report":False' in p
+          assert 'verify_bundle(path)' in p and '_verify_saved_channel(' in p
+          assert 'proof=save_c11_proof(root,day)' in c
+          assert 'FILES.add("c11_per_family_source_proof.json")' in aes
+          assert 'encrypt_evidence(src,dst' in c
+          print('C11_ALL_FAMILIES_SHA_UTC_NOT_JRA_AUTHENTICITY_OR_WAGER_RELEASE')
+          PY
