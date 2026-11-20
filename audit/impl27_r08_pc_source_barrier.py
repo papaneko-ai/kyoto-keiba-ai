@@ -82,7 +82,13 @@ def main(argv=None):
             return 0
         if decision == "BLOCK":
             raise SystemExit("R08_PC_SOURCE_UNVERIFIED_NO_SP_HTTP:" + last)
-        time.sleep(4)
+        # Avoid exhausting GitHub Actions REST limits if PC spends most of its
+        # 20-minute window collecting. Poll frequently only at startup, then
+        # use 15-second intervals; evidence is still required before JRA HTTP.
+        elapsed = args.wait_seconds - max(0, deadline-time.monotonic())
+        remaining = deadline-time.monotonic()
+        if remaining > 0:
+            time.sleep(min(remaining, 4 if elapsed < 30 else 15))
     raise SystemExit("R08_WAIT_TIMEOUT_NO_SP_HTTP:" + last)
 
 if __name__ == "__main__":
