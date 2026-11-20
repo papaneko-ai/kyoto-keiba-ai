@@ -95,7 +95,17 @@ jobs:
           python -m unittest -q \
             tests.test_kyoto_g06_all12_capture \
             tests.test_kyoto_g06_claim_execution \
-            tests.test_kyoto_weekend_sp_discovery
+            tests.test_kyoto_weekend_sp_discovery \
+            tests.test_kyoto_g06_gap_recovery_plan \
+            tests.test_kyoto_g06_missing_market_retry \
+            tests.test_kyoto_g06_full_twelve_reparse_e2e \
+            tests.test_kyoto_impl25_g06_market_sealing_reserve \
+            tests.test_kyoto_impl25_g06_interrupted_rescue \
+            tests.test_kyoto_impl25_g06_racewise_isolation \
+            tests.test_kyoto_g06_nested_bundle \
+            tests.test_kyoto_g06_item_level_recovery \
+            tests.test_kyoto_impl25_c10_auxiliary_coverage \
+            tests.test_kyoto_impl25_c11_per_family_proof
   destructive-and-turso:
     runs-on: ubuntu-latest
     timeout-minutes: 15
