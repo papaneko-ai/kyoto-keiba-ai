@@ -36,6 +36,7 @@ jobs:
           from pathlib import Path
           from datetime import datetime,timezone
           from diagnostics.kyoto_impl26_incident_metadata import classify
+          from diagnostics.kyoto_impl26_r08_latency_watch import assess_delay,incident_from_assessment
           repo=os.environ["GITHUB_REPOSITORY"]
           def api(path):
               return json.loads(subprocess.check_output(["gh","api",f"repos/{repo}/{path}"],text=True))
@@ -45,6 +46,7 @@ jobs:
           else:
               date=datetime.now(timezone.utc).strftime("%Y-%m-%d")
           items=[]
+          r08_observations=[]
           if date in ("2026-11-21","2026-11-22"):
               day=date.replace("-","")
               endpoint=f"actions/workflows/kyoto-20261121-22-two-source-production-observer.yml/runs?created={date}&per_page=100"
@@ -61,8 +63,18 @@ jobs:
               for run in runs:
                   if run.get("status")=="completed":
                       rid=run["id"]
-                      items+=list(classify(run,api(f"actions/runs/{rid}/jobs?per_page=100"),
-                                         api(f"actions/runs/{rid}/artifacts?per_page=100"),day=day))
+                      jobs_doc=api(f"actions/runs/{rid}/jobs?per_page=100")
+                      arts_doc=api(f"actions/runs/{rid}/artifacts?per_page=100")
+                      items+=list(classify(run,jobs_doc,arts_doc,day=day))
+                      r08=assess_delay(jobs_doc.get("jobs",[]),rid,day)
+                      r08_observations.append(r08)
+                      alarm=incident_from_assessment(r08)
+                      if alarm is not None:
+                          items.append(alarm)
+          Path("impl26_incident_evidence/R08_latency.json").write_text(
+              json.dumps({"schema":"kyoto_impl26_r08_observations.v1",
+                          "records":r08_observations,
+                          "JRA_originals_authenticated":False},sort_keys=True,indent=2)+"\n")
           dedup={x["incident_id"]:x for x in items}
           Path("impl26_incident_evidence/INC_metadata.json").write_text(
               json.dumps({"schema":"kyoto_impl26_incidents.v1","incidents":list(dedup.values()),
