@@ -1,0 +1,529 @@
+{
+  "schema": "kyoto_impl26_fixed_risk_v1",
+  "source": "docs/KYOTO_IMPL26_RISK_AND_INCIDENT_EVOLUTION_20261120.md",
+  "source_blob_sha": "453619cc6f38d1994cab8fa7f9a3a71459dce408",
+  "baseline_main_sha": "39b67de503e87b8f7d702b7820c3a52d3f12b321",
+  "note": "初期化状態。OPENは未認定であり、対策が存在しないと断定するものではない。",
+  "risks": [
+    {
+      "id": "R01",
+      "priority": "P0",
+      "description": "GitHub予定起動の遅延/欠落",
+      "required_evidence": "予定4枠/日と観測Run全件の照合",
+      "status": "OPEN",
+      "proof": [],
+      "owner": "implementation26",
+      "notes": "未認定。証拠を照合した後に更新する。"
+    },
+    {
+      "id": "R02",
+      "priority": "P0",
+      "description": "HTTP前の過重な回帰試験",
+      "required_evidence": "スケジュール内に到達した実測時刻",
+      "status": "OPEN",
+      "proof": [],
+      "owner": "implementation26",
+      "notes": "未認定。証拠を照合した後に更新する。"
+    },
+    {
+      "id": "R03",
+      "priority": "P0",
+      "description": "UTC日時窓と開催日不一致による停止",
+      "required_evidence": "正常/境界/遅延開始を区別した試験",
+      "status": "OPEN",
+      "proof": [],
+      "owner": "implementation26",
+      "notes": "未認定。証拠を照合した後に更新する。"
+    },
+    {
+      "id": "R04",
+      "priority": "P0",
+      "description": "AES鍵欠損・誤り",
+      "required_evidence": "Secret存在・復号整合と鍵非公開",
+      "status": "OPEN",
+      "proof": [],
+      "owner": "implementation26",
+      "notes": "未認定。証拠を照合した後に更新する。"
+    },
+    {
+      "id": "R05",
+      "priority": "P0",
+      "description": "固定SHA・日時・起動条件の不一致",
+      "required_evidence": "8枠に対するSHA/イベント事前照合",
+      "status": "MITIGATED_WITH_PROOF",
+      "proof": [
+        "main a44f0ab7a6457bcd71c43ead79563f74676be2ff",
+        "production observer 8 cron slots with distinct day21 sha de2544c1e9f9951a265419461267146b4023c2ab",
+        "CI run 44676198191 SUCCESS after correcting stale pinned-sha release test",
+        "CI run 44674536797 SUCCESS protected 8-slot source-gate"
+      ],
+      "owner": "implementation26",
+      "notes": "静的構造と独立CIの証拠による対策認定。実開催時の外部結果とは別。"
+    },
+    {
+      "id": "R06",
+      "priority": "P0",
+      "description": "Turso本番接続設定の不備",
+      "required_evidence": "実接続・共有予約の読み取り可能性",
+      "status": "OPEN",
+      "proof": [],
+      "owner": "implementation26",
+      "notes": "未認定。証拠を照合した後に更新する。"
+    },
+    {
+      "id": "R07",
+      "priority": "P1",
+      "description": "Turso重複予約・期限・競合",
+      "required_evidence": "異なる実行環境での重複防止証拠",
+      "status": "OPEN",
+      "proof": [],
+      "owner": "implementation26",
+      "notes": "未認定。証拠を照合した後に更新する。"
+    },
+    {
+      "id": "R08",
+      "priority": "P0",
+      "description": "SPがPC終了後まで待機",
+      "required_evidence": "PC障害時のSP時刻と発走前到達",
+      "status": "OPEN",
+      "proof": [],
+      "owner": "implementation26",
+      "notes": "未認定。証拠を照合した後に更新する。"
+    },
+    {
+      "id": "R09",
+      "priority": "P0",
+      "description": "concurrencyの待ち行列・予定枠損失",
+      "required_evidence": "4枠が互いに潰れない証拠",
+      "status": "OPEN",
+      "proof": [],
+      "owner": "implementation26",
+      "notes": "未認定。証拠を照合した後に更新する。"
+    },
+    {
+      "id": "R10",
+      "priority": "P1",
+      "description": "22日向け変更の認証・SHAゲート不備",
+      "required_evidence": "候補CIと承認済SHAの照合",
+      "status": "MITIGATED_WITH_PROOF",
+      "proof": [
+        "KYOTO_NOV22_VERIFIED_COLLECTOR_SHA explicit review gate in main workflow",
+        "DAY22_CANDIDATE_NOT_PREFLIGHT_VERIFIED_NO_HTTP",
+        "run 44676198191 SUCCESS, run 44674536797 SUCCESS"
+      ],
+      "owner": "implementation26",
+      "notes": "静的構造と独立CIの証拠による対策認定。実開催時の外部結果とは別。"
+    },
+    {
+      "id": "R11",
+      "priority": "P0",
+      "description": "公式PC URL/DOM変更",
+      "required_evidence": "実原本のリンク抽出と欠損原因",
+      "status": "OPEN",
+      "proof": [],
+      "owner": "implementation26",
+      "notes": "未認定。証拠を照合した後に更新する。"
+    },
+    {
+      "id": "R12",
+      "priority": "P0",
+      "description": "G03 全12R出馬表不足",
+      "required_evidence": "12レースの原本・出走馬数・UTC",
+      "status": "OPEN",
+      "proof": [],
+      "owner": "implementation26",
+      "notes": "未認定。証拠を照合した後に更新する。"
+    },
+    {
+      "id": "R13",
+      "priority": "P1",
+      "description": "G04 馬別不正/重複リンク",
+      "required_evidence": "正常馬継続と欠測受領書",
+      "status": "OPEN",
+      "proof": [],
+      "owner": "implementation26",
+      "notes": "未認定。証拠を照合した後に更新する。"
+    },
+    {
+      "id": "R14",
+      "priority": "P0",
+      "description": "G04プロフィールとG06市場の時間競合",
+      "required_evidence": "実測の時間/取得数/原本残存率",
+      "status": "OPEN",
+      "proof": [],
+      "owner": "implementation26",
+      "notes": "未認定。証拠を照合した後に更新する。"
+    },
+    {
+      "id": "R15",
+      "priority": "P0",
+      "description": "馬連・枠連両市場の取得不足",
+      "required_evidence": "発走前の市場別原本/検証",
+      "status": "OPEN",
+      "proof": [],
+      "owner": "implementation26",
+      "notes": "未認定。証拠を照合した後に更新する。"
+    },
+    {
+      "id": "R16",
+      "priority": "P0",
+      "description": "G06の17分終了による未取得R",
+      "required_evidence": "未取得理由と封入状態・再配分判断",
+      "status": "OPEN",
+      "proof": [],
+      "owner": "implementation26",
+      "notes": "未認定。証拠を照合した後に更新する。"
+    },
+    {
+      "id": "R17",
+      "priority": "P1",
+      "description": "オッズ表構造・発売状態/締切誤認",
+      "required_evidence": "公式市場原本と時点別停止条件",
+      "status": "OPEN",
+      "proof": [],
+      "owner": "implementation26",
+      "notes": "未認定。証拠を照合した後に更新する。"
+    },
+    {
+      "id": "R18",
+      "priority": "P0",
+      "description": "SP全12R代替の未実証",
+      "required_evidence": "公式観測URLだけを使った独立レース実取得",
+      "status": "OPEN",
+      "proof": [],
+      "owner": "implementation26",
+      "notes": "未認定。証拠を照合した後に更新する。"
+    },
+    {
+      "id": "R19",
+      "priority": "P0",
+      "description": "SP設定URL欠損/不整合",
+      "required_evidence": "実在公式R12経路と安全停止・自動探索",
+      "status": "OPEN",
+      "proof": [],
+      "owner": "implementation26",
+      "notes": "未認定。証拠を照合した後に更新する。"
+    },
+    {
+      "id": "R20",
+      "priority": "P1",
+      "description": "SPナビ候補と実取得成功の混同",
+      "required_evidence": "候補/取得/解析/市場を別階層で判定",
+      "status": "MITIGATED_WITH_PROOF",
+      "proof": [
+        "collector de2544c1e9f9951a265419461267146b4023c2ab",
+        "SP per-race evidence reports source_only=true and all_twelve_races_verified=false",
+        "CI run 44674277544 SUCCESS, tests.test_kyoto_sp_all12_observed_capture"
+      ],
+      "owner": "implementation26",
+      "notes": "静的構造と独立CIの証拠による対策認定。実開催時の外部結果とは別。"
+    },
+    {
+      "id": "R21",
+      "priority": "P1",
+      "description": "公式外の補助源欠損・不整合",
+      "required_evidence": "出所/合法性/原本/時刻・欠測理由",
+      "status": "OPEN",
+      "proof": [],
+      "owner": "implementation26",
+      "notes": "未認定。証拠を照合した後に更新する。"
+    },
+    {
+      "id": "R22",
+      "priority": "P1",
+      "description": "京都馬場情報の古さ・発表差",
+      "required_evidence": "同日公式見出し/取得UTC/SHA",
+      "status": "OPEN",
+      "proof": [],
+      "owner": "implementation26",
+      "notes": "未認定。証拠を照合した後に更新する。"
+    },
+    {
+      "id": "R23",
+      "priority": "P1",
+      "description": "馬体重発表前の未取得",
+      "required_evidence": "時点別欠測記録と再取得条件",
+      "status": "OPEN",
+      "proof": [],
+      "owner": "implementation26",
+      "notes": "未認定。証拠を照合した後に更新する。"
+    },
+    {
+      "id": "R24",
+      "priority": "P1",
+      "description": "調教独立ソース未確認",
+      "required_evidence": "出所未確認と明記し架空値を禁止",
+      "status": "OPEN",
+      "proof": [],
+      "owner": "implementation26",
+      "notes": "未認定。証拠を照合した後に更新する。"
+    },
+    {
+      "id": "R25",
+      "priority": "P1",
+      "description": "全馬の特徴量・過去走の不足",
+      "required_evidence": "馬ごとの原本照合と欠損率",
+      "status": "OPEN",
+      "proof": [],
+      "owner": "implementation26",
+      "notes": "未認定。証拠を照合した後に更新する。"
+    },
+    {
+      "id": "R26",
+      "priority": "P1",
+      "description": "出走取消・馬番/騎手変更",
+      "required_evidence": "更新時刻とレース/馬識別の再整合",
+      "status": "OPEN",
+      "proof": [],
+      "owner": "implementation26",
+      "notes": "未認定。証拠を照合した後に更新する。"
+    },
+    {
+      "id": "R27",
+      "priority": "P0",
+      "description": "HTTP応答の誤採用・サイト異常",
+      "required_evidence": "公式ホスト/容量/内容/日付証明",
+      "status": "OPEN",
+      "proof": [],
+      "owner": "implementation26",
+      "notes": "未認定。証拠を照合した後に更新する。"
+    },
+    {
+      "id": "R28",
+      "priority": "P1",
+      "description": "SHA一致をJRA由来の証明と誤認",
+      "required_evidence": "原本整合と取得元実証の分離",
+      "status": "MITIGATED_WITH_PROOF",
+      "proof": [
+        "docs/diagnostics/KYOTO_20261116_INDEPENDENT_RELEASE_BLOCKERS.json live_source_verified=false",
+        "CI run 44676198191 source-only policy PASS; evidence contract separates source bytes and actual attribution"
+      ],
+      "owner": "implementation26",
+      "notes": "静的構造と独立CIの証拠による対策認定。実開催時の外部結果とは別。"
+    },
+    {
+      "id": "R29",
+      "priority": "P0",
+      "description": "強制終了/例外中の原本消失",
+      "required_evidence": "部分原本からAES封入までの障害注入",
+      "status": "OPEN",
+      "proof": [],
+      "owner": "implementation26",
+      "notes": "未認定。証拠を照合した後に更新する。"
+    },
+    {
+      "id": "R30",
+      "priority": "P1",
+      "description": "G06ネスト束容量/整合",
+      "required_evidence": "束の個別ファイルSHA/UTC・容量上限",
+      "status": "OPEN",
+      "proof": [],
+      "owner": "implementation26",
+      "notes": "未認定。証拠を照合した後に更新する。"
+    },
+    {
+      "id": "R31",
+      "priority": "P0",
+      "description": "AES暗号化/Artifactアップロード失敗",
+      "required_evidence": "PC/SP別の正本/暗号化/復号/公開防止",
+      "status": "OPEN",
+      "proof": [],
+      "owner": "implementation26",
+      "notes": "未認定。証拠を照合した後に更新する。"
+    },
+    {
+      "id": "R32",
+      "priority": "P1",
+      "description": "30日保持で原本が消失",
+      "required_evidence": "期限前の冗長保全と削除ルール",
+      "status": "OPEN",
+      "proof": [],
+      "owner": "implementation26",
+      "notes": "未認定。証拠を照合した後に更新する。"
+    },
+    {
+      "id": "R33",
+      "priority": "P1",
+      "description": "Actions成功とJRA原本成功の混同",
+      "required_evidence": "レース/市場/馬/項目別証拠評価",
+      "status": "OPEN",
+      "proof": [],
+      "owner": "implementation26",
+      "notes": "未認定。証拠を照合した後に更新する。"
+    },
+    {
+      "id": "R34",
+      "priority": "P0",
+      "description": "21日全Run引継ぎ15分超過",
+      "required_evidence": "4 Run×PC/SP全Artifactの実時間・欠損",
+      "status": "OPEN",
+      "proof": [],
+      "owner": "implementation26",
+      "notes": "未認定。証拠を照合した後に更新する。"
+    },
+    {
+      "id": "R35",
+      "priority": "P1",
+      "description": "4枠と各Runの対応未証明",
+      "required_evidence": "scheduled cron値・Run/Jobの追跡",
+      "status": "OPEN",
+      "proof": [],
+      "owner": "implementation26",
+      "notes": "未認定。証拠を照合した後に更新する。"
+    },
+    {
+      "id": "R36",
+      "priority": "P1",
+      "description": "新旧引継ぎジョブ競合/片系失敗",
+      "required_evidence": "独立結果の一致・不一致・修正経路",
+      "status": "OPEN",
+      "proof": [],
+      "owner": "implementation26",
+      "notes": "未認定。証拠を照合した後に更新する。"
+    },
+    {
+      "id": "R37",
+      "priority": "P0",
+      "description": "22日修正版が未承認のまま稼働",
+      "required_evidence": "immutable SHA/独立CI/ロールバック証拠",
+      "status": "MITIGATED_WITH_PROOF",
+      "proof": [
+        "main a44f0ab7a6457bcd71c43ead79563f74676be2ff",
+        "DAY22_CANDIDATE_NOT_PREFLIGHT_VERIFIED_NO_HTTP and immutable SHA in both PC/SP paths",
+        "CI run 44674536797 SUCCESS and run 44676198191 SUCCESS"
+      ],
+      "owner": "implementation26",
+      "notes": "静的構造と独立CIの証拠による対策認定。実開催時の外部結果とは別。"
+    },
+    {
+      "id": "R38",
+      "priority": "P1",
+      "description": "GitバックアップにDB/Secrets/原本がない",
+      "required_evidence": "別媒体・別経路の復旧範囲照合",
+      "status": "OPEN",
+      "proof": [],
+      "owner": "implementation26",
+      "notes": "未認定。証拠を照合した後に更新する。"
+    },
+    {
+      "id": "R39",
+      "priority": "P1",
+      "description": "GitHub/Python依存/JRA通信の外部障害",
+      "required_evidence": "HTTP失敗/依存失敗/実行環境の区別",
+      "status": "OPEN",
+      "proof": [],
+      "owner": "implementation26",
+      "notes": "未認定。証拠を照合した後に更新する。"
+    },
+    {
+      "id": "R40",
+      "priority": "P2",
+      "description": "取得原本から予測/仮想投資へ接続不能",
+      "required_evidence": "発走前凍結・公式結果自動照合の実開催証拠",
+      "status": "OPEN",
+      "proof": [],
+      "owner": "implementation26",
+      "notes": "未認定。証拠を照合した後に更新する。"
+    }
+  ],
+  "incidents": [
+    {
+      "incident_id": "INC-20261120-44674577790-source-sha-contract",
+      "first_seen_utc": "2026-11-20T04:28:03Z",
+      "run_id": "44674577790",
+      "job_id": "136083243525",
+      "symptom": "Main release acceptance test rejects deployed Nov21 immutable collector SHA because test expects obsolete 920b9767...",
+      "risk_ids": [
+        "R05",
+        "R37"
+      ],
+      "root_cause_status": "PROVED",
+      "root_cause_evidence": [
+        "tests/test_kyoto_weekend_main_release_guard.py stale constant",
+        "CI Run 44674577790 failed job 136083243525"
+      ],
+      "same_cause_search": "Check tests and five-condition source-contract checks referencing fixed SHA",
+      "repair_branch": "fix/impl26-main-release-test-dual-pin-20261120",
+      "repair_commit": "a0d63dc56e9ff388e1281634caf570b636e11f24",
+      "regression_ci_run": "44675738195",
+      "production_approval": "NOT_MERGED",
+      "rollback_sha": "39b67de503e87b8f7d702b7820c3a52d3f12b321",
+      "status": "BLOCKED_WITH_REASON",
+      "closure_evidence": "PR #63 awaits separate main acceptance review; five-condition CI still failing"
+    },
+    {
+      "incident_id": "INC-20261120-44674553811-reuse-proof",
+      "first_seen_utc": "2026-11-20T04:27:50Z",
+      "run_id": "44674553811",
+      "job_id": "136083167587",
+      "symptom": "Production PR #61 reuse-evidence gate failed for missing required text headings",
+      "risk_ids": [
+        "R38"
+      ],
+      "root_cause_status": "PROVED",
+      "root_cause_evidence": [
+        "CI Run 44674553811 MISSING_REUSE_PROOF_FIELDS"
+      ],
+      "same_cause_search": "Review PR reuse-evidence template and documentation release gates",
+      "repair_branch": null,
+      "repair_commit": null,
+      "regression_ci_run": null,
+      "production_approval": "NOT_APPLICABLE",
+      "rollback_sha": "a98085fab2743397e8f77f17c8a62d8c587c84e1",
+      "status": "BLOCKED_WITH_REASON",
+      "closure_evidence": "Historical PR #61 body was non-conformant; incident remains open for recurrence prevention"
+    },
+    {
+      "incident_id": "INC-20261120-44674577790-five-condition",
+      "first_seen_utc": "2026-11-20T04:28:25Z",
+      "run_id": "44674577790",
+      "job_id": "136083385477",
+      "symptom": "Five-condition pre-experiment acceptance failed SOURCE_CONTRACT",
+      "risk_ids": [
+        "R05",
+        "R37"
+      ],
+      "root_cause_status": "HYPOTHESIS",
+      "root_cause_evidence": [
+        "CI Run 44674577790 job 136083385477 SOURCE_CONTRACT failure"
+      ],
+      "same_cause_search": "Investigate source-contract criteria and stale pin dependencies; do not assume identical to main-release test failure",
+      "repair_branch": null,
+      "repair_commit": null,
+      "regression_ci_run": null,
+      "production_approval": "NOT_APPROVED",
+      "rollback_sha": "39b67de503e87b8f7d702b7820c3a52d3f12b321",
+      "status": "BLOCKED_WITH_REASON",
+      "closure_evidence": "Await independent source contract root cause and regression CI"
+    }
+  ],
+  "final_gate": {
+    "status": "NO_GO_NOT_EXECUTED",
+    "checks": {
+      "static_and_function_calls": {
+        "status": "NOT_RUN",
+        "proof": []
+      },
+      "end_to_end_12R": {
+        "status": "NOT_RUN",
+        "proof": []
+      },
+      "destructive_fault_injection": {
+        "status": "NOT_RUN",
+        "proof": []
+      },
+      "risk_and_incident_regression": {
+        "status": "NOT_RUN",
+        "proof": []
+      },
+      "performance_and_deadlines": {
+        "status": "NOT_RUN",
+        "proof": []
+      },
+      "independent_report_and_decision": {
+        "status": "NOT_RUN",
+        "proof": []
+      }
+    }
+  }
+}
