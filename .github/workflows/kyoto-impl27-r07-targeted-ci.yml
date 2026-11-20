@@ -42,7 +42,9 @@ jobs:
           a=key(day="20261121",slot=0,race=11,channel="SHARED",market="racecard")
           assert a=="20261121:0:11:SHARED:racecard",a
           observer=Path(".github/workflows/kyoto-20261121-22-two-source-production-observer.yml").read_text()
-          assert observer.count("- cron: '")==8
+          # Frozen historical collector includes four original slots only.
+          # Production main's eight slots are checked independently.
+          assert observer.count("- cron: '")==4
           assert "needs: pc-originals-independent" in observer
           # The frozen collector snapshot is not the present-day main workflow; do not
           # confuse a historical checkout with the independently verified main pin.
