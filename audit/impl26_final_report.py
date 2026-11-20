@@ -7,7 +7,7 @@ from datetime import datetime,timezone
 from pathlib import Path
 
 JOBS=("full-static-and-contracts","collector-full12-and-aes",
-      "destructive-and-turso","time-and-night-before")
+      "destructive-and-turso","time-and-night-before","pre-http-benchmark")
 GROUPS={
     "D1":{"requires":"Static+AST 100%, unresolved signatures/imports/branches covered"},
     "D2":{"requires":"Single connected 12R G03-G06 -> AES -> all-run -> day22 E2E proof"},
@@ -86,6 +86,6 @@ def main():
     path.with_suffix(".md").write_text("\n".join(md)+"\n",encoding="utf8")
     print("IMPL26_FINAL_EVIDENCE",data["final_decision"],
           "A_P0",data["proof_qualified"]["P0"],"A_P1",data["proof_qualified"]["P1"],
-          "B_INC",data["unclosed_incidents"],"CI_4_OF_4",data["broad_ci_all_pass"])
+          "B_INC",data["unclosed_incidents"],"CI_5_OF_5",data["broad_ci_all_pass"])
 if __name__=="__main__":
     main()
