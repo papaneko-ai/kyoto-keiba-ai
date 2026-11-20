@@ -73,7 +73,8 @@ def capture(*,root,day,fetch,clock,allowed=False,allow_partial=False,
     Caller is responsible for pacing, no-redirect, bounded GET, and replacing
     the ephemeral directory with the existing encrypted-only artifact.
     """
-    if allowed is not True:raise G04Rejected("profile_capture_not_authorized")\n    if type(isolate_invalid_links) is not bool:raise G04Rejected("invalid_link_isolation_mode")
+    if allowed is not True:raise G04Rejected("profile_capture_not_authorized")
+    if type(isolate_invalid_links) is not bool:raise G04Rejected("invalid_link_isolation_mode")
     if type(day) is not str or not re.fullmatch(r"20[0-9]{6}",day):
         raise G04Rejected("bad_race_day")
     root=Path(root)
