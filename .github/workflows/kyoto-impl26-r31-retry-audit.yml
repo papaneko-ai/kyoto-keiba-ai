@@ -26,8 +26,7 @@ jobs:
           assert s.count('overwrite: true')==2
           assert s.count('if-no-files-found: error')==4
           for lane in ('pc','sp'):
-              name='kyoto-'+lane+'-'+'
-              assert s.count('name: '+name)==2
+              assert s.count('name: kyoto-'+lane+'-')==2
               assert s.count('path: '+lane+'_sealed/')==2
               assert "steps.upload_"+lane+"_primary.outcome == 'failure'" in s
           assert 'path: pc_raw/' not in s and 'path: sp_raw/' not in s
