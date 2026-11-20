@@ -9,7 +9,7 @@ from pathlib import Path
 WORKFLOW = "Kyoto Nov21-22 independent encrypted original collection"
 STATES = {"NOT_TRIGGERED", "PRE_HTTP_STOP", "HTTP_FAILURE", "PARTIAL_SAVED",
           "SOURCE_BYTES_SAVED", "STRUCTURED_FIELDS_VERIFIED", "BOTH_MARKETS_VERIFIED",
-          "SEALING_FAILED", "UNKNOWN"}
+          "SEALING_FAILED", "RETRY_ARTIFACT_METADATA_PRESENT", "UNKNOWN"}
 ORDER = ("DETECTED", "EVIDENCE_LOCKED", "ROOT_CAUSE_CANDIDATE", "ROOT_CAUSE_PROVED",
          "CANDIDATE_PATCH", "OFFLINE_REGRESSION_PASSED", "APPROVED_FOR_PRODUCTION",
          "LIVE_RECHECK", "CLOSED")
@@ -43,7 +43,14 @@ def classify(run, jobs, artifacts, *, day, scheduled_utc=None):
             if failed:
                 first = failed[0].get("name", "UNKNOWN_STEP")
                 state = "SEALING_FAILED" if any(token in first.lower() for token in ("seal", "encrypt", "upload", "artifact")) else "UNKNOWN"
-                risk = "R31" if state == "SEALING_FAILED" else "R02"
+                # A failed primary upload may be followed by successful retry.
+                # Existence alone does NOT prove AES authenticity or source completeness.
+                retry_steps = [step for step in job.get("steps", [])
+                    if step.get("name") == "Retry same encrypted artifact if the first upload fails"]
+                if state == "SEALING_FAILED" and upload and any(
+                        step.get("conclusion") == "success" for step in retry_steps):
+                    state = "RETRY_ARTIFACT_METADATA_PRESENT"
+                risk = "R31" if state in ("SEALING_FAILED", "RETRY_ARTIFACT_METADATA_PRESENT") else "R02"
                 events.append((lane, state, risk, "Failed step: " + first[:120], first[:120]))
             if job.get("conclusion") in ("failure", "cancelled", "timed_out") and not failed:
                 events.append((lane, "UNKNOWN", "R39", "Job ended without a failing step receipt", None))
@@ -62,7 +69,7 @@ def classify(run, jobs, artifacts, *, day, scheduled_utc=None):
             "failed_at_utc": None, "error_class": None, "failure_stage": state,
             "symptom": symptom, "source_file_sha256": None, "artifact_id": None,
             "source_timestamp_utc": None, "safe_stop_state": state,
-            "data_preserved": "UNKNOWN", "data_missing": "UNKNOWN",
+            "data_preserved": ("ARTIFACT_METADATA_PRESENT_CONTENT_UNVERIFIED" if state == "RETRY_ARTIFACT_METADATA_PRESENT" else "UNKNOWN"), "data_missing": "UNKNOWN",
             "risk_ids": [risk], "root_cause_status": "UNKNOWN",
             "root_cause_evidence": [], "same_cause_search": "PENDING",
             "repair_branch": None, "repair_commit": None, "reproduction_test": None,
