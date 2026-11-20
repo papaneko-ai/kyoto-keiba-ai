@@ -24,7 +24,7 @@ class FinalIntegrationPolicy(unittest.TestCase):
     def test_preserve_existing_gate_and_risk_denominators(self):
         p=POLICY.read_text(encoding="utf-8")
         r=RISK.read_text(encoding="utf-8")
-        ids=re.findall(r"^\\| (R\\d\\d) \\| P[012] \\|",r,re.MULTILINE)
+        ids=[line.split(" | ")[1] for line in r.splitlines() if line.startswith("| R") and " | P" in line]
         self.assertEqual(len(ids),40)
         self.assertEqual(len(set(ids)),40)
         for s in ["P0 11/20","P1 4/19","P2 0/1","D 2/6","NO_GO"]:
