@@ -78,9 +78,9 @@ jobs:
           import json,os,subprocess
           from pathlib import Path
           repo=os.environ["GITHUB_REPOSITORY"]
-          recorded=json.loads(subprocess.check_output(
-              ["gh","api",f"repos/{repo}/issues?state=all&per_page=100"],text=True))
-          names={x["title"] for x in recorded}
+          names=set(subprocess.check_output(
+              ["gh","api","--paginate","--jq",".[].title",
+               f"repos/{repo}/issues?state=all&per_page=100"],text=True).splitlines())
           incidents=json.loads(Path("impl26_incident_evidence/INC_metadata.json").read_text())["incidents"]
           for inc in incidents:
               title="Impl26 "+inc["incident_id"]
