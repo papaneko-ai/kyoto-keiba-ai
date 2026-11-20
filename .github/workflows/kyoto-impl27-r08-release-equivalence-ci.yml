@@ -1,0 +1,39 @@
+name: Impl27 R08 alternative protected release equivalence gate
+on:
+  pull_request:
+    paths:
+      - 'tests/test_kyoto_impl27_r08_release_equivalence.py'
+      - '.github/workflows/kyoto-20261121-22-two-source-production-observer.yml'
+      - 'audit/impl27_r08_pc_source_barrier.py'
+      - '.github/workflows/kyoto-impl27-r08-release-equivalence-ci.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  release-equivalence:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Test full protected release equivalence rather than bypass legacy failure
+        run: |
+          python -m unittest -v tests.test_kyoto_impl27_r08_release_equivalence tests.test_kyoto_impl27_r08_source_barrier
+      - name: Require valid complete Workflow YAML
+        run: |
+          python -m pip install 'PyYAML>=6,<7'
+          python - <<'PY'
+          from pathlib import Path
+          import yaml
+          p=Path('.github/workflows/kyoto-20261121-22-two-source-production-observer.yml')
+          doc=yaml.safe_load(p.read_text())
+          assert set(doc['jobs']) == {'pc-originals-independent','sp-originals-independent'}
+          assert doc['jobs']['sp-originals-independent']['timeout-minutes']==35
+          assert 'needs' not in doc['jobs']['sp-originals-independent']
+          print('R08_ALTERNATE_PROTECTED_RELEASE_CONTRACT_PASS')
+          PY
