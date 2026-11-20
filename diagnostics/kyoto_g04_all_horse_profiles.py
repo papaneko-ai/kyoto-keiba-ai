@@ -90,7 +90,9 @@ def capture(*,root,day,fetch,clock,allowed=False,allow_partial=False,\n         
     receipt=json.loads((root/"g03_receipt.json").read_text(encoding="utf8"))
     entries=receipt["races"]
     pending=[]
+    rejected=[]
     seen=set()
+    seen_urls=set()
     for race in selected:
         info=entries[str(race)]
         if not re.fullmatch(r"(?:[01][0-9]|2[0-3]):[0-5][0-9]",info["start_time_jst"]):
@@ -191,12 +193,15 @@ def capture(*,root,day,fetch,clock,allowed=False,allow_partial=False,\n         
             item.update(state="SOURCE_OR_PARSE_FAILED",failure_class=type(exc).__name__,
                         failure_reason=str(exc)[:130])
         results.append(item)
-    results.extend(rejected)\n    results.sort(key=lambda p:(p["race"],p["horse_number"]))\n    missing=[{"race":p["race"],"horse_number":p["horse_number"],"reason":p.get("failure_reason")}
+    results.extend(rejected)
+    results.sort(key=lambda p:(p["race"],p["horse_number"]))
+    missing=[{"race":p["race"],"horse_number":p["horse_number"],"reason":p.get("failure_reason")}
              for p in results if not p["profile_verified"]]
     report={"schema":"kyoto_g04_all_horses.v1","day":day,
             "verified_g03_races":len(selected),"selected_races":selected,
-            "partial_g03_source":len(selected)!=12,"expected_horses":len(pending),
-            "profile_verified_count":len(pending)-len(missing),
+            "partial_g03_source":len(selected)!=12,"expected_horses":len(pending)+len(rejected),
+            "profile_verified_count":sum(bool(p["profile_verified"]) for p in results),
+            "invalid_profile_navigation_count":len(rejected),
             "missing_profiles":missing,
             "all_profiles_parsed":not missing and len(selected)==12,
             "current_jockey_verified_for_all":all(p["current_jockey_source_verified"] for p in results),
