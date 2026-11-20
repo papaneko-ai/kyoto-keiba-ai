@@ -36,8 +36,31 @@ jobs:
           assert s.count("COLLECTOR_SHA:")==2
           assert s.count(f"assert os.environ['COLLECTOR_SHA']=='{candidate}'")==2
           assert s.count(f"vars.KYOTO_NOV22_VERIFIED_COLLECTOR_SHA || '{previous}'")==2
-          assert s.count("needs: pc-originals-independent")==1
-          assert s.count("timeout-minutes: 20")==1 and s.count("timeout-minutes: 12")==1
+          # Two explicit, independently guarded production contracts.
+          # The original PC->SP serialized path retains all its old invariants.
+          # The proposed early-SP path must prove its stricter source boundary.
+          serialized=(s.count("needs: pc-originals-independent")==1 and
+                      s.count("timeout-minutes: 20")==1 and
+                      s.count("timeout-minutes: 12")==1)
+          early=(s.count("needs: pc-originals-independent")==0 and
+                 s.count("timeout-minutes: 20")==1 and
+                 s.count("timeout-minutes: 35")==1)
+          assert serialized != early,"NO_RECOGNIZED_PROTECTED_PC_SP_EXECUTION_CONTRACT"
+          if early:
+              import subprocess
+              assert s.count("impl27_r08_pc_source_barrier.py")==1
+              assert s.count("impl27_workflow_control")==2
+              sp=s.split("  sp-originals-independent:",1)[1]
+              assert sp.index("impl27_r08_pc_source_barrier.py") < sp.index("--channel SP --source sp_raw")
+              assert Path("audit/impl27_r08_pc_source_barrier.py").is_file()
+              assert Path("tests/test_kyoto_impl27_r08_release_equivalence.py").is_file()
+              assert Path("tests/test_kyoto_impl27_r08_source_barrier.py").is_file()
+              subprocess.check_call(["python","-m","unittest","-q",
+                  "tests.test_kyoto_impl27_r08_release_equivalence",
+                  "tests.test_kyoto_impl27_r08_source_barrier"])
+              print("R08_EARLY_SP_FULL_PROTECTION_ALTERNATIVE_PASS")
+          else:
+              print("LEGACY_SERIAL_PC_SP_PROTECTION_UNCHANGED_PASS")
           assert s.count("AES-GCM ciphertext or safe-stop receipt")==2
           assert s.count("KYOTO_TARGET_DAY:")==2
           assert s.count("tests.test_kyoto_sp_all12_observed_capture")==1
