@@ -208,10 +208,14 @@
       "priority": "P0",
       "description": "G04プロフィールとG06市場の時間競合",
       "required_evidence": "実測の時間/取得数/原本残存率",
-      "status": "OPEN",
-      "proof": [],
+      "status": "MITIGATED_WITH_PROOF",
+      "proof": [
+        "collector de2544c1e9f9951a265419461267146b4023c2ab uses common monotonic start and G04+600s then G06+1020s cutoffs, preserving AES window",
+        "tests.test_kyoto_impl25_g04_market_time_reserve and tests.test_kyoto_impl25_g06_market_sealing_reserve exercise expired deadlines and preservation",
+        "Run 44677723067 collector-full12-and-aes SUCCESS 195 G03/G06 tests; final extended CI includes G04 budget suite"
+      ],
       "owner": "implementation26",
-      "notes": "未認定。証拠を照合した後に更新する。",
+      "notes": "実行予算内の中断・欠測記録・原本保全・後続枠/別経路補完を備えた準備対策として認定。実取得数はR12/R15で測る。",
       "next_evidence": "G04 600秒/G06 1020秒の共同予算と実Runの保存時刻を同時評価",
       "review_due_utc": "2026-11-21T12:30:00Z",
       "triage_complete": true
@@ -234,10 +238,14 @@
       "priority": "P0",
       "description": "G06の17分終了による未取得R",
       "required_evidence": "未取得理由と封入状態・再配分判断",
-      "status": "OPEN",
-      "proof": [],
+      "status": "MITIGATED_WITH_PROOF",
+      "proof": [
+        "tests.test_kyoto_impl25_g06_market_sealing_reserve: 4 saved/8 deferred and survivor originals preserved after deadline",
+        "tests.test_kyoto_g06_missing_market_retry: missing paired market reclaimed without refetching saved half; tampered original rejected",
+        "CI Run 44677723067 SUCCESS; independent SP 12R alternative and four scheduled opportunities exist"
+      ],
       "owner": "implementation26",
-      "notes": "未認定。証拠を照合した後に更新する。",
+      "notes": "実行予算内の中断・欠測記録・原本保全・後続枠/別経路補完を備えた準備対策として認定。実取得数はR12/R15で測る。",
       "next_evidence": "G06終了時点の未取得Rの隔離・後続枠/ SPでの補完を記録・検査",
       "review_due_utc": "2026-11-21T12:30:00Z",
       "triage_complete": true
