@@ -5,6 +5,9 @@ on:
       - 'diagnostics/kyoto_shared_capture_reservation.py'
       - 'diagnostics/kyoto_turso_capture_claims.py'
       - 'diagnostics/kyoto_g06_all12_capture.py'
+      - 'diagnostics/kyoto_sp_all12_observed_capture.py'
+      - 'diagnostics/kyoto_weekend_capture.py'
+      - 'tests/test_kyoto_impl27_r07_sp_takeover.py'
       - 'tests/test_kyoto_impl27_r07_shared_lane_lease.py'
       - '.github/workflows/kyoto-impl27-r07-targeted-ci.yml'
   workflow_dispatch:
@@ -27,6 +30,7 @@ jobs:
         run: |
           python -m unittest -v \
             tests.test_kyoto_impl27_r07_shared_lane_lease \
+            tests.test_kyoto_impl27_r07_sp_takeover \
             tests.test_kyoto_turso_capture_claims \
             tests.test_kyoto_g06_claim_execution \
             tests.test_kyoto_impl23_pc_to_g06_real_lease
