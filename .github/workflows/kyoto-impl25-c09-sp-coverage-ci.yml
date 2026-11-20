@@ -1,0 +1,52 @@
+name: Kyoto Impl25 observed SP coverage independent CI
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/kyoto-impl25-c09-sp-coverage-ci.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  immutable-observed-sp-scope:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: 6355e8704bdf4427140f37f199eb8feb1a897621
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install 'beautifulsoup4>=4.12,<5' 'cryptography>=43,<47'
+      - name: Verify immutable source
+        run: test "$(git rev-parse HEAD)" = "6355e8704bdf4427140f37f199eb8feb1a897621"
+      - name: Test observed-only scope, racecard provenance and SP parity without JRA HTTP
+        env:
+          KYOTO_TARGET_DAY: '20261121'
+        run: |
+          set -euo pipefail
+          python -m unittest -q \
+            tests.test_kyoto_impl25_c09_sp_coverage \
+            tests.test_kyoto_weekend_sp_discovery \
+            tests.test_kyoto_sp_observed_source \
+            tests.test_kyoto_weekend_race_parity \
+            tests.test_kyoto_weekend_capture \
+            tests.test_kyoto_weekend_end_to_end \
+            tests.test_kyoto_weekend_postflight \
+            tests.test_kyoto_nov15_encrypted_evidence \
+            tests.test_kyoto_impl25_g06_market_sealing_reserve
+      - name: Source security and unsupported fallback boundary
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          d=Path('diagnostics/kyoto_weekend_sp_discovery.py').read_text()
+          c=Path('diagnostics/kyoto_weekend_capture.py').read_text()
+          assert 'observed_kyoto_race_candidates(raw,url,day)' in d
+          assert 'full_twelve_race_sp_fallback_verified":False' in d
+          assert 'observed_link_is_not_authenticated_racecard":True' in d
+          assert 'race_number=12' in c
+          assert 'sp_source_url=""' in c
+          assert 'encrypt_evidence(src,dst' in c
+          print('SP_1_TO_12_OFFICIAL_NAVIGATION_HINTS_INVENTORIED_NOT_CAPTURE_CERTIFIED')
+          PY
