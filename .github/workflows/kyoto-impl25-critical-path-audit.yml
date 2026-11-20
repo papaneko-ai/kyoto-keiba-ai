@@ -23,7 +23,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: papaneko-ai/kyoto-keiba-ai
-          ref: d45f3c9067eee3375c4d9e3ffd908d076f42595a
+          ref: 6355e8704bdf4427140f37f199eb8feb1a897621
           path: pinned_collector
           persist-credentials: false
       - name: Inspect stage order and bound without any JRA HTTP
