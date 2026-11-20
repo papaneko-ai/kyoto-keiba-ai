@@ -50,6 +50,21 @@ class SPAll12(unittest.TestCase):
             self.assertEqual((restored/f"r{n:02d}_official_sp_racecard.html").read_bytes(),
                              f"saved_{n}".encode())
 
+    def test_time_budget_defers_without_dropping_saved_originals(self):
+        self.prepare()
+        called=[]
+        def fake(out,*,race_number,**kw):
+            called.append(race_number)
+            (Path(out)/"official_sp_racecard.html").write_bytes(b"saved")
+            return {"state":"CAPTURED","racecard_fetched":True}
+        ticks=iter([0.0,1.0,500.0]+[500.0]*9)
+        with patch("diagnostics.kyoto_sp_all12_observed_capture.capture_verified_sp_seed",side_effect=fake):
+            report=capture_all(self.root,day=DAY,opener=object(),pacer=Mock(),
+                               deadline_monotonic=240.0,monotonic=lambda:next(ticks))
+        self.assertEqual(called,[1,2])
+        self.assertEqual(report["races"]["3"]["state"],"DEFERRED_FOR_AES_SEALING_BUDGET")
+        self.assertTrue((self.root/"r01_official_sp_racecard.html").is_file())
+
     def test_one_race_failure_preserves_other_races(self):
         self.prepare([1,2,3])
         called=[]
