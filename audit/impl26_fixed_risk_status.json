@@ -10,10 +10,13 @@
       "priority": "P0",
       "description": "GitHub予定起動の遅延/欠落",
       "required_evidence": "予定4枠/日と観測Run全件の照合",
-      "status": "OPEN",
+      "status": "LIVE_VERIFICATION_PENDING",
       "proof": [],
       "owner": "implementation26",
-      "notes": "未認定。証拠を照合した後に更新する。"
+      "notes": "未認定。証拠を照合した後に更新する。",
+      "next_evidence": "21/22日各4枠の予定・実Run照合、未起動INCを永続化",
+      "review_due_utc": "2026-11-21T12:30:00Z",
+      "triage_complete": true
     },
     {
       "id": "R02",
@@ -27,7 +30,10 @@
         "Both PC/SP measured against exact frozen collector de2544c1e9f9951a265419461267146b4023c2ab on GitHub Python 3.11; no official JRA HTTP"
       ],
       "owner": "implementation26",
-      "notes": "事前回帰試験の所要時間リスクに対する実測。GitHub予定起動遅延・実HTTP時間はR01/R14等で独立管理。"
+      "notes": "事前回帰試験の所要時間リスクに対する実測。GitHub予定起動遅延・実HTTP時間はR01/R14等で独立管理。",
+      "next_evidence": "GitHub同一条件でPC/SP事前試験の再計時と起動遅延の監視",
+      "review_due_utc": "2026-11-21T12:30:00Z",
+      "triage_complete": true
     },
     {
       "id": "R03",
@@ -41,7 +47,10 @@
         "main pre-HTTP guard validates exact event day, UTC window and immutable SHA before network"
       ],
       "owner": "implementation26",
-      "notes": "取得前のソース制限・否定系試験。実開催HTTPの成否は別判定。"
+      "notes": "取得前のソース制限・否定系試験。実開催HTTPの成否は別判定。",
+      "next_evidence": "発走前の時刻・日付イベント条件の当日確認",
+      "review_due_utc": "2026-11-21T12:30:00Z",
+      "triage_complete": true
     },
     {
       "id": "R04",
@@ -55,7 +64,10 @@
         "Secret not exposed; only format/negative tests asserted"
       ],
       "owner": "implementation26",
-      "notes": "保存/停止回復の事前模擬証拠による認定。実開催の検証とは別。"
+      "notes": "保存/停止回復の事前模擬証拠による認定。実開催の検証とは別。",
+      "next_evidence": "当日AES封入・復号・暗号鍵を外部公開せず検証",
+      "review_due_utc": "2026-11-21T12:30:00Z",
+      "triage_complete": true
     },
     {
       "id": "R05",
@@ -70,7 +82,10 @@
         "CI run 44674536797 SUCCESS protected 8-slot source-gate"
       ],
       "owner": "implementation26",
-      "notes": "静的構造と独立CIの証拠による対策認定。実開催時の外部結果とは別。"
+      "notes": "静的構造と独立CIの証拠による対策認定。実開催時の外部結果とは別。",
+      "next_evidence": "両日PC/SP固定SHAと予定イベントの当日照合",
+      "review_due_utc": "2026-11-21T12:30:00Z",
+      "triage_complete": true
     },
     {
       "id": "R06",
@@ -84,7 +99,10 @@
         "Confirmed remote_write_verified=false: production claim write/lease not exercised; R07 duplicate-race proof remains separate"
       ],
       "owner": "implementation26",
-      "notes": "本番共有予約テーブルの実読取確認。書込み・別実行環境の競合はR07に残し、変更していない。"
+      "notes": "本番共有予約テーブルの実読取確認。書込み・別実行環境の競合はR07に残し、変更していない。",
+      "next_evidence": "本番Tursoテーブル読取り確認済み、書込み権限はR07として別監査",
+      "review_due_utc": "2026-11-21T12:30:00Z",
+      "triage_complete": true
     },
     {
       "id": "R07",
@@ -94,7 +112,10 @@
       "status": "OPEN",
       "proof": [],
       "owner": "implementation26",
-      "notes": "未認定。証拠を照合した後に更新する。"
+      "notes": "未認定。証拠を照合した後に更新する。",
+      "next_evidence": "GitHub実行環境と別ホストの共有予約を同一キーで競合再現",
+      "review_due_utc": "2026-11-21T12:30:00Z",
+      "triage_complete": true
     },
     {
       "id": "R08",
@@ -104,7 +125,10 @@
       "status": "OPEN",
       "proof": [],
       "owner": "implementation26",
-      "notes": "未認定。証拠を照合した後に更新する。"
+      "notes": "未認定。証拠を照合した後に更新する。",
+      "next_evidence": "PC20分の全ジョブ待機がSP開始を遅延させる問題を回避または補完経路で立証",
+      "review_due_utc": "2026-11-21T12:30:00Z",
+      "triage_complete": true
     },
     {
       "id": "R09",
@@ -118,7 +142,10 @@
         "Run 44674536797 and Run 44676736139 static and scheduling contract SUCCESS"
       ],
       "owner": "implementation26",
-      "notes": "自分のジョブの相殺・キュー上書き対策。外部起動遅延はR01として別に残す。"
+      "notes": "自分のジョブの相殺・キュー上書き対策。外部起動遅延はR01として別に残す。",
+      "next_evidence": "8枠・queue:max・cancel:falseを維持、外部起動欠落はR01で追跡",
+      "review_due_utc": "2026-11-21T12:30:00Z",
+      "triage_complete": true
     },
     {
       "id": "R10",
@@ -132,37 +159,49 @@
         "run 44676198191 SUCCESS, run 44674536797 SUCCESS"
       ],
       "owner": "implementation26",
-      "notes": "静的構造と独立CIの証拠による対策認定。実開催時の外部結果とは別。"
+      "notes": "静的構造と独立CIの証拠による対策認定。実開催時の外部結果とは別。",
+      "next_evidence": "22日の候補SHAは独立CIと承認ゲートでのみ採用",
+      "review_due_utc": "2026-11-22T12:30:00Z",
+      "triage_complete": true
     },
     {
       "id": "R11",
       "priority": "P0",
       "description": "公式PC URL/DOM変更",
       "required_evidence": "実原本のリンク抽出と欠損原因",
-      "status": "OPEN",
+      "status": "LIVE_VERIFICATION_PENDING",
       "proof": [],
       "owner": "implementation26",
-      "notes": "未認定。証拠を照合した後に更新する。"
+      "notes": "未認定。証拠を照合した後に更新する。",
+      "next_evidence": "当日の公式PC原本でDOM・選択URL・リンクを同一SHAで照合",
+      "review_due_utc": "2026-11-21T12:30:00Z",
+      "triage_complete": true
     },
     {
       "id": "R12",
       "priority": "P0",
       "description": "G03 全12R出馬表不足",
       "required_evidence": "12レースの原本・出走馬数・UTC",
-      "status": "OPEN",
+      "status": "LIVE_VERIFICATION_PENDING",
       "proof": [],
       "owner": "implementation26",
-      "notes": "未認定。証拠を照合した後に更新する。"
+      "notes": "未認定。証拠を照合した後に更新する。",
+      "next_evidence": "開催日×京都1～12Rの原本・出走頭数・UTCと欠損率を保存",
+      "review_due_utc": "2026-11-21T12:30:00Z",
+      "triage_complete": true
     },
     {
       "id": "R13",
       "priority": "P1",
       "description": "G04 馬別不正/重複リンク",
       "required_evidence": "正常馬継続と欠測受領書",
-      "status": "OPEN",
+      "status": "LIVE_VERIFICATION_PENDING",
       "proof": [],
       "owner": "implementation26",
-      "notes": "未認定。証拠を照合した後に更新する。"
+      "notes": "未認定。証拠を照合した後に更新する。",
+      "next_evidence": "全馬プロフィールリンク重複・不正・未取得をレース別に再集計",
+      "review_due_utc": "2026-11-21T12:30:00Z",
+      "triage_complete": true
     },
     {
       "id": "R14",
@@ -172,17 +211,23 @@
       "status": "OPEN",
       "proof": [],
       "owner": "implementation26",
-      "notes": "未認定。証拠を照合した後に更新する。"
+      "notes": "未認定。証拠を照合した後に更新する。",
+      "next_evidence": "G04 600秒/G06 1020秒の共同予算と実Runの保存時刻を同時評価",
+      "review_due_utc": "2026-11-21T12:30:00Z",
+      "triage_complete": true
     },
     {
       "id": "R15",
       "priority": "P0",
       "description": "馬連・枠連両市場の取得不足",
       "required_evidence": "発走前の市場別原本/検証",
-      "status": "OPEN",
+      "status": "LIVE_VERIFICATION_PENDING",
       "proof": [],
       "owner": "implementation26",
-      "notes": "未認定。証拠を照合した後に更新する。"
+      "notes": "未認定。証拠を照合した後に更新する。",
+      "next_evidence": "馬連・枠連両市場を各レース発走前UTCと原本SHAで実証",
+      "review_due_utc": "2026-11-21T12:30:00Z",
+      "triage_complete": true
     },
     {
       "id": "R16",
@@ -192,27 +237,36 @@
       "status": "OPEN",
       "proof": [],
       "owner": "implementation26",
-      "notes": "未認定。証拠を照合した後に更新する。"
+      "notes": "未認定。証拠を照合した後に更新する。",
+      "next_evidence": "G06終了時点の未取得Rの隔離・後続枠/ SPでの補完を記録・検査",
+      "review_due_utc": "2026-11-21T12:30:00Z",
+      "triage_complete": true
     },
     {
       "id": "R17",
       "priority": "P1",
       "description": "オッズ表構造・発売状態/締切誤認",
       "required_evidence": "公式市場原本と時点別停止条件",
-      "status": "OPEN",
+      "status": "LIVE_VERIFICATION_PENDING",
       "proof": [],
       "owner": "implementation26",
-      "notes": "未認定。証拠を照合した後に更新する。"
+      "notes": "未認定。証拠を照合した後に更新する。",
+      "next_evidence": "市場発売/締切/最終の判定を当日公式画面で分類",
+      "review_due_utc": "2026-11-21T12:30:00Z",
+      "triage_complete": true
     },
     {
       "id": "R18",
       "priority": "P0",
       "description": "SP全12R代替の未実証",
       "required_evidence": "公式観測URLだけを使った独立レース実取得",
-      "status": "OPEN",
+      "status": "LIVE_VERIFICATION_PENDING",
       "proof": [],
       "owner": "implementation26",
-      "notes": "未認定。証拠を照合した後に更新する。"
+      "notes": "未認定。証拠を照合した後に更新する。",
+      "next_evidence": "SP保存済み公式1～12R各リンクの実HTTPと取得UTC/SHA確認",
+      "review_due_utc": "2026-11-21T12:30:00Z",
+      "triage_complete": true
     },
     {
       "id": "R19",
@@ -226,7 +280,10 @@
         "Run 44676736139 collector-full12-and-aes SUCCESS"
       ],
       "owner": "implementation26",
-      "notes": "取得前のソース制限・否定系試験。実開催HTTPの成否は別判定。"
+      "notes": "取得前のソース制限・否定系試験。実開催HTTPの成否は別判定。",
+      "next_evidence": "未確認リンクの0通信停止、公式ナビ自動探索の回帰を維持",
+      "review_due_utc": "2026-11-21T12:30:00Z",
+      "triage_complete": true
     },
     {
       "id": "R20",
@@ -240,7 +297,10 @@
         "CI run 44674277544 SUCCESS, tests.test_kyoto_sp_all12_observed_capture"
       ],
       "owner": "implementation26",
-      "notes": "静的構造と独立CIの証拠による対策認定。実開催時の外部結果とは別。"
+      "notes": "静的構造と独立CIの証拠による対策認定。実開催時の外部結果とは別。",
+      "next_evidence": "SP候補URL・原本・解析・市場確認の証拠状態を分けて継続",
+      "review_due_utc": "2026-11-21T12:30:00Z",
+      "triage_complete": true
     },
     {
       "id": "R21",
@@ -250,27 +310,36 @@
       "status": "OPEN",
       "proof": [],
       "owner": "implementation26",
-      "notes": "未認定。証拠を照合した後に更新する。"
+      "notes": "未認定。証拠を照合した後に更新する。",
+      "next_evidence": "補助情報源の出所・合法性・原本・時刻を個別根拠で確認",
+      "review_due_utc": "2026-11-21T12:30:00Z",
+      "triage_complete": true
     },
     {
       "id": "R22",
       "priority": "P1",
       "description": "京都馬場情報の古さ・発表差",
       "required_evidence": "同日公式見出し/取得UTC/SHA",
-      "status": "OPEN",
+      "status": "LIVE_VERIFICATION_PENDING",
       "proof": [],
       "owner": "implementation26",
-      "notes": "未認定。証拠を照合した後に更新する。"
+      "notes": "未認定。証拠を照合した後に更新する。",
+      "next_evidence": "同日馬場公式見出しとUTC/SHAを21/22日で照合",
+      "review_due_utc": "2026-11-21T12:30:00Z",
+      "triage_complete": true
     },
     {
       "id": "R23",
       "priority": "P1",
       "description": "馬体重発表前の未取得",
       "required_evidence": "時点別欠測記録と再取得条件",
-      "status": "OPEN",
+      "status": "LIVE_VERIFICATION_PENDING",
       "proof": [],
       "owner": "implementation26",
-      "notes": "未認定。証拠を照合した後に更新する。"
+      "notes": "未認定。証拠を照合した後に更新する。",
+      "next_evidence": "馬体重発表前のNULLと公表後の再取得を識別",
+      "review_due_utc": "2026-11-21T12:30:00Z",
+      "triage_complete": true
     },
     {
       "id": "R24",
@@ -280,37 +349,49 @@
       "status": "OPEN",
       "proof": [],
       "owner": "implementation26",
-      "notes": "未認定。証拠を照合した後に更新する。"
+      "notes": "未認定。証拠を照合した後に更新する。",
+      "next_evidence": "調教情報は独立ソース確認までNULLで運用し、欠測率を表示",
+      "review_due_utc": "2026-11-21T12:30:00Z",
+      "triage_complete": true
     },
     {
       "id": "R25",
       "priority": "P1",
       "description": "全馬の特徴量・過去走の不足",
       "required_evidence": "馬ごとの原本照合と欠損率",
-      "status": "OPEN",
+      "status": "LIVE_VERIFICATION_PENDING",
       "proof": [],
       "owner": "implementation26",
-      "notes": "未認定。証拠を照合した後に更新する。"
+      "notes": "未認定。証拠を照合した後に更新する。",
+      "next_evidence": "全馬プロフィール・過去走・特徴量の実源原本を照合",
+      "review_due_utc": "2026-11-21T12:30:00Z",
+      "triage_complete": true
     },
     {
       "id": "R26",
       "priority": "P1",
       "description": "出走取消・馬番/騎手変更",
       "required_evidence": "更新時刻とレース/馬識別の再整合",
-      "status": "OPEN",
+      "status": "LIVE_VERIFICATION_PENDING",
       "proof": [],
       "owner": "implementation26",
-      "notes": "未認定。証拠を照合した後に更新する。"
+      "notes": "未認定。証拠を照合した後に更新する。",
+      "next_evidence": "取消・馬番・騎手変更の更新時刻と組合せを再整合",
+      "review_due_utc": "2026-11-21T12:30:00Z",
+      "triage_complete": true
     },
     {
       "id": "R27",
       "priority": "P0",
       "description": "HTTP応答の誤採用・サイト異常",
       "required_evidence": "公式ホスト/容量/内容/日付証明",
-      "status": "OPEN",
+      "status": "LIVE_VERIFICATION_PENDING",
       "proof": [],
       "owner": "implementation26",
-      "notes": "未認定。証拠を照合した後に更新する。"
+      "notes": "未認定。証拠を照合した後に更新する。",
+      "next_evidence": "HTTPホスト/内容/容量/開催日を実レスポンスで独立再確認",
+      "review_due_utc": "2026-11-21T12:30:00Z",
+      "triage_complete": true
     },
     {
       "id": "R28",
@@ -323,7 +404,10 @@
         "CI run 44676198191 source-only policy PASS; evidence contract separates source bytes and actual attribution"
       ],
       "owner": "implementation26",
-      "notes": "静的構造と独立CIの証拠による対策認定。実開催時の外部結果とは別。"
+      "notes": "静的構造と独立CIの証拠による対策認定。実開催時の外部結果とは別。",
+      "next_evidence": "SHA同一性と実際のJRA由来証明を混同しない判定を維持",
+      "review_due_utc": "2026-11-21T12:30:00Z",
+      "triage_complete": true
     },
     {
       "id": "R29",
@@ -337,7 +421,10 @@
         "Production observer PC/SP always() seal-only and artifact upload steps present in main"
       ],
       "owner": "implementation26",
-      "notes": "保存/停止回復の事前模擬証拠による認定。実開催の検証とは別。"
+      "notes": "保存/停止回復の事前模擬証拠による認定。実開催の検証とは別。",
+      "next_evidence": "強制中断後の保存原本→AES封入と復元試験を継続",
+      "review_due_utc": "2026-11-21T12:30:00Z",
+      "triage_complete": true
     },
     {
       "id": "R30",
@@ -347,7 +434,10 @@
       "status": "OPEN",
       "proof": [],
       "owner": "implementation26",
-      "notes": "未認定。証拠を照合した後に更新する。"
+      "notes": "未認定。証拠を照合した後に更新する。",
+      "next_evidence": "G06ネスト原本束のサイズ上限・ファイルSHA/UTC整合を最終判定",
+      "review_due_utc": "2026-11-21T12:30:00Z",
+      "triage_complete": true
     },
     {
       "id": "R31",
@@ -357,7 +447,10 @@
       "status": "OPEN",
       "proof": [],
       "owner": "implementation26",
-      "notes": "未認定。証拠を照合した後に更新する。"
+      "notes": "未認定。証拠を照合した後に更新する。",
+      "next_evidence": "GitHub暗号化Artifactアップロード障害の記録と冗長保存手段を確認",
+      "review_due_utc": "2026-11-21T12:30:00Z",
+      "triage_complete": true
     },
     {
       "id": "R32",
@@ -367,7 +460,10 @@
       "status": "OPEN",
       "proof": [],
       "owner": "implementation26",
-      "notes": "未認定。証拠を照合した後に更新する。"
+      "notes": "未認定。証拠を照合した後に更新する。",
+      "next_evidence": "30日保持から重要暗号化原本の恒久バックアップ経路を確立",
+      "review_due_utc": "2026-11-21T12:30:00Z",
+      "triage_complete": true
     },
     {
       "id": "R33",
@@ -377,37 +473,49 @@
       "status": "OPEN",
       "proof": [],
       "owner": "implementation26",
-      "notes": "未認定。証拠を照合した後に更新する。"
+      "notes": "未認定。証拠を照合した後に更新する。",
+      "next_evidence": "Actions成功と原本/市場/馬の取得成功を別軸で集計",
+      "review_due_utc": "2026-11-21T12:30:00Z",
+      "triage_complete": true
     },
     {
       "id": "R34",
       "priority": "P0",
       "description": "21日全Run引継ぎ15分超過",
       "required_evidence": "4 Run×PC/SP全Artifactの実時間・欠損",
-      "status": "OPEN",
+      "status": "LIVE_VERIFICATION_PENDING",
       "proof": [],
       "owner": "implementation26",
-      "notes": "未認定。証拠を照合した後に更新する。"
+      "notes": "未認定。証拠を照合した後に更新する。",
+      "next_evidence": "21日4Run×PC/SP全Artifactの実時間集約・欠測判定",
+      "review_due_utc": "2026-11-22T12:30:00Z",
+      "triage_complete": true
     },
     {
       "id": "R35",
       "priority": "P1",
       "description": "4枠と各Runの対応未証明",
       "required_evidence": "scheduled cron値・Run/Jobの追跡",
-      "status": "OPEN",
+      "status": "LIVE_VERIFICATION_PENDING",
       "proof": [],
       "owner": "implementation26",
-      "notes": "未認定。証拠を照合した後に更新する。"
+      "notes": "未認定。証拠を照合した後に更新する。",
+      "next_evidence": "Cron値/Run/Job実対応を21/22日実イベントで追跡",
+      "review_due_utc": "2026-11-22T12:30:00Z",
+      "triage_complete": true
     },
     {
       "id": "R36",
       "priority": "P1",
       "description": "新旧引継ぎジョブ競合/片系失敗",
       "required_evidence": "独立結果の一致・不一致・修正経路",
-      "status": "OPEN",
+      "status": "LIVE_VERIFICATION_PENDING",
       "proof": [],
       "owner": "implementation26",
-      "notes": "未認定。証拠を照合した後に更新する。"
+      "notes": "未認定。証拠を照合した後に更新する。",
+      "next_evidence": "新旧引継ぎRun間の競合と片系失敗の実記録を照合",
+      "review_due_utc": "2026-11-22T12:30:00Z",
+      "triage_complete": true
     },
     {
       "id": "R37",
@@ -421,7 +529,10 @@
         "CI run 44674536797 SUCCESS and run 44676198191 SUCCESS"
       ],
       "owner": "implementation26",
-      "notes": "静的構造と独立CIの証拠による対策認定。実開催時の外部結果とは別。"
+      "notes": "静的構造と独立CIの証拠による対策認定。実開催時の外部結果とは別。",
+      "next_evidence": "22日SHAは独立CI/承認/旧版復帰SHAを維持",
+      "review_due_utc": "2026-11-21T12:30:00Z",
+      "triage_complete": true
     },
     {
       "id": "R38",
@@ -431,27 +542,36 @@
       "status": "OPEN",
       "proof": [],
       "owner": "implementation26",
-      "notes": "未認定。証拠を照合した後に更新する。"
+      "notes": "未認定。証拠を照合した後に更新する。",
+      "next_evidence": "Gitバックアップ外のTurso/Secrets/実原本の復元経路を分離し文書化",
+      "review_due_utc": "2026-11-21T12:30:00Z",
+      "triage_complete": true
     },
     {
       "id": "R39",
       "priority": "P1",
       "description": "GitHub/Python依存/JRA通信の外部障害",
       "required_evidence": "HTTP失敗/依存失敗/実行環境の区別",
-      "status": "OPEN",
+      "status": "LIVE_VERIFICATION_PENDING",
       "proof": [],
       "owner": "implementation26",
-      "notes": "未認定。証拠を照合した後に更新する。"
+      "notes": "未認定。証拠を照合した後に更新する。",
+      "next_evidence": "GitHub・Python・JRA外部障害を別原因として記録",
+      "review_due_utc": "2026-11-22T12:30:00Z",
+      "triage_complete": true
     },
     {
       "id": "R40",
       "priority": "P2",
       "description": "取得原本から予測/仮想投資へ接続不能",
       "required_evidence": "発走前凍結・公式結果自動照合の実開催証拠",
-      "status": "OPEN",
+      "status": "LIVE_VERIFICATION_PENDING",
       "proof": [],
       "owner": "implementation26",
-      "notes": "未認定。証拠を照合した後に更新する。"
+      "notes": "未認定。証拠を照合した後に更新する。",
+      "next_evidence": "実開催原本で発走前予測凍結と公式結果照合を後続実装",
+      "review_due_utc": "2026-11-30T12:00:00Z",
+      "triage_complete": true
     }
   ],
   "incidents": [
