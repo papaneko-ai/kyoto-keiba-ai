@@ -5,7 +5,7 @@ is promoted to as-of history. Originals survive partial failures and are sealed
 by the existing weekend AES-GCM archive. Prediction/training always blocked.
 """
 from __future__ import annotations
-import hashlib,json,re
+import hashlib,json,re,time
 from datetime import datetime,date,timezone
 from zoneinfo import ZoneInfo
 from pathlib import Path
@@ -67,7 +67,7 @@ def _metadata(raw,expected_name):
             "jra_horse_id":None,"jra_horse_id_verified":False}
 
 def capture(*,root,day,fetch,clock,allowed=False,allow_partial=False,
-            isolate_invalid_links=False):
+            isolate_invalid_links=False,deadline_monotonic=None,monotonic=None):
     """G03 must already be saved/verified; fetch must use existing paced _read.
 
     Caller is responsible for pacing, no-redirect, bounded GET, and replacing
@@ -75,6 +75,11 @@ def capture(*,root,day,fetch,clock,allowed=False,allow_partial=False,
     """
     if allowed is not True:raise G04Rejected("profile_capture_not_authorized")
     if type(isolate_invalid_links) is not bool:raise G04Rejected("invalid_link_isolation_mode")
+    if deadline_monotonic is not None and (type(deadline_monotonic) not in (int,float)
+        or deadline_monotonic<=0):raise G04Rejected("invalid_market_reserve_deadline")
+    if monotonic is not None and not callable(monotonic):
+        raise G04Rejected("invalid_market_reserve_clock")
+    budget_clock=monotonic or time.monotonic
     if type(day) is not str or not re.fullmatch(r"20[0-9]{6}",day):
         raise G04Rejected("bad_race_day")
     root=Path(root)
@@ -148,6 +153,10 @@ def capture(*,root,day,fetch,clock,allowed=False,allow_partial=False,
               "current_jockey_verified":bool(current_jockey and isinstance(current_jockey,str)),
               "prediction_ready":False,"training_ready":False}
         try:
+            # Preserve part of the PC 20-minute job for G06 market originals.
+            # Once exhausted, record every skipped horse, but start no more GETs.
+            if deadline_monotonic is not None and budget_clock()>=deadline_monotonic:
+                raise G04Rejected("g04_market_reserve_deadline_reached")
             before=_utc(clock())
             if before>=cutoff:raise G04Rejected("already_after_race_start")
             raw=fetch(url)
@@ -192,8 +201,10 @@ def capture(*,root,day,fetch,clock,allowed=False,allow_partial=False,
                 excluded_row_count=len(parsed["excluded_rows"]),
                 history_status=parsed["history_status"])
         except Exception as exc:
-            item.update(state="SOURCE_OR_PARSE_FAILED",failure_class=type(exc).__name__,
-                        failure_reason=str(exc)[:130])
+            item.update(state=("G04_TIME_BUDGET_RESERVED_FOR_G06"
+                if isinstance(exc,G04Rejected) and str(exc)=="g04_market_reserve_deadline_reached"
+                else "SOURCE_OR_PARSE_FAILED"),failure_class=type(exc).__name__,
+                failure_reason=str(exc)[:130])
         results.append(item)
     results.extend(rejected)
     results.sort(key=lambda p:(p["race"],p["horse_number"]))
@@ -204,6 +215,8 @@ def capture(*,root,day,fetch,clock,allowed=False,allow_partial=False,
             "partial_g03_source":len(selected)!=12,"expected_horses":len(pending)+len(rejected),
             "profile_verified_count":sum(bool(p["profile_verified"]) for p in results),
             "invalid_profile_navigation_count":len(rejected),
+            "time_budget_reserved_for_g06_count":sum(p["state"]=="G04_TIME_BUDGET_RESERVED_FOR_G06" for p in results),
+            "time_budget_deadline_enabled":deadline_monotonic is not None,
             "missing_profiles":missing,
             "all_profiles_parsed":not missing and len(selected)==12,
             "current_jockey_verified_for_all":all(p["current_jockey_source_verified"] for p in results),
