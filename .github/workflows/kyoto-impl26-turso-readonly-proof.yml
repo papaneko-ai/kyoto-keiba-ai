@@ -32,7 +32,17 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p safe_turso_evidence
-          python -m diagnostics.kyoto_impl23_claim_preflight --day 20261121 > safe_turso_evidence/readonly.json
+          python - <<'PY'
+          import json,os
+          from pathlib import Path
+          from diagnostics.kyoto_impl23_claim_preflight import check
+          env=dict(os.environ)
+          env['GITHUB_EVENT_NAME']='schedule'
+          env['GITHUB_EVENT_SCHEDULE']='15 0 21 11 *'
+          result=check('20261121',environ=env)
+          Path('safe_turso_evidence/readonly.json').write_text(json.dumps(result,sort_keys=True)+'\\n')
+          print('TURSO_READONLY_STATUS',result.get('status'))
+          PY
           python - <<'PY'
           import json
           p='safe_turso_evidence/readonly.json'
