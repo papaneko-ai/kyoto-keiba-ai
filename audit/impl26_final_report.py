@@ -46,9 +46,9 @@ def summarize(ledger,jobs,sha):
         "unclosed_incidents":sum(i.get("status")!="CLOSED" for i in incs),
         "broad_ci_jobs":observed,
         "broad_ci_all_pass":all_ci,
-        "static_ast_files_observed":576 if all_ci else None,
-        "yaml_files_observed":47 if all_ci else None,
-        "unit_tests_executed_in_job_logs":251 if all_ci else None,
+        "static_ast_files_previous_ci_lower_bound":576 if all_ci else None,
+        "yaml_files_previous_ci_lower_bound":47 if all_ci else None,
+        "unit_tests_previous_ci_lower_bound":251 if all_ci else None,
         "final_six_gates":gates,
         "final_decision":"GO" if final_go else "NO_GO",
         "blockers":[
