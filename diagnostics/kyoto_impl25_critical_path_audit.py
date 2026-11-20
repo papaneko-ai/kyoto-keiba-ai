@@ -30,8 +30,8 @@ def audit(collector_text: str, workflow_text: str) -> dict:
         "  sp-originals-independent:" not in workflow_text
     ):
         raise ValueError("expected_jobs_missing")
-    timeout = re.search(r"(?m)^[ \\t]{4}timeout-minutes:[ \\t]*(\\d+)", pc_block)
-    sp_timeout = re.search(r"(?m)^[ \\t]{4}timeout-minutes:[ \\t]*(\\d+)", sp_block)
+    timeout = re.search(r"(?m)^ {4}timeout-minutes: *([0-9]+)", pc_block)
+    timeout = re.search(r"(?m)^ {4}timeout-minutes: *([0-9]+)", pc_block)
     if timeout is None or sp_timeout is None:
         raise ValueError("job_timeout_missing")
     cron = re.findall(r"(?m)^\s*- cron: ['\"]([^'\"]+)['\"]", workflow_text)
