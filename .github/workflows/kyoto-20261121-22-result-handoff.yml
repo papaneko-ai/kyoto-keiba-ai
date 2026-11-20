@@ -151,3 +151,75 @@ jobs:
           path: day_result_handoff/
           retention-days: 30
           if-no-files-found: warn
+
+  all-four-day21-run-aggregation:
+    # Reuse the existing 21 Nov 12:00 UTC handoff schedule.
+    # Unlike the independent per-run classifier above, this job enumerates
+    # ALL same-day observed scheduled runs, not the first completed run.
+    if: ${{ github.event_name == 'schedule' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      GH_TOKEN: ${{ github.token }}
+      ARCHIVE_KEY: ${{ secrets.KYOTO_JRA_ARCHIVE_AES256_HEX }}
+      KYOTO_TARGET_DAY: '20261121'
+    steps:
+      - name: Checkout immutable all-run triage source, not live collector
+        uses: actions/checkout@v4
+        with:
+          ref: f0c73884447a27fa76d3cbf872dec65885937786
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install the existing authenticated AES evidence verifier
+        run: python -m pip install 'beautifulsoup4>=4.12,<5' 'cryptography>=43,<47'
+      - name: Verify immutable handoff source before any GitHub artifact retrieval
+        run: test "$(git rev-parse HEAD)" = "f0c73884447a27fa76d3cbf872dec65885937786"
+      - name: Collect all 21 Nov runs and privately assess each exact PC/SP ciphertext
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p day21_all_runs_handoff
+          python -m diagnostics.kyoto_impl25_c12_all_runs_handoff \
+            --day 20261121 --repo "$GITHUB_REPOSITORY" \
+            --out day21_all_runs_handoff/all_runs_assessment.json
+      - name: Show next-day risk and evidence boundaries without public raw originals
+        if: always()
+        shell: bash
+        run: |
+          if [ ! -f day21_all_runs_handoff/all_runs_assessment.json ]; then
+            echo "C12 run aggregation failed; do not promote a Sunday collector SHA." >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          python - <<'PY'
+          import json,os
+          from pathlib import Path
+          r=json.loads(Path("day21_all_runs_handoff/all_runs_assessment.json").read_text())
+          rows=["## 21 Nov all-run factual triage", "",
+                "Expected scheduled runs: 4",
+                "Observed scheduled run records: "+str(r["observed_schedule_count"]),
+                "Run metadata screened: "+str(r["all_run_metadata_screened"]),
+                "Missing-run lower bound: "+str(r["missing_run_count_lower_bound"]),
+                "Independent cron-slot mapping proved: False", "",
+                "| Run | Lane | GitHub stage | Encrypted-source evidence |",
+                "|---|---|---|---|"]
+          for run in r["scheduled_runs"]:
+              for lane in ("PC","SP"):
+                  value=run["lanes"][lane]
+                  rows.append("| "+str(run["run"]["id"])+" | "+lane+
+                              " | "+str(value.get("failure_stage","UNKNOWN"))+
+                              " | "+str(value.get("artifact_evidence_state","UNINSPECTED"))+" |")
+          rows.extend(["", "Day22 code updates need separate independent offline CI and approved immutable SHA.",
+                       "No JRA market authentication, betting or model release is claimed."])
+          with open(os.environ["GITHUB_STEP_SUMMARY"],"a") as stream:
+              stream.write("\n".join(rows)+"\n")
+          PY
+      - name: Retain only run identities, encrypted-source states and SHA256 report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: kyoto-nov21-all-runs-day22-handoff-${{ github.run_id }}
+          path: day21_all_runs_handoff/
+          retention-days: 60
+          if-no-files-found: warn
