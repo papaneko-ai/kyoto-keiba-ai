@@ -1,0 +1,66 @@
+name: Kyoto Impl25 independent Kyoto track fallback candidate CI
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/kyoto-impl25-independent-track-ci.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  static-and-mocked-live-control:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    env:
+      PYTHONPATH: .
+      KYOTO_TARGET_DAY: '20261121'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: 9fb884c3362a1097bdcf0849d974d8fdeab6faaa
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install 'beautifulsoup4>=4.12,<5' 'cryptography>=43,<47'
+      - name: Verify immutable candidate
+        run: test "$(git rev-parse HEAD)" = "9fb884c3362a1097bdcf0849d974d8fdeab6faaa"
+      - name: Test independent track when G03 fails plus existing critical source guards
+        run: |
+          set -euo pipefail
+          python -m unittest -q \
+            tests.test_kyoto_impl25_independent_track_continuation \
+            tests.test_kyoto_impl25_g04_priority \
+            tests.test_kyoto_weekend_capture \
+            tests.test_kyoto_weekend_end_to_end \
+            tests.test_kyoto_weekend_postflight \
+            tests.test_kyoto_weekend_interruption_and_pacing \
+            tests.test_kyoto_g04_all_horse_profiles \
+            tests.test_kyoto_g05_conditions \
+            tests.test_kyoto_g05_official_track \
+            tests.test_kyoto_g05_weekend_bridge \
+            tests.test_kyoto_g06_claim_execution \
+            tests.test_kyoto_impl23_weekend_entrypoint_claim \
+            tests.test_kyoto_impl23_claim_preflight \
+            tests.test_kyoto_impl23_lease_window \
+            tests.test_kyoto_impl23_lease_clock \
+            tests.test_kyoto_impl23_claim_evidence \
+            tests.test_kyoto_impl23_pc_to_g06_real_lease \
+            tests.test_kyoto_impl23_production_claim_activation \
+            tests.test_kyoto_impl23_claim_continuation \
+            tests.test_kyoto_weekend_race_parity \
+            tests.test_kyoto_nov15_encrypted_evidence \
+            tests.test_kyoto_weekend_retry_guard
+      - name: Assert G03 failure independently isolated and source policy intact
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          src=Path('diagnostics/kyoto_weekend_capture.py').read_text()
+          assert 'G03_EXCEPTION_PRESERVE_OTHER_SOURCES' in src
+          assert 'if (root / "pc_originals").is_dir():' in src
+          assert src.index('g04=g04_capture(')<src.index('markets=run_twelve(')
+          assert src.index('track=capture_kyoto_track(')<src.index('markets=run_twelve(')
+          assert 'active_claims_for_weekend(day)' in src
+          assert 'encrypt_evidence(src,dst' in src
+          assert 'race_number=12' in src
+          print('CANDIDATE_IMPROVES_INDEPENDENT_TRACK_RECOVERY_WITHOUT_SOURCE_FABRICATION')
+          PY
