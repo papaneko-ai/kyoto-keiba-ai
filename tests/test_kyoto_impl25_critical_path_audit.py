@@ -5,10 +5,10 @@ from diagnostics.kyoto_impl25_critical_path_audit import audit
 
 COLLECTOR = """
 g03=collect_after_observer(
-markets=run_twelve(
 g04=g04_capture(
 g05=compile_saved(
 track=capture_kyoto_track(
+markets=run_twelve(
 """
 WORKFLOW = """
 on:
