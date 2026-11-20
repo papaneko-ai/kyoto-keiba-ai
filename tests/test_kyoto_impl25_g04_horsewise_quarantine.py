@@ -9,6 +9,7 @@ class HorsewiseIsolation(unittest.TestCase):
     def setUp(self):
         # Reuse the existing 12-race official-shaped fixture; never real HTTP.
         AllHorseProfile.setUp(self)
+        self.fetch=lambda url: AllHorseProfile.fetch(self,url)
 
     def _modified(self, which, value):
         path=self.root/"g03_receipt.json"
