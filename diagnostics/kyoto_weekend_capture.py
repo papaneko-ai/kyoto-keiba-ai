@@ -328,8 +328,11 @@ def capture(day: str, channel: str, output: str, *, live: bool,
     if live:
         from diagnostics.kyoto_sp_all12_observed_capture import capture_all
         try:
+            # Conserve time for AES sealing and evidence upload before the
+            # 12-minute SP job hard limit. Never start another race past 4 min.
             multi = capture_all(root, day=day, opener=shared_sp_client,
-                                pacer=shared_sp_pacer)
+                                pacer=shared_sp_pacer,
+                                deadline_monotonic=time.monotonic()+240.0)
             out = _no_claim(day, channel, "SP_ALL12_OBSERVED_ANCHORS_ATTEMPTED",
                             observed_http_requests_started=discovery_requests + sum(
                                 x.get("network_requests_started", 0) for x in multi["races"].values()),
