@@ -143,28 +143,38 @@ class InterruptionAndPacingTests(unittest.TestCase):
         self.assertFalse(result["prediction_ready"])
 
     def test_official_discovery_and_racecard_share_same_pacer(self):
+        import hashlib,json
         observed=[]
+        url="https://sp.jra.jp/JRADB/accessD.html?CNAME=sw01race1220261121%2FBB"
+        raw=(f'<a href="{url}">京都 12R</a>').encode('cp932')
         def discovery(root,*,pacer,**kwargs):
             observed.append(pacer)
-            Path(root).mkdir()
-            (Path(root)/"sp_discovery_receipt.json").write_text('{"day":"20261121"}')
+            path=Path(root)
+            path.mkdir()
+            (path/"official_sp_discovery_1.html").write_bytes(raw)
+            (path/"sp_discovery_receipt.json").write_text(json.dumps({
+                "day":"20261121","attempts":[{"url":"https://sp.jra.jp/",
+                "file":"official_sp_discovery_1.html",
+                "sha256":hashlib.sha256(raw).hexdigest()}]}))
             return {"state":"OBSERVED_UNIQUE_R12_SOURCE","network_requests_started":1,
-                    "racecard_url":"https://sp.jra.jp/JRADB/accessD.html?CNAME=sw01race1220261121%2FBB"}
+                    "racecard_url":url}
         def capture_sp(root,*,pacer,**kwargs):
             observed.append(pacer)
             (Path(root)/"sp_receipt.json").write_text('{"day":"20261121"}')
             return {"state":"SP_ORIGINAL_CAPTURED_NOT_ROSTER_VERIFIED",
-                    "network_requests_started":1,"racecard_sha256":"ab"}
+                    "network_requests_started":1,"racecard_sha256":"ab","racecard_fetched":True}
         with patch.dict(os.environ,{"GITHUB_EVENT_NAME":"schedule",
                    "GITHUB_RUN_ATTEMPT":"1","KYOTO_WEEKEND_HTTP_APPROVED":"YES",
                    "ARCHIVE_KEY":"ab"*32}),patch(
                 "diagnostics.kyoto_weekend_capture.validate_day"),patch(
                 "diagnostics.kyoto_weekend_sp_discovery.discover",side_effect=discovery),patch(
-                "diagnostics.kyoto_sp_observed_source.capture_verified_sp_seed",side_effect=capture_sp):
+                "diagnostics.kyoto_sp_all12_observed_capture.capture_verified_sp_seed",side_effect=capture_sp):
             result=capture("20261121","SP",str(self.root/"sp"),live=True,opener=object())
         self.assertEqual(len(observed),2)
         self.assertIs(observed[0],observed[1])
         self.assertEqual(result["observed_http_requests_started"],2)
+        self.assertEqual(result["sp_races_attempted"],1)
+        self.assertTrue((self.root/"sp"/"r12_sp_receipt.json").is_file())
 
 if __name__=="__main__":
     unittest.main()
