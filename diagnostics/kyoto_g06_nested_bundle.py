@@ -87,3 +87,49 @@ def verify_bundle(path):
         if len(raw)!=proof["bytes"] or hashlib.sha256(raw).hexdigest()!=proof["sha256"]:
             raise BundleError("bundle_original_tampered")
     return {"verified_file_count":len(data),"bundle_sha256":hashlib.sha256(path.read_bytes()).hexdigest()}
+
+def bundle_interrupted_g06(source,target):
+    """Seal partial G06 originals after an interrupted batch, without success claims.
+
+    Only the absence of the final batch receipt is repairable here. Other
+    bundle/integrity failures remain fail-closed. The synthetic *failure*
+    receipt has no markets, does not certify an individual race, and is
+    carried within the existing AES-GCM encrypted G06 bundle.
+    """
+    source=Path(source)
+    if source.is_symlink() or not source.is_dir():
+        raise BundleError("unsafe_interrupted_source")
+    if (source/"g06_batch_receipt.json").exists():
+        raise BundleError("not_an_interrupted_batch")
+    files=[p for p in source.rglob("*") if p.is_file()]
+    if not files:
+        raise BundleError("no_partial_originals")
+    for p in source.rglob("*"):
+        if p.is_symlink() or (not p.is_file() and not p.is_dir()):
+            raise BundleError("unsafe_interrupted_entry")
+        if p.is_file() and not _accepted(p.relative_to(source).as_posix()):
+            raise BundleError("unexpected_partial_original")
+    failure={
+        "schema":"kyoto_g06_interrupted_batch_failure.v1",
+        "state":"INTERRUPTED_BATCH_PARTIAL_ORIGINALS_ONLY",
+        "total_races":12,
+        "verified_dual_market_races":0,
+        "all_twelve_source_originals_verified":False,
+        "per_race_verification_not_completed":True,
+        "prediction_ready":False,
+        "actual_wager_authorized":False,
+        "records":[],
+    }
+    path=source/"g06_batch_receipt.json"
+    with path.open("x",encoding="utf8") as out:
+        json.dump(failure,out,sort_keys=True,ensure_ascii=False)
+        out.write("\n")
+    try:
+        result=bundle_g06(source,target)
+    except Exception:
+        # Keep saved source files on failure; never silently discard the only
+        # partial originals. The sealing step must fail closed.
+        raise
+    result["state"]="G06_INTERRUPTED_ORIGINALS_BUNDLED_UNVERIFIED"
+    result["verified_dual_market_races"]=0
+    return result
