@@ -1,7 +1,7 @@
 name: Impl26 final broad integrated bug audit
 on:
   push:
-    branches: [audit/impl26-broad-final-suite-20261120, audit/impl26-extended-full-g06-20261120]
+    branches: [audit/impl26-broad-final-suite-20261120, audit/impl26-extended-full-g06-20261120, audit/impl26-final-verdict-honest-20261120]
   workflow_dispatch:
 permissions:
   contents: read
