@@ -1,0 +1,40 @@
+name: Impl26 R33 separate Actions-success from authentic source coverage
+on:
+  push:
+    branches: [audit/impl26-r33-source-success-boundary-20261120]
+permissions:
+  contents: read
+jobs:
+  source-vs-job-evidence:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    env:
+      PYTHONPATH: .
+      KYOTO_TARGET_DAY: '20261121'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: f0c73884447a27fa76d3cbf872dec65885937786
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install 'beautifulsoup4>=4.12,<5' 'cryptography>=43,<47'
+      - name: Independent four-run and per-lane evidence regression
+        run: |
+          python -m unittest -q tests.test_kyoto_impl25_c12_all_runs_handoff tests.test_kyoto_impl25_c12_workflow_contract tests.test_kyoto_weekend_day21_artifact_triage tests.test_kyoto_weekend_day21_triage
+      - name: Verify explicit source and actual-run evidence boundaries
+        run: |
+          python - <<'PY'
+          from diagnostics.kyoto_impl25_c12_all_runs_handoff import summarize,WORKFLOW
+          day='20261121'
+          assert WORKFLOW=='Kyoto Nov21-22 independent encrypted original collection'
+          report=summarize(day,[],total_count=0,pagination_complete=True)
+          assert report['observed_schedule_count']==0
+          assert report['all_run_metadata_screened'] is False
+          assert report['full_live_jra_coverage_proved'] is False
+          assert report['source_originals_uploaded'] is False
+          assert report['new_live_jra_http_requests_started']==0
+          assert report['missing_run_count_lower_bound']==4
+          print('R33_NO_FALSE_SOURCE_SUCCESS_OR_RUN_COMPLETE')
+          PY
