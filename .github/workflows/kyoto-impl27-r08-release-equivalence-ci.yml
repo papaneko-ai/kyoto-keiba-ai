@@ -23,7 +23,7 @@ jobs:
           python-version: '3.11'
       - name: Test full protected release equivalence rather than bypass legacy failure
         run: |
-          python -m unittest -v tests.test_kyoto_impl27_r08_release_equivalence tests.test_kyoto_impl27_r08_source_barrier
+          python -m unittest -v tests.test_kyoto_impl27_r08_release_equivalence tests.test_kyoto_impl27_r08_source_barrier tests.test_kyoto_impl27_r31_artifact_retry_outcome
       - name: Require valid complete Workflow YAML
         run: |
           python -m pip install 'PyYAML>=6,<7'
