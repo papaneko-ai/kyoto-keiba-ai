@@ -1,0 +1,101 @@
+name: Kyoto Impl25 all-runs cross-slot evidence inventory
+on:
+  workflow_run:
+    workflows: ['Kyoto Nov21-22 independent encrypted original collection']
+    types: [completed]
+  workflow_dispatch:
+    inputs:
+      day:
+        description: Historical Nov21 or Nov22 inventory only; never causes JRA HTTP
+        required: true
+        type: choice
+        options: ['20261121', '20261122']
+permissions:
+  contents: read
+  actions: read
+jobs:
+  inventory-without-source-success-inference:
+    if: ${{ github.event_name == 'workflow_dispatch' || startsWith(github.event.workflow_run.created_at, '2026-11-21') || startsWith(github.event.workflow_run.created_at, '2026-11-22') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    env:
+      GH_TOKEN: ${{ github.token }}
+      INVENTORY_DAY: ${{ github.event_name == 'workflow_dispatch' && inputs.day || '' }}
+      TRIGGER_CREATED_AT: ${{ github.event.workflow_run.created_at || '' }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # Reviewed immutable metadata-only analyzer; no branch-head execution.
+          ref: e3a0c46a5124c2b15718a83f5968b0d6d5523ae4
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Verify standalone metadata-only analysis without external source
+        run: python -m unittest -q tests.test_kyoto_impl25_run_inventory
+      - name: Inventory all runs and lanes without JRA HTTP or decrypting sources
+        shell: bash
+        run: |
+          set -euo pipefail
+          day="$INVENTORY_DAY"
+          if [ -z "$day" ]; then
+            day="$(printf '%s' "$TRIGGER_CREATED_AT" | cut -c1-10 | tr -d '-')"
+          fi
+          [[ "$day" == "20261121" || "$day" == "20261122" ]] || exit 2
+          mkdir -p impl25_all_runs
+          gh api "repos/$GITHUB_REPOSITORY/actions/workflows/kyoto-20261121-22-two-source-production-observer.yml/runs?created=${day:0:4}-${day:4:2}-${day:6:2}&per_page=100" > impl25_all_runs/runs.json
+          python - <<'PY'
+          import json,os,subprocess
+          from pathlib import Path
+          from diagnostics.kyoto_impl25_run_inventory import NAME
+          day=os.environ.get('INVENTORY_DAY') or os.environ.get('TRIGGER_CREATED_AT','')[:10].replace('-','')
+          runs=json.loads(Path('impl25_all_runs/runs.json').read_text())['workflow_runs']
+          details={}
+          for r in runs:
+              if r.get('name')!=NAME or not str(r.get('created_at','')).startswith(
+                  day[:4]+'-'+day[4:6]+'-'+day[6:]):
+                  continue
+              if r.get('status')!='completed': continue
+              rid=r['id']
+              payload={}
+              for item in ('jobs','artifacts'):
+                  path=f"repos/{os.environ['GITHUB_REPOSITORY']}/actions/runs/{rid}/{item}?per_page=100"
+                  payload[item]=json.loads(subprocess.check_output(['gh','api',path],text=True))[item]
+              details[str(rid)]=payload
+          Path('impl25_all_runs/details.json').write_text(
+              json.dumps(details,sort_keys=True),encoding='utf8')
+          PY
+          python -m diagnostics.kyoto_impl25_run_inventory \
+            --day "$day" --runs impl25_all_runs/runs.json \
+            --details impl25_all_runs/details.json --out impl25_all_runs/inventory.json
+          python - <<'PY'
+          import json,os
+          from pathlib import Path
+          data=json.loads(Path('impl25_all_runs/inventory.json').read_text())
+          summary=['## Nov21/22 all-run evidence inventory','',
+                   f"Day: {data['day']}, runs inventoried: {data['runs_found']}",
+                   '', '| Run | Event | GitHub conclusion | PC metadata | SP metadata |',
+                   '|---|---|---|---|---|']
+          for r in data['runs']:
+              lanes=r.get('lanes',{})
+              def state(k):
+                  v=lanes.get(k,{})
+                  return 'Artifact listed, unverified' if v.get('encrypted_artifact_metadata_present') else 'Not confirmed'
+              summary.append(f"| {r['run_id']} | {r['event']} | {r['conclusion']} | "
+                  f"{state('pc-originals-independent')} | {state('sp-originals-independent')} |")
+          summary.extend(['','**No JRA source success is inferred from this metadata.**',
+              'G03/G04/G05/G06 per-race and per-horse data require AES-GCM source inspection, original SHA and UTC verification.',
+              'Any Sunday collector change still requires independently successful offline preflight.'])
+          with open(os.environ['GITHUB_STEP_SUMMARY'],'a') as out:
+              out.write('\n'.join(summary)+'\n')
+          PY
+          # This evidence contains metadata only, not actual HTML or secrets.
+          rm -f impl25_all_runs/details.json impl25_all_runs/runs.json
+          sha256sum impl25_all_runs/inventory.json > impl25_all_runs/inventory.sha256
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: impl25-cross-slot-inventory-${{ github.run_id }}
+          path: impl25_all_runs/
+          if-no-files-found: warn
+          retention-days: 30
