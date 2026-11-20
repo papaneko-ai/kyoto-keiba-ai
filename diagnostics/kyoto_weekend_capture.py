@@ -327,12 +327,32 @@ def capture(day: str, channel: str, output: str, *, live: bool,
         return out
     if live:
         from diagnostics.kyoto_sp_all12_observed_capture import capture_all
+        # R07: optional cross-lane source arbitration. No change to existing
+        # serialized production execution unless coordinator is activated.
+        sp_claim_options={}
+        if os.getenv("KYOTO_SHARED_CLAIM_ACTIVATE")=="YES":
+            try:
+                from diagnostics.kyoto_weekend_remote_claim_runtime import active_claims_for_weekend
+                sp_ctx=active_claims_for_weekend(day)
+                if sp_ctx.get("enabled"):
+                    sp_claim_options={k:v for k,v in sp_ctx.items()
+                        if k in ("claim_client","claim_slot","claim_owner",
+                                 "claim_now_epoch","claim_clock")}
+                elif sp_ctx.get("reason")=="NON_SCHEDULED_EVENT_NO_ARBITRARY_SLOT":
+                    raise ValueError("sp_shared_coordinator_slot_unverified")
+            except Exception as exc:
+                out=_no_claim(day,channel,"SP_COORDINATOR_UNCONFIRMED_NO_RACE_HTTP",
+                              error_class=type(exc).__name__,
+                              observed_http_requests_started=discovery_requests)
+                _write_receipt(root,out)
+                return out
         try:
             # Conserve time for AES sealing and evidence upload before the
             # 12-minute SP job hard limit. Never start another race past 4 min.
             multi = capture_all(root, day=day, opener=shared_sp_client,
                                 pacer=shared_sp_pacer,
-                                deadline_monotonic=time.monotonic()+240.0)
+                                deadline_monotonic=time.monotonic()+240.0,
+                                **sp_claim_options)
             out = _no_claim(day, channel, "SP_ALL12_OBSERVED_ANCHORS_ATTEMPTED",
                             observed_http_requests_started=discovery_requests + sum(
                                 x.get("network_requests_started", 0) for x in multi["races"].values()),

@@ -11,7 +11,17 @@ from diagnostics.kyoto_weekend_sp_discovery import observed_kyoto_race_candidate
 from diagnostics.kyoto_sp_observed_source import capture_verified_sp_seed
 
 
-def capture_all(root, *, day, opener, pacer, deadline_monotonic=None, monotonic=time.monotonic):
+def capture_all(root, *, day, opener, pacer, deadline_monotonic=None, monotonic=time.monotonic,
+                claim_client=None, claim_slot=None, claim_owner=None,
+                claim_now_epoch=None, claim_clock=None):
+    """Optional shared cross-lane source lock; never claim with unverified scope."""
+    if claim_client is not None:
+        if (type(claim_slot) is not int or not 0 <= claim_slot <= 3
+            or not isinstance(claim_owner,str) or not claim_owner
+            or type(claim_now_epoch) is not int or claim_now_epoch <= 0):
+            raise ValueError("sp_cross_lane_claim_scope_invalid")
+        if claim_clock is not None and not callable(claim_clock):
+            raise ValueError("sp_cross_lane_clock_invalid")
     root = Path(root)
     receipt_path = root / "sp_discovery_receipt.json"
     discovery = json.loads(receipt_path.read_text(encoding="utf8"))
@@ -42,6 +52,26 @@ def capture_all(root, *, day, opener, pacer, deadline_monotonic=None, monotonic=
         if len(urls) != 1:
             outcomes[str(number)] = {"state": "NO_UNIQUE_SAVED_OFFICIAL_SP_ANCHOR", "candidate_count": len(urls)}
             continue
+        lease = None
+        lease_key = None
+        lease_epoch = None
+        if claim_client is not None:
+            from diagnostics.kyoto_shared_capture_reservation import key
+            lease_key = key(day=day,slot=claim_slot,race=number,
+                            channel="SHARED",market="racecard")
+            try:
+                lease_epoch = int(claim_clock()) if claim_clock else claim_now_epoch
+                lease = claim_client.claim(claim_key=lease_key,owner=claim_owner,
+                                           now_epoch=lease_epoch,lease_seconds=1800)
+                if not lease.get("must_fetch"):
+                    outcomes[str(number)] = {"state":"SP_SHARED_CLAIM_ALREADY_OWNED_OR_DONE",
+                                              "claim_state":lease["state"],"network_requests_started":0}
+                    continue
+            except Exception as exc:
+                outcomes[str(number)] = {"state":"SP_SHARED_COORDINATOR_UNCONFIRMED_NO_HTTP",
+                                          "error_class":type(exc).__name__,
+                                          "network_requests_started":0}
+                continue
         staging = root / f"sp_stage_{number:02d}"
         staging.mkdir(exist_ok=False)
         try:
@@ -51,8 +81,34 @@ def capture_all(root, *, day, opener, pacer, deadline_monotonic=None, monotonic=
             outcomes[str(number)] = {"state": result["state"], "network_requests_started": result.get("network_requests_started", 0),
                                      "racecard_fetched": result.get("racecard_fetched", False),
                                      "sp_market_state": result.get("sp_market_state", "NOT_ATTEMPTED")}
+            if lease is not None:
+                from hashlib import sha256
+                candidate = staging/"official_sp_racecard.html"
+                if result.get("racecard_fetched") and candidate.is_file() and not candidate.is_symlink():
+                    digest=sha256(candidate.read_bytes()).hexdigest()
+                    try:
+                        completed=claim_client.complete(claim_key=lease_key,owner=claim_owner,
+                                        generation=lease["generation"],sha256=digest)
+                        outcomes[str(number)]["claim_state"] = (
+                            "COMMITTED" if completed.get("committed") else "FENCE_REJECTED")
+                    except Exception:
+                        outcomes[str(number)]["claim_state"]="COMPLETION_UNCONFIRMED"
+                else:
+                    try:
+                        claim_client.abandon(claim_key=lease_key,owner=claim_owner,
+                                 generation=lease["generation"],now_epoch=lease_epoch)
+                        outcomes[str(number)]["claim_state"]="ABANDONED_NO_VERIFIED_RACECARD"
+                    except Exception:
+                        outcomes[str(number)]["claim_state"]="ABANDON_UNCONFIRMED"
         except Exception as exc:
             outcomes[str(number)] = {"state": "SP_RACE_EXCEPTION", "error_class": type(exc).__name__}
+            if lease is not None:
+                try:
+                    claim_client.abandon(claim_key=lease_key,owner=claim_owner,
+                            generation=lease["generation"],now_epoch=lease_epoch)
+                    outcomes[str(number)]["claim_state"]="ABANDONED_AFTER_EXCEPTION"
+                except Exception:
+                    outcomes[str(number)]["claim_state"]="ABANDON_UNCONFIRMED"
         finally:
             for item in sorted(staging.iterdir()):
                 if not item.is_file() or item.is_symlink():
