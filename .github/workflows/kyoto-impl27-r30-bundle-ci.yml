@@ -1,0 +1,26 @@
+name: Impl27 R30 extracted bundle bounds
+on:
+  pull_request:
+    paths:
+      - 'diagnostics/kyoto_g06_nested_bundle.py'
+      - 'tests/test_kyoto_impl27_r30_total_bound.py'
+      - '.github/workflows/kyoto-impl27-r30-bundle-ci.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  r30-extracted-size-negative:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Check R30 compressed-bomb and intact archive fixtures
+        run: |
+          python -m unittest -v tests.test_kyoto_impl27_r30_total_bound
+          python -m pip install 'beautifulsoup4>=4.12,<5' 'cryptography>=43,<47'
+          python -m unittest -v tests.test_kyoto_g06_nested_bundle
