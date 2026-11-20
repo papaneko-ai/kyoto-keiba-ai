@@ -40,7 +40,7 @@ jobs:
           env['GITHUB_EVENT_NAME']='schedule'
           env['GITHUB_EVENT_SCHEDULE']='15 0 21 11 *'
           result=check('20261121',environ=env)
-          Path('safe_turso_evidence/readonly.json').write_text(json.dumps(result,sort_keys=True)+'\\n')
+          Path('safe_turso_evidence/readonly.json').write_text(json.dumps(result,sort_keys=True)+chr(10))
           print('TURSO_READONLY_STATUS',result.get('status'))
           PY
           python - <<'PY'
