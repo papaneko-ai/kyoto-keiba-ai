@@ -5,12 +5,13 @@ Every race owns its failure, while completed raw bytes are flattened for AES.
 """
 from __future__ import annotations
 import json
+import time
 from pathlib import Path
 from diagnostics.kyoto_weekend_sp_discovery import observed_kyoto_race_candidates
 from diagnostics.kyoto_sp_observed_source import capture_verified_sp_seed
 
 
-def capture_all(root, *, day, opener, pacer):
+def capture_all(root, *, day, opener, pacer, deadline_monotonic=None, monotonic=time.monotonic):
     root = Path(root)
     receipt_path = root / "sp_discovery_receipt.json"
     discovery = json.loads(receipt_path.read_text(encoding="utf8"))
@@ -35,6 +36,9 @@ def capture_all(root, *, day, opener, pacer):
     outcomes = {}
     for number in range(1, 13):
         urls = candidates[str(number)]
+        if deadline_monotonic is not None and monotonic() >= deadline_monotonic:
+            outcomes[str(number)] = {"state": "DEFERRED_FOR_AES_SEALING_BUDGET", "candidate_count": len(urls)}
+            continue
         if len(urls) != 1:
             outcomes[str(number)] = {"state": "NO_UNIQUE_SAVED_OFFICIAL_SP_ANCHOR", "candidate_count": len(urls)}
             continue
