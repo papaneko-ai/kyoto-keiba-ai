@@ -1,0 +1,44 @@
+name: Impl27 R07 cross-lane claims targeted gate
+on:
+  pull_request:
+    paths:
+      - 'diagnostics/kyoto_shared_capture_reservation.py'
+      - 'diagnostics/kyoto_turso_capture_claims.py'
+      - 'diagnostics/kyoto_g06_all12_capture.py'
+      - 'tests/test_kyoto_impl27_r07_shared_lane_lease.py'
+      - '.github/workflows/kyoto-impl27-r07-targeted-ci.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  r07-cross-lane-lease:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Run targeted cross-channel real-SQL offline race tests
+        run: |
+          python -m unittest -v \
+            tests.test_kyoto_impl27_r07_shared_lane_lease \
+            tests.test_kyoto_turso_capture_claims \
+            tests.test_kyoto_g06_claim_execution \
+            tests.test_kyoto_impl23_pc_to_g06_real_lease
+      - name: Validate protected operational boundary
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          from diagnostics.kyoto_shared_capture_reservation import key
+          a=key(day="20261121",slot=0,race=11,channel="SHARED",market="racecard")
+          assert a=="20261121:0:11:SHARED:racecard",a
+          observer=Path(".github/workflows/kyoto-20261121-22-two-source-production-observer.yml").read_text()
+          assert observer.count("- cron: '")==8
+          assert "needs: pc-originals-independent" in observer
+          assert "de2544c1e9f9951a265419461267146b4023c2ab" in observer
+          assert "KYOTO_JRA_ARCHIVE_AES256_HEX" in observer
+          print("R07_PROTECTED_BOUNDARY_PASS")
+          PY
