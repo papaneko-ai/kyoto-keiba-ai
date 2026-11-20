@@ -30,6 +30,7 @@ counts = {"P0":0,"P1":0,"P2":0}
 for x in entries:
     assert x["priority"] == canonical[x["id"]]
     assert x["status"] in allowed
+    assert x.get("triage_complete") is True and x.get("next_evidence") and x.get("review_due_utc"), f"{x['id']}: TRIAGE_INCOMPLETE"
     if x["status"] in {"MITIGATED_WITH_PROOF","ACCEPTED_WITH_REASON"}:
         assert x.get("proof"), f"{x['id']}: EMPTY_PROOF_NOT_ALLOWED"
         if x["status"]=="ACCEPTED_WITH_REASON":
@@ -63,8 +64,7 @@ all_pass = all(x["status"]=="PASS" for x in gate["checks"].values())
 critical_open = any(x["priority"]=="P0" and x["status"] not in
                     {"MITIGATED_WITH_PROOF","ACCEPTED_WITH_REASON"}
                     for x in entries)
-active_inc = any(x.get("status") not in {"CLOSED","BLOCKED_WITH_REASON"}
-                 for x in ledger["incidents"])
+active_inc = any(x.get("status") != "CLOSED" for x in ledger["incidents"])
 go = all_pass and not critical_open and not active_inc
 if gate["status"]=="GO" and not go:
     raise SystemExit("FALSE_GO_NOT_ALLOWED")
