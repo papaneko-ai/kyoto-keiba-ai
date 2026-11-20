@@ -54,7 +54,7 @@ jobs:
           assert 'if not isolate_invalid_links:' in g04
           # Protect the 20-minute PC window from uncontrolled G04 network duration.
           g04=Path('pinned_source/diagnostics/kyoto_g04_all_horse_profiles.py').read_text()
-          assert 'g04_market_reserve_deadline=time.monotonic()+600.0' in source
+          assert 'g04_market_reserve_deadline=pc_capture_start_monotonic+600.0' in source
           assert 'deadline_monotonic=g04_market_reserve_deadline' in source
           assert 'time_budget_reserved_for_g06_count' in g04
           # C07 & C08 share one PC monotonic origin; no new HTTP past budget.
