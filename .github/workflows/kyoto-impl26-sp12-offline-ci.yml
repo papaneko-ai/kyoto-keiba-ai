@@ -1,0 +1,60 @@
+name: Impl26 SP all12 isolated offline candidate verification
+on:
+  push:
+    branches:
+      - fix/impl26-sp12-racewise-capture-20261120
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  offline-only:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      PYTHONPATH: .
+      KYOTO_TARGET_DAY: '20261121'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install offline parser and crypto dependencies
+        run: python -m pip install 'beautifulsoup4>=4.12,<5' 'cryptography>=43,<47'
+      - name: SP all12 negative paths and encrypted originals
+        run: |
+          python -m unittest -q \
+            tests.test_kyoto_sp_all12_observed_capture \
+            tests.test_kyoto_weekend_capture \
+            tests.test_kyoto_weekend_sp_discovery \
+            tests.test_kyoto_sp_observed_source \
+            tests.test_kyoto_impl25_c09_sp_coverage \
+            tests.test_kyoto_weekend_interruption_and_pacing \
+            tests.test_kyoto_nov15_encrypted_evidence \
+            tests.test_kyoto_nov15_full_capture_seal
+      - name: PC/SP source parity, sha postflight and end-to-end offline
+        run: |
+          python -m unittest -q \
+            tests.test_kyoto_weekend_race_parity \
+            tests.test_kyoto_safe_stop_artifact \
+            tests.test_kyoto_weekend_postflight \
+            tests.test_kyoto_weekend_end_to_end
+      - name: Thirty foreseeable incident scenarios
+        run: |
+          python -m unittest -q tests.test_kyoto_predictable_failure_gate
+          python -m diagnostics.kyoto_predictable_failure_gate --report predictable_failure_execution.json
+          python - <<'PY'
+          import json
+          d=json.load(open('predictable_failure_execution.json'))
+          assert d['count']==30 and d['passing']==30
+          assert d['live_jra_proven'] is False
+          PY
+      - name: No authorized live JRA access from this workflow
+        run: |
+          python - <<'PY'
+          import os
+          assert os.getenv('KYOTO_WEEKEND_HTTP_APPROVED') != 'YES'
+          assert not os.getenv('ARCHIVE_KEY')
+          print('OFFLINE_ONLY_PROVEN_NO_LIVE_JRA_SECRETS')
+          PY
