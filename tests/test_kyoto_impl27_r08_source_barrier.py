@@ -50,6 +50,19 @@ class R08BarrierTests(unittest.TestCase):
         self.assertNotEqual(classify(jobs()+jobs())[0],"ALLOW")
         self.assertEqual(classify(None)[0],"BLOCK")
 
+    def test_pc_tail_after_capture_step_is_offline_only(self):
+        source=Path(".github/workflows/kyoto-20261121-22-two-source-production-observer.yml").read_text()
+        pc=source.split("  pc-originals-independent:",1)[1].split("  sp-originals-independent:",1)[0]
+        # All possible PC JRA HTTP is completed by the time the named capture
+        # step exits. Later postflight/encryption/upload must be source-only.
+        self.assertIn("Capture official PC observed originals (bounded no guessed URLs)",pc)
+        tail=pc.split("      - name: Offline postflight verify saved original SHA and UTC before evidence sealing",1)[1]
+        self.assertNotIn("collect_after_observer",tail)
+        self.assertNotIn("capture_hybrid",tail)
+        self.assertNotIn(" --channel PC --source pc_raw --destination pc_sealed\n",tail)
+        self.assertIn(" --seal-only",tail)
+        self.assertIn("actions/upload-artifact@v4",tail)
+
     def test_workflow_places_barrier_before_sp_source_http(self):
         text=Path(".github/workflows/kyoto-20261121-22-two-source-production-observer.yml").read_text()
         sp=text.split("  sp-originals-independent:",1)[1]
