@@ -42,6 +42,38 @@ class IncidentMetadataTests(unittest.TestCase):
         self.assertEqual(len(a),3)
         self.assertTrue(any(x["failure_stage"]=="SEALING_FAILED" for x in a))
         self.assertTrue(all(x["status"]=="DETECTED" for x in a))
+    def test_upload_retry_preserved_metadata_without_claiming_authenticity(self):
+        jobs=self.jobs()
+        jobs["jobs"][0]["conclusion"]="failure"
+        jobs["jobs"][0]["steps"]=[
+            {"name":"Upload only AES-GCM ciphertext or safe-stop receipt","conclusion":"failure"},
+            {"name":"Retry same encrypted artifact if the first upload fails","conclusion":"success"}]
+        events=list(classify(self.run_obj(),jobs,self.artifacts(),day=DAY))
+        self.assertEqual(len(events),1)
+        self.assertEqual(events[0]["failure_stage"],"RETRY_ARTIFACT_METADATA_PRESENT")
+        self.assertEqual(events[0]["data_preserved"],"ARTIFACT_METADATA_PRESENT_CONTENT_UNVERIFIED")
+        self.assertEqual(events[0]["risk_ids"],["R31"])
+        self.assertEqual(events[0]["root_cause_status"],"UNKNOWN")
+    def test_retry_success_without_artifact_never_claims_preservation(self):
+        jobs=self.jobs()
+        jobs["jobs"][0]["conclusion"]="failure"
+        jobs["jobs"][0]["steps"]=[
+            {"name":"Upload only AES-GCM ciphertext or safe-stop receipt","conclusion":"failure"},
+            {"name":"Retry same encrypted artifact if the first upload fails","conclusion":"success"}]
+        artifacts=self.artifacts()
+        artifacts["artifacts"]=artifacts["artifacts"][1:]
+        events=list(classify(self.run_obj(),jobs,artifacts,day=DAY))
+        self.assertTrue(any(x["failure_stage"]=="SEALING_FAILED" for x in events))
+        self.assertTrue(all(x["data_preserved"]=="UNKNOWN" for x in events))
+    def test_retry_failure_does_not_hide_primary_failure(self):
+        jobs=self.jobs()
+        jobs["jobs"][0]["conclusion"]="failure"
+        jobs["jobs"][0]["steps"]=[
+            {"name":"Upload only AES-GCM ciphertext or safe-stop receipt","conclusion":"failure"},
+            {"name":"Retry same encrypted artifact if the first upload fails","conclusion":"failure"}]
+        events=list(classify(self.run_obj(),jobs,self.artifacts(),day=DAY))
+        self.assertEqual(events[0]["failure_stage"],"SEALING_FAILED")
+
     def test_wrong_workflow_never_adopted(self):
         run=self.run_obj()
         run["name"]="lookalike"
