@@ -657,20 +657,48 @@
     "status": "NO_GO_NOT_EXECUTED",
     "checks": {
       "static_and_function_calls": {
-        "status": "NOT_RUN",
-        "proof": []
+        "status": "BLOCKED",
+        "proof": [
+          "Run 44676736139 main+collector 576 Python AST parsed, ruff F821/F822/F823 PASS, 47 GitHub Actions YAML syntax parse PASS",
+          "Run 44678448344 5-job broad full-static-and-contracts PASS"
+        ],
+        "missing_conditions": [
+          "All relevant production function signatures, positional/keyword call chains, None/type/receipt schemas and uncovered branches have not been exhaustively independently proved."
+        ],
+        "formal_pass": false
       },
       "end_to_end_12R": {
-        "status": "NOT_RUN",
-        "proof": []
+        "status": "BLOCKED",
+        "proof": [
+          "Run 44678448344 expanded G03/G04/G05/G06 and SP all12 source-only acquisition, paired-market partial retry, AES seal/decrypt and G06 12R reparse tests PASS",
+          "Production 21 Nov frozen collector SHA de2544c1e9f9951a265419461267146b4023c2ab"
+        ],
+        "missing_conditions": [
+          "One continuous 12R by every runner with provenance/UTC/SHA -> actual four-Run aggregation -> Nov22 handoff and verified all families in a single independent E2E proof is not complete."
+        ],
+        "formal_pass": false
       },
       "destructive_fault_injection": {
-        "status": "NOT_RUN",
-        "proof": []
+        "status": "BLOCKED",
+        "proof": [
+          "Run 44678448344 destructive-and-turso job PASS, thirty scenario gate and known interruption/tamper/retry/timeout/lease unit tests",
+          "Run 44677451421 production Turso read-only SELECT verified, no write"
+        ],
+        "missing_conditions": [
+          "Destructive coverage of live GitHub schedule omission, cross-host lease conflicts, artifact upload outages/alternate durable retention, and all forty individual risk incidents not proved."
+        ],
+        "formal_pass": false
       },
       "risk_and_incident_regression": {
-        "status": "NOT_RUN",
-        "proof": []
+        "status": "BLOCKED",
+        "proof": [
+          "audit/impl26_fixed_risk_status.json 40/40 individually triaged with review due dates, P0 11/20 P1 3/19 and 3 open historical incidents",
+          "Run 44678448344 full risk ledger fail-closed verification and incident lifecycle negative tests PASS"
+        ],
+        "missing_conditions": [
+          "Remaining P0 mitigation (9/20), P1 unresolved (16/19), 3 unclosed INC root-cause/regression closure, and protected rollback/reapplication are not independently complete."
+        ],
+        "formal_pass": false
       },
       "performance_and_deadlines": {
         "status": "PASS",
