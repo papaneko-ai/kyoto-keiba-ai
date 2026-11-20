@@ -1,0 +1,32 @@
+name: Impl26 actual release source-contract test repair
+on:
+  push:
+    branches:
+      - fix/impl26-main-release-test-dual-pin-20261120
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  source-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Original policy test, Nov21 and Nov22 both guarded
+        run: python -m unittest -v tests.test_kyoto_weekend_main_release_guard
+      - name: Protected eight-slot check
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          w=Path('.github/workflows/kyoto-20261121-22-two-source-production-observer.yml').read_text()
+          assert len([l for l in w.splitlines() if l.strip().startswith('- cron:')])==8
+          assert w.count("timeout-minutes: 20")==1
+          assert w.count("timeout-minutes: 12")==1
+          assert w.count("actions/upload-artifact@v4")==2
+          print('SOURCE_CONTRACT_PROTECTED_EIGHT_SLOTS')
+          PY
