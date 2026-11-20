@@ -82,7 +82,11 @@ def capture(day: str, channel: str, output: str, *, live: bool,
         pc_pacer=RequestPacer(min_gap_seconds=2.0)
         # Reserve ~10 of the PC job's 20 minutes for markets/sealing.
         # This clock starts before observer/G03; no per-stage resetting.
-        g04_market_reserve_deadline=time.monotonic()+600.0
+        pc_capture_start_monotonic=time.monotonic()
+        g04_market_reserve_deadline=pc_capture_start_monotonic+600.0
+        # Leave a safety window for G06 receipts, nested bundling and AES.
+        # Job-wide GitHub timeout is still independently enforced at 20 min.
+        g06_sealing_reserve_deadline=pc_capture_start_monotonic+1020.0
         try:
             result = observe(
                 root / "pc_originals", now_utc=datetime.now(timezone.utc).isoformat(),
@@ -201,6 +205,8 @@ def capture(day: str, channel: str, output: str, *, live: bool,
                         claim_options={k:v for k,v in claim_context.items()
                            if k in ("claim_client","claim_slot","claim_owner","claim_now_epoch","claim_clock")}
                         markets=run_twelve(g06_root,records=source_inputs,
+                            capture_deadline_monotonic=g06_sealing_reserve_deadline,
+                            monotonic_clock=time.monotonic,
                             authorized_live_http=live,
                             request_pacer=pc_pacer,openers={"PC":pc_client},
                             **claim_options)
