@@ -5,6 +5,7 @@ on:
   workflow_dispatch:
 permissions:
   contents: read
+  actions: read
 jobs:
   full-static-and-contracts:
     runs-on: ubuntu-latest
@@ -166,3 +167,35 @@ jobs:
           assert not os.getenv("ARCHIVE_KEY")
           print("FINAL_AUDIT_OFFLINE_ONLY")
           PY
+
+  final-verdict:
+    if: always()
+    needs: [full-static-and-contracts, collector-full12-and-aes, destructive-and-turso, time-and-night-before]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Collect actual GitHub job conclusions
+        shell: bash
+        run: |
+          mkdir -p impl26_final_audit
+          gh api "repos/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID/jobs?per_page=100" > impl26_final_audit/jobs.json
+      - name: Generate evidence-based final NO_GO/GO instead of assuming green CI is completion
+        run: |
+          python -m audit.impl26_final_report \
+            --jobs impl26_final_audit/jobs.json \
+            --output impl26_final_audit/verdict.json
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: kyoto-impl26-final-six-gate-verdict-${{ github.run_id }}
+          path: impl26_final_audit/
+          retention-days: 90
+          if-no-files-found: error
