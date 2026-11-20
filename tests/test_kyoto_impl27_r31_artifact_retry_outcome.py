@@ -54,10 +54,16 @@ class ArtifactRetryOutcomeRegression(unittest.TestCase):
 
     def test_protected_sources_not_modified_for_r31(self):
         for value in ("cancel-in-progress: false",
-                      "needs: pc-originals-independent",
                       "DAY22_CANDIDATE_NOT_PREFLIGHT_VERIFIED_NO_HTTP",
                       "KYOTO_JRA_ARCHIVE_AES256_HEX"):
             self.assertIn(value, self.workflow)
+        self.assertTrue(
+            "needs: pc-originals-independent" in self.workflow or
+            ("impl27_r08_pc_source_barrier.py" in self.workflow and
+             "ref: ${{ github.sha }}" in self.workflow and
+             self.workflow.index("impl27_r08_pc_source_barrier.py") <
+             self.workflow.index("--channel SP --source sp_raw")),
+            "PC to SP source non-overlap safeguard required")
         self.assertEqual(len(re.findall(r"(?m)^    - cron:", self.workflow)), 8)
 
 
