@@ -9,6 +9,7 @@ from pathlib import Path
 from hashlib import sha256
 from datetime import datetime, timezone
 import json
+import time
 from diagnostics.jra_one_shot_market_capture import capture_hybrid, SourceChainError, RequestPacer
 from diagnostics.kyoto_g06_item_level_recovery import recover_saved_markets
 from diagnostics.kyoto_g06_gap_recovery_plan import plan_gap_recovery
@@ -66,13 +67,19 @@ def _verify_saved_channel(folder, *, verified_start_utc):
 
 def run_twelve(root, *, records, authorized_live_http=False, runner=None,
                request_pacer=None,openers=None,claim_client=None,claim_slot=None,
-               claim_owner=None,claim_now_epoch=None,claim_clock=None):
+               claim_owner=None,claim_now_epoch=None,claim_clock=None,
+               capture_deadline_monotonic=None,monotonic_clock=None):
     """records: 12 entries indexed 1..12; missing links explicitly None.
 
     Requires a fresh output directory. Every valid record carries an existing
     ObservedRaceSpec and a frozen independent named roster; no remote fetch is
     attempted by default. run output is evidence-only even on 12 successes.
     """
+    if capture_deadline_monotonic is not None and (type(capture_deadline_monotonic) not in (int,float) or capture_deadline_monotonic<=0):
+        raise SourceChainError("g06_time_budget_invalid")
+    if monotonic_clock is not None and not callable(monotonic_clock):
+        raise SourceChainError("g06_time_clock_invalid")
+    budget_clock=monotonic_clock or time.monotonic
     if not isinstance(records,dict) or set(records)!=set(range(1,13)):
         raise SourceChainError("all_twelve_race_slots_required")
     base=Path(root)
@@ -105,6 +112,14 @@ def run_twelve(root, *, records, authorized_live_http=False, runner=None,
         lease=None
         lease_key=None
         lease_now=None
+        # A global deadline bounds all 12 races, rather than resetting the
+        # timeout at every race. Preserve already saved originals and produce
+        # one truthful record for every subsequent unattempted race.
+        if capture_deadline_monotonic is not None and budget_clock()>=capture_deadline_monotonic:
+            entry["state"]="G06_TIME_BUDGET_RESERVED_FOR_SEALING"
+            entry["reason"]="global_capture_budget_exhausted_no_new_http"
+            results.append(entry)
+            continue
         if item is None:
             entry["state"]="OFFICIAL_LINK_NOT_OBSERVED"
             results.append(entry)
@@ -183,8 +198,20 @@ def run_twelve(root, *, records, authorized_live_http=False, runner=None,
                     for missing in MARKETS:
                         if recovered["markets"][missing]["state"]=="VERIFIED":
                             continue
+                        # Avoid post-deadline recovery requests while retaining
+                        # verified primary market originals and receipt hashes.
+                        if capture_deadline_monotonic is not None and budget_clock()>=capture_deadline_monotonic:
+                            entry["live_market_recovery_attempts"].append(
+                                {"state":"G06_TIME_BUDGET_RESERVED_FOR_SEALING",
+                                 "market":missing})
+                            break
                         for channel in (item["primary_channel"],
                                         "SP" if item["primary_channel"]=="PC" else "PC"):
+                            if capture_deadline_monotonic is not None and budget_clock()>=capture_deadline_monotonic:
+                                entry["live_market_recovery_attempts"].append(
+                                    {"state":"G06_TIME_BUDGET_RESERVED_FOR_SEALING",
+                                     "market":missing,"channel":channel})
+                                break
                             if not market_link_proof[channel]["observed"]:
                                 continue
                             try:
@@ -254,6 +281,8 @@ def run_twelve(root, *, records, authorized_live_http=False, runner=None,
     summary={"schema":"kyoto_g06_all12_source_capture.v1",
         "total_races":12,"verified_dual_market_races":sum(x["both_markets_verified"] for x in results),
         "unobserved_link_races":sum(x["state"]=="OFFICIAL_LINK_NOT_OBSERVED" for x in results),
+        "time_budget_reserved_for_sealing_races":sum(x["state"]=="G06_TIME_BUDGET_RESERVED_FOR_SEALING" for x in results),
+        "time_budget_deadline_enabled":capture_deadline_monotonic is not None,
         "all_twelve_source_originals_verified":all(x["both_markets_verified"] for x in results),
         "g06_certified":False,"prediction_ready":False,
         "actual_wager_authorized":False,"production_cutover_authorized":False,
