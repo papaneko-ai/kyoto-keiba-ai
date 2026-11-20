@@ -22,6 +22,8 @@ FILES.add("g04_receipt.json")
 FILES.add("g05_receipt.json")
 # C10 structured auxiliary availability proof; no arbitrary new filenames.
 FILES.add("c10_auxiliary_coverage_receipt.json")
+# C11 fixed-name per-race/horse/market source digest/UTC evidence receipt.
+FILES.add("c11_per_family_source_proof.json")
 FILES.add("g06_source_bundle.tar.gz")
 FILES |= {"g05_official_kyoto_track.html","g05_track_receipt.json"}
 FILES |= {f"g04_profile_r{race:02d}_h{horse:02d}.html"
