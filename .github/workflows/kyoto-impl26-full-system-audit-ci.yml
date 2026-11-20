@@ -43,7 +43,7 @@ jobs:
       - name: Source-contract tests and immutable 40-risk fail-closed guard
         working-directory: main
         run: |
-          python -m unittest -v tests.test_kyoto_weekend_main_release_guard tests.test_kyoto_preparation_five_conditions tests.test_kyoto_impl26_incident_metadata
+          python -m unittest -v tests.test_kyoto_weekend_main_release_guard tests.test_kyoto_preparation_five_conditions tests.test_kyoto_impl26_incident_metadata tests.test_kyoto_impl26_incident_lifecycle
           python -I audit/verify_impl26_final_gate.py
           if python -I audit/verify_impl26_final_gate.py --require-go; then echo "PREMATURE_GO" && exit 1; fi
       - name: Parse every production workflow YAML and verify exactly eight capture schedules
