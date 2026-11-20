@@ -37,7 +37,7 @@ def audit(collector_text: str, workflow_text: str) -> dict:
     cron = re.findall(r"(?m)^\s*- cron: ['\"]([^'\"]+)['\"]", workflow_text)
     if len(cron) != 8 or len(set(cron)) != 8:
         raise ValueError("eight_independent_schedule_slots_not_confirmed")
-    pin = re.findall(r"d45f3c9067eee3375c4d9e3ffd908d076f42595a", workflow_text)
+    pin = re.findall(r"6355e8704bdf4427140f37f199eb8feb1a897621", workflow_text)
     if not pin:
         raise ValueError("expected_immutable_collector_pin_missing")
     sequential_sp = bool(re.search(r"sp-originals-independent:.*?needs:\s*pc-originals-independent", workflow_text, re.S))
