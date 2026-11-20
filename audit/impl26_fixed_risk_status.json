@@ -50,10 +50,15 @@
       "priority": "P0",
       "description": "固定SHA・日時・起動条件の不一致",
       "required_evidence": "8枠に対するSHA/イベント事前照合",
-      "status": "OPEN",
-      "proof": [],
+      "status": "MITIGATED_WITH_PROOF",
+      "proof": [
+        "main a44f0ab7a6457bcd71c43ead79563f74676be2ff",
+        "production observer 8 cron slots with distinct day21 sha de2544c1e9f9951a265419461267146b4023c2ab",
+        "CI run 44676198191 SUCCESS after correcting stale pinned-sha release test",
+        "CI run 44674536797 SUCCESS protected 8-slot source-gate"
+      ],
       "owner": "implementation26",
-      "notes": "未認定。証拠を照合した後に更新する。"
+      "notes": "静的構造と独立CIの証拠による対策認定。実開催時の外部結果とは別。"
     },
     {
       "id": "R06",
@@ -100,10 +105,14 @@
       "priority": "P1",
       "description": "22日向け変更の認証・SHAゲート不備",
       "required_evidence": "候補CIと承認済SHAの照合",
-      "status": "OPEN",
-      "proof": [],
+      "status": "MITIGATED_WITH_PROOF",
+      "proof": [
+        "KYOTO_NOV22_VERIFIED_COLLECTOR_SHA explicit review gate in main workflow",
+        "DAY22_CANDIDATE_NOT_PREFLIGHT_VERIFIED_NO_HTTP",
+        "run 44676198191 SUCCESS, run 44674536797 SUCCESS"
+      ],
       "owner": "implementation26",
-      "notes": "未認定。証拠を照合した後に更新する。"
+      "notes": "静的構造と独立CIの証拠による対策認定。実開催時の外部結果とは別。"
     },
     {
       "id": "R11",
@@ -200,10 +209,14 @@
       "priority": "P1",
       "description": "SPナビ候補と実取得成功の混同",
       "required_evidence": "候補/取得/解析/市場を別階層で判定",
-      "status": "OPEN",
-      "proof": [],
+      "status": "MITIGATED_WITH_PROOF",
+      "proof": [
+        "collector de2544c1e9f9951a265419461267146b4023c2ab",
+        "SP per-race evidence reports source_only=true and all_twelve_races_verified=false",
+        "CI run 44674277544 SUCCESS, tests.test_kyoto_sp_all12_observed_capture"
+      ],
       "owner": "implementation26",
-      "notes": "未認定。証拠を照合した後に更新する。"
+      "notes": "静的構造と独立CIの証拠による対策認定。実開催時の外部結果とは別。"
     },
     {
       "id": "R21",
@@ -280,10 +293,13 @@
       "priority": "P1",
       "description": "SHA一致をJRA由来の証明と誤認",
       "required_evidence": "原本整合と取得元実証の分離",
-      "status": "OPEN",
-      "proof": [],
+      "status": "MITIGATED_WITH_PROOF",
+      "proof": [
+        "docs/diagnostics/KYOTO_20261116_INDEPENDENT_RELEASE_BLOCKERS.json live_source_verified=false",
+        "CI run 44676198191 source-only policy PASS; evidence contract separates source bytes and actual attribution"
+      ],
       "owner": "implementation26",
-      "notes": "未認定。証拠を照合した後に更新する。"
+      "notes": "静的構造と独立CIの証拠による対策認定。実開催時の外部結果とは別。"
     },
     {
       "id": "R29",
@@ -370,10 +386,14 @@
       "priority": "P0",
       "description": "22日修正版が未承認のまま稼働",
       "required_evidence": "immutable SHA/独立CI/ロールバック証拠",
-      "status": "OPEN",
-      "proof": [],
+      "status": "MITIGATED_WITH_PROOF",
+      "proof": [
+        "main a44f0ab7a6457bcd71c43ead79563f74676be2ff",
+        "DAY22_CANDIDATE_NOT_PREFLIGHT_VERIFIED_NO_HTTP and immutable SHA in both PC/SP paths",
+        "CI run 44674536797 SUCCESS and run 44676198191 SUCCESS"
+      ],
       "owner": "implementation26",
-      "notes": "未認定。証拠を照合した後に更新する。"
+      "notes": "静的構造と独立CIの証拠による対策認定。実開催時の外部結果とは別。"
     },
     {
       "id": "R38",
