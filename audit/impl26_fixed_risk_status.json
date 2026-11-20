@@ -673,12 +673,22 @@
         "proof": []
       },
       "performance_and_deadlines": {
-        "status": "NOT_RUN",
-        "proof": []
+        "status": "PASS",
+        "proof": [
+          "Run 44677785680 pre-http benchmark PC=19.149s SP=20.331s on GitHub Python 3.11, under 120s/90s preflight budgets",
+          "Run 44678038722 extended full suite SUCCESS; G04+600s/G06+1020s shared monotonic reserve and SP 240s AES reserve negative tests",
+          "Main 8 slots schedule shortest spacing 45min; PC20min+SP12min max bounded 32min, 15min all-run handoff job configured; external scheduler/HTTP times are tracked R01/R14 separately"
+        ],
+        "notes": "本番設定・モック時間境界の事前検査。実HTTPの外部遅延に関する推測合格は含めない。"
       },
       "independent_report_and_decision": {
-        "status": "NOT_RUN",
-        "proof": []
+        "status": "PASS",
+        "proof": [
+          "Run 44677114724 final-verdict job SUCCESS, artifact 14602024854 with immutable job/risk/INC NO_GO evidence",
+          "Run 44678038722 source-only independent five-job CI and final evidence verdict SUCCESS",
+          "Verifier audit/verify_impl26_final_gate.py rejects incomplete R01-R40 evidence and premature GO"
+        ],
+        "notes": "形式的報告の独立作成・NO_GO判定経路だけを認定。全体GOとは別。"
       }
     }
   }
