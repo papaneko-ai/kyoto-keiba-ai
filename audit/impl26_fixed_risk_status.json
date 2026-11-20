@@ -452,6 +452,29 @@
       "rollback_sha": "a98085fab2743397e8f77f17c8a62d8c587c84e1",
       "status": "BLOCKED_WITH_REASON",
       "closure_evidence": "Historical PR #61 body was non-conformant; incident remains open for recurrence prevention"
+    },
+    {
+      "incident_id": "INC-20261120-44674577790-five-condition",
+      "first_seen_utc": "2026-11-20T04:28:25Z",
+      "run_id": "44674577790",
+      "job_id": "136083385477",
+      "symptom": "Five-condition pre-experiment acceptance failed SOURCE_CONTRACT",
+      "risk_ids": [
+        "R05",
+        "R37"
+      ],
+      "root_cause_status": "HYPOTHESIS",
+      "root_cause_evidence": [
+        "CI Run 44674577790 job 136083385477 SOURCE_CONTRACT failure"
+      ],
+      "same_cause_search": "Investigate source-contract criteria and stale pin dependencies; do not assume identical to main-release test failure",
+      "repair_branch": null,
+      "repair_commit": null,
+      "regression_ci_run": null,
+      "production_approval": "NOT_APPROVED",
+      "rollback_sha": "39b67de503e87b8f7d702b7820c3a52d3f12b321",
+      "status": "BLOCKED_WITH_REASON",
+      "closure_evidence": "Await independent source contract root cause and regression CI"
     }
   ],
   "final_gate": {
