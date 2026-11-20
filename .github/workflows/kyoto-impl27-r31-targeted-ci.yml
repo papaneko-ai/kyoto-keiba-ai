@@ -1,0 +1,41 @@
+name: Impl27 R31 targeted recovery decision
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/kyoto-20261121-22-two-source-production-observer.yml'
+      - 'tests/test_kyoto_impl27_r31_artifact_retry_outcome.py'
+      - '.github/workflows/kyoto-impl27-r31-targeted-ci.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  r31-recovery-negative-gate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Run focused fail-recovery-fail-closed tests without JRA HTTP
+        run: python -m unittest -v tests.test_kyoto_impl27_r31_artifact_retry_outcome
+      - name: Verify observer YAML parses with exact eight protected slots
+        run: |
+          python -m pip install 'PyYAML>=6,<7'
+          python - <<'PY'
+          import pathlib, yaml
+          path=pathlib.Path('.github/workflows/kyoto-20261121-22-two-source-production-observer.yml')
+          source=path.read_text(encoding='utf-8')
+          doc=yaml.safe_load(source)
+          assert isinstance(doc.get('jobs'),dict)
+          expected=[
+              '15 0 21 11 *','15 1 21 11 *','5 2 21 11 *','50 2 21 11 *',
+              '15 0 22 11 *','15 1 22 11 *','10 2 22 11 *','55 2 22 11 *'
+          ]
+          observed=[line.split("'")[1] for line in source.splitlines() if "- cron: '" in line]
+          assert observed==expected,(observed,expected)
+          assert doc['jobs']['sp-originals-independent']['needs']=='pc-originals-independent'
+          print('R31_TARGETED_YAML_PROTECTED_EIGHT_SLOTS_PASS')
+          PY
