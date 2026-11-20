@@ -184,6 +184,18 @@ def capture(day: str, channel: str, output: str, *, live: bool,
                 except Exception as exc:
                     out["g05_track_capture_state"]="G05_TRACK_SOURCE_UNAVAILABLE_OR_REJECTED"
                     out["g05_track_error_class"]=type(exc).__name__
+            # C10: record which *saved*, independently bound supplementary
+            # evidence is available and which workout fields remain unknown.
+            # This starts no extra HTTP and cannot block G06 market collection.
+            try:
+                from diagnostics.kyoto_impl25_c10_auxiliary_coverage import save as save_auxiliary_coverage
+                aux=save_auxiliary_coverage(root/"pc_originals",day)
+                out["c10_auxiliary_coverage_saved"]=True
+                out["c10_workout_source_independently_verified"]=aux["workout_source_independently_verified"]
+                out["c10_independent_kyoto_track_sha_verified"]=aux["g05_kyoto_track_independent_source_original_sha_verified"]
+            except Exception as exc:
+                out["c10_auxiliary_coverage_saved"]=False
+                out["c10_auxiliary_coverage_error_class"]=type(exc).__name__
             # G06 starts from exact G03 saved official URLs, named rosters
             # and verified race times. Partial G03 does not cancel the rest.
             # Existing PC opener and pacer are reused; no synthetic SP link.
