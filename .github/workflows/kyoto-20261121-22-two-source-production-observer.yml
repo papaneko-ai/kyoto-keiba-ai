@@ -164,6 +164,7 @@ jobs:
           set -euo pipefail
           python -m diagnostics.kyoto_weekend_capture --day "$KYOTO_TARGET_DAY" --channel PC --source pc_raw --destination pc_sealed --seal-only
       - name: Upload only AES-GCM ciphertext or safe-stop receipt
+        id: upload_pc_primary
         if: always()
         uses: actions/upload-artifact@v4
         with:
@@ -171,6 +172,15 @@ jobs:
           path: pc_sealed/
           retention-days: 30
           if-no-files-found: error
+      - name: Retry same encrypted artifact if the first upload fails
+        if: ${{ always() && steps.upload_pc_primary.outcome == 'failure' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: kyoto-pc-${{ github.run_id }}-${{ env.KYOTO_TARGET_DAY }}
+          path: pc_sealed/
+          retention-days: 30
+          if-no-files-found: error
+          overwrite: true
 
   sp-originals-independent:
     # Source lanes remain independent, but network execution is serialized.
@@ -293,6 +303,7 @@ jobs:
           set -euo pipefail
           python -m diagnostics.kyoto_weekend_capture --day "$KYOTO_TARGET_DAY" --channel SP --source sp_raw --destination sp_sealed --seal-only
       - name: Upload only AES-GCM ciphertext or safe-stop receipt
+        id: upload_sp_primary
         if: always()
         uses: actions/upload-artifact@v4
         with:
@@ -300,3 +311,12 @@ jobs:
           path: sp_sealed/
           retention-days: 30
           if-no-files-found: error
+      - name: Retry same encrypted artifact if the first upload fails
+        if: ${{ always() && steps.upload_sp_primary.outcome == 'failure' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: kyoto-sp-${{ github.run_id }}-${{ env.KYOTO_TARGET_DAY }}
+          path: sp_sealed/
+          retention-days: 30
+          if-no-files-found: error
+          overwrite: true

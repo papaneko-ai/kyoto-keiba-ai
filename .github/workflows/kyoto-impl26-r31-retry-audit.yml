@@ -1,0 +1,48 @@
+name: Impl26 R31 ciphertext retry verification
+on:
+  push:
+    branches: [fix/impl26-r31-encrypted-artifact-retry-20261120]
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Contract and destructive tests for encrypted retry
+        run: |
+          python -m unittest -q tests.test_kyoto_weekend_main_release_guard
+          python - <<'PY'
+          from pathlib import Path
+          s=Path('.github/workflows/kyoto-20261121-22-two-source-production-observer.yml').read_text()
+          assert sum(x.lstrip().startswith('- cron:') for x in s.splitlines())==8
+          assert s.count('actions/upload-artifact@v4')==4
+          assert s.count('overwrite: true')==2
+          assert s.count('if-no-files-found: error')==4
+          for lane in ('pc','sp'):
+              assert s.count('name: kyoto-'+lane+'-')==2
+              assert s.count('path: '+lane+'_sealed/')==2
+              assert "steps.upload_"+lane+"_primary.outcome == 'failure'" in s
+          assert 'path: pc_raw/' not in s and 'path: sp_raw/' not in s
+          assert 'DAY22_CANDIDATE_NOT_PREFLIGHT_VERIFIED_NO_HTTP' in s
+          # Explicit negative mutations must fail our independent contract.
+          def guard(x):
+              assert x.count('overwrite: true')==2
+              assert x.count('if-no-files-found: error')==4
+              assert x.count('actions/upload-artifact@v4')==4
+              assert 'path: sp_raw/' not in x
+          for damaged in (s.replace('overwrite: true','overwrite: false',1),
+                          s.replace('if-no-files-found: error','if-no-files-found: ignore',1),
+                          s.replace('actions/upload-artifact@v4','actions/download-artifact@v4',1),
+                          s.replace('path: sp_sealed/','path: sp_raw/',1)):
+              try: guard(damaged)
+              except AssertionError: pass
+              else: raise SystemExit('DESTRUCTIVE_GATE_FAILED')
+          print('R31_RETRY_CONTRACT_AND_FOUR_NEGATIVE_TESTS_PASS')
+          PY
