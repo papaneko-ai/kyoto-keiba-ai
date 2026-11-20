@@ -15,6 +15,7 @@ DAY="20261121"
 PC_SELECTION="https://jra.jp/JRADB/accessD.html?CNAME=pw01dli00%2FF3"
 PC_MEETING="https://jra.jp/JRADB/accessD.html?CNAME=pw01meet20261121%2FA1"
 SP_RACE="https://sp.jra.jp/JRADB/accessD.html?CNAME=sw01race1220261121%2FBB"
+KYOTO_TRACK="https://jra.jp/keiba/baba/index2.html"
 
 class FixedDate(datetime):
     @classmethod
@@ -73,11 +74,14 @@ class WeekendEndToEndTests(unittest.TestCase):
     def test_pc_actual_observer_parses_originals_then_audits_and_seals(self):
         selection=raw_html('<a href="'+PC_MEETING.replace("https://jra.jp","")+'">京都 20261121</a>')
         meeting=raw_html("<p>京都 12R 出馬表未掲載</p>")
-        client=OfflineClient({PC_SELECTION:selection,PC_MEETING:meeting})
+        client=OfflineClient({PC_SELECTION:selection,PC_MEETING:meeting,
+                              KYOTO_TRACK:raw_html("unverified meeting heading")})
         with patch("diagnostics.kyoto_weekend_capture.datetime",FixedDate),patch(
                 "diagnostics.kyoto_nov15_two_original_observer.RequestPacer",return_value=Mock()):
             result=capture(DAY,"PC",str(self.root/"pc"),live=False,opener=client)
-        self.assertEqual(client.requests,[PC_SELECTION,PC_MEETING])
+        self.assertEqual(client.requests,[PC_SELECTION,PC_MEETING,KYOTO_TRACK])
+        self.assertTrue(result["g05_kyoto_track_source_saved"])
+        self.assertFalse(result["g05_same_day_track_heading_verified"])
         self.assertEqual(result["observed_http_requests_started"],2)
         decoded=self._seal_reopen("PC",self.root/"pc")
         self.assertEqual((decoded/"official_selection.html").read_bytes(),selection)
