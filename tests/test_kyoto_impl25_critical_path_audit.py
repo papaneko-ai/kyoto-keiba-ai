@@ -29,7 +29,7 @@ jobs:
     needs: pc-originals-independent
     timeout-minutes: 12
     env:
-      COLLECTOR_SHA: '49f258e43fd96c5d9b8edbb210eb700aefd32f91'
+      COLLECTOR_SHA: 'd45f3c9067eee3375c4d9e3ffd908d076f42595a'
 """
 
 
@@ -52,7 +52,7 @@ class TimingAuditTests(unittest.TestCase):
 
     def test_missing_immutable_pin_fails(self):
         with self.assertRaisesRegex(ValueError, "expected_immutable"):
-            audit(COLLECTOR, WORKFLOW.replace("49f258e43fd96c5d9b8edbb210eb700aefd32f91", "bad"))
+            audit(COLLECTOR, WORKFLOW.replace("d45f3c9067eee3375c4d9e3ffd908d076f42595a", "bad"))
 
     def test_reordering_is_reported_not_assumed_safe(self):
         reordered = COLLECTOR.replace("g04=g04_capture(\ng05=compile_saved(\ntrack=capture_kyoto_track(\nmarkets=run_twelve(", "markets=run_twelve(\ng04=g04_capture(\ng05=compile_saved(\ntrack=capture_kyoto_track(")

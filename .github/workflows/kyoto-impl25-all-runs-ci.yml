@@ -25,7 +25,7 @@ jobs:
       - name: Check real pinned production scope without changing collector
         uses: actions/checkout@v4
         with:
-          ref: 49f258e43fd96c5d9b8edbb210eb700aefd32f91
+          ref: d45f3c9067eee3375c4d9e3ffd908d076f42595a
           path: pinned_source
           persist-credentials: false
       - name: Verify fixed eight slots, G04/G05 partial path and limited SP scope
@@ -37,7 +37,7 @@ jobs:
           source=Path('pinned_source/diagnostics/kyoto_weekend_capture.py').read_text()
           handoff=Path('.github/workflows/kyoto-20261121-22-result-handoff.yml').read_text()
           assert observer.count('- cron:')==8
-          assert observer.count('49f258e43fd96c5d9b8edbb210eb700aefd32f91')==6
+          assert observer.count('d45f3c9067eee3375c4d9e3ffd908d076f42595a')==6
           assert source.index('verify_partial(')<source.index('g04=g04_capture(')
           assert source.index('g04=g04_capture(')<source.index('markets=run_twelve(')
           assert source.index('g05=compile_saved(')<source.index('markets=run_twelve(')
@@ -54,9 +54,14 @@ jobs:
           assert 'if not isolate_invalid_links:' in g04
           # Protect the 20-minute PC window from uncontrolled G04 network duration.
           g04=Path('pinned_source/diagnostics/kyoto_g04_all_horse_profiles.py').read_text()
-          assert 'g04_market_reserve_deadline=time.monotonic()+600.0' in source
+          assert 'g04_market_reserve_deadline=pc_capture_start_monotonic+600.0' in source
           assert 'deadline_monotonic=g04_market_reserve_deadline' in source
           assert 'time_budget_reserved_for_g06_count' in g04
+          # C07 & C08 share one PC monotonic origin; no new HTTP past budget.
+          g06=Path('pinned_source/diagnostics/kyoto_g06_all12_capture.py').read_text()
+          assert 'g06_sealing_reserve_deadline=pc_capture_start_monotonic+1020.0' in source
+          assert 'capture_deadline_monotonic=g06_sealing_reserve_deadline' in source
+          assert 'time_budget_reserved_for_sealing_races' in g06
           assert 'capture_verified_sp_seed(' in source and 'race_number=12' in source
           assert 'KYOTO_NOV22_VERIFIED_COLLECTOR_SHA' in observer
           assert 'KYOTO_JRA_ARCHIVE_AES256_HEX' in observer
@@ -67,6 +72,7 @@ jobs:
               "g04_g05_precede_g06":True,
               "g04_invalid_horse_links_isolated":True,
               "g04_market_reserve_budget_active":True,
+              "g06_global_deadline_for_sealing_enabled":True,
               "g06_racewise_invalid_input_isolated":True,
               "sp_full12_coverage_verified":False,
               "independent_workout_source_verified":False,
