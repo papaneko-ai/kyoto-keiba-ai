@@ -52,7 +52,7 @@ def classify(run, jobs, artifacts, *, day, scheduled_utc=None):
     for lane, state, risk, symptom, step in events:
         assert state in STATES
         incident = {
-            "incident_id": stable_id(day, run_id, lane, state + (step or "")),
+            "incident_id": stable_id(day, run_id, lane, state + (step or "") + (scheduled_utc or "")),
             "first_seen_utc": datetime.now(timezone.utc).isoformat(),
             "day": day, "run_id": run_id, "job_id": next(
                 (j.get("id") for j in job_list if LANES.get(j.get("name")) == lane), None),
