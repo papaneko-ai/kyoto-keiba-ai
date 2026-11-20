@@ -57,7 +57,7 @@ class TimingAuditTests(unittest.TestCase):
     def test_reordering_is_reported_not_assumed_safe(self):
         reordered = COLLECTOR.replace("g04=g04_capture(\ng05=compile_saved(\ntrack=capture_kyoto_track(\nmarkets=run_twelve(", "markets=run_twelve(\ng04=g04_capture(\ng05=compile_saved(\ntrack=capture_kyoto_track(")
         a = audit(reordered, WORKFLOW)
-        self.assertFalse(a["g04_after_g06"])
+        self.assertTrue(a["g04_after_g06"])
         self.assertFalse(a["race_day_success_proven"])
 
 
