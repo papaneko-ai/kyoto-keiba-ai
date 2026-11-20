@@ -22,8 +22,16 @@ def audit(collector_text: str, workflow_text: str) -> dict:
     if any(v < 0 for v in positions.values()):
         raise ValueError("capture_stage_missing")
     order = sorted(positions, key=positions.get)
-    timeout = re.search(r"(?m)^\s*pc-originals-independent:\s*.*?^\s*timeout-minutes:\s*(\d+)", workflow_text, re.S | re.M)
-    sp_timeout = re.search(r"(?m)^\s*sp-originals-independent:\s*.*?^\s*timeout-minutes:\s*(\d+)", workflow_text, re.S | re.M)
+    # Bound timeout extraction to each job block; never cross into SP's timeout.
+    pc_block = workflow_text.split("  pc-originals-independent:", 1)[-1].split(
+        "\n  sp-originals-independent:", 1)[0]
+    sp_block = workflow_text.split("  sp-originals-independent:", 1)[-1]
+    if "  pc-originals-independent:" not in workflow_text or (
+        "  sp-originals-independent:" not in workflow_text
+    ):
+        raise ValueError("expected_jobs_missing")
+    timeout = re.search(r"(?m)^[ \\t]{4}timeout-minutes:[ \\t]*(\\d+)", pc_block)
+    sp_timeout = re.search(r"(?m)^[ \\t]{4}timeout-minutes:[ \\t]*(\\d+)", sp_block)
     if timeout is None or sp_timeout is None:
         raise ValueError("job_timeout_missing")
     cron = re.findall(r"(?m)^\s*- cron: ['\"]([^'\"]+)['\"]", workflow_text)
