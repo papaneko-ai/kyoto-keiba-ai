@@ -1,0 +1,58 @@
+name: Kyoto Impl25 C12 all-run handoff no-JRA-HTTP CI
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/kyoto-impl25-c12-all-run-ci.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  immutable-all-run-day22-recovery-rehearsal:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      PYTHONPATH: .
+      KYOTO_TARGET_DAY: '20261121'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: 35d55236edfdd346f0ad8ce6b63f9c49153e8ad1
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install 'beautifulsoup4>=4.12,<5' 'cryptography>=43,<47'
+      - name: Check exact C12 handoff source commit
+        run: test "$(git rev-parse HEAD)" = "35d55236edfdd346f0ad8ce6b63f9c49153e8ad1"
+      - name: Run all-run/PC-SP/AES regressions with no external requests
+        run: |
+          set -euo pipefail
+          python -m unittest -q \
+            tests.test_kyoto_impl25_c12_all_runs_handoff \
+            tests.test_kyoto_impl25_c12_workflow_contract \
+            tests.test_kyoto_weekend_day21_triage \
+            tests.test_kyoto_weekend_day21_artifact_triage \
+            tests.test_kyoto_weekend_handoff_workflow \
+            tests.test_kyoto_impl25_c11_per_family_proof \
+            tests.test_kyoto_weekend_postflight \
+            tests.test_kyoto_nov15_encrypted_evidence \
+            tests.test_kyoto_weekend_retry_guard
+      - name: Verify 21 Nov schedule stays one and production eight slots unmodified
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          handoff=Path('.github/workflows/kyoto-20261121-22-result-handoff.yml').read_text()
+          production=Path('.github/workflows/kyoto-20261121-22-two-source-production-observer.yml').read_text()
+          source=Path('diagnostics/kyoto_impl25_c12_all_runs_handoff.py').read_text()
+          assert handoff.count('- cron:')==1
+          assert production.count('- cron:')==8
+          assert '35d55236edfdd346f0ad8ce6b63f9c49153e8ad1' in handoff
+          assert production.count('989aaba017c5450fed91b383421f5d2da53c6c69')==6
+          assert 'all-four-day21-run-aggregation:' in handoff
+          assert '"full_live_jra_coverage_proved":False' in source
+          assert '"automatic_patch_or_secret_edit_authorized":False' in source
+          assert 'assess_lane(target,day=day' in source
+          assert 'gh run download' not in source # shell cannot leak raw originals
+          assert 'KYOTO_NOV22_VERIFIED_COLLECTOR_SHA' in production
+          print('C12_ALL_RUNS_SCHEDULE_AND_FAIL_CLOSED_REPAIR_GATE_PASSED')
+          PY
