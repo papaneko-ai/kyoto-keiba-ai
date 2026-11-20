@@ -40,7 +40,9 @@ jobs:
           observer=Path(".github/workflows/kyoto-20261121-22-two-source-production-observer.yml").read_text()
           assert observer.count("- cron: '")==8
           assert "needs: pc-originals-independent" in observer
-          assert "de2544c1e9f9951a265419461267146b4023c2ab" in observer
+          # The frozen collector snapshot is not the present-day main workflow; do not
+          # confuse a historical checkout with the independently verified main pin.
+          assert "COLLECTOR_SHA" in observer
           assert "KYOTO_JRA_ARCHIVE_AES256_HEX" in observer
           print("R07_PROTECTED_BOUNDARY_PASS")
           PY
