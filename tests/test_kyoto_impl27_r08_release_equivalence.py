@@ -28,7 +28,7 @@ class EquivalentR08ReleaseGate(unittest.TestCase):
         self.assertIn("queue: max",self.workflow)
     def test_immutable_collector_and_day22_approval_remain_protected(self):
         self.assertEqual(self.workflow.count("COLLECTOR_SHA:"),2)
-        self.assertEqual(self.workflow.count("de2544c1e9f9951a265419461267146b4023c2ab"),2)
+        self.assertEqual(self.workflow.count("de2544c1e9f9951a265419461267146b4023c2ab"),4)
         self.assertEqual(self.workflow.count("vars.KYOTO_NOV22_VERIFIED_COLLECTOR_SHA || '989aaba017c5450fed91b383421f5d2da53c6c69'"),2)
         self.assertIn("DAY22_CANDIDATE_NOT_PREFLIGHT_VERIFIED_NO_HTTP",self.workflow)
     def test_encrypted_originals_only_and_still_retried(self):
@@ -57,8 +57,8 @@ class EquivalentR08ReleaseGate(unittest.TestCase):
         self.assertEqual(classify(other)[0],"BLOCK")  # no actual end UTC
     def test_pc_source_ends_before_only_non_jra_tail(self):
         end=self.pc.index("      - name: Capture official PC observed originals")
-        tail=self.pc[end:]
-        self.assertIn("Offline postflight verify saved original SHA and UTC",tail)
+        tail=self.pc.split("      - name: Offline postflight verify saved original SHA and UTC before evidence sealing",1)[1]
+        self.assertIn("--channel PC --root pc_raw",tail)
         self.assertIn("--seal-only",tail)
         self.assertNotIn(" --channel PC --source pc_raw --destination pc_sealed\n",tail)
 
