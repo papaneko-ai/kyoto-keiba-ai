@@ -46,6 +46,23 @@ jobs:
         run: |
           python -m unittest -v tests.test_kyoto_weekend_main_release_guard tests.test_kyoto_preparation_five_conditions tests.test_kyoto_impl26_incident_metadata tests.test_kyoto_impl26_incident_lifecycle
           python -I audit/verify_impl26_final_gate.py
+          python - <<'PY'
+          import hashlib,json,subprocess,sys
+          from pathlib import Path
+          file=Path('audit/impl26_fixed_risk_status.json')
+          original=file.read_bytes()
+          try:
+              data=json.loads(original)
+              data['risks'][0].pop('next_evidence')
+              file.write_text(json.dumps(data,sort_keys=True))
+              bad=subprocess.run([sys.executable,'-I','audit/verify_impl26_final_gate.py'],capture_output=True,text=True)
+              if bad.returncode==0:
+                  raise SystemExit('TRIAGE_DESTRUCTIVE_GATE_FAILED')
+              print('TRIAGE_INCOMPLETE_CORRECTLY_REJECTED')
+          finally:
+              file.write_bytes(original)
+          assert file.read_bytes()==original
+          PY
           if python -I audit/verify_impl26_final_gate.py --require-go; then echo "PREMATURE_GO" && exit 1; fi
       - name: Parse every production workflow YAML and verify exactly eight capture schedules
         run: |
