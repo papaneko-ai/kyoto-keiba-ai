@@ -19,6 +19,8 @@ jobs:
           python-version: '3.11'
       - name: Parse exact A-D requirements and fixed 40 risks
         run: python -I audit/verify_impl26_final_gate.py
+      - name: Incident detection, stable IDs and negative tests
+        run: python -m unittest -v tests.test_kyoto_impl26_incident_metadata
       - name: Destructive no-false-GO test
         shell: bash
         run: |
