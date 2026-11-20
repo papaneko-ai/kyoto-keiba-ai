@@ -1,0 +1,65 @@
+name: Kyoto Impl25 cross-slot inventory independent CI
+on:
+  pull_request:
+    paths:
+      - 'diagnostics/kyoto_impl25_run_inventory.py'
+      - 'tests/test_kyoto_impl25_run_inventory.py'
+      - '.github/workflows/kyoto-impl25-all-runs-inventory.yml'
+      - '.github/workflows/kyoto-impl25-all-runs-ci.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  no-http-source-evidence-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: All-run aggregation and destructive no-network tests
+        run: python -m unittest -v tests.test_kyoto_impl25_run_inventory
+      - name: Check real pinned production scope without changing collector
+        uses: actions/checkout@v4
+        with:
+          ref: c7dfaec54a6d7127a41d2e29321e7b54c63bc947
+          path: pinned_source
+          persist-credentials: false
+      - name: Verify fixed eight slots, G04/G05 partial path and limited SP scope
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import json
+          observer=Path('.github/workflows/kyoto-20261121-22-two-source-production-observer.yml').read_text()
+          source=Path('pinned_source/diagnostics/kyoto_weekend_capture.py').read_text()
+          handoff=Path('.github/workflows/kyoto-20261121-22-result-handoff.yml').read_text()
+          assert observer.count('- cron:')==8
+          assert observer.count('c7dfaec54a6d7127a41d2e29321e7b54c63bc947')==6
+          assert source.index('verify_partial(')<source.index('g04=g04_capture(')
+          assert source.index('g04=g04_capture(')<source.index('markets=run_twelve(')
+          assert source.index('g05=compile_saved(')<source.index('markets=run_twelve(')
+          assert 'allow_partial=(not bool(g03.get("complete")) or len(partial_verified)<12)' in source
+          assert 'capture_verified_sp_seed(' in source and 'race_number=12' in source
+          assert 'KYOTO_NOV22_VERIFIED_COLLECTOR_SHA' in observer
+          assert 'KYOTO_JRA_ARCHIVE_AES256_HEX' in observer
+          assert 'KYOTO_SHARED_CLAIM_TURSO_TOKEN' in observer
+          assert 'source_assessment.json' in handoff
+          report={"schema":"kyoto_impl25_source_scope.v1","production_cron_slots":8,
+              "g03_partial_to_g04_g05_supported":True,
+              "g04_g05_precede_g06":True,
+              "sp_full12_coverage_verified":False,
+              "independent_workout_source_verified":False,
+              "market_live_timing_verified":False,
+              "full_g03_g04_g05_g06_per_race_evidence_verified":False,
+              "day22_sha_ci_gate_present":True}
+          Path('impl25_source_scope.json').write_text(json.dumps(report,indent=2)+'\n')
+          print('CURRENT_PINNED_SOURCE_SCOPE_AUDITED_NO_JRA_HTTP')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: impl25-source-scope-ci
+          path: impl25_source_scope.json
+          if-no-files-found: error
