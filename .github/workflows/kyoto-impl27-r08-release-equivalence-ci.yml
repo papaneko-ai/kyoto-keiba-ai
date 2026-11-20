@@ -37,3 +37,6 @@ jobs:
           assert 'needs' not in doc['jobs']['sp-originals-independent']
           print('R08_ALTERNATE_PROTECTED_RELEASE_CONTRACT_PASS')
           PY
+      - name: Locate legacy protected release gate for compatibility repair
+        run: |
+          grep -l "protected-schedule-contract" .github/workflows/*.yml || true
