@@ -1,0 +1,55 @@
+name: Kyoto Impl25 candidate G04 priority independent release CI
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/kyoto-impl25-g04-priority-release-check.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  candidate-source-regression:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Checkout exact candidate, not production main
+        uses: actions/checkout@v4
+        with:
+          ref: 4a7486f66ecd7adca272b5d228b72224245a91c0
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install existing parser and encryption libraries
+        run: python -m pip install 'beautifulsoup4>=4.12,<5' 'cryptography>=43,<47'
+      - name: Verify immutable candidate before any test
+        run: |
+          test "$(git rev-parse HEAD)" = "4a7486f66ecd7adca272b5d228b72224245a91c0"
+      - name: Run no-network new priority and known G03 G04 G05 G06 isolation tests
+        env:
+          KYOTO_TARGET_DAY: '20261121'
+        run: |
+          set -euo pipefail
+          python -m unittest -v \
+            tests.test_kyoto_impl25_g04_priority \
+            tests.test_kyoto_g04_all_horse_profiles \
+            tests.test_kyoto_g05_conditions \
+            tests.test_kyoto_g05_official_track \
+            tests.test_kyoto_g05_weekend_bridge \
+            tests.test_kyoto_weekend_capture \
+            tests.test_kyoto_weekend_end_to_end \
+            tests.test_kyoto_weekend_postflight \
+            tests.test_kyoto_weekend_interruption_and_pacing \
+            tests.test_kyoto_g06_claim_execution \
+            tests.test_kyoto_impl23_weekend_entrypoint_claim
+      - name: Verify 8-slot and linked market source invariants stay unchanged
+        run: |
+          python - <<'PY'
+          import pathlib, re
+          source=pathlib.Path('diagnostics/kyoto_weekend_capture.py').read_text()
+          assert source.index('g04=g04_capture(')<source.index('markets=run_twelve(')
+          assert source.index('g05=compile_saved(')<source.index('markets=run_twelve(')
+          assert 'claim_context=active_claims_for_weekend(day)' in source
+          assert 'archive=bundle_g06(' in source
+          assert 'encrypt_evidence(src,dst' in source
+          print('CANDIDATE_STAGE_ORDER_AND_PROTECTED_CONTRACTS_VERIFIED')
+          PY
