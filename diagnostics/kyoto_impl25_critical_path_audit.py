@@ -31,6 +31,7 @@ def audit(collector_text: str, workflow_text: str) -> dict:
     ):
         raise ValueError("expected_jobs_missing")
     timeout = re.search(r"(?m)^ {4}timeout-minutes: *([0-9]+)", pc_block)
+    sp_timeout = re.search(r"(?m)^ {4}timeout-minutes: *([0-9]+)", sp_block)
     timeout = re.search(r"(?m)^ {4}timeout-minutes: *([0-9]+)", pc_block)
     if timeout is None or sp_timeout is None:
         raise ValueError("job_timeout_missing")
