@@ -26,7 +26,49 @@ jobs:
           assert s.count('overwrite: true')==2
           assert s.count('if-no-files-found: error')==4
           for lane in ('pc','sp'):
-              name='kyoto-'+lane+'-${{ github.run_id }}-${{ env.KYOTO_TARGET_DAY }}'
+              name='kyoto-'+lane+'-'+'
+              assert s.count('name: '+name)==2
+              assert s.count('path: '+lane+'_sealed/')==2
+              assert "steps.upload_"+lane+"_primary.outcome == 'failure'" in s
+          assert 'path: pc_raw/' not in s and 'path: sp_raw/' not in s
+          assert 'DAY22_CANDIDATE_NOT_PREFLIGHT_VERIFIED_NO_HTTP' in s
+          # Explicit negative mutations must fail our independent contract.
+          def guard(x):
+              assert x.count('overwrite: true')==2
+              assert x.count('if-no-files-found: error')==4
+              assert x.count('actions/upload-artifact@v4')==4
+              assert 'path: sp_raw/' not in x
+          for damaged in (s.replace('overwrite: true','overwrite: false',1),
+                          s.replace('if-no-files-found: error','if-no-files-found: ignore',1),
+                          s.replace('actions/upload-artifact@v4','actions/download-artifact@v4',1),
+                          s.replace('path: sp_sealed/','path: sp_raw/',1)):
+              try: guard(damaged)
+              except AssertionError: pass
+              else: raise SystemExit('DESTRUCTIVE_GATE_FAILED')
+          print('R31_RETRY_CONTRACT_AND_FOUR_NEGATIVE_TESTS_PASS')
+          PY
++'{{ github.run_id }}-'+'
+              assert s.count('name: '+name)==2
+              assert s.count('path: '+lane+'_sealed/')==2
+              assert "steps.upload_"+lane+"_primary.outcome == 'failure'" in s
+          assert 'path: pc_raw/' not in s and 'path: sp_raw/' not in s
+          assert 'DAY22_CANDIDATE_NOT_PREFLIGHT_VERIFIED_NO_HTTP' in s
+          # Explicit negative mutations must fail our independent contract.
+          def guard(x):
+              assert x.count('overwrite: true')==2
+              assert x.count('if-no-files-found: error')==4
+              assert x.count('actions/upload-artifact@v4')==4
+              assert 'path: sp_raw/' not in x
+          for damaged in (s.replace('overwrite: true','overwrite: false',1),
+                          s.replace('if-no-files-found: error','if-no-files-found: ignore',1),
+                          s.replace('actions/upload-artifact@v4','actions/download-artifact@v4',1),
+                          s.replace('path: sp_sealed/','path: sp_raw/',1)):
+              try: guard(damaged)
+              except AssertionError: pass
+              else: raise SystemExit('DESTRUCTIVE_GATE_FAILED')
+          print('R31_RETRY_CONTRACT_AND_FOUR_NEGATIVE_TESTS_PASS')
+          PY
++'{{ env.KYOTO_TARGET_DAY }}'
               assert s.count('name: '+name)==2
               assert s.count('path: '+lane+'_sealed/')==2
               assert "steps.upload_"+lane+"_primary.outcome == 'failure'" in s
