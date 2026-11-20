@@ -4,6 +4,7 @@ on:
     branches:
       - audit/impl26-final-gate-tracking-20261120
       - fix/impl26-r31-retry-incident-proof-20261120
+      - fix/impl26-r08-early-warning-without-parallel-jra-20261120
   workflow_dispatch:
 permissions:
   contents: read
@@ -21,7 +22,7 @@ jobs:
       - name: Parse exact A-D requirements and fixed 40 risks
         run: python -I audit/verify_impl26_final_gate.py
       - name: Incident detection, stable IDs and negative tests
-        run: python -m unittest -v tests.test_kyoto_impl26_incident_metadata
+        run: python -m unittest -v tests.test_kyoto_impl26_incident_metadata tests.test_kyoto_impl26_r08_latency_watch
       - name: Destructive no-false-GO test
         shell: bash
         run: |
