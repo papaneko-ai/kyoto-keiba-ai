@@ -1,0 +1,49 @@
+name: Impl27 R08 real GitHub job metadata barrier rehearsal
+on:
+  pull_request:
+    paths:
+      - 'audit/impl27_r08_pc_source_barrier.py'
+      - '.github/workflows/kyoto-impl27-r08-metadata-rehearsal.yml'
+      - '.github/workflows/kyoto-20261121-22-two-source-production-observer.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  pc-simulation:
+    name: pc-originals-independent
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - name: Synthetic preflight without any JRA HTTP
+        run: sleep 3
+      - name: Capture official PC observed originals (bounded no guessed URLs)
+        run: |
+          # Step name is the exact R08 metadata contract; this is MOCK work.
+          sleep 6
+          echo PC_CAPTURE_SIMULATED_NO_JRA_HTTP
+      - name: Synthetic post-capture sealing and upload tail
+        run: |
+          sleep 20
+          echo PC_TAIL_SIMULATED_NO_JRA_HTTP
+  sp-simulation:
+    name: sp-originals-independent
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Gate SP synthetic request on actual GitHub PC step completion
+        run: |
+          python audit/impl27_r08_pc_source_barrier.py \
+            --repo "$GITHUB_REPOSITORY" --run-id "$GITHUB_RUN_ID" \
+            --wait-seconds 150
+      - name: Record SP simulated start only after barrier
+        run: |
+          echo SP_BARRIER_PASSED_NO_JRA_HTTP
