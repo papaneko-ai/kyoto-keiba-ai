@@ -40,10 +40,14 @@
       "priority": "P0",
       "description": "AES鍵欠損・誤り",
       "required_evidence": "Secret存在・復号整合と鍵非公開",
-      "status": "OPEN",
-      "proof": [],
+      "status": "MITIGATED_WITH_PROOF",
+      "proof": [
+        "Run 44676198191 pre-weekend-settings-hazard-check SUCCESS: ARCHIVE_AES256_SECRET_FORMAT_VALID",
+        "Run 44676736139 collector-full12-and-aes SUCCESS: sealed originals roundtrip and bad-key rejection unit suite",
+        "Secret not exposed; only format/negative tests asserted"
+      ],
       "owner": "implementation26",
-      "notes": "未認定。証拠を照合した後に更新する。"
+      "notes": "保存/停止回復の事前模擬証拠による認定。実開催の検証とは別。"
     },
     {
       "id": "R05",
@@ -306,10 +310,14 @@
       "priority": "P0",
       "description": "強制終了/例外中の原本消失",
       "required_evidence": "部分原本からAES封入までの障害注入",
-      "status": "OPEN",
-      "proof": [],
+      "status": "MITIGATED_WITH_PROOF",
+      "proof": [
+        "Run 44676736139 destructive-and-turso SUCCESS: weekend interruption, partial-original preservation, safe-stop, fault injection",
+        "Run 44674277544 candidate SP all12 AES destructive suite SUCCESS",
+        "Production observer PC/SP always() seal-only and artifact upload steps present in main"
+      ],
       "owner": "implementation26",
-      "notes": "未認定。証拠を照合した後に更新する。"
+      "notes": "保存/停止回復の事前模擬証拠による認定。実開催の検証とは別。"
     },
     {
       "id": "R30",
