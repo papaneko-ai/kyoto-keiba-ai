@@ -20,10 +20,14 @@
       "priority": "P0",
       "description": "HTTP前の過重な回帰試験",
       "required_evidence": "スケジュール内に到達した実測時刻",
-      "status": "OPEN",
-      "proof": [],
+      "status": "MITIGATED_WITH_PROOF",
+      "proof": [
+        "GitHub Actions Run 44677785680 pre-http-benchmark passed PC actual mandatory offline preflight 19.149 seconds (threshold 120 seconds)",
+        "Same job SP mandatory offline preflight 20.331 seconds (threshold 90 seconds)",
+        "Both PC/SP measured against exact frozen collector de2544c1e9f9951a265419461267146b4023c2ab on GitHub Python 3.11; no official JRA HTTP"
+      ],
       "owner": "implementation26",
-      "notes": "未認定。証拠を照合した後に更新する。"
+      "notes": "事前回帰試験の所要時間リスクに対する実測。GitHub予定起動遅延・実HTTP時間はR01/R14等で独立管理。"
     },
     {
       "id": "R03",
