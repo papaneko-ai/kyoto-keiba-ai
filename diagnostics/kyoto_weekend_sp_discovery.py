@@ -54,6 +54,27 @@ def official_sp_anchors(raw, parent, day):
         choices.append((url,label,token))
     return choices
 
+def observed_kyoto_race_candidates(raw, parent, day):
+    """Inventory *observed* Kyoto 1-12R SP anchors; no URL construction.
+
+    These are navigation hints, not fetched/verified racecards, odds or
+    PC/SP parity. Exact date/race must appear in both token and visible label.
+    """
+    candidates={str(i):[] for i in range(1,13)}
+    for url,label,token in official_sp_anchors(raw,parent,day):
+        match=re.search(r"race(0?[1-9]|1[0-2])"+re.escape(day)+r"(?=/)",token,re.I)
+        if not match:
+            continue
+        race=int(match.group(1))
+        if not 1<=race<=12 or "京都" not in label:
+            continue
+        if not re.search(rf"(?<![0-9])0?{race}\s*(R|レース)(?![0-9])",label,re.I):
+            continue
+        if url not in candidates[str(race)]:
+            candidates[str(race)].append(url)
+    return candidates
+
+
 def discover(root, *, day, opener=None, pacer=None):
     """At most 3 Saturday or 6 Sunday no-redirect SP HTML GETs.
 
@@ -72,6 +93,7 @@ def discover(root, *, day, opener=None, pacer=None):
     visited=set()
     log=[]
     matched=set()
+    race_candidates={str(i):set() for i in range(1,13)}
     # Sunday is a predeclared, separately testable route fallback.
     # All requests still follow genuine saved official SP anchors; never
     # synthesize URLs or retry already visited pages.
@@ -107,6 +129,10 @@ def discover(root, *, day, opener=None, pacer=None):
         log.append({"url":url,"captured_at_utc":datetime.now(timezone.utc).isoformat(),
                     "sha256":digest,"bytes":len(raw),"file":name})
         anchors=official_sp_anchors(raw,url,day)
+        # Record every independently observed Kyoto race anchor, including
+        # ambiguous races, without fetching or certifying it.
+        for number,urls in observed_kyoto_race_candidates(raw,url,day).items():
+            race_candidates[number].update(urls)
         for target,label,token in anchors:
             if day in token and f"12{day}" in token and bool(re.search(r"(?<![0-9])12\s*(R|レース)",label,re.I)) and "京都" in label:
                 matched.add(target)
@@ -130,6 +156,17 @@ def discover(root, *, day, opener=None, pacer=None):
             "day":day,"seed":SEED,"attempts":log,
             "racecard_url":next(iter(matched)) if len(matched)==1 else "",
             "unique_observed_racecard":len(matched)==1,
+            "per_race_observed_navigation_candidates":{
+                str(i):{"candidate_count":len(race_candidates[str(i)]),
+                         "candidate_urls":sorted(race_candidates[str(i)]),
+                         "state":("UNIQUE_OFFICIAL_SP_NAVIGATION_HINT_NOT_FETCHED"
+                                  if len(race_candidates[str(i)])==1
+                                  else "AMBIGUOUS_OFFICIAL_SP_NAVIGATION_HINT_NOT_FETCHED"
+                                  if len(race_candidates[str(i)])>1
+                                  else "NO_OFFICIAL_SP_RACE_LINK_OBSERVED")}
+                for i in range(1,13)},
+            "full_twelve_race_sp_fallback_verified":False,
+            "observed_link_is_not_authenticated_racecard":True,
             "network_requests_started":len(log),
             "state":"OBSERVED_UNIQUE_R12_SOURCE" if len(matched)==1
                     else "OFFICIAL_R12_LINK_NOT_OBSERVED",
