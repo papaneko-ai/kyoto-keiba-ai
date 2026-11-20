@@ -1,0 +1,104 @@
+name: Impl26 persistent incident metadata watch
+on:
+  workflow_run:
+    workflows: ['Kyoto Nov21-22 independent encrypted original collection']
+    types: [completed]
+  schedule:
+    - cron: '20 12 21 11 *'
+    - cron: '20 12 22 11 *'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+  issues: write
+jobs:
+  evidence-only:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    env:
+      GH_TOKEN: ${{ github.token }}
+      OBSERVED_RUN_ID: ${{ github.event.workflow_run.id }}
+      OBSERVED_CREATED_AT: ${{ github.event.workflow_run.created_at }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Detect completed-run or missed-day incidents using GitHub metadata only
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p impl26_incident_evidence
+          python - <<'PY'
+          import json,os,subprocess
+          from pathlib import Path
+          from datetime import datetime,timezone
+          from diagnostics.kyoto_impl26_incident_metadata import classify
+          repo=os.environ["GITHUB_REPOSITORY"]
+          def api(path):
+              return json.loads(subprocess.check_output(["gh","api",f"repos/{repo}/{path}"],text=True))
+          event=os.environ.get("GITHUB_EVENT_NAME")
+          if event=="workflow_run":
+              date=os.environ.get("OBSERVED_CREATED_AT","")[:10]
+          else:
+              date=datetime.now(timezone.utc).strftime("%Y-%m-%d")
+          items=[]
+          if date in ("2026-11-21","2026-11-22"):
+              day=date.replace("-","")
+              endpoint=f"actions/workflows/kyoto-20261121-22-two-source-production-observer.yml/runs?created={date}&per_page=100"
+              runs=api(endpoint).get("workflow_runs",[])
+              if event=="workflow_run":
+                  runs=[r for r in runs if str(r.get("id"))==os.getenv("OBSERVED_RUN_ID")]
+              if event=="schedule":
+                  count=sum(r.get("event")=="schedule" and r.get("run_attempt",1)==1 for r in runs)
+                  if count<4:
+                      missing=list(classify(None,{"jobs":[]},{"artifacts":[]},day=day,
+                                            scheduled_utc=f"{date}:count={count}/4"))
+                      missing[0]["symptom"]=f"Expected four scheduled runs; observed {count}. Exact missing slot unidentified."
+                      items+=missing
+              for run in runs:
+                  if run.get("status")=="completed":
+                      rid=run["id"]
+                      items+=list(classify(run,api(f"actions/runs/{rid}/jobs?per_page=100"),
+                                         api(f"actions/runs/{rid}/artifacts?per_page=100"),day=day))
+          dedup={x["incident_id"]:x for x in items}
+          Path("impl26_incident_evidence/INC_metadata.json").write_text(
+              json.dumps({"schema":"kyoto_impl26_incidents.v1","incidents":list(dedup.values()),
+                          "source":"GITHUB_METADATA_ONLY","root_cause_proved":False},
+                         sort_keys=True,indent=2)+"\n")
+          print("DETECTED_INC",len(dedup))
+          PY
+      - name: Permanently record unique INC IDs in GitHub issues
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json,os,subprocess
+          from pathlib import Path
+          repo=os.environ["GITHUB_REPOSITORY"]
+          recorded=json.loads(subprocess.check_output(
+              ["gh","api",f"repos/{repo}/issues?state=all&per_page=100"],text=True))
+          names={x["title"] for x in recorded}
+          incidents=json.loads(Path("impl26_incident_evidence/INC_metadata.json").read_text())["incidents"]
+          for inc in incidents:
+              title="Impl26 "+inc["incident_id"]
+              if title in names:
+                  continue
+              body=("Automated GitHub metadata-only detection; root cause UNKNOWN.\n\n"
+                    f"Day: {inc['day']}\nRun: {inc['run_id']}\nLane: {inc['channel']}\n"
+                    f"Stage: {inc['failure_stage']}\nRisk: {','.join(inc['risk_ids'])}\n"
+                    f"Symptom: {inc['symptom']}\n"
+                    "Next: evidence-lock, same-root search, offline reproduction, reviewed repair. "
+                    "No automatic JRA retry or production SHA promotion.")
+              subprocess.check_call(["gh","issue","create","-R",repo,"--title",title,"--body",body])
+              names.add(title)
+          PY
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: kyoto-impl26-incidents-${{ github.run_id }}
+          path: impl26_incident_evidence/
+          retention-days: 90
+          if-no-files-found: warn
