@@ -42,7 +42,16 @@ jobs:
           assert s.count("KYOTO_TARGET_DAY:")==2
           assert s.count("tests.test_kyoto_sp_all12_observed_capture")==1
           assert "DAY22_CANDIDATE_NOT_PREFLIGHT_VERIFIED_NO_HTTP" in s
-          assert s.count("actions/upload-artifact@v4")==2
+          assert s.count("actions/upload-artifact@v4")==4
+          assert s.count("overwrite: true")==2
+          assert s.count("if-no-files-found: error")==4
+          assert "always() && steps.upload_pc_primary.outcome == 'failure'" in s
+          assert "always() && steps.upload_sp_primary.outcome == 'failure'" in s
+          for channel in ("pc", "sp"):
+              marker="name: kyoto-"+channel+"-\${{ github.run_id }}-\${{ env.KYOTO_TARGET_DAY }}"
+              assert s.count(marker)==2
+              assert s.count("path: "+channel+"_sealed/")==2
+          assert "path: pc_raw/" not in s and "path: sp_raw/" not in s
           assert "cancel-in-progress: false" in s
           print("NOV21_PIN_PROTECTED; NOV22_PREAPPROVAL_UNCHANGED; 8_SCHEDULES_UNCHANGED")
           PY
