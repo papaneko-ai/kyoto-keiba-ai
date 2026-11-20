@@ -79,6 +79,9 @@ jobs:
         run: |
           python -m unittest -q \
             tests.test_kyoto_g04_all_horse_profiles \
+            tests.test_kyoto_impl25_g04_market_time_reserve \
+            tests.test_kyoto_impl25_g04_horsewise_quarantine \
+            tests.test_kyoto_impl25_g04_priority \
             tests.test_kyoto_g05_conditions \
             tests.test_kyoto_g05_official_track \
             tests.test_kyoto_g05_weekend_bridge \
