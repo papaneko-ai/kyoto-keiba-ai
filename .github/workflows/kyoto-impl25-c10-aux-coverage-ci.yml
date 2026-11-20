@@ -13,14 +13,14 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: 325b2143bb42298d4216e57650525d4635503f94
+          ref: eba10b24f4e0b05513de291343400b406ec320ed
           persist-credentials: false
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
       - run: python -m pip install 'beautifulsoup4>=4.12,<5' 'cryptography>=43,<47'
       - name: Verify immutable candidate SHA
-        run: test "$(git rev-parse HEAD)" = "325b2143bb42298d4216e57650525d4635503f94"
+        run: test "$(git rev-parse HEAD)" = "eba10b24f4e0b05513de291343400b406ec320ed"
       - name: Run no-JRA-HTTP auxiliary source evidence and existing source regressions
         env:
           KYOTO_TARGET_DAY: '20261121'
@@ -49,5 +49,7 @@ jobs:
           assert 'save_auxiliary_coverage(root/"pc_originals",day)' in cap
           assert 'encrypt_evidence(src,dst' in cap
           assert 'active_claims_for_weekend(day)' in cap
+          crypto=Path('diagnostics/kyoto_nov15_encrypted_evidence.py').read_text()
+          assert 'FILES.add("c10_auxiliary_coverage_receipt.json")' in crypto
           print('C10_SAVED_FIELDS_SOURCE_PROOF_WITHOUT_FABRICATED_WORKOUT')
           PY
