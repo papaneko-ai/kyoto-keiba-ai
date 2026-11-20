@@ -46,6 +46,16 @@ class WeekendEndToEndTests(unittest.TestCase):
         tmp=tempfile.TemporaryDirectory()
         self.addCleanup(tmp.cleanup)
         self.root=Path(tmp.name)
+        # Other suites can import the observer before KYOTO_TARGET_DAY is set.
+        # Isolate its cached day and observation window for deterministic tests.
+        for field,value in (
+            ("DAY",DAY),
+            ("BEGIN",datetime(2026,11,18,7,15,tzinfo=timezone.utc)),
+            ("END",datetime(2026,11,21,4,tzinfo=timezone.utc)),
+        ):
+            guard=patch("diagnostics.kyoto_nov15_two_original_observer."+field,value)
+            guard.start()
+            self.addCleanup(guard.stop)
         env=patch.dict(os.environ,{"KYOTO_TARGET_DAY":DAY},clear=False)
         env.start()
         self.addCleanup(env.stop)
