@@ -66,7 +66,8 @@ def _metadata(raw,expected_name):
             "jockey_current":None,"jockey_current_verified":False,
             "jra_horse_id":None,"jra_horse_id_verified":False}
 
-def capture(*,root,day,fetch,clock,allowed=False,allow_partial=False,\n            isolate_invalid_links=False):
+def capture(*,root,day,fetch,clock,allowed=False,allow_partial=False,
+            isolate_invalid_links=False):
     """G03 must already be saved/verified; fetch must use existing paced _read.
 
     Caller is responsible for pacing, no-redirect, bounded GET, and replacing
