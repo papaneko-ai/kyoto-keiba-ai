@@ -89,8 +89,15 @@ def capture(day: str, channel: str, output: str, *, live: bool,
             out = _no_claim(day, channel, result["state"],
                             observed_http_requests_started=result["http_requests_started"],
                             captured_originals=bool(result.get("selection_sha256")))
-            g03=collect_after_observer(original_root=root / "pc_originals",
-                                       day=day,opener=pc_client,pacer=pc_pacer)
+            # A failed G03 link acquisition does not invalidate independent
+            # saved observer originals or the separately observed Kyoto track.
+            try:
+                g03=collect_after_observer(original_root=root / "pc_originals",
+                                           day=day,opener=pc_client,pacer=pc_pacer)
+            except Exception as exc:
+                g03={"complete":False,"network_requests_started":0}
+                out["g03_capture_state"]="G03_EXCEPTION_PRESERVE_OTHER_SOURCES"
+                out["g03_error_class"]=type(exc).__name__
             out["g03_all_race_originals_observed"]=bool(g03.get("complete"))
             out["g03_network_requests_started"]=g03.get("network_requests_started",0)
             # Profile/history and zero-network same-day G05 are captured
@@ -148,7 +155,9 @@ def capture(day: str, channel: str, output: str, *, live: bool,
             # At 09:15 it may still show an earlier meeting; preserve bytes,
             # never promote stale data. Existing shared pacer/no-redirect remains.
             out["g05_kyoto_track_source_saved"]=False
-            if partial_verified:
+            # The official Kyoto conditions page has an independently fixed
+            # observed URL. It must not depend on any G03 racecard succeeding.
+            if (root / "pc_originals").is_dir():
                 try:
                     from diagnostics.kyoto_g05_official_track import capture_kyoto_track
                     from diagnostics.kyoto_nov15_two_original_observer import _read
