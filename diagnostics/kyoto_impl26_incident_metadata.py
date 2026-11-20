@@ -42,7 +42,7 @@ def classify(run, jobs, artifacts, *, day, scheduled_utc=None):
             upload = f"kyoto-{lane.lower()}-{run_id}-{day}" in names
             if failed:
                 first = failed[0].get("name", "UNKNOWN_STEP")
-                state = "SEALING_FAILED" if "seal" in first.lower() or "upload" in first.lower() else "UNKNOWN"
+                state = "SEALING_FAILED" if any(token in first.lower() for token in ("seal", "encrypt", "upload", "artifact")) else "UNKNOWN"
                 risk = "R31" if state == "SEALING_FAILED" else "R02"
                 events.append((lane, state, risk, "Failed step: " + first[:120], first[:120]))
             if job.get("conclusion") in ("failure", "cancelled", "timed_out") and not failed:
