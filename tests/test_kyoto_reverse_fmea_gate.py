@@ -25,9 +25,16 @@ class SourceFirstCoverageTests(unittest.TestCase):
         from diagnostics.kyoto_reverse_fmea_gate import reachable_local_modules
         seed={item["source"] for item in self.doc["surfaces"]}
         seen=reachable_local_modules(ROOT,seed)
-        self.assertEqual(seen,seed)
+        self.assertTrue(seed.issubset(seen))
         result=inspect(ROOT,self.doc)
-        self.assertEqual(result["additional_reachable_modules_not_yet_reviewed"],0)
+        # Expanded G06's transitive source families are explicitly unresolved,
+        # never silently certified. A failing review must not be disguised as
+        # a 'no missing dependencies' report.
+        self.assertEqual(
+            result["additional_reachable_modules_not_yet_reviewed"],
+            len(seen-seed))
+        self.assertGreater(result["additional_reachable_modules_not_yet_reviewed"],0)
+        self.assertEqual(set(result["additional_reachable_module_paths"]),seen-seed)
         self.assertEqual(result["top_level_functions_not_yet_independently_reviewed"],74)
         self.assertIs(result["completeness_demonstrated"],False)
 
