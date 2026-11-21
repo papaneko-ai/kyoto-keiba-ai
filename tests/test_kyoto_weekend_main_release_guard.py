@@ -7,6 +7,7 @@ WF=Path(".github/workflows/kyoto-20261121-22-two-source-production-observer.yml"
 REG=Path("docs/diagnostics/KYOTO_20261116_INDEPENDENT_RELEASE_BLOCKERS.json")
 NOV21_PIN="de2544c1e9f9951a265419461267146b4023c2ab"
 NOV22_BASELINE_PIN="989aaba017c5450fed91b383421f5d2da53c6c69"
+NOV22_REVIEWED_PIN="1d83b80159d86be1145a35a822253b968416a3e8"
 HISTORIC_APPROVED_PIN="c96df31542cb94435ca36cb4a1b8bd6de938233f"
 
 class SourceOnlyReleaseAcceptance(unittest.TestCase):
@@ -22,7 +23,10 @@ class SourceOnlyReleaseAcceptance(unittest.TestCase):
         # Current production explicitly pins Nov21, with an independent
         # Nov22 baseline or separately reviewed approved override.
         self.assertEqual(self.workflow.count(NOV21_PIN),4)
-        self.assertEqual(self.workflow.count(NOV22_BASELINE_PIN),4)
+        self.assertEqual(self.workflow.count(NOV22_BASELINE_PIN),2)
+        self.assertEqual(self.workflow.count(NOV22_REVIEWED_PIN),2)
+        self.assertEqual(self.workflow.count(
+            f"vars.KYOTO_NOV22_VERIFIED_COLLECTOR_SHA || '{NOV22_REVIEWED_PIN}'"),2)
         self.assertEqual(self.workflow.count(
             f"assert os.environ['COLLECTOR_SHA']=='{NOV21_PIN}'"),2)
         self.assertIn("DAY22_CANDIDATE_NOT_PREFLIGHT_VERIFIED_NO_HTTP",self.workflow)
