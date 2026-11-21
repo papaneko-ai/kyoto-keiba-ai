@@ -68,7 +68,7 @@ def inspect(root:Path, ledger:dict, *, verify_git:bool=True) -> dict:
     dynamic_import_markers=[]
     source_sha={}
     files={s["source"] for s in surfaces}
-    if len(files)!=28:
+    if len(files)!=29:
         raise AuditCoverageRejected("source_module_inventory_incomplete")
     for file in files:
         path=root/file
