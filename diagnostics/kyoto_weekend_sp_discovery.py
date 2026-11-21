@@ -88,7 +88,7 @@ def observed_kyoto_race_candidates(raw, parent, day):
             race=int(legacy.group(1))
         else:
             continue
-        if not re.search(rf"(?<![0-9])0?{race}\\s*(R|レース)(?![0-9])",label,re.I):
+        if not re.search(rf"(?<![0-9])0?{race}\s*(R|レース)(?![0-9])",label,re.I):
             continue
         if url not in candidates[str(race)]:
             candidates[str(race)].append(url)
