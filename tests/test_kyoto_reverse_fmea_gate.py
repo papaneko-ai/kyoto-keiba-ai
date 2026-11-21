@@ -13,10 +13,10 @@ class SourceFirstCoverageTests(unittest.TestCase):
         cls.doc=json.loads((ROOT/LEDGER).read_text(encoding="utf8"))
     def test_twenty_reachable_modules_seventy_six_functions_not_declared_complete(self):
         r=inspect(ROOT,self.doc)
-        self.assertEqual(r["critical_modules"],28)
-        self.assertEqual(r["top_level_functions_discovered"],98)
+        self.assertEqual(r["critical_modules"],29)
+        self.assertEqual(r["top_level_functions_discovered"],103)
         self.assertEqual(r["top_level_functions_unregistered"],0)
-        self.assertEqual(r["top_level_functions_not_yet_independently_reviewed"],69)
+        self.assertEqual(r["top_level_functions_not_yet_independently_reviewed"],74)
         self.assertGreater(r["class_methods_discovered_but_not_yet_independently_reviewed"],0)
         self.assertEqual(r["additional_predictable_failure_families"],25)
         self.assertGreater(r["high_severity_unresolved"],0)
@@ -28,7 +28,7 @@ class SourceFirstCoverageTests(unittest.TestCase):
         self.assertEqual(seen,seed)
         result=inspect(ROOT,self.doc)
         self.assertEqual(result["additional_reachable_modules_not_yet_reviewed"],0)
-        self.assertEqual(result["top_level_functions_not_yet_independently_reviewed"],69)
+        self.assertEqual(result["top_level_functions_not_yet_independently_reviewed"],74)
         self.assertIs(result["completeness_demonstrated"],False)
 
     def test_function_omission_rejected(self):
