@@ -1,0 +1,26 @@
+name: Nov22 prove actual selected collector SHA without JRA HTTP
+on:
+  push:
+    branches:
+      - audit/nov22-actual-collector-selection-20261122
+permissions:
+  contents: read
+jobs:
+  selected-source-no-secrets:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    env:
+      APPROVED_CANDIDATE: '1d83b80159d86be1145a35a822253b968416a3e8'
+      EFFECTIVE_NOV22: ${{ vars.KYOTO_NOV22_VERIFIED_COLLECTOR_SHA || '1d83b80159d86be1145a35a822253b968416a3e8' }}
+    steps:
+      - name: Ensure repo-approved override cannot silently replace the reviewed Sunday source
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ "$EFFECTIVE_NOV22" != "$APPROVED_CANDIDATE" ]; then
+            echo "NOV22_EFFECTIVE_SHA_MISMATCH_REVIEW_REQUIRED"
+            echo "Selected SHA is not the approved fallback; do not claim reviewed candidate deployed."
+            exit 1
+          fi
+          echo "NOV22_EFFECTIVE_SHA_MATCHES_INDEPENDENT_PREFLIGHT"
+          echo "NO_JRA_HTTP_EXPLICITLY_USED"
