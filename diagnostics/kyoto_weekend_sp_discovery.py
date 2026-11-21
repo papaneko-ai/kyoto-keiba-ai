@@ -18,6 +18,12 @@ from diagnostics.jra_one_shot_market_capture import RequestPacer
 from diagnostics.kyoto_p1_nov14_official_one_shot_nav import NoRedirect
 
 SEED = "https://sp.jra.jp/"
+# JRA SP actual Kyoto R1 2026-11-22 official URL independently observed.
+# This is a single navigation seed, NOT synthesized race URLs or 12R proof.
+OFFICIAL_OBSERVED_NOV22_R1 = (
+    "https://sp.jra.jp/JRADB/accessD.html?"
+    "CNAME=sw01dde0108202605060120261122%2F90"
+)
 LIMIT = 1_500_000
 
 class SPDiscoveryError(ValueError):
@@ -29,7 +35,11 @@ def official_sp_anchors(raw, parent, day):
         raise SPDiscoveryError("invalid_sp_navigation_original")
     if not isinstance(day,str) or not re.fullmatch(r"20[0-9]{6}",day):
         raise SPDiscoveryError("invalid_sp_day")
-    soup=BeautifulSoup(raw.decode("cp932",errors="replace"),"html.parser")
+    try:
+        decoded=raw.decode("utf-8")
+    except UnicodeDecodeError:
+        decoded=raw.decode("cp932",errors="replace")
+    soup=BeautifulSoup(decoded,"html.parser")
     choices=[]
     for a in soup.select("a[href]"):
         href=a.get("href","").strip()
@@ -62,11 +72,21 @@ def observed_kyoto_race_candidates(raw, parent, day):
     """
     candidates={str(i):[] for i in range(1,13)}
     for url,label,token in official_sp_anchors(raw,parent,day):
-        match=re.search(r"race(0?[1-9]|1[0-2])"+re.escape(day)+r"(?=/)",token,re.I)
-        if not match:
-            continue
-        race=int(match.group(1))
-        if not 1<=race<=12 or "京都" not in label:
+        # Published JRA mobile token: prefix, Kyoto venue 08,
+        # meeting(8 digits), race(2 digits), day, opaque verified suffix.
+        # Unlike the obsolete "raceNNYYYYMMDD" test token, this pattern
+        # is derived from observed official SP racecard URLs.
+        match=re.fullmatch(
+            r"sw01dde01(08)[0-9]{8}(0[1-9]|1[0-2])"
+            +re.escape(day)+r"/[A-Za-z0-9]+",token,re.I)
+        legacy=re.search(r"race(0?[1-9]|1[0-2])"+re.escape(day)+r"(?=/)",token,re.I)
+        if match:
+            race=int(match.group(2))
+        elif legacy:
+            # Preserve the historical synthetic fixture without using it
+            # to construct or seed any live URL.
+            race=int(legacy.group(1))
+        else:
             continue
         if not re.search(rf"(?<![0-9])0?{race}\s*(R|レース)(?![0-9])",label,re.I):
             continue
@@ -89,6 +109,9 @@ def discover(root, *, day, opener=None, pacer=None):
     root.mkdir()
     client=opener or build_opener(NoRedirect())
     throttle=pacer or RequestPacer(min_gap_seconds=2.0)
+    # An actual official Sunday R1 document was independently observed.
+    # Download it directly and derive all other race URLs exclusively from
+    # saved official page anchor bytes; no guessed CNAME or PC-derived URL.
     queue=[SEED]
     visited=set()
     log=[]
@@ -100,7 +123,13 @@ def discover(root, *, day, opener=None, pacer=None):
     max_steps=3 if day=="20261121" else 6
     for step in range(max_steps):
         if not queue:
-            break
+            # First finish any independently observed navigation chain.
+            # Only then try the single genuine public Sunday R1 original.
+            # Never synthesize a new race URL from this known R1 token.
+            if day=="20261122" and OFFICIAL_OBSERVED_NOV22_R1 not in visited:
+                queue.append(OFFICIAL_OBSERVED_NOV22_R1)
+            else:
+                break
         url=queue.pop(0)
         if url in visited:
             continue

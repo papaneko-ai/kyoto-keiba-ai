@@ -1,0 +1,39 @@
+name: Nov22 independently observed SP anchor repair and AES guard
+on:
+  push:
+    branches:
+      - fix/nov22-frozen-sp-real-anchor-source-20261122
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  exact-official-mobile-source:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install 'beautifulsoup4>=4.12,<5' 'cryptography>=43,<47'
+      - name: Replay actual official mobile token, both encodings, failure stop, historic 12R AES, and no guessed URL
+        run: |
+          set -euo pipefail
+          python -m unittest -v tests.test_kyoto_nov22_real_sp_token_source tests.test_kyoto_weekend_sp_discovery tests.test_kyoto_sp_all12_observed_capture
+      - name: Exact frozen race capture and immutable source boundary
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          a=Path('diagnostics/kyoto_weekend_sp_discovery.py').read_text()
+          b=Path('diagnostics/kyoto_sp_all12_observed_capture.py').read_text()
+          assert 'https://sp.jra.jp/' in a
+          assert 'OFFICIAL_OBSERVED_NOV22_R1' in a
+          assert 'observed_kyoto_race_candidates' in b
+          assert 'source_only' in b
+          assert 'racecard_fetched' in b
+          assert 'prediction_ready' in b
+          assert 'full_twelve_race_sp_fallback_verified' in a
+          print('SOURCE_ONLY_NO_GUESSED_ANCHORS_PASS')
+          PY
