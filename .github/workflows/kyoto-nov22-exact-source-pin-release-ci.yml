@@ -1,0 +1,41 @@
+name: Nov22 exact source pin and preflight proof acceptance
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/kyoto-20261121-22-two-source-production-observer.yml'
+      - '.github/workflows/kyoto-impl26-nov21-protected-release-ci.yml'
+      - 'tests/test_kyoto_weekend_main_release_guard.py'
+      - '.github/workflows/kyoto-nov22-exact-source-pin-release-ci.yml'
+permissions:
+  contents: read
+  actions: read
+jobs:
+  exact-approved-source:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Retain exact main-release source guard tests
+        run: python -m unittest -v tests.test_kyoto_weekend_main_release_guard tests.test_kyoto_nov22_recover_live_capture_preflight
+      - name: Independently verify candidate commit has successful actual named source preflight
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json,os,urllib.request
+          sha="1d83b80159d86be1145a35a822253b968416a3e8"
+          url="https://api.github.com/repos/"+os.environ["GITHUB_REPOSITORY"]+"/actions/workflows/kyoto-weekend-20261121-22-preflight.yml/runs?per_page=100"
+          headers={"Authorization":"Bearer "+os.environ["GH_TOKEN"],"Accept":"application/vnd.github+json"}
+          with urllib.request.urlopen(urllib.request.Request(url,headers=headers),timeout=15) as rsp:
+              items=json.load(rsp)["workflow_runs"]
+          matching=[r for r in items if r.get("head_sha")==sha and r.get("conclusion")=="success"]
+          assert matching,"NOV22_SOURCE_PREFLIGHT_NOT_SUCCESSFUL"
+          print("EXACT_NOV22_SHA_PROOF_SUCCESS",sha,matching[0]["id"])
+          PY
