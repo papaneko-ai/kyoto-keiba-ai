@@ -147,10 +147,18 @@ def discover(root, *, day, opener=None, pacer=None):
         except Exception as exc:
             log.append({"url":url,"request_started_at_utc":stamp,
                         "error_class":type(exc).__name__})
+            # A broken SP homepage must not veto the separate, independently
+            # observed official Kyoto R1 seed. Only that exact URL is eligible.
+            if day=="20261122" and url==SEED:
+                queue=[OFFICIAL_OBSERVED_NOV22_R1]
+                continue
             break
         if status!=200 or actual!=url or "html" not in ctype.lower() or not 0<len(raw)<=LIMIT:
             log.append({"url":url,"request_started_at_utc":stamp,
                         "state":"HTTP_RESPONSE_REJECTED"})
+            if day=="20261122" and url==SEED:
+                queue=[OFFICIAL_OBSERVED_NOV22_R1]
+                continue
             break
         name=f"official_sp_discovery_{step+1}.html"
         (root/name).write_bytes(raw)
