@@ -1,0 +1,21 @@
+name: Nov22 final app JRA source selected SHA audit
+on:
+  push:
+    branches: [audit/nov22-app-official-effective-pin-20261122]
+permissions:
+  contents: read
+jobs:
+  effective-pin:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    env:
+      PIN: '2dce4f5fa9d0ce48e460a95664fe3207c7f95ba6'
+      SELECTED: ${{ vars.KYOTO_NOV22_VERIFIED_COLLECTOR_SHA || '2dce4f5fa9d0ce48e460a95664fe3207c7f95ba6' }}
+    steps:
+      - name: Reject any hidden override of the approved official app JRA source collector
+        shell: bash
+        run: |
+          set -euo pipefail
+          [ "$PIN" = "$SELECTED" ] || { echo NOV22_SOURCE_OVERRIDE_UNAPPROVED; exit 1; }
+          echo NOV22_APP_JRA_OFFICIAL_SOURCE_EFFECTIVE_SHA_CONFIRMED
+          echo ZERO_JRA_HTTP
