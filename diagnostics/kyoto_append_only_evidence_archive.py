@@ -68,7 +68,7 @@ def validate(file):
         if not isinstance(obj,dict):raise ValueError("unsafe_receipt_type")
         kind="SAFE_METADATA"
     elif name=="ciphertext_sha256.txt":
-        if not re.fullmatch(rb"[0-9a-f]{64}\\n?",data):
+        if not re.fullmatch(rb"[0-9a-f]{64}\n?",data):
             raise ValueError("invalid_sha256_file")
         kind="DIGEST"
     else:raise ValueError("unapproved_evidence_extension")
