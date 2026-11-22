@@ -1,0 +1,55 @@
+name: Kyoto archive verified 11-21 failures and 11-22 original successes permanently
+on:
+  push:
+    branches: [feature/kyoto-durable-success-failure-ledger-20261122]
+    paths:
+      - 'diagnostics/kyoto_append_only_evidence_archive.py'
+      - '.github/workflows/kyoto-permanent-encrypted-source-archive.yml'
+permissions:
+  contents: write
+  actions: read
+jobs:
+  private-ciphertext-and-safe-failure-proof:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Download each preserved historical PC and SP failure evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          for run in 44848944302 44854931835 44857934629 44861934823; do
+            for lane in pc sp; do
+              dest="intake/nov21/$run/$lane"
+              mkdir -p "$dest"
+              gh run download "$run" --repo "$GITHUB_REPOSITORY" --name "kyoto-$lane-$run-20261121" --dir "$dest"
+            done
+          done
+      - name: Download prior successful actual official all-12R encrypted originals and parser evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p intake/nov22/full12 intake/nov22/g03 intake/nov22/ledger
+          gh run download 44966013490 --repo "$GITHUB_REPOSITORY" --name kyoto-nov22-real-observed-all12-encrypted-44966013490 --dir intake/nov22/full12
+          gh run download 44966654858 --repo "$GITHUB_REPOSITORY" --name kyoto-nov22-jp-start-real12-44966654858 --dir intake/nov22/g03
+          gh run download 44983258092 --repo "$GITHUB_REPOSITORY" --name kyoto-nov22-complete-evidence-ledger-44983258092 --dir intake/nov22/ledger
+      - name: Archive only AES-GCM ciphertext and vetted safe receipts in separate branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m diagnostics.kyoto_append_only_evidence_archive
+      - name: Publish only manifest of archived SHA256 source and failure receipts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: kyoto-encrypted-durable-archive-manifest-${{ github.run_id }}
+          path: evidence_archive_receipt/
+          if-no-files-found: warn
+          retention-days: 90
