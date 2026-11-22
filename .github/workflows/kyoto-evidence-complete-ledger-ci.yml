@@ -1,0 +1,124 @@
+name: Kyoto durable evidence ledger from actual race originals and failures
+on:
+  push:
+    branches: [feature/kyoto-durable-success-failure-ledger-20261122]
+  pull_request:
+    paths:
+      - 'diagnostics/kyoto_evidence_complete_family_ledger.py'
+      - 'tests/test_kyoto_evidence_complete_family_ledger.py'
+      - '.github/workflows/kyoto-evidence-complete-ledger-ci.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+  issues: write
+jobs:
+  independently-test-ledger:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Offline fail-closed contract including immutable replay
+        run: python -m unittest -v tests.test_kyoto_evidence_complete_family_ledger
+  replay-actual-nov22-and-preserve:
+    needs: independently-test-ledger
+    if: ${{ github.event_name != 'pull_request' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 7
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Download preserved real JRA source-only SHA/UTC receipt (not plaintext)
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p evidence_intake/source
+          gh run download 44966013490 --repo "$GITHUB_REPOSITORY" --name kyoto-nov22-real-observed-all12-encrypted-44966013490 --dir evidence_intake/source
+          test -s evidence_intake/source/source_receipts_summary.json
+          test -s evidence_intake/source/originals_all12.tar.gz.aesgcm
+          test -s evidence_intake/source/ciphertext_sha256.txt
+          (cd evidence_intake/source && sha256sum -c --status <(awk '{print $1 "  originals_all12.tar.gz.aesgcm"}' ciphertext_sha256.txt))
+      - name: Download G03 12R frozen source parser receipt from independently replayed actual official originals
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p evidence_intake/g03
+          gh run download 44966654858 --repo "$GITHUB_REPOSITORY" --name kyoto-nov22-jp-start-real12-44966654858 --dir evidence_intake/g03
+          test -s evidence_intake/g03/safe_race_parser_results.json
+      - name: Generate exact 108-entry success/failure/unobserved evidence ledger
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m diagnostics.kyoto_evidence_complete_family_ledger \
+            --source evidence_intake/source/source_receipts_summary.json \
+            --g03 evidence_intake/g03/safe_race_parser_results.json \
+            --day 20261122 \
+            --out evidence_ledger/nov22_108_records.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          d=json.loads(Path('evidence_ledger/nov22_108_records.json').read_text())
+          assert len(d['records'])==108
+          assert d['counts']['racecard_original']['ORIGINAL_VERIFIED']==12
+          assert d['counts']['roster']['STRUCTURED_VERIFIED']==12
+          assert d['counts']['quinella_odds']['STRUCTURED_VERIFIED']==0
+          assert d['counts']['bracket_quinella_odds']['STRUCTURED_VERIFIED']==0
+          assert d['prediction_ready'] is False
+          assert d['automated_repair_state']=='RECEIPT_GENERATED_NO_CODE_MUTATION'
+          print('ACTUAL_SOURCE_SUCCESS_12_G03_12_MISSING_FAMILIES_UNMISREPRESENTED')
+          PY
+      - name: Persist a private-safe, deduplicated issue receipt beyond artifact retention
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json,os,subprocess
+          from pathlib import Path
+          d=json.loads(Path("evidence_ledger/nov22_108_records.json").read_text())
+          title="Kyoto 20261122 | immutable 12R x 9-family evidence ledger"
+          titles=subprocess.check_output(
+              ["gh","api","--paginate","--jq",".[].title",
+               f"repos/{os.environ['GITHUB_REPOSITORY']}/issues?state=all&per_page=100"],
+              text=True).splitlines()
+          verified=d["counts"]["racecard_original"]["ORIGINAL_VERIFIED"]
+          roster=d["counts"]["roster"]["STRUCTURED_VERIFIED"]
+          body=("# Evidence-only data continuity receipt (2026-11-22)\n\n"
+              "Real official capture Run 44966013490; independent G03 parser replay "
+              "Run 44966654858. Full source bytes remain encrypted in their private "
+              "Actions artifacts. GitHub artifact retention is finite; record original "
+              "file hashes and restoration location separately before expiry.\n\n"
+              f"Observed official originals with source SHA/UTC: {verified}/12.\n"
+              f"G03 roster/start on exact original SHA/UTC: {roster}/12.\n"
+              "Horse profile, past performance, track, quinella/bracket, official "
+              "result and payout remain UNOBSERVED or unverified in this evidence set. "
+              "A link is NOT a downloaded market or history file.\n\n"
+              f"Deterministic complete-ledger SHA256: {d['content_sha256']}\n"
+              "No release, prediction, paper-trade promotion or live market "
+              "success inferred.\n\n"
+              "Permanent P0 automation gap: issue #87; source repair requires "
+              "independent review. For the full per-race states use the workflow's "
+              "kyoto-evidence-ledger artifact.\n")
+          if title not in titles:
+              subprocess.run(["gh","issue","create","-R",
+                              os.environ["GITHUB_REPOSITORY"],
+                              "--title",title,"--body",body],check=True)
+              print("DURABLE_DEDUPLICATED_ISSUE_CREATED")
+          else:
+              print("DURABLE_DEDUPLICATED_ISSUE_ALREADY_EXISTS")
+          PY
+      - name: Retain the entire 108-record safe ledger independently
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: kyoto-nov22-complete-evidence-ledger-${{ github.run_id }}
+          path: evidence_ledger/
+          retention-days: 90
+          if-no-files-found: warn
