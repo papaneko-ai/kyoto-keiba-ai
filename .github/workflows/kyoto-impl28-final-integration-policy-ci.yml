@@ -1,0 +1,26 @@
+name: Impl28 final integration policy locked D1-D6
+on:
+  pull_request:
+    paths:
+      - 'docs/KYOTO_AI_FINAL_INTEGRATION_LIGHTWEIGHT_AND_RECOVERY_POLICY_20261120.md'
+      - 'docs/KYOTO_IMPL26_A_TO_D_FINAL_GATE_PROGRESS_20261120.md'
+      - 'tests/test_kyoto_impl28_final_integration_policy.py'
+      - '.github/workflows/kyoto-impl28-final-integration-policy-ci.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  final-integration-invariant:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Check final-stage no-compile and dual-recovery policy without false progress
+        run: python -m unittest -v tests.test_kyoto_impl28_final_integration_policy
+      - name: Re-verify original fixed risk and six-gate NO_GO boundary
+        run: python -I audit/verify_impl26_final_gate.py
