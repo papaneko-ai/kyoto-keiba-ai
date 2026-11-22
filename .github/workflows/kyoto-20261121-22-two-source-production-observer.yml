@@ -187,6 +187,9 @@ jobs:
       - name: Upload only AES-GCM ciphertext or safe-stop receipt
         id: upload_pc_primary
         if: always()
+        # Preserve the factual failure outcome for a conditional retry,
+        # but do not fail the job if that retry eventually saves ciphertext.
+        continue-on-error: true
         uses: actions/upload-artifact@v4
         with:
           name: kyoto-pc-${{ github.run_id }}-${{ env.KYOTO_TARGET_DAY }}
@@ -335,6 +338,9 @@ jobs:
       - name: Upload only AES-GCM ciphertext or safe-stop receipt
         id: upload_sp_primary
         if: always()
+        # Preserve the factual failure outcome for a conditional retry,
+        # but do not fail the job if that retry eventually saves ciphertext.
+        continue-on-error: true
         uses: actions/upload-artifact@v4
         with:
           name: kyoto-sp-${{ github.run_id }}-${{ env.KYOTO_TARGET_DAY }}
