@@ -33,7 +33,7 @@ jobs:
           assert actual==expected,(actual,expected)
           candidate="de2544c1e9f9951a265419461267146b4023c2ab"
           previous="989aaba017c5450fed91b383421f5d2da53c6c69"
-          reviewed="5d25db562e36eb748f7d5b6ce58866f91b239952"
+          reviewed="2dce4f5fa9d0ce48e460a95664fe3207c7f95ba6"
           assert s.count("COLLECTOR_SHA:")==2
           assert s.count(f"assert os.environ['COLLECTOR_SHA']=='{candidate}'")==2
           assert s.count(f"vars.KYOTO_NOV22_VERIFIED_COLLECTOR_SHA || '{reviewed}'")==2
