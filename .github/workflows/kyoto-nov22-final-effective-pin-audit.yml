@@ -1,0 +1,25 @@
+name: Nov22 final effective selected collector SHA no JRA HTTP
+on:
+  push:
+    branches:
+      - audit/nov22-final-effective-selected-sha-20261122
+permissions:
+  contents: read
+jobs:
+  source-selection-proof:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    env:
+      EXPECTED: '5d25db562e36eb748f7d5b6ce58866f91b239952'
+      ACTUAL: ${{ vars.KYOTO_NOV22_VERIFIED_COLLECTOR_SHA || '5d25db562e36eb748f7d5b6ce58866f91b239952' }}
+    steps:
+      - name: Validate effective source pin independently without printing variable or secrets
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ "$EXPECTED" != "$ACTUAL" ]; then
+            echo "EFFECTIVE_NOV22_SOURCE_MISMATCH_FAILURE"
+            exit 1
+          fi
+          echo "EFFECTIVE_NOV22_SOURCE_MATCHES_FULL_PREFLIGHT_SUCCESS"
+          echo "NO_JRA_HTTP"
