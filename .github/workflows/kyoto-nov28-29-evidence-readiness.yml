@@ -1,0 +1,67 @@
+name: Kyoto Nov28-29 evidence-backed acquisition readiness and destructive tests
+on:
+  push:
+    branches: [feature/kyoto-durable-success-failure-ledger-20261122]
+    paths:
+      - 'diagnostics/kyoto_next_weekend_readiness_from_evidence.py'
+      - 'tests/test_kyoto_next_weekend_readiness_from_evidence.py'
+      - '.github/workflows/kyoto-nov28-29-evidence-readiness.yml'
+  pull_request:
+    paths:
+      - 'diagnostics/kyoto_next_weekend_readiness_from_evidence.py'
+      - 'tests/test_kyoto_next_weekend_readiness_from_evidence.py'
+      - '.github/workflows/kyoto-nov28-29-evidence-readiness.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  independently-prove-retained-evidence:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: source
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          ref: archive/kyoto-ai-encrypted-original-evidence
+          path: archive
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Independently execute all prior-contract and 216-cell destructive checks
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd source
+          PYTHONPATH=. python -m unittest -v tests.test_kyoto_evidence_complete_family_ledger tests.test_kyoto_next_weekend_readiness_from_evidence
+      - name: Re-read every immutable GitHub archived encrypted and metadata file by SHA256
+        shell: bash
+        run: |
+          set -euo pipefail
+          PYTHONPATH=source python source/diagnostics/kyoto_next_weekend_readiness_from_evidence.py \
+            --archive-root archive \
+            --ledger archive/evidence/2026-11-21_22/nov22/ledger/nov22_108_records.json \
+            --out next_weekend_readiness/20261128_29_216_cell_manifest.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          d=json.loads(Path("next_weekend_readiness/20261128_29_216_cell_manifest.json").read_text())
+          assert len(d["target_cells"])==216
+          assert d["archived_evidence_files"]==18
+          assert len(d["archived_failure_runs"])==4
+          assert d["next_week_end_to_end_GO"] is False
+          assert d["actual_next_weekend_data_captured"] is False
+          assert d["old_nov22_CNAME_REUSE_FOR_NEW_DAY_FORBIDDEN"] is True
+          print("NOV28_NOV29_IMMUTABLE_SOURCE_EVIDENCE_GATE_PASS")
+          PY
+      - name: Archive 216-cell future-data gap inventory, no JRA requests
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: kyoto-nov28-29-evidence-backed-readiness-${{ github.run_id }}
+          path: next_weekend_readiness/
+          if-no-files-found: warn
+          retention-days: 90
