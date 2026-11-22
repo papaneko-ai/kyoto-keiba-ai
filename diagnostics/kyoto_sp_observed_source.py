@@ -93,7 +93,7 @@ def capture_verified_sp_seed(originals, *, race_day, race_number, source_url,
         token=query["CNAME"][0]
     except (KeyError,ValueError,IndexError):
         raise SPSourceError("sp_source_url_invalid")
-    if (url.scheme!="https" or url.netloc!="sp.jra.jp"
+    if (url.scheme!="https" or url.netloc not in ("sp.jra.jp","app.jra.jp")
         or url.path!="/JRADB/accessD.html" or url.fragment
         or set(query)!={"CNAME"} or len(query["CNAME"])!=1
         or not re.fullmatch(r"sw[A-Za-z0-9]+/[A-Za-z0-9]+",token)
@@ -135,6 +135,10 @@ def capture_verified_sp_seed(originals, *, race_day, race_number, source_url,
 
 def _capture_sp_observed_markets(root, opener, racecard, referer,
                                  day, number, receipt, pacer):
+    from urllib.parse import urlsplit
+    source_host=urlsplit(referer).hostname
+    if source_host not in ("sp.jra.jp","app.jra.jp"):
+        raise SPSourceError("unapproved_sp_market_referer_host")
     """Capture menu and both markets only through saved on-page SP actions."""
     from types import SimpleNamespace
     from diagnostics.jra_one_shot_market_capture import (
@@ -146,7 +150,7 @@ def _capture_sp_observed_markets(root, opener, racecard, referer,
         token=exact_odds_action(racecard,"SP")
         seen={token}
         receipt["network_requests_started"]+=1
-        page=http_fetch(opener,"SP","https://sp.jra.jp/JRADB/accessO.html",
+        page=http_fetch(opener,"SP",f"https://{source_host}/JRADB/accessO.html",
                         cname=token,referer=referer,pacer=pacer)
         (root/"official_sp_odds_menu.html").write_bytes(page["raw"])
         receipt["sp_odds_menu_sha256"]=page["sha256"]
@@ -163,7 +167,7 @@ def _capture_sp_observed_markets(root, opener, racecard, referer,
             try:
                 links=find_market_links(
                     menu,expected_race_day=day,
-                    expected_race_number=number,expected_host="sp.jra.jp")
+                    expected_race_number=number,expected_host=source_host)
                 if links["source_final_odds_detected"]:
                     receipt["sp_market_state"]="FINAL_ODDS"
                     return
@@ -178,8 +182,8 @@ def _capture_sp_observed_markets(root, opener, racecard, referer,
                     return
                 seen.add(token)
                 receipt["network_requests_started"]+=1
-                page=http_fetch(opener,"SP","https://sp.jra.jp/JRADB/accessO.html",
-                                cname=token,referer="https://sp.jra.jp/JRADB/accessO.html",
+                page=http_fetch(opener,"SP",f"https://{source_host}/JRADB/accessO.html",
+                                cname=token,referer=f"https://{source_host}/JRADB/accessO.html",
                                 pacer=pacer)
                 name=f"official_sp_odds_navigation_{idx+1}.html"
                 (root/name).write_bytes(page["raw"])
