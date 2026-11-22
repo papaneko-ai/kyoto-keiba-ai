@@ -1,0 +1,18 @@
+{
+  "ciphertext_sha256": "57338cf64e7bb52c79c08c8ee0b375a4c41144860135cf1e0b0e42828b82e4f3",
+  "day": "20261121",
+  "encryption": "AES-256-GCM",
+  "file_names": [
+    "c10_auxiliary_coverage_receipt.json",
+    "c11_per_family_source_proof.json",
+    "g05_official_kyoto_track.html",
+    "g05_track_receipt.json",
+    "receipt.json",
+    "source_verification.json"
+  ],
+  "nonce_hex": "37705755700380db39f4eb7f",
+  "plaintext_uploaded": false,
+  "repo": "papaneko-ai/kyoto-keiba-ai",
+  "run_id": "44848944302",
+  "schema": "kyoto_nov15_encrypted_artifact.v1"
+}
