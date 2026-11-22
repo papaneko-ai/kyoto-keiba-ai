@@ -1,0 +1,32 @@
+name: Nov22 permanently preserve 185 profile and Kyoto track originals
+on:
+  push:
+    branches: [capture/nov22-remaining-races-real-market-originals-20261122]
+    paths:
+      - 'diagnostics/kyoto_nov22_archive_profile_track_chunks.py'
+      - '.github/workflows/kyoto-nov22-profile-track-permanent-archive.yml'
+permissions:
+  contents: write
+  actions: read
+jobs:
+  immutable-chunked-archive:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Download only already encrypted JRA originals, no JRA requests
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p to_archive/profile to_archive/track
+          gh run download 44984067104 --repo "$GITHUB_REPOSITORY" --name kyoto-nov22-observed-horse-profiles-44984067104 --dir to_archive/profile
+          gh run download 44984408658 --repo "$GITHUB_REPOSITORY" --name kyoto-nov22-real-ground-official-source-44984408658 --dir to_archive/track
+      - name: Append exact AES chunks SHA-checked to separate archive branch with no overwrite
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m diagnostics.kyoto_nov22_archive_profile_track_chunks
