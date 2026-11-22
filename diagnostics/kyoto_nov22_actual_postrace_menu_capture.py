@@ -11,7 +11,22 @@ from urllib.request import Request,build_opener,HTTPCookieProcessor,HTTPRedirect
 from urllib.parse import urlencode
 from bs4 import BeautifulSoup
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
-from diagnostics.kyoto_nov22_actual_185_profile_history_track_replay import archived,source_cards
+def source_cards(key):
+    root=Path("nov22_all12_source")
+    cipher=(root/"originals_all12.tar.gz.aesgcm").read_bytes()
+    if hashlib.sha256(cipher).hexdigest()!=(root/"ciphertext_sha256.txt").read_text().strip():
+        raise ValueError("SOURCE_CIPHER_SHA_MISMATCH")
+    plain=AESGCM(key).decrypt(cipher[:12],cipher[12:],b"kyoto-nov22-observed-official-all12-source-only")
+    files={}
+    with tarfile.open(fileobj=io.BytesIO(plain),mode="r:gz") as t:
+        for m in t.getmembers():
+            if not m.isfile() or "/" in m.name or ".." in m.name:raise ValueError("INVALID_SOURCE_ARCHIVE")
+            files[m.name]=t.extractfile(m).read(1500001)
+    receipt=json.loads(files["receipt.json"])
+    original=files["r01_pc_official_racecard.html"]
+    if receipt.get("day")!="20261122" or hashlib.sha256(original).hexdigest()!=receipt["races"]["1"]["PC"]["sha256"]:
+        raise ValueError("R1_ORIGINAL_SHA_RACE_MISMATCH")
+    return files,receipt
 MENU={"results":("/JRADB/accessS.html","レース結果"),
       "payout":("/JRADB/accessH.html","払戻金")}
 ACT=re.compile(r"doAction\s*\(\s*['\"](/JRADB/access[SH]\.html)['\"]\s*,\s*['\"]([^'\"]+)['\"]",re.I)
