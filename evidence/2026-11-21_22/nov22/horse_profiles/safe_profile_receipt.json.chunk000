@@ -1,0 +1,2790 @@
+{
+  "day": "20261122",
+  "history_parsed": false,
+  "items": [
+    {
+      "bytes": 116646,
+      "captured_at_utc": "2026-11-22T04:13:31.352238+00:00",
+      "encrypted_filename": "profile_001.html",
+      "observed_profile_url_sha256": "f64460d63cbeefdcf134cbe7380d63803b479e0b1c5f65a2b1f3a7194cc0cd8e",
+      "observed_racecard_name": "トーラスシャイン",
+      "priority_index": 1,
+      "races": [
+        12
+      ],
+      "request_started_at_utc": "2026-11-22T04:13:30.423392+00:00",
+      "sha256": "8b909c9a20e2614d1fabc44399f0718dc77593a0473eb260eaadb49fc42b1d79",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 139533,
+      "captured_at_utc": "2026-11-22T04:13:33.325748+00:00",
+      "encrypted_filename": "profile_002.html",
+      "observed_profile_url_sha256": "d9287dbdb6ede3c311357ce15ebdb9ebf708f09c293a350c9d92acfdeb36169f",
+      "observed_racecard_name": "トーセントラム",
+      "priority_index": 2,
+      "races": [
+        12
+      ],
+      "request_started_at_utc": "2026-11-22T04:13:31.352606+00:00",
+      "sha256": "d652086a6e59d54d6ac70b6f4ba5227f18ebbe50649a99a4c389af7c945a3a0c",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 120761,
+      "captured_at_utc": "2026-11-22T04:13:35.244418+00:00",
+      "encrypted_filename": "profile_003.html",
+      "observed_profile_url_sha256": "9bed18f7b2c10880d3f9be91caf8d2f60038045da2ff62fd8e348169c5c043f7",
+      "observed_racecard_name": "シカゴスティング",
+      "priority_index": 3,
+      "races": [
+        12
+      ],
+      "request_started_at_utc": "2026-11-22T04:13:33.326182+00:00",
+      "sha256": "f3857a89f24bcd4eabeb9df299aab6f6d17eea907856f4d9b8b016408eb8f1dc",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 133158,
+      "captured_at_utc": "2026-11-22T04:13:37.582150+00:00",
+      "encrypted_filename": "profile_004.html",
+      "observed_profile_url_sha256": "1d8bb6d12aab21cf1747e12c63a3b6f7296ca45d189ea7b6c70f88f3fcf015d4",
+      "observed_racecard_name": "ミロワール",
+      "priority_index": 4,
+      "races": [
+        12
+      ],
+      "request_started_at_utc": "2026-11-22T04:13:35.244695+00:00",
+      "sha256": "1b6b15b8469aae5a7e627640c241d8010551c5fdaf9b873e0a6860db5d2c563b",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 111947,
+      "captured_at_utc": "2026-11-22T04:13:39.380390+00:00",
+      "encrypted_filename": "profile_005.html",
+      "observed_profile_url_sha256": "68df246a01c5c2084732a08215b01473697fc15c0d450b6273431e0c27532200",
+      "observed_racecard_name": "クリエープキー",
+      "priority_index": 5,
+      "races": [
+        12
+      ],
+      "request_started_at_utc": "2026-11-22T04:13:37.582446+00:00",
+      "sha256": "ecb7919ce1800aa8e81ad4f983f528b64549d6c550369fc47f4bf60dad5410d7",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 125590,
+      "captured_at_utc": "2026-11-22T04:13:41.515878+00:00",
+      "encrypted_filename": "profile_006.html",
+      "observed_profile_url_sha256": "7a73dadcab5d516b784bde186e9c39768621628bb2cb2b10ea206e1a7869e559",
+      "observed_racecard_name": "ルーフ",
+      "priority_index": 6,
+      "races": [
+        12
+      ],
+      "request_started_at_utc": "2026-11-22T04:13:39.380658+00:00",
+      "sha256": "936f2001603a2447c0b36322651ce6da816129fe2179132c93fcd8979d0ecfc2",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 119127,
+      "captured_at_utc": "2026-11-22T04:13:43.342026+00:00",
+      "encrypted_filename": "profile_007.html",
+      "observed_profile_url_sha256": "787309f92ee3e04713b80901bd009ba72805e9d7f4e14f1c0fa80ce6eae2cd83",
+      "observed_racecard_name": "ポエットリー",
+      "priority_index": 7,
+      "races": [
+        12
+      ],
+      "request_started_at_utc": "2026-11-22T04:13:41.516153+00:00",
+      "sha256": "0bf108a94310cec315d5d2d765b0571646ef591eda7e506b68073730e75913f4",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 118466,
+      "captured_at_utc": "2026-11-22T04:13:45.487198+00:00",
+      "encrypted_filename": "profile_008.html",
+      "observed_profile_url_sha256": "1030469b265bc1c0c5e284e71f84ff193ea07c9ad7416fb79fbfd7180656d33b",
+      "observed_racecard_name": "メルトユアハート",
+      "priority_index": 8,
+      "races": [
+        12
+      ],
+      "request_started_at_utc": "2026-11-22T04:13:43.342318+00:00",
+      "sha256": "72d22bb3cc944d8bfa23909083c5c30121b2c6c55c0787a765f1b8a37331fe0b",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 111012,
+      "captured_at_utc": "2026-11-22T04:13:47.401866+00:00",
+      "encrypted_filename": "profile_009.html",
+      "observed_profile_url_sha256": "950b912362acbfd4bfd86b95bd7fce70efa0f56e94f2945e213298b9058e9879",
+      "observed_racecard_name": "マリノトニトゥルス",
+      "priority_index": 9,
+      "races": [
+        12
+      ],
+      "request_started_at_utc": "2026-11-22T04:13:45.487472+00:00",
+      "sha256": "499e8e932a787f8e60ccd96902e6c08c30aa7c23d0c58fc99e70b5fc47eceb18",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 128550,
+      "captured_at_utc": "2026-11-22T04:13:49.462919+00:00",
+      "encrypted_filename": "profile_010.html",
+      "observed_profile_url_sha256": "cafaa095a726d61dcd6e354ea1b02a15f9db5952a799a7093a5e4fc3ab910e84",
+      "observed_racecard_name": "ディアドコス",
+      "priority_index": 10,
+      "races": [
+        12
+      ],
+      "request_started_at_utc": "2026-11-22T04:13:47.402126+00:00",
+      "sha256": "958d847fdcaa70a92042513ba6d93e46c4476a1b72a814392a474166b2f05863",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 103522,
+      "captured_at_utc": "2026-11-22T04:13:51.248045+00:00",
+      "encrypted_filename": "profile_011.html",
+      "observed_profile_url_sha256": "13ec236e0f589a394c691477f424dffa1d7c3c47269133507e9cb402cf58ff2f",
+      "observed_racecard_name": "ルージュスプリヤ",
+      "priority_index": 11,
+      "races": [
+        12
+      ],
+      "request_started_at_utc": "2026-11-22T04:13:49.463223+00:00",
+      "sha256": "5751fbb88a014de7ad30c5d3273c967e159f68828d900edc4bbf542e91e32ac3",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 121561,
+      "captured_at_utc": "2026-11-22T04:13:53.418288+00:00",
+      "encrypted_filename": "profile_012.html",
+      "observed_profile_url_sha256": "88f93b1aa49c51a2c3861d8cc0ab3822d4f29b09687d39e34bcbc94602e58328",
+      "observed_racecard_name": "ジョヴィアン",
+      "priority_index": 12,
+      "races": [
+        12
+      ],
+      "request_started_at_utc": "2026-11-22T04:13:51.248292+00:00",
+      "sha256": "aba82dd29d68bf52e926bb44f51b9239acc3df02d4a2ab518434a04942a08863",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 113214,
+      "captured_at_utc": "2026-11-22T04:13:54.961043+00:00",
+      "encrypted_filename": "profile_013.html",
+      "observed_profile_url_sha256": "7393906f2db44e7b43f31f71026a330fa461c949387f5ab09ea4308b129667d3",
+      "observed_racecard_name": "ファビュラススター",
+      "priority_index": 13,
+      "races": [
+        12
+      ],
+      "request_started_at_utc": "2026-11-22T04:13:53.418577+00:00",
+      "sha256": "f4b79efce039e834838eb8d011e770111c1e6672ed78724e6ed836fadfe0b91d",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 112844,
+      "captured_at_utc": "2026-11-22T04:13:57.493450+00:00",
+      "encrypted_filename": "profile_014.html",
+      "observed_profile_url_sha256": "e6b954adb97ee1ce839cbadfef93d9b5134933647990bfbb64769604aa52d23c",
+      "observed_racecard_name": "フリッカージャブ",
+      "priority_index": 14,
+      "races": [
+        12
+      ],
+      "request_started_at_utc": "2026-11-22T04:13:54.961367+00:00",
+      "sha256": "3620660b51df864a41fa7d8b11074f6dde9388649432f1375eb518f42e76d832",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 102670,
+      "captured_at_utc": "2026-11-22T04:13:59.606340+00:00",
+      "encrypted_filename": "profile_015.html",
+      "observed_profile_url_sha256": "8e81bef23e6260408c114b93b42a0f7da8895a0a5a456725458d7388bb03aba5",
+      "observed_racecard_name": "エルデナリ",
+      "priority_index": 15,
+      "races": [
+        11
+      ],
+      "request_started_at_utc": "2026-11-22T04:13:57.493715+00:00",
+      "sha256": "63aa6efd641bf993e35330caddd14e2dfbdf3e097ea26e6b0e10c5373e76ee2a",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 111456,
+      "captured_at_utc": "2026-11-22T04:14:01.271142+00:00",
+      "encrypted_filename": "profile_016.html",
+      "observed_profile_url_sha256": "c188ffd1a637b63d6717851f49cd14515b217d5d09a6d16da5dfb9f932f2e9b4",
+      "observed_racecard_name": "エンブロイダリー",
+      "priority_index": 16,
+      "races": [
+        11
+      ],
+      "request_started_at_utc": "2026-11-22T04:13:59.606565+00:00",
+      "sha256": "4642684f4dae53798cd051eceb70a4f8dcc8ccbc6af4883912438f92bea817a0",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 113578,
+      "captured_at_utc": "2026-11-22T04:14:03.590151+00:00",
+      "encrypted_filename": "profile_017.html",
+      "observed_profile_url_sha256": "496db58315067259f0868e16746dc9353b17dc4ec215302f1848a35babe1ea97",
+      "observed_racecard_name": "ドラゴンブースト",
+      "priority_index": 17,
+      "races": [
+        11
+      ],
+      "request_started_at_utc": "2026-11-22T04:14:01.271406+00:00",
+      "sha256": "0fa05d51d81ba05238453ab7609efd4bc7badf64af95608da9e36f5b05094904",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 114485,
+      "captured_at_utc": "2026-11-22T04:14:05.356928+00:00",
+      "encrypted_filename": "profile_018.html",
+      "observed_profile_url_sha256": "3a346d5fc6aa5d8c53a41830de0de2379db5875efce6ed3d9d4a0f02efa0b027",
+      "observed_racecard_name": "シックスペンス",
+      "priority_index": 18,
+      "races": [
+        11
+      ],
+      "request_started_at_utc": "2026-11-22T04:14:03.590415+00:00",
+      "sha256": "cce3c81104540786394bffbc49708ed97818ba9665f139e4ec9f308e40df6e1f",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 108688,
+      "captured_at_utc": "2026-11-22T04:14:07.238460+00:00",
+      "encrypted_filename": "profile_019.html",
+      "observed_profile_url_sha256": "2886574a7c568f3670b014a76167158e933f9782a767897859153235ed741664",
+      "observed_racecard_name": "アドマイヤズーム",
+      "priority_index": 19,
+      "races": [
+        11
+      ],
+      "request_started_at_utc": "2026-11-22T04:14:05.357199+00:00",
+      "sha256": "3eb14ae1d459c73eb36d9d483abd6e319bc213dab2dee34d6ae3f59f3771cf1f",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 115457,
+      "captured_at_utc": "2026-11-22T04:14:09.580696+00:00",
+      "encrypted_filename": "profile_020.html",
+      "observed_profile_url_sha256": "c0f511ba065e1525ca6c4065c71fbd6beb0c10553c2c6b4d47c64ff8b124968d",
+      "observed_racecard_name": "ピコローズ",
+      "priority_index": 20,
+      "races": [
+        11
+      ],
+      "request_started_at_utc": "2026-11-22T04:14:07.238721+00:00",
+      "sha256": "54b1aba80bd99dc727b0cc9127394aa00970ea1742839f3869c1df087ee1d902",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 116057,
+      "captured_at_utc": "2026-11-22T04:14:11.336942+00:00",
+      "encrypted_filename": "profile_021.html",
+      "observed_profile_url_sha256": "37cc61d9f800b60d2b178b0d91610039ab2fe23b15ab0cb48475dc52f7be06b5",
+      "observed_racecard_name": "ココナッツブラウン",
+      "priority_index": 21,
+      "races": [
+        11
+      ],
+      "request_started_at_utc": "2026-11-22T04:14:09.580980+00:00",
+      "sha256": "f14309e65293fe91e1ee42bad40a834ab839d7643e33b420912aba50513c5637",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 105226,
+      "captured_at_utc": "2026-11-22T04:14:13.405738+00:00",
+      "encrypted_filename": "profile_022.html",
+      "observed_profile_url_sha256": "fed984d9f4b8aca80e226884fc7e870e56026ed0df8cd4f20add877c1c428104",
+      "observed_racecard_name": "ロデオドライブ",
+      "priority_index": 22,
+      "races": [
+        11
+      ],
+      "request_started_at_utc": "2026-11-22T04:14:11.337223+00:00",
+      "sha256": "936b052feb1e274563cb69779c5c7ccaaf38363b8c078f64b9776e36bf4f8ec1",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 121519,
+      "captured_at_utc": "2026-11-22T04:14:15.387362+00:00",
+      "encrypted_filename": "profile_023.html",
+      "observed_profile_url_sha256": "c6279463e027532c48385df6f5ec7c69d50334456096724cabb73d96334df125",
+      "observed_racecard_name": "ジューンテイク",
+      "priority_index": 23,
+      "races": [
+        11
+      ],
+      "request_started_at_utc": "2026-11-22T04:14:13.406020+00:00",
+      "sha256": "78f162ebe7217a62f72a5895e7f594c7d84722f272920e7bd16e3b6552fa3901",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 121652,
+      "captured_at_utc": "2026-11-22T04:14:17.340333+00:00",
+      "encrypted_filename": "profile_024.html",
+      "observed_profile_url_sha256": "3f1ff75d4f9176963b8b16b5101366373923e3736bae1c2cc5a9fcc0459255e5",
+      "observed_racecard_name": "ウォーターリヒト",
+      "priority_index": 24,
+      "races": [
+        11
+      ],
+      "request_started_at_utc": "2026-11-22T04:14:15.387661+00:00",
+      "sha256": "a65e84bc45cc381941f4c6102c26a0825545625e576b8a100d4a46696f05601f",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 122646,
+      "captured_at_utc": "2026-11-22T04:14:19.308512+00:00",
+      "encrypted_filename": "profile_025.html",
+      "observed_profile_url_sha256": "51f8f0b77f82181389570482c5c1a4be706c17028ac39e607be389dc5350b94e",
+      "observed_racecard_name": "ガイアフォース",
+      "priority_index": 25,
+      "races": [
+        11
+      ],
+      "request_started_at_utc": "2026-11-22T04:14:17.340608+00:00",
+      "sha256": "74988b10f225a1863586da308b477852352847c2d4e92db5cff22786f5cea1f2",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 112273,
+      "captured_at_utc": "2026-11-22T04:14:21.246893+00:00",
+      "encrypted_filename": "profile_026.html",
+      "observed_profile_url_sha256": "8a205aa2ffbc9686a38f44e8a2f99ad7dbad3a98c200ef34ad42d3e9bace84f4",
+      "observed_racecard_name": "ワールズエンド",
+      "priority_index": 26,
+      "races": [
+        11
+      ],
+      "request_started_at_utc": "2026-11-22T04:14:19.308825+00:00",
+      "sha256": "22e459c23b5a335b2e841bdefeaa8e0fc30adc6e98196f2306621a71d3b2e770",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 110280,
+      "captured_at_utc": "2026-11-22T04:14:22.951761+00:00",
+      "encrypted_filename": "profile_027.html",
+      "observed_profile_url_sha256": "bb6b890fbf68ebd1392021675911da8d48ef07af93a489ba5039c6bb264b42cb",
+      "observed_racecard_name": "レザベーション",
+      "priority_index": 27,
+      "races": [
+        11
+      ],
+      "request_started_at_utc": "2026-11-22T04:14:21.247167+00:00",
+      "sha256": "507df6285158633d45e3f9704636c5c45beb3bcc3672511bea6d84344bb1ec54",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 107543,
+      "captured_at_utc": "2026-11-22T04:14:25.469091+00:00",
+      "encrypted_filename": "profile_028.html",
+      "observed_profile_url_sha256": "6bbd63b0576a333d5f7af95f0363dfa3bb73fd8820e4b14219b100fdafecd025",
+      "observed_racecard_name": "スターアニス",
+      "priority_index": 28,
+      "races": [
+        11
+      ],
+      "request_started_at_utc": "2026-11-22T04:14:22.952057+00:00",
+      "sha256": "ae1ccf88df2c96148be59826c9f6f4b0d31d354a48e9514729dfed38bd09d878",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 108337,
+      "captured_at_utc": "2026-11-22T04:14:27.474777+00:00",
+      "encrypted_filename": "profile_029.html",
+      "observed_profile_url_sha256": "d91d965e96ffef4602f91388293ce851273585e02b343a1ee554c691235cb67c",
+      "observed_racecard_name": "エコロブルーム",
+      "priority_index": 29,
+      "races": [
+        11
+      ],
+      "request_started_at_utc": "2026-11-22T04:14:25.469355+00:00",
+      "sha256": "9454aa2992a214da54f39e0969c9048e89ce3118beec626105e56b90df94c37f",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 122858,
+      "captured_at_utc": "2026-11-22T04:14:29.321588+00:00",
+      "encrypted_filename": "profile_030.html",
+      "observed_profile_url_sha256": "942422ccf86aa14343dfaab26997b407fe94e214b0c65bf0ecfe43f2b7fcf5d2",
+      "observed_racecard_name": "スズハローム",
+      "priority_index": 30,
+      "races": [
+        11
+      ],
+      "request_started_at_utc": "2026-11-22T04:14:27.475070+00:00",
+      "sha256": "b66c73622eece4e825e7d0f242744a8fd996e03a1d405b4ba27c9befb0c623e9",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 107714,
+      "captured_at_utc": "2026-11-22T04:14:31.378076+00:00",
+      "encrypted_filename": "profile_031.html",
+      "observed_profile_url_sha256": "67768a1001cfc41dcc1facb757868665361cd59299990b58de814c782cd1b0f2",
+      "observed_racecard_name": "アンパドゥ",
+      "priority_index": 31,
+      "races": [
+        11
+      ],
+      "request_started_at_utc": "2026-11-22T04:14:29.321910+00:00",
+      "sha256": "e615faa4900e8707054f531b5fd64a6a564f4d0d36c9b93afe11deffd099104e",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 120332,
+      "captured_at_utc": "2026-11-22T04:14:33.376378+00:00",
+      "encrypted_filename": "profile_032.html",
+      "observed_profile_url_sha256": "5060a740f4ea81c79231f44460f02ecd3f24f08d518bb87591ed31f63940165d",
+      "observed_racecard_name": "オフトレイル",
+      "priority_index": 32,
+      "races": [
+        11
+      ],
+      "request_started_at_utc": "2026-11-22T04:14:31.378324+00:00",
+      "sha256": "f8b0cd4099cf7798b0cc5c8bed9985a8d88a76f681f8dc00b0227190409e0bf3",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 116437,
+      "captured_at_utc": "2026-11-22T04:14:35.363683+00:00",
+      "encrypted_filename": "profile_033.html",
+      "observed_profile_url_sha256": "1bae29fa8180aa7defd93cc9323cdd4ec58819ac014ba035f9ad90a0ce95f772",
+      "observed_racecard_name": "サングレーザー",
+      "priority_index": 33,
+      "races": [
+        11,
+        9
+      ],
+      "request_started_at_utc": "2026-11-22T04:14:33.376660+00:00",
+      "sha256": "b560581ac4440e217c3f5807215d6bf9b4e76cb2cd558b43665d9cd5d4b05b81",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 108159,
+      "captured_at_utc": "2026-11-22T04:14:37.373555+00:00",
+      "encrypted_filename": "profile_034.html",
+      "observed_profile_url_sha256": "0d78736df57e915b09278005777b76564a154bd4c3e42c9458f7550df6e69cb2",
+      "observed_racecard_name": "ジャンタルマンタル",
+      "priority_index": 34,
+      "races": [
+        11,
+        11
+      ],
+      "request_started_at_utc": "2026-11-22T04:14:35.363984+00:00",
+      "sha256": "50c381ac18f99c9eb26fc26af0087980db66e91264f201fd171ecbb65a7701dd",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 113887,
+      "captured_at_utc": "2026-11-22T04:14:39.023467+00:00",
+      "encrypted_filename": "profile_035.html",
+      "observed_profile_url_sha256": "fbea00c9d264d21b0606b79cd2513ab2237553b086f711bdd5f0555f8caf9072",
+      "observed_racecard_name": "マジックサンズ",
+      "priority_index": 35,
+      "races": [
+        11
+      ],
+      "request_started_at_utc": "2026-11-22T04:14:37.373830+00:00",
+      "sha256": "7d3e4bdf350082e012d39b09f74bda13be7d0e8919197f6dd433deb9d08d9ed5",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 125532,
+      "captured_at_utc": "2026-11-22T04:14:40.966236+00:00",
+      "encrypted_filename": "profile_036.html",
+      "observed_profile_url_sha256": "3f811223cbddeb12d301c3b1e9bbfe5374bff5f32200dcf69222e2d635a637dc",
+      "observed_racecard_name": "レッドシュヴェルト",
+      "priority_index": 36,
+      "races": [
+        11
+      ],
+      "request_started_at_utc": "2026-11-22T04:14:39.023750+00:00",
+      "sha256": "eb9e675c2569a9f0c525e3f9dbdfeb50d1813bcd500633456f9f83a5a67826c6",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 125635,
+      "captured_at_utc": "2026-11-22T04:14:43.470715+00:00",
+      "encrypted_filename": "profile_037.html",
+      "observed_profile_url_sha256": "dd001113a8da846d597415e0a7726d04ed286eba70f9f3b6e503b588fcd30fc9",
+      "observed_racecard_name": "ソウルラッシュ",
+      "priority_index": 37,
+      "races": [
+        11
+      ],
+      "request_started_at_utc": "2026-11-22T04:14:40.966518+00:00",
+      "sha256": "2e401e2a2824600c30a02313b3bf1020641fec70f234cf5e7dcb1093b95add62",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 114985,
+      "captured_at_utc": "2026-11-22T04:14:45.380489+00:00",
+      "encrypted_filename": "profile_038.html",
+      "observed_profile_url_sha256": "1f5aa123bdd964de2f7d02b8098bd2f3d56d6b0ae947176f4caa6008dd9e6f22",
+      "observed_racecard_name": "ナミュール",
+      "priority_index": 38,
+      "races": [
+        11
+      ],
+      "request_started_at_utc": "2026-11-22T04:14:43.471030+00:00",
+      "sha256": "24f8db7749e0136429cbd416decab5bdeb8b911c786c75dd44d83da92cc27901",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 113458,
+      "captured_at_utc": "2026-11-22T04:14:47.440558+00:00",
+      "encrypted_filename": "profile_039.html",
+      "observed_profile_url_sha256": "35f127515afa4955355093f5347df66365b3857e2941e7b8bb56fc08751e3343",
+      "observed_racecard_name": "セリフォス",
+      "priority_index": 39,
+      "races": [
+        11
+      ],
+      "request_started_at_utc": "2026-11-22T04:14:45.380745+00:00",
+      "sha256": "db675563ccea260294b23039885486d0cf08f69b169987843402b268b34cb4e4",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 112410,
+      "captured_at_utc": "2026-11-22T04:14:48.973085+00:00",
+      "encrypted_filename": "profile_040.html",
+      "observed_profile_url_sha256": "fccf79b49cf61c6cf3fdc38dd72e6e9c9dc311e56469c72dd5f5fcdc052bfb11",
+      "observed_racecard_name": "グランアレグリア",
+      "priority_index": 40,
+      "races": [
+        11
+      ],
+      "request_started_at_utc": "2026-11-22T04:14:47.440828+00:00",
+      "sha256": "eaa82136fd5cbdd6e0f76375aef33e61f35f6f712ea0134fedefeec4f643f67b",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 111122,
+      "captured_at_utc": "2026-11-22T04:14:51.288756+00:00",
+      "encrypted_filename": "profile_041.html",
+      "observed_profile_url_sha256": "222997f6e347352ce704673c9759949acff4ef0e647250220bb490949791311b",
+      "observed_racecard_name": "ニューオーリンズ",
+      "priority_index": 41,
+      "races": [
+        10
+      ],
+      "request_started_at_utc": "2026-11-22T04:14:48.973351+00:00",
+      "sha256": "85ce696fbf7cd8ff6b383189f2b1b228cc9c3c74518664e7784a29a3963758dc",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 152800,
+      "captured_at_utc": "2026-11-22T04:14:53.051870+00:00",
+      "encrypted_filename": "profile_042.html",
+      "observed_profile_url_sha256": "8d00a4581eb22ec43ff60e92a8bad7ae51d8d6e9817b0b5bc1f6e788ba5141e5",
+      "observed_racecard_name": "ゲキザル",
+      "priority_index": 42,
+      "races": [
+        10
+      ],
+      "request_started_at_utc": "2026-11-22T04:14:51.289043+00:00",
+      "sha256": "03c162b474ea4a4232c080fab4b2eaa2e15717a8502fc52571d5535528079800",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 124730,
+      "captured_at_utc": "2026-11-22T04:14:55.450553+00:00",
+      "encrypted_filename": "profile_043.html",
+      "observed_profile_url_sha256": "5b65a8c4f0b2e773a7e30d720099b50fd36694193ebbf6e3efaef4468341626a",
+      "observed_racecard_name": "ギーロカスタル",
+      "priority_index": 43,
+      "races": [
+        10
+      ],
+      "request_started_at_utc": "2026-11-22T04:14:53.052229+00:00",
+      "sha256": "e69170960acd0141e1587bab6e9808757029c4b833e976533884c26831911bc7",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 107336,
+      "captured_at_utc": "2026-11-22T04:14:57.552924+00:00",
+      "encrypted_filename": "profile_044.html",
+      "observed_profile_url_sha256": "a70247f295b3bb489a07444a8fa4509d5c5012f29e4dd427396b534f537c00ec",
+      "observed_racecard_name": "コーラルクラウン",
+      "priority_index": 44,
+      "races": [
+        10
+      ],
+      "request_started_at_utc": "2026-11-22T04:14:55.450875+00:00",
+      "sha256": "aef242639ee1a4d95905710415d1be3db4168316dbd2f588c7fa8494c8ac6059",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 110996,
+      "captured_at_utc": "2026-11-22T04:14:58.967278+00:00",
+      "encrypted_filename": "profile_045.html",
+      "observed_profile_url_sha256": "dba5c964d6b1944c845ebdd840158280372b527c357f2ae96bd8c2f0306e3e31",
+      "observed_racecard_name": "トゥロン",
+      "priority_index": 45,
+      "races": [
+        10
+      ],
+      "request_started_at_utc": "2026-11-22T04:14:57.553185+00:00",
+      "sha256": "de10639d66604f2f2059bc99b2eb60b414d35fd974344d30f736c02facb8cee7",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 115488,
+      "captured_at_utc": "2026-11-22T04:15:01.296743+00:00",
+      "encrypted_filename": "profile_046.html",
+      "observed_profile_url_sha256": "05b5e037d089518d7c195f6c15561dc8a65e115fbbca2b84062426fae2a1d7a8",
+      "observed_racecard_name": "イマージョン",
+      "priority_index": 46,
+      "races": [
+        10
+      ],
+      "request_started_at_utc": "2026-11-22T04:14:58.967542+00:00",
+      "sha256": "064f559ce88c8950fa0b2f39dade6e13566f4bda790f6444aafd56fc06be52fe",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 107563,
+      "captured_at_utc": "2026-11-22T04:15:03.379365+00:00",
+      "encrypted_filename": "profile_047.html",
+      "observed_profile_url_sha256": "7f1c86d15b4b21638954ca1c89f8764e14665b41a0b478a6033b8341294f6739",
+      "observed_racecard_name": "ヴィリアリート",
+      "priority_index": 47,
+      "races": [
+        10
+      ],
+      "request_started_at_utc": "2026-11-22T04:15:01.297046+00:00",
+      "sha256": "9d0a7a6757adf04e35bde23651625c580f477c7dece6b5ec7930479b24f157e5",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 141350,
+      "captured_at_utc": "2026-11-22T04:15:05.314737+00:00",
+      "encrypted_filename": "profile_048.html",
+      "observed_profile_url_sha256": "4290f38dac639bf05b9d9941207276e474a2da4c544d751a1ef190aa3c486103",
+      "observed_racecard_name": "ジョディーズマロン",
+      "priority_index": 48,
+      "races": [
+        10
+      ],
+      "request_started_at_utc": "2026-11-22T04:15:03.379639+00:00",
+      "sha256": "70089536ae53fb8412ab8ef89b61041f8cd3579bc8326738692d78c884761979",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 125079,
+      "captured_at_utc": "2026-11-22T04:15:07.413761+00:00",
+      "encrypted_filename": "profile_049.html",
+      "observed_profile_url_sha256": "d14b9bc7b7e12370ea9b8eaf08162ef2e4bd82cdff2fc7b2df0b877f6a586f9d",
+      "observed_racecard_name": "フェンダー",
+      "priority_index": 49,
+      "races": [
+        10
+      ],
+      "request_started_at_utc": "2026-11-22T04:15:05.315079+00:00",
+      "sha256": "e467bca2e21514192767f4255313965c2502fb2954947e5a77cf38666831c259",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 112582,
+      "captured_at_utc": "2026-11-22T04:15:09.260482+00:00",
+      "encrypted_filename": "profile_050.html",
+      "observed_profile_url_sha256": "d0c1084dd07cf4629a60642ae7470990f2b1ee00e4ffd964f4b02bafa5ff2f5a",
+      "observed_racecard_name": "スニーカースキル",
+      "priority_index": 50,
+      "races": [
+        10
+      ],
+      "request_started_at_utc": "2026-11-22T04:15:07.414071+00:00",
+      "sha256": "11c226dad8eecc7953f04a738e2e045477e61885c567cc96c114ea2ba168c5cc",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 122214,
+      "captured_at_utc": "2026-11-22T04:15:11.429854+00:00",
+      "encrypted_filename": "profile_051.html",
+      "observed_profile_url_sha256": "4498b7bb56c32458ecc06c209208d4008e0ad17c7cb6ce5ded8fb96cb74de80c",
+      "observed_racecard_name": "テーオールビー",
+      "priority_index": 51,
+      "races": [
+        10
+      ],
+      "request_started_at_utc": "2026-11-22T04:15:09.260745+00:00",
+      "sha256": "1830369afbd98b9e03daf9be767e18988c434e2415bc2041cab7680af5c159fa",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 112091,
+      "captured_at_utc": "2026-11-22T04:15:13.339137+00:00",
+      "encrypted_filename": "profile_052.html",
+      "observed_profile_url_sha256": "bb3cd1bb7385e6dd8140373bf7a7317436c8ec0e190eaa7a9a17a63fff371789",
+      "observed_racecard_name": "メイケイレイン",
+      "priority_index": 52,
+      "races": [
+        10
+      ],
+      "request_started_at_utc": "2026-11-22T04:15:11.430145+00:00",
+      "sha256": "b2aac87f711c0ca4c8d833ebc62bc195ef85338edf0c768aea574539591a764b",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 112110,
+      "captured_at_utc": "2026-11-22T04:15:14.951163+00:00",
+      "encrypted_filename": "profile_053.html",
+      "observed_profile_url_sha256": "1ae66e7015c20e7ec6c7b8be51dc5ecc5f737b88ac0eeff2bfb20f4a1ece2f54",
+      "observed_racecard_name": "ヤマニンシュラ",
+      "priority_index": 53,
+      "races": [
+        10
+      ],
+      "request_started_at_utc": "2026-11-22T04:15:13.339404+00:00",
+      "sha256": "ce4fcb2a88379a6cbe32d4d79873e32fa3effbfc8e8e3ef5377bf3d1ed61a7a7",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 129396,
+      "captured_at_utc": "2026-11-22T04:15:17.398485+00:00",
+      "encrypted_filename": "profile_054.html",
+      "observed_profile_url_sha256": "edad257616c314879b303f05d8d629cf4734765da042fa0b0c19fae9d25ae93b",
+      "observed_racecard_name": "ナスノカンゲツ",
+      "priority_index": 54,
+      "races": [
+        10
+      ],
+      "request_started_at_utc": "2026-11-22T04:15:14.951433+00:00",
+      "sha256": "450bf4cf76492d3873d2b3d339852114eb151ec88c4426fdb030ca9b95445059",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 132748,
+      "captured_at_utc": "2026-11-22T04:15:19.035972+00:00",
+      "encrypted_filename": "profile_055.html",
+      "observed_profile_url_sha256": "b26f5b9dc6add1737c3128f80b322ce0a889e1b1ae714fff789579c9625bae84",
+      "observed_racecard_name": "ベストウォーリア",
+      "priority_index": 55,
+      "races": [
+        10
+      ],
+      "request_started_at_utc": "2026-11-22T04:15:17.398778+00:00",
+      "sha256": "bbe36ef4c96f9759f2eda6eb3e8f1dfb81ddc2fda976cb3598c188bebe5aa469",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 115845,
+      "captured_at_utc": "2026-11-22T04:15:21.531011+00:00",
+      "encrypted_filename": "profile_056.html",
+      "observed_profile_url_sha256": "9f923e64c5245b62b093f0628b0223495b7d4e4634066c9b4c2d4096c8f9a4aa",
+      "observed_racecard_name": "テーオーステルス",
+      "priority_index": 56,
+      "races": [
+        10
+      ],
+      "request_started_at_utc": "2026-11-22T04:15:19.036300+00:00",
+      "sha256": "713573b98686ca7ec9fa1f80b7949055c6a867a8604027b46fc2c34d1ba03cf9",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 114667,
+      "captured_at_utc": "2026-11-22T04:15:23.560644+00:00",
+      "encrypted_filename": "profile_057.html",
+      "observed_profile_url_sha256": "8cbbed34e3b2f95800d67a7524cad2e45dda25f581357d17f38a9423772d32fd",
+      "observed_racecard_name": "カウンティフェア",
+      "priority_index": 57,
+      "races": [
+        9
+      ],
+      "request_started_at_utc": "2026-11-22T04:15:21.531283+00:00",
+      "sha256": "3b842ebf351bf7dcc3a57bff9ce013684bfd53f3ed39884574ea3277ab20dc30",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 118816,
+      "captured_at_utc": "2026-11-22T04:15:25.354299+00:00",
+      "encrypted_filename": "profile_058.html",
+      "observed_profile_url_sha256": "1c33da64751c368c18eaf8b90f4fd5cce691fb653dc25f8e9c1a209e70d9db82",
+      "observed_racecard_name": "リカントロポ",
+      "priority_index": 58,
+      "races": [
+        9
+      ],
+      "request_started_at_utc": "2026-11-22T04:15:23.560948+00:00",
+      "sha256": "92f5729d43b64470e0e94d7bc9abd903ef0cf307999e40e8285e0cc47ce1f260",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 110694,
+      "captured_at_utc": "2026-11-22T04:15:27.550045+00:00",
+      "encrypted_filename": "profile_059.html",
+      "observed_profile_url_sha256": "8cb8ae7fc69ab4c00ed831655c1e7cf6291e049d845268d19745b4b36499a0d1",
+      "observed_racecard_name": "ネッタイヤライ",
+      "priority_index": 59,
+      "races": [
+        9
+      ],
+      "request_started_at_utc": "2026-11-22T04:15:25.354579+00:00",
+      "sha256": "728b673a993c3a30c24740f7f57b68643f98b1295c0cdb49d69116963078a35b",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 115864,
+      "captured_at_utc": "2026-11-22T04:15:29.370986+00:00",
+      "encrypted_filename": "profile_060.html",
+      "observed_profile_url_sha256": "bae667ad6198edc2fd2b54f7cf4315896b060c327844b410797c0fdd17192b7f",
+      "observed_racecard_name": "ランドプリメーロ",
+      "priority_index": 60,
+      "races": [
+        9
+      ],
+      "request_started_at_utc": "2026-11-22T04:15:27.550305+00:00",
+      "sha256": "f1fd93dc77b62f78a64e4e070aae74aa6c64543874a69c85a46b57f89274a7dc",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 140660,
+      "captured_at_utc": "2026-11-22T04:15:31.399475+00:00",
+      "encrypted_filename": "profile_061.html",
+      "observed_profile_url_sha256": "5da5bccacd0c1fa315a481ba5f8f5f4d72ec9d64087281d29cb1cc90ea6dd4c1",
+      "observed_racecard_name": "バガン",
+      "priority_index": 61,
+      "races": [
+        9
+      ],
+      "request_started_at_utc": "2026-11-22T04:15:29.371259+00:00",
+      "sha256": "b47f197c926c08c76ec221a3b1d10ee8432f26e9f5709a3edcd19d253faee55f",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 109067,
+      "captured_at_utc": "2026-11-22T04:15:33.321614+00:00",
+      "encrypted_filename": "profile_062.html",
+      "observed_profile_url_sha256": "b9918647e5cb294ac47ed65c36eff87f0291a9a7878e8b2b94c518508dc2c692",
+      "observed_racecard_name": "グラフィティアート",
+      "priority_index": 62,
+      "races": [
+        9
+      ],
+      "request_started_at_utc": "2026-11-22T04:15:31.399792+00:00",
+      "sha256": "ef39d3fe8e7efce8c49e16b3750b4a29a08d11dab18ecdbb17c82fdcdbc779fc",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 121324,
+      "captured_at_utc": "2026-11-22T04:15:35.584642+00:00",
+      "encrypted_filename": "profile_063.html",
+      "observed_profile_url_sha256": "37f58abfb1db7fd8381592a877e06bdd956605777d1b17782da0afa9b726fd85",
+      "observed_racecard_name": "モアニ",
+      "priority_index": 63,
+      "races": [
+        9
+      ],
+      "request_started_at_utc": "2026-11-22T04:15:33.321894+00:00",
+      "sha256": "863f2d6a71fd2efcb87c9ad8a104da12c78b4e458e39b6ca5e515ba2113a0826",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 125841,
+      "captured_at_utc": "2026-11-22T04:15:37.500030+00:00",
+      "encrypted_filename": "profile_064.html",
+      "observed_profile_url_sha256": "9d3662c3377f8d96919e21aaf69139a7c5fdeb49a0360a4b52a89cfeab7ae46c",
+      "observed_racecard_name": "ペルフェツィオーネ",
+      "priority_index": 64,
+      "races": [
+        9
+      ],
+      "request_started_at_utc": "2026-11-22T04:15:35.584931+00:00",
+      "sha256": "91ad49b6bdc8b35758b9973e6822d9e17a2f637ee1970f004bf1935eacacdc8e",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 118277,
+      "captured_at_utc": "2026-11-22T04:15:39.391233+00:00",
+      "encrypted_filename": "profile_065.html",
+      "observed_profile_url_sha256": "4a01a05c2707abed4e5c4cd00df729148c102fed437a001bbde8553261592f0b",
+      "observed_racecard_name": "ジャズ",
+      "priority_index": 65,
+      "races": [
+        9
+      ],
+      "request_started_at_utc": "2026-11-22T04:15:37.500315+00:00",
+      "sha256": "84a04973f9790b2fc7d4b65f75cb695f24fa92fe54f053f20283d84d325e9cf6",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 108015,
+      "captured_at_utc": "2026-11-22T04:15:41.484499+00:00",
+      "encrypted_filename": "profile_066.html",
+      "observed_profile_url_sha256": "add65fe9d5a910468fc2cc7237a1b5863920d2150e127fe93e4f345c4808f064",
+      "observed_racecard_name": "オックスアイ",
+      "priority_index": 66,
+      "races": [
+        9
+      ],
+      "request_started_at_utc": "2026-11-22T04:15:39.391506+00:00",
+      "sha256": "30b607a1c707a2c7cc5576d5890a0fb8393d57eb6699942c40f0c461452411d5",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 107890,
+      "captured_at_utc": "2026-11-22T04:15:43.437288+00:00",
+      "encrypted_filename": "profile_067.html",
+      "observed_profile_url_sha256": "537b6e8ced0d47072b2dd58f35b3a776286701566b13d675037ed72dbe977288",
+      "observed_racecard_name": "バルセシート",
+      "priority_index": 67,
+      "races": [
+        9
+      ],
+      "request_started_at_utc": "2026-11-22T04:15:41.484762+00:00",
+      "sha256": "963367aea27a05aadd09e8d8e3b2d808af71ef00e5f82f57f1fdb22835fcd702",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 107849,
+      "captured_at_utc": "2026-11-22T04:15:45.340280+00:00",
+      "encrypted_filename": "profile_068.html",
+      "observed_profile_url_sha256": "70d69f91d32abf1d957520b13f219406045750c956a101186925eec49d294259",
+      "observed_racecard_name": "アイガーリー",
+      "priority_index": 68,
+      "races": [
+        9
+      ],
+      "request_started_at_utc": "2026-11-22T04:15:43.437548+00:00",
+      "sha256": "c36b3f261735d24357e0be4defd1e413d17fb0a5fd5cfa3f9f3de32f210bf678",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 112151,
+      "captured_at_utc": "2026-11-22T04:15:47.510391+00:00",
+      "encrypted_filename": "profile_069.html",
+      "observed_profile_url_sha256": "d7245d1443833435000f4b6afcc4669872f3aec48ad19fcd2db4fe026f180ac8",
+      "observed_racecard_name": "タナブイハチターボ",
+      "priority_index": 69,
+      "races": [
+        9
+      ],
+      "request_started_at_utc": "2026-11-22T04:15:45.340542+00:00",
+      "sha256": "088707a40acb51260f25b1155de9c1b8dd2b65672dfc84f080fed798fa48d2da",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 107093,
+      "captured_at_utc": "2026-11-22T04:15:49.387691+00:00",
+      "encrypted_filename": "profile_070.html",
+      "observed_profile_url_sha256": "6208be97ac195dbe307e2e8b0fb8b2b729d57ddc4e33085f5f526250b00dc909",
+      "observed_racecard_name": "テイエムスティール",
+      "priority_index": 70,
+      "races": [
+        9
+      ],
+      "request_started_at_utc": "2026-11-22T04:15:47.510647+00:00",
+      "sha256": "71fd4a3a9c769dd7564fef254a5c2b645e2cd9db22adeda9cc1cbd8b5ed86c10",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 104049,
+      "captured_at_utc": "2026-11-22T04:15:51.574015+00:00",
+      "encrypted_filename": "profile_071.html",
+      "observed_profile_url_sha256": "7e47d775ee395d13974001f1f0fc524bbea481645406dcf9312c1ef4c078ab1e",
+      "observed_racecard_name": "ダノンフェアレディ",
+      "priority_index": 71,
+      "races": [
+        9
+      ],
+      "request_started_at_utc": "2026-11-22T04:15:49.387962+00:00",
+      "sha256": "26078bb966fcfc26f72159d76c955e42b58fba1af5e7ae40633b4d02e1b8ea3f",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 120036,
+      "captured_at_utc": "2026-11-22T04:15:53.351539+00:00",
+      "encrypted_filename": "profile_072.html",
+      "observed_profile_url_sha256": "d50c08438aa5eed8ea784811782b2393d351a4a48d264cfd1de7bace328422c4",
+      "observed_racecard_name": "ロードクロンヌ",
+      "priority_index": 72,
+      "races": [
+        9
+      ],
+      "request_started_at_utc": "2026-11-22T04:15:51.574273+00:00",
+      "sha256": "ed1ef5251c0a0009bc6197f897d4e6e46ac6c94b2010aa95a85b99005ebf4188",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 108482,
+      "captured_at_utc": "2026-11-22T04:15:55.314381+00:00",
+      "encrypted_filename": "profile_073.html",
+      "observed_profile_url_sha256": "941ff603fb875fe8478b17f0662a4d769edb5bdb5af7954206f4c4d12d6b05f2",
+      "observed_racecard_name": "ブラックレジェンド",
+      "priority_index": 73,
+      "races": [
+        8
+      ],
+      "request_started_at_utc": "2026-11-22T04:15:53.351844+00:00",
+      "sha256": "e0534f6910a017e878943b45317b4c5200197957cbe3c03d8656b34f780b16c6",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 107239,
+      "captured_at_utc": "2026-11-22T04:15:57.732315+00:00",
+      "encrypted_filename": "profile_074.html",
+      "observed_profile_url_sha256": "f31b30b6f3dfb33ba897d733ac50591889ddd7114069c05cac26b71d96705b44",
+      "observed_racecard_name": "スカイストライプス",
+      "priority_index": 74,
+      "races": [
+        8
+      ],
+      "request_started_at_utc": "2026-11-22T04:15:55.314636+00:00",
+      "sha256": "b86f81c46ec36642b3f8d575a74ea453611fcb826d9a13fc8d84255cd53f87a6",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 118491,
+      "captured_at_utc": "2026-11-22T04:15:59.316593+00:00",
+      "encrypted_filename": "profile_075.html",
+      "observed_profile_url_sha256": "60e8647299bf74a88966ef5f552e978a9afce82e3f6bf11204bdf9624ba7e8e1",
+      "observed_racecard_name": "サマーナイト",
+      "priority_index": 75,
+      "races": [
+        8
+      ],
+      "request_started_at_utc": "2026-11-22T04:15:57.732565+00:00",
+      "sha256": "b51620198b451622247aa4254bfec36b1ef4a35d5f9c0bdff0c6ae36f1439013",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 110428,
+      "captured_at_utc": "2026-11-22T04:16:01.434873+00:00",
+      "encrypted_filename": "profile_076.html",
+      "observed_profile_url_sha256": "99d86039225d18d7c7f5f10e1a4d452cd53dc99b107d0bcd11de010d77906c98",
+      "observed_racecard_name": "サイモンゼスト",
+      "priority_index": 76,
+      "races": [
+        8
+      ],
+      "request_started_at_utc": "2026-11-22T04:15:59.316898+00:00",
+      "sha256": "d0a0bae64771302b72f71affe2ae050b0e7d8fb95eb080263406d5c5c61c3d8f",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 115627,
+      "captured_at_utc": "2026-11-22T04:16:03.363754+00:00",
+      "encrypted_filename": "profile_077.html",
+      "observed_profile_url_sha256": "6a5d1051f2e1eeaa708ff645de0130840fbc08f4c2afc1afb3f45f89a629e7eb",
+      "observed_racecard_name": "ユージュアーナ",
+      "priority_index": 77,
+      "races": [
+        8
+      ],
+      "request_started_at_utc": "2026-11-22T04:16:01.435156+00:00",
+      "sha256": "d3cf902fea6e1210965fb5e3b82f5fad985c080c8bf15dff23d3cfc930b93bd1",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 105488,
+      "captured_at_utc": "2026-11-22T04:16:05.341179+00:00",
+      "encrypted_filename": "profile_078.html",
+      "observed_profile_url_sha256": "dcc44dbaf2da0e9f3841a6cbe3b659b7bcc8e96168b629cb60fd9f85c85f2485",
+      "observed_racecard_name": "アンティスマ",
+      "priority_index": 78,
+      "races": [
+        8
+      ],
+      "request_started_at_utc": "2026-11-22T04:16:03.364054+00:00",
+      "sha256": "a3166a2212982a193af5b7b0c04825d68ad949be118a77b49d3aa51de931658d",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 110399,
+      "captured_at_utc": "2026-11-22T04:16:07.269774+00:00",
+      "encrypted_filename": "profile_079.html",
+      "observed_profile_url_sha256": "f0874075a248d6ff313cc26997eeacc2214674056d4c5e861c97a3bc659e9b9f",
+      "observed_racecard_name": "ロードソルスティス",
+      "priority_index": 79,
+      "races": [
+        8
+      ],
+      "request_started_at_utc": "2026-11-22T04:16:05.341438+00:00",
+      "sha256": "bb815c63a9d80a93a682d93bd8f9b742f90965ca1b277e76dd4d461336203ed8",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 112576,
+      "captured_at_utc": "2026-11-22T04:16:09.403060+00:00",
+      "encrypted_filename": "profile_080.html",
+      "observed_profile_url_sha256": "34adbd1e57451814d941866e7eca41c5e2eb2292e97d8e445f8d828362065218",
+      "observed_racecard_name": "ケンフィールド",
+      "priority_index": 80,
+      "races": [
+        8
+      ],
+      "request_started_at_utc": "2026-11-22T04:16:07.270055+00:00",
+      "sha256": "25662c407e690622732be24f46d6cae4b93587603d53fc030a82dfa05156ac96",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 127776,
+      "captured_at_utc": "2026-11-22T04:16:11.240482+00:00",
+      "encrypted_filename": "profile_081.html",
+      "observed_profile_url_sha256": "9aea1e7c3b6cb6f43f441021791708e04e25cb51bce06a38c9963400f1fd5dca",
+      "observed_racecard_name": "クリノフィガロ",
+      "priority_index": 81,
+      "races": [
+        8
+      ],
+      "request_started_at_utc": "2026-11-22T04:16:09.403328+00:00",
+      "sha256": "700f871e8028cc905d1e152b9696137ff2db47c23232a88d90a9f9f57e1ddef9",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 114844,
+      "captured_at_utc": "2026-11-22T04:16:13.018908+00:00",
+      "encrypted_filename": "profile_082.html",
+      "observed_profile_url_sha256": "8d2995c362bcb5455e360ac66fd2dd05cb964f329f5663d8c4f7fe814696850a",
+      "observed_racecard_name": "ヒミノエトワール",
+      "priority_index": 82,
+      "races": [
+        8
+      ],
+      "request_started_at_utc": "2026-11-22T04:16:11.240776+00:00",
+      "sha256": "4bce85b0642920afc406b5f324dbed585146c6913659080c15f45e69379a4c92",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 109923,
+      "captured_at_utc": "2026-11-22T04:16:15.447168+00:00",
+      "encrypted_filename": "profile_083.html",
+      "observed_profile_url_sha256": "0c5d52b09c90b02beedc6bf1a3cd3302cc9345dc5f1693351c7d9f2c69f12359",
+      "observed_racecard_name": "ダブルハートボンド",
+      "priority_index": 83,
+      "races": [
+        8
+      ],
+      "request_started_at_utc": "2026-11-22T04:16:13.019180+00:00",
+      "sha256": "d0e338f982a9a12cc34183cafa9f2c0d8b7482fd94c8e121f23019ec73ac3a84",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 107080,
+      "captured_at_utc": "2026-11-22T04:16:17.343512+00:00",
+      "encrypted_filename": "profile_084.html",
+      "observed_profile_url_sha256": "1be5abf598916bc1ce8dbda5b3e7841ec8503c244b82afcad5a9dee785e5e78e",
+      "observed_racecard_name": "コワンニシタガウ",
+      "priority_index": 84,
+      "races": [
+        7
+      ],
+      "request_started_at_utc": "2026-11-22T04:16:15.447421+00:00",
+      "sha256": "f9574e13053cccb089055bc391a6441dc6ca981e0a39c68df2d756d56ee144b8",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 115911,
+      "captured_at_utc": "2026-11-22T04:16:19.683883+00:00",
+      "encrypted_filename": "profile_085.html",
+      "observed_profile_url_sha256": "fd77d75a40ce2c4fd009142b578bd40cdf5897cf04dc5b7eca3494d50920adba",
+      "observed_racecard_name": "ローレルオーブ",
+      "priority_index": 85,
+      "races": [
+        7
+      ],
+      "request_started_at_utc": "2026-11-22T04:16:17.343770+00:00",
+      "sha256": "f7ad3231030f93bd738b821dd9b6956433fc935eb4a48358bf47fce3169c936f",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 108339,
+      "captured_at_utc": "2026-11-22T04:16:21.504955+00:00",
+      "encrypted_filename": "profile_086.html",
+      "observed_profile_url_sha256": "01e6e4bb101f7f315c32246f73860df544682080e5604aaea66dfb60ece2d684",
+      "observed_racecard_name": "ゴールデンテティス",
+      "priority_index": 86,
+      "races": [
+        7
+      ],
+      "request_started_at_utc": "2026-11-22T04:16:19.684150+00:00",
+      "sha256": "be9482c14dc089d65254a38169462696a0da9cb906dfe87563394f2e6734d7af",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 108136,
+      "captured_at_utc": "2026-11-22T04:16:23.952706+00:00",
+      "encrypted_filename": "profile_087.html",
+      "observed_profile_url_sha256": "97eac7f1519c44c40cc6b7d34cbf0ad59ba66485f69cfb560b7048d768ea1f06",
+      "observed_racecard_name": "タイセイアビオン",
+      "priority_index": 87,
+      "races": [
+        7
+      ],
+      "request_started_at_utc": "2026-11-22T04:16:21.505209+00:00",
+      "sha256": "cbb50cf5b752e12d2e76a46883379a06e354aa93d3b54e97c1ca09ec53375495",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 104585,
+      "captured_at_utc": "2026-11-22T04:16:25.372989+00:00",
+      "encrypted_filename": "profile_088.html",
+      "observed_profile_url_sha256": "9e13da88f74daca85dcdb7db3461755a0ddf7751879aa9fe549dce855c16a9fd",
+      "observed_racecard_name": "ページターナー",
+      "priority_index": 88,
+      "races": [
+        7
+      ],
+      "request_started_at_utc": "2026-11-22T04:16:23.952992+00:00",
+      "sha256": "1063e61665fba4c23c560f40c6c9359eeed2b824f9e784b0630f827739b8a1b3",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 105128,
+      "captured_at_utc": "2026-11-22T04:16:27.507167+00:00",
+      "encrypted_filename": "profile_089.html",
+      "observed_profile_url_sha256": "eb527b8c25e65e993e85fe3e3b80e7d9285598db30aca17dcbac2aca16889539",
+      "observed_racecard_name": "ノブレスラブリエ",
+      "priority_index": 89,
+      "races": [
+        7
+      ],
+      "request_started_at_utc": "2026-11-22T04:16:25.373248+00:00",
+      "sha256": "ceaa48a5eec31f0702eaceb16f75bb940caf33b01f7ef857df66563bf2c04f22",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 104227,
+      "captured_at_utc": "2026-11-22T04:16:29.571050+00:00",
+      "encrypted_filename": "profile_090.html",
+      "observed_profile_url_sha256": "4a2a91e4381da095f420909e89964e07c0c1aa85ecda9a858ab2fe7971f77e51",
+      "observed_racecard_name": "レイアン",
+      "priority_index": 90,
+      "races": [
+        7
+      ],
+      "request_started_at_utc": "2026-11-22T04:16:27.507416+00:00",
+      "sha256": "b07d60c3509c002e0ead27197da14a7c53fb59a4ec09d10c9320f4e0a3ae33bc",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 120014,
+      "captured_at_utc": "2026-11-22T04:16:31.268624+00:00",
+      "encrypted_filename": "profile_091.html",
+      "observed_profile_url_sha256": "e3749c6743ad62c029f8196842586b94b733ea29d8d4d2ec5c1d50b4fb798b90",
+      "observed_racecard_name": "ウインヘリオドール",
+      "priority_index": 91,
+      "races": [
+        7
+      ],
+      "request_started_at_utc": "2026-11-22T04:16:29.571297+00:00",
+      "sha256": "b07c0274c90cea3d765e241833c674246fa57b61ecab2d8c5a8866fda04ac1a2",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 104725,
+      "captured_at_utc": "2026-11-22T04:16:33.673426+00:00",
+      "encrypted_filename": "profile_092.html",
+      "observed_profile_url_sha256": "7a1aacf17d5e0c5bf8a6b4aeaf6e5033135c4a448ebf9d01242a0c2b34a88dfc",
+      "observed_racecard_name": "ドリームプレミア",
+      "priority_index": 92,
+      "races": [
+        7
+      ],
+      "request_started_at_utc": "2026-11-22T04:16:31.268924+00:00",
+      "sha256": "68f726f8aa6d0088b1e72f0d79aef9a033c8f9006e4d342884392ed68e3b442f",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 109274,
+      "captured_at_utc": "2026-11-22T04:16:35.299236+00:00",
+      "encrypted_filename": "profile_093.html",
+      "observed_profile_url_sha256": "727966acaa4cc9af326405a354f022a1ed5d4cb2c04d1ca86f8d862330595100",
+      "observed_racecard_name": "パーヴォ",
+      "priority_index": 93,
+      "races": [
+        7
+      ],
+      "request_started_at_utc": "2026-11-22T04:16:33.673672+00:00",
+      "sha256": "b65ebc16f3801b58960c1c41c323742dadf443842697f8b5f6554117ae09acfd",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 126044,
+      "captured_at_utc": "2026-11-22T04:16:37.312977+00:00",
+      "encrypted_filename": "profile_094.html",
+      "observed_profile_url_sha256": "649896dac6b50ae65c1f13a6df69b6e104c5bdf94f57f31b5a5c00bc20382cb9",
+      "observed_racecard_name": "ピエナオルフェ",
+      "priority_index": 94,
+      "races": [
+        7
+      ],
+      "request_started_at_utc": "2026-11-22T04:16:35.299487+00:00",
+      "sha256": "cf2128dfad5d7b80ee2f3ecf52ecc0445aed5b73950004b0e5056e138a9b9a0c",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 103786,
+      "captured_at_utc": "2026-11-22T04:16:39.378333+00:00",
+      "encrypted_filename": "profile_095.html",
+      "observed_profile_url_sha256": "125459071d4df9cc5f08b444eb602be9bcd39369ee975dafb7307b1cd860fc52",
+      "observed_racecard_name": "ボンドマティーニ",
+      "priority_index": 95,
+      "races": [
+        7
+      ],
+      "request_started_at_utc": "2026-11-22T04:16:37.313264+00:00",
+      "sha256": "1ba4701a74bacc388f7b9400160f472fdf33e7a64dc55ebf08b615ce9ef6daff",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 106460,
+      "captured_at_utc": "2026-11-22T04:16:41.212961+00:00",
+      "encrypted_filename": "profile_096.html",
+      "observed_profile_url_sha256": "9ab2f126489c671b23a2b8311be3acd2215e35440163db989f3b5a15c54da050",
+      "observed_racecard_name": "ペガサスジルシ",
+      "priority_index": 96,
+      "races": [
+        7
+      ],
+      "request_started_at_utc": "2026-11-22T04:16:39.378584+00:00",
+      "sha256": "7467643e1df50feee8fa8059ecd1b917a088372a3882b9afc0700c4fc976b3dc",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 104411,
+      "captured_at_utc": "2026-11-22T04:16:43.454734+00:00",
+      "encrypted_filename": "profile_097.html",
+      "observed_profile_url_sha256": "4d1fcb3d261b1b641e671f4490a1a4e749b458f9e8200a3c2c15918701cbf7b4",
+      "observed_racecard_name": "ヴァロンブローサ",
+      "priority_index": 97,
+      "races": [
+        7
+      ],
+      "request_started_at_utc": "2026-11-22T04:16:41.213216+00:00",
+      "sha256": "aa2193076ac8b6a8b1849824f3eab2ac81ed8f183e51bd761e9b2ebae44b67bd",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 106386,
+      "captured_at_utc": "2026-11-22T04:16:45.307673+00:00",
+      "encrypted_filename": "profile_098.html",
+      "observed_profile_url_sha256": "1ba1ebb408ea03c13dd03c152a68705c493af79ebb17766777b3d2dc4755b516",
+      "observed_racecard_name": "アスクファイアモア",
+      "priority_index": 98,
+      "races": [
+        7
+      ],
+      "request_started_at_utc": "2026-11-22T04:16:43.455006+00:00",
+      "sha256": "8ca67dbd7cc049d5cd3a68fbd68503c06d306250c02b0e72a1acc75081d17329",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 100797,
+      "captured_at_utc": "2026-11-22T04:16:47.242665+00:00",
+      "encrypted_filename": "profile_099.html",
+      "observed_profile_url_sha256": "9d2c5611ff7667b67a82c3c60f6f364ef4adf7516834fe324a28cfd2a8238f47",
+      "observed_racecard_name": "スピルイット",
+      "priority_index": 99,
+      "races": [
+        7
+      ],
+      "request_started_at_utc": "2026-11-22T04:16:45.307947+00:00",
+      "sha256": "a9cefb44c4e48f882238ac1c9a336188a922d766e473f77623b3dc1846bcb957",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 107314,
+      "captured_at_utc": "2026-11-22T04:16:49.305792+00:00",
+      "encrypted_filename": "profile_100.html",
+      "observed_profile_url_sha256": "4fc37505264c48c43bb915696b21c4c784c56ecb7b86da338b2ec4d7768edad5",
+      "observed_racecard_name": "ゴールドアクセス",
+      "priority_index": 100,
+      "races": [
+        7
+      ],
+      "request_started_at_utc": "2026-11-22T04:16:47.242951+00:00",
+      "sha256": "55e0797f968f2cf6943de7d3a5ec5303e1c1936539f45b2b609758a2a87fc926",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 115460,
+      "captured_at_utc": "2026-11-22T04:16:51.328718+00:00",
+      "encrypted_filename": "profile_101.html",
+      "observed_profile_url_sha256": "db36ae32cc8a6ee6f78e829e5b51a96ba3506ad4251ebb14e4f542288b5805f0",
+      "observed_racecard_name": "ドゥラシェーナ",
+      "priority_index": 101,
+      "races": [
+        7
+      ],
+      "request_started_at_utc": "2026-11-22T04:16:49.306075+00:00",
+      "sha256": "4a1d813279bff044523fa7913f5ba8b59b4a0e186e8e842d09633fbb792c1e3c",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 111742,
+      "captured_at_utc": "2026-11-22T04:16:53.043713+00:00",
+      "encrypted_filename": "profile_102.html",
+      "observed_profile_url_sha256": "df354aa8ce360c2f7ff9e8c663cfb9ff6a4414e44c066142d9a2da20ca987b0c",
+      "observed_racecard_name": "ベイラム",
+      "priority_index": 102,
+      "races": [
+        7
+      ],
+      "request_started_at_utc": "2026-11-22T04:16:51.329021+00:00",
+      "sha256": "a71effb3560f5403bdc0d334108c544158bb298f8e17a5458f071a4e5f534528",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 106384,
+      "captured_at_utc": "2026-11-22T04:16:55.701244+00:00",
+      "encrypted_filename": "profile_103.html",
+      "observed_profile_url_sha256": "6316265decba3b31e174932cd8f9c717e3e9f7c22ae9629b2598c75ec5de28f6",
+      "observed_racecard_name": "アイルドゥレーヴェ",
+      "priority_index": 103,
+      "races": [
+        7
+      ],
+      "request_started_at_utc": "2026-11-22T04:16:53.043988+00:00",
+      "sha256": "b9431c853595cf9875442d13b5f91af6dfd21dd6ff2b2020f49be6b4fe3acb91",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 101719,
+      "captured_at_utc": "2026-11-22T04:16:57.565239+00:00",
+      "encrypted_filename": "profile_104.html",
+      "observed_profile_url_sha256": "35a5d753417a4c754c6e7ddcd493d6401c9aea85d2fcb03edcb7d162dec38b3d",
+      "observed_racecard_name": "ウインキングリー",
+      "priority_index": 104,
+      "races": [
+        7
+      ],
+      "request_started_at_utc": "2026-11-22T04:16:55.701496+00:00",
+      "sha256": "13bdba6581cc3686358bc6922fd232b6fac868c06a92ce47affda71e31c329da",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 107248,
+      "captured_at_utc": "2026-11-22T04:16:59.257174+00:00",
+      "encrypted_filename": "profile_105.html",
+      "observed_profile_url_sha256": "17cb0be30381175b66aa1be3ff2a9215d1ea858d93fa000457f5c44be1773fad",
+      "observed_racecard_name": "オープンザパンドラ",
+      "priority_index": 105,
+      "races": [
+        7
+      ],
+      "request_started_at_utc": "2026-11-22T04:16:57.565489+00:00",
+      "sha256": "e68b1510ac6dc1923441485702cb18de9a35fd6700f9b4c57c7caecec2a36433",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 108326,
+      "captured_at_utc": "2026-11-22T04:17:01.396563+00:00",
+      "encrypted_filename": "profile_106.html",
+      "observed_profile_url_sha256": "93ff5567bc6bc3c9c5303daba4b38cdb574e00fab581ad475b7c13a6dad8eea8",
+      "observed_racecard_name": "パンキー",
+      "priority_index": 106,
+      "races": [
+        7
+      ],
+      "request_started_at_utc": "2026-11-22T04:16:59.257426+00:00",
+      "sha256": "78e419fc20ce7d4487be995483ea0ace2e772a3a099adf2c54e1071a20544259",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 105364,
+      "captured_at_utc": "2026-11-22T04:17:03.454686+00:00",
+      "encrypted_filename": "profile_107.html",
+      "observed_profile_url_sha256": "20603d52119093463516b631c9b50200dd1910feef6ac3fed9afd264a5192a59",
+      "observed_racecard_name": "ルクスキャンディ",
+      "priority_index": 107,
+      "races": [
+        7
+      ],
+      "request_started_at_utc": "2026-11-22T04:17:01.396836+00:00",
+      "sha256": "bfc845a1a8bb63f78458a539594e821421272e613db9a8c55d5a6f1e2246cf4d",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 113753,
+      "captured_at_utc": "2026-11-22T04:17:05.643422+00:00",
+      "encrypted_filename": "profile_108.html",
+      "observed_profile_url_sha256": "bc84d84f35c14dd7ce504d81e6c2657962bd04c1df1f615260fa02e1db161508",
+      "observed_racecard_name": "レイワノキセキ",
+      "priority_index": 108,
+      "races": [
+        7
+      ],
+      "request_started_at_utc": "2026-11-22T04:17:03.454957+00:00",
+      "sha256": "1ed18b11419bd8a4cfe0a3565b991914f19c56b0a712a7cb5f837fb02be69d96",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 127255,
+      "captured_at_utc": "2026-11-22T04:17:07.362917+00:00",
+      "encrypted_filename": "profile_109.html",
+      "observed_profile_url_sha256": "fbd9476fac5444b2e17c2037e390c778dabffb980ed0caa4b3b1cacf9d7af56a",
+      "observed_racecard_name": "オドラニャソンソン",
+      "priority_index": 109,
+      "races": [
+        6
+      ],
+      "request_started_at_utc": "2026-11-22T04:17:05.643711+00:00",
+      "sha256": "b37b204c15a1199efb998b1aa3fea4bfa30f3f779282e16758b2bcaea3960618",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 109252,
+      "captured_at_utc": "2026-11-22T04:17:09.436458+00:00",
+      "encrypted_filename": "profile_110.html",
+      "observed_profile_url_sha256": "98e3f57fe9c0642364954782d61d23e4024f6400edb2f62f0ed0242832dddc47",
+      "observed_racecard_name": "スズノソレイユ",
+      "priority_index": 110,
+      "races": [
+        6
+      ],
+      "request_started_at_utc": "2026-11-22T04:17:07.363217+00:00",
+      "sha256": "a286c563c53e3f1e57d32dcc1e6aa80a1acde11e541dc3898009d6ec9c0138c7",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 118602,
+      "captured_at_utc": "2026-11-22T04:17:11.600631+00:00",
+      "encrypted_filename": "profile_111.html",
+      "observed_profile_url_sha256": "b538496170839141beb2aad6392fdfd26dcb636f7991e6f1a108f540fb913534",
+      "observed_racecard_name": "ペンテリコン",
+      "priority_index": 111,
+      "races": [
+        6
+      ],
+      "request_started_at_utc": "2026-11-22T04:17:09.436722+00:00",
+      "sha256": "ea40eda26bf40c3a5bf666e9236e4b79f19c3fbb82126e12b6ea60710beec5b6",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 103385,
+      "captured_at_utc": "2026-11-22T04:17:13.288153+00:00",
+      "encrypted_filename": "profile_112.html",
+      "observed_profile_url_sha256": "57d51f41f85be519a7edeee75bbebb2feafb8ad7e90c203a97ed92ccf04f2749",
+      "observed_racecard_name": "スターフュージョン",
+      "priority_index": 112,
+      "races": [
+        6
+      ],
+      "request_started_at_utc": "2026-11-22T04:17:11.600943+00:00",
+      "sha256": "c43ec24ec2e67581b9122c4da139fd182b892407e61d31f805c15722031e14e6",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 106582,
+      "captured_at_utc": "2026-11-22T04:17:15.417024+00:00",
+      "encrypted_filename": "profile_113.html",
+      "observed_profile_url_sha256": "f04951951c3f119ea31346a539cc95b9642304a28789506f1d3f67a2b0d93553",
+      "observed_racecard_name": "エシェックオロワ",
+      "priority_index": 113,
+      "races": [
+        6
+      ],
+      "request_started_at_utc": "2026-11-22T04:17:13.288400+00:00",
+      "sha256": "86b22e646949359914bfcaa8f05a4ea62e30302d3626a91b259ac0f34e782435",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 147214,
+      "captured_at_utc": "2026-11-22T04:17:17.404484+00:00",
+      "encrypted_filename": "profile_114.html",
+      "observed_profile_url_sha256": "1ee1117860b718ada6c1e06e11f73b02919dd08649afa635867e4bc1aeca6f50",
+      "observed_racecard_name": "クリノミニスター",
+      "priority_index": 114,
+      "races": [
+        6
+      ],
+      "request_started_at_utc": "2026-11-22T04:17:15.417286+00:00",
+      "sha256": "67c9db1a2772304dd70e7e7892ef500981ef17a09a6b45af16f2aa01313a0869",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 103537,
+      "captured_at_utc": "2026-11-22T04:17:18.921102+00:00",
+      "encrypted_filename": "profile_115.html",
+      "observed_profile_url_sha256": "2899eb117e461d83cca7e354f1155262263f157755b2a504d05c0df4cd059e48",
+      "observed_racecard_name": "ラフォン",
+      "priority_index": 115,
+      "races": [
+        6
+      ],
+      "request_started_at_utc": "2026-11-22T04:17:17.404825+00:00",
+      "sha256": "4decfb3627afcab84b16780c8fb19b420bc64b6ad3eaf2899e7fc33a827220e4",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 112211,
+      "captured_at_utc": "2026-11-22T04:17:21.078012+00:00",
+      "encrypted_filename": "profile_116.html",
+      "observed_profile_url_sha256": "f1be3230a58cd33cb04779acc8cee2d482f7f64ef3e0510cdb4c5685af4600f7",
+      "observed_racecard_name": "フレイムスター",
+      "priority_index": 116,
+      "races": [
+        6
+      ],
+      "request_started_at_utc": "2026-11-22T04:17:18.921343+00:00",
+      "sha256": "56f59e8253f2e15bf96745ee4e3907819cf7e1cb11d44cbb3fb6842a97c15450",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 112313,
+      "captured_at_utc": "2026-11-22T04:17:23.276302+00:00",
+      "encrypted_filename": "profile_117.html",
+      "observed_profile_url_sha256": "7b08f1adfbee24e4313586ede1e14cd6dc1808151958b0b16e9c77ee866a37b2",
+      "observed_racecard_name": "アンピュルシオン",
+      "priority_index": 117,
+      "races": [
+        6
+      ],
+      "request_started_at_utc": "2026-11-22T04:17:21.078280+00:00",
+      "sha256": "c278f79c8a34de5c0077131bc17e89980b7eb76e146450d6b2868644ed86dc0a",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 111298,
+      "captured_at_utc": "2026-11-22T04:17:25.214592+00:00",
+      "encrypted_filename": "profile_118.html",
+      "observed_profile_url_sha256": "b995f4ec300ccab4eac11e310c8faf4b0d0d9058d4e4095097ae125cdce289ee",
+      "observed_racecard_name": "サヨノパララックス",
+      "priority_index": 118,
+      "races": [
+        6
+      ],
+      "request_started_at_utc": "2026-11-22T04:17:23.276567+00:00",
+      "sha256": "e706c0a705b982dfff8f28aa1e86659600a2af00c4e4f93bbd087b96a5e56074",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 106470,
+      "captured_at_utc": "2026-11-22T04:17:27.400134+00:00",
+      "encrypted_filename": "profile_119.html",
+      "observed_profile_url_sha256": "9cc2bfb0b401c6fabedd7fea4eab7c1ba8baddaeda60a3cc0f23b9bcad10149a",
+      "observed_racecard_name": "ジューンオアシス",
+      "priority_index": 119,
+      "races": [
+        6
+      ],
+      "request_started_at_utc": "2026-11-22T04:17:25.214875+00:00",
+      "sha256": "533cead6bc1b97ee7ecf652dd71a1116cb6aab17390a9fa183376cddefaca379",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 107544,
+      "captured_at_utc": "2026-11-22T04:17:29.248484+00:00",
+      "encrypted_filename": "profile_120.html",
+      "observed_profile_url_sha256": "81f348048f74a12b78bb5a2d19a15cc1ebdb508a1c8ddc0b27b81280d6ea9ff6",
+      "observed_racecard_name": "エンブルーシャ",
+      "priority_index": 120,
+      "races": [
+        6
+      ],
+      "request_started_at_utc": "2026-11-22T04:17:27.400381+00:00",
+      "sha256": "3f9a6cde74eda7cbdc9ef4eb7fb0859a4e76f9fa41e525f4d3a07420bf771b1e",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 112921,
+      "captured_at_utc": "2026-11-22T04:17:31.256564+00:00",
+      "encrypted_filename": "profile_121.html",
+      "observed_profile_url_sha256": "73234edc6a902548c5be4e2858e301d6ba1e00a134590831012fb7a05ca4b97f",
+      "observed_racecard_name": "ヒッグスボソン",
+      "priority_index": 121,
+      "races": [
+        6
+      ],
+      "request_started_at_utc": "2026-11-22T04:17:29.248744+00:00",
+      "sha256": "66deedf3030bee67b5cad51ba59419b7d60fcaae73cfb37b5c4910f9e4201a13",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 117602,
+      "captured_at_utc": "2026-11-22T04:17:33.250560+00:00",
+      "encrypted_filename": "profile_122.html",
+      "observed_profile_url_sha256": "58962a31d859173e3aaf82b2e9c122c9b787d9eb2dce525764f01512fbb3c513",
+      "observed_racecard_name": "サンライズジュピタ",
+      "priority_index": 122,
+      "races": [
+        6
+      ],
+      "request_started_at_utc": "2026-11-22T04:17:31.256854+00:00",
+      "sha256": "7f6928dbdb0f9d266b23b6c1d66f70f50558ea71c7fd785a1afe652b7e5a125f",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 104699,
+      "captured_at_utc": "2026-11-22T04:17:35.416291+00:00",
+      "encrypted_filename": "profile_123.html",
+      "observed_profile_url_sha256": "f1f64bc5d4ae191e2d1616d18718c11ab6a311a55e67a1374dc0335d73f56320",
+      "observed_racecard_name": "ビサーロ",
+      "priority_index": 123,
+      "races": [
+        6
+      ],
+      "request_started_at_utc": "2026-11-22T04:17:33.250853+00:00",
+      "sha256": "26af2d9adc331bf088db6194be8ec8c10157bbd476fbee6ea5df0ffc989e38e5",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 105263,
+      "captured_at_utc": "2026-11-22T04:17:37.306094+00:00",
+      "encrypted_filename": "profile_124.html",
+      "observed_profile_url_sha256": "5afb429aa33d25c262f5f0cf668b106e85e0aa2c4837c37756b3465b08d8fee1",
+      "observed_racecard_name": "ダノンステート",
+      "priority_index": 124,
+      "races": [
+        6
+      ],
+      "request_started_at_utc": "2026-11-22T04:17:35.416531+00:00",
+      "sha256": "51e19077440d0850753ba28de3d278f7314cfe957ef7b96f322c452419c775f7",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 107430,
+      "captured_at_utc": "2026-11-22T04:17:39.441508+00:00",
+      "encrypted_filename": "profile_125.html",
+      "observed_profile_url_sha256": "e690ab8b0647d0689f481a1f40aeaa1cd0fdbf17a64c6d632d6a620f880f1fc7",
+      "observed_racecard_name": "モンペルデュ",
+      "priority_index": 125,
+      "races": [
+        6
+      ],
+      "request_started_at_utc": "2026-11-22T04:17:37.306347+00:00",
+      "sha256": "8de4dfcc615070edf3b531eb8c520abe602d68f38f5c57c90dda6c2ae2d8e860",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 96594,
+      "captured_at_utc": "2026-11-22T04:17:41.338999+00:00",
+      "encrypted_filename": "profile_126.html",
+      "observed_profile_url_sha256": "036880ea958b56fa105db438d8e05b19f86ea984810287bb2434b23f0c6c9a7b",
+      "observed_racecard_name": "サウンドスイープ",
+      "priority_index": 126,
+      "races": [
+        5
+      ],
+      "request_started_at_utc": "2026-11-22T04:17:39.441770+00:00",
+      "sha256": "377cdf75b68b8988d81b82c5ba0c90433aab8c3966216f9f1e4eba51c073932c",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 96400,
+      "captured_at_utc": "2026-11-22T04:17:43.250474+00:00",
+      "encrypted_filename": "profile_127.html",
+      "observed_profile_url_sha256": "5b42fb8ef153da3c28cbd76c4583d644e8122ef5b54b170917a9acfa883a7ed1",
+      "observed_racecard_name": "アルデオリエンス",
+      "priority_index": 127,
+      "races": [
+        5
+      ],
+      "request_started_at_utc": "2026-11-22T04:17:41.339235+00:00",
+      "sha256": "d976fa6a51a434af4caeb4c86ce2e5c80c315aef73b20249a5551b99d0084275",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 96562,
+      "captured_at_utc": "2026-11-22T04:17:45.265624+00:00",
+      "encrypted_filename": "profile_128.html",
+      "observed_profile_url_sha256": "874fd3c154b401b97df228358bc248713e00ed825a178240fcb2eb7515d505aa",
+      "observed_racecard_name": "ゼンノレガリア",
+      "priority_index": 128,
+      "races": [
+        5
+      ],
+      "request_started_at_utc": "2026-11-22T04:17:43.250710+00:00",
+      "sha256": "11c9b6d5aa8255d0fb14b5f46f2bd46d0ac89d2774fa1d4b84a6a5252433646e",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 96503,
+      "captured_at_utc": "2026-11-22T04:17:47.225994+00:00",
+      "encrypted_filename": "profile_129.html",
+      "observed_profile_url_sha256": "be28fc9e1736b3a1634a2c6503603781c044909d25a430ed955338874e39873a",
+      "observed_racecard_name": "ウンメイ",
+      "priority_index": 129,
+      "races": [
+        5
+      ],
+      "request_started_at_utc": "2026-11-22T04:17:45.265890+00:00",
+      "sha256": "bcf6dd257680ccb89cda1d801ef9e2e5a21ecfddb61e355a5eb3840db6dd891d",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 96722,
+      "captured_at_utc": "2026-11-22T04:17:49.449294+00:00",
+      "encrypted_filename": "profile_130.html",
+      "observed_profile_url_sha256": "7ca85dfa6e49e1b5304f0edaf3385efcb34e21f20ecd0b873463e38c1687aacb",
+      "observed_racecard_name": "インスピリット",
+      "priority_index": 130,
+      "races": [
+        5
+      ],
+      "request_started_at_utc": "2026-11-22T04:17:47.226224+00:00",
+      "sha256": "449844efe8f80f256064b597558298a130be08c65126db341d012d9278dc1484",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 96678,
+      "captured_at_utc": "2026-11-22T04:17:51.393640+00:00",
+      "encrypted_filename": "profile_131.html",
+      "observed_profile_url_sha256": "8b2c9b0d3b6f91a3280eed1477d4002619aceaf7d829a1c46821341bb0932748",
+      "observed_racecard_name": "サフランローブ",
+      "priority_index": 131,
+      "races": [
+        5
+      ],
+      "request_started_at_utc": "2026-11-22T04:17:49.449533+00:00",
+      "sha256": "176ef49ee21c2dfb0ff5f7f56d286ddf565fdb155a19becebb076e714c707a7d",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 96598,
+      "captured_at_utc": "2026-11-22T04:17:53.306884+00:00",
+      "encrypted_filename": "profile_132.html",
+      "observed_profile_url_sha256": "10c95cd994998bdef27c3d9595fa93cdae31c125f3b86be65fdcffaa3a5b32b6",
+      "observed_racecard_name": "ブブカ",
+      "priority_index": 132,
+      "races": [
+        5
+      ],
+      "request_started_at_utc": "2026-11-22T04:17:51.393907+00:00",
+      "sha256": "c6d7326b6b296d4a5f781b1ebf8d9fcb05ca0c2ef38de977a82affb7f264610f",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 96606,
+      "captured_at_utc": "2026-11-22T04:17:55.362382+00:00",
+      "encrypted_filename": "profile_133.html",
+      "observed_profile_url_sha256": "f681475c8f9ce9cc3e160d8b8e67ef705073f11d533f95ff60ff197c8c5f202b",
+      "observed_racecard_name": "サチノリボーン",
+      "priority_index": 133,
+      "races": [
+        5
+      ],
+      "request_started_at_utc": "2026-11-22T04:17:53.307106+00:00",
+      "sha256": "6e77b2d813c2a575cb334c05685ceb43bc7ab02195e0a5a3b63fe36aded264bc",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 96727,
+      "captured_at_utc": "2026-11-22T04:17:57.628066+00:00",
+      "encrypted_filename": "profile_134.html",
+      "observed_profile_url_sha256": "0feea33bb66263c3f84cd8f9fcb1bb8f4f34548528411ea43f94978395e9260f",
+      "observed_racecard_name": "フィネスブレード",
+      "priority_index": 134,
+      "races": [
+        5
+      ],
+      "request_started_at_utc": "2026-11-22T04:17:55.362621+00:00",
+      "sha256": "7adef5675b03f24ba805a10936aa4564e0ad20db70c7eb15ddc3ce7d24f2bbe1",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 96588,
+      "captured_at_utc": "2026-11-22T04:17:59.339383+00:00",
+      "encrypted_filename": "profile_135.html",
+      "observed_profile_url_sha256": "d1f453572185f762ed76c6422cf9e5e758850d74a50853fd22d40dea654f5209",
+      "observed_racecard_name": "アキュティアマ",
+      "priority_index": 135,
+      "races": [
+        5
+      ],
+      "request_started_at_utc": "2026-11-22T04:17:57.628298+00:00",
+      "sha256": "de4967a0b35a5f3080271f2f8569b81de9def9876427bb0522d47b829b70d43e",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 96647,
+      "captured_at_utc": "2026-11-22T04:18:01.281207+00:00",
+      "encrypted_filename": "profile_136.html",
+      "observed_profile_url_sha256": "13106407aa5e2896c971dfa6c06f5895ecd9f54db53383fc56deac072b5da013",
+      "observed_racecard_name": "サトノセブンス",
+      "priority_index": 136,
+      "races": [
+        5
+      ],
+      "request_started_at_utc": "2026-11-22T04:17:59.339634+00:00",
+      "sha256": "b5be8fa6ae65c21b1ce5fb85111fe13f5f9d3de80eb50a8e1ad5b4a66ea3b8ff",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 96449,
+      "captured_at_utc": "2026-11-22T04:18:03.467759+00:00",
+      "encrypted_filename": "profile_137.html",
+      "observed_profile_url_sha256": "e661dd99c71108782e19b346c773e68d310b3d0cb7255b26bbeb45fd39cd6950",
+      "observed_racecard_name": "ベイカーズダズン",
+      "priority_index": 137,
+      "races": [
+        5
+      ],
+      "request_started_at_utc": "2026-11-22T04:18:01.281445+00:00",
+      "sha256": "6515e97c8c010ba5d174be7059b0e1a4e21aa3c5ba5af7c76380c78042f0248b",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 105725,
+      "captured_at_utc": "2026-11-22T04:18:05.552321+00:00",
+      "encrypted_filename": "profile_138.html",
+      "observed_profile_url_sha256": "603973a7416203ac4c451ee9ebc0351246332995e768e4191950dbb0162ff9f6",
+      "observed_racecard_name": "イッペイ",
+      "priority_index": 138,
+      "races": [
+        5
+      ],
+      "request_started_at_utc": "2026-11-22T04:18:03.468019+00:00",
+      "sha256": "723edda1e6ad7f682a94c6ccb3bfa25a333642c3cb88a84542eebf90c42c55db",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 96589,
+      "captured_at_utc": "2026-11-22T04:18:07.336958+00:00",
+      "encrypted_filename": "profile_139.html",
+      "observed_profile_url_sha256": "873362eebbcdadcd31f0a2d2f23c53fca60481a662bd35e8bf942cd0f5d5cb4f",
+      "observed_racecard_name": "デュランバローズ",
+      "priority_index": 139,
+      "races": [
+        4
+      ],
+      "request_started_at_utc": "2026-11-22T04:18:05.552560+00:00",
+      "sha256": "481ca4b172423a8bc2e701ab997a6670f0fe21f7bd6c67826d21987e0b37cf6c",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 96634,
+      "captured_at_utc": "2026-11-22T04:18:09.366004+00:00",
+      "encrypted_filename": "profile_140.html",
+      "observed_profile_url_sha256": "f4c5ee88f2edacb782b6331323a902284bdbfbcdaa08484487c503af7efb5107",
+      "observed_racecard_name": "サンライズテンカ",
+      "priority_index": 140,
+      "races": [
+        4
+      ],
+      "request_started_at_utc": "2026-11-22T04:18:07.337194+00:00",
+      "sha256": "ed1a59bcda5c9f8948aa70248b6968cb21c4047c0b985d17b90bc07646caee01",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 96502,
+      "captured_at_utc": "2026-11-22T04:18:11.408356+00:00",
+      "encrypted_filename": "profile_141.html",
+      "observed_profile_url_sha256": "94a66c90a84735854bd22c21caa9abcbb6c0b9522517969cfd6c0838a0d2c662",
+      "observed_racecard_name": "ブレイヴモナーク",
+      "priority_index": 141,
+      "races": [
+        4
+      ],
+      "request_started_at_utc": "2026-11-22T04:18:09.366240+00:00",
+      "sha256": "49a8fbc568b199bfe1ecc4dd5093cc532b021513bbe2dcc5010406650d89e54a",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 96719,
+      "captured_at_utc": "2026-11-22T04:18:13.525127+00:00",
+      "encrypted_filename": "profile_142.html",
+      "observed_profile_url_sha256": "f8dc5a6ce1a59c140f5ad6c00501bee3dc8341533d890d024117205098c99774",
+      "observed_racecard_name": "リープデイリズム",
+      "priority_index": 142,
+      "races": [
+        4
+      ],
+      "request_started_at_utc": "2026-11-22T04:18:11.408597+00:00",
+      "sha256": "545fa1d32a7ae56756ed925e57eac5bb19efc5a73cafb9a8c8c0573d039d7685",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 96389,
+      "captured_at_utc": "2026-11-22T04:18:15.419441+00:00",
+      "encrypted_filename": "profile_143.html",
+      "observed_profile_url_sha256": "7463ee670178ddde98956cf20d4062d7f569015f7fd544f4f1e545ebf569b59a",
+      "observed_racecard_name": "リベロスピリット",
+      "priority_index": 143,
+      "races": [
+        4
+      ],
+      "request_started_at_utc": "2026-11-22T04:18:13.525355+00:00",
+      "sha256": "0c587ecf1cd86081bdbf95f1c3ec2506a9c4482bdf476559d555cb3ee47cfd15",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 96592,
+      "captured_at_utc": "2026-11-22T04:18:17.379951+00:00",
+      "encrypted_filename": "profile_144.html",
+      "observed_profile_url_sha256": "7aa370479cccdf6ce17a63382b603c50343eddd9db3e95340a5e52ff29863fac",
+      "observed_racecard_name": "メイワモットキラリ",
+      "priority_index": 144,
+      "races": [
+        4
+      ],
+      "request_started_at_utc": "2026-11-22T04:18:15.419686+00:00",
+      "sha256": "a4ff1e391cc52643ed6b9bd076dca914b8764af991a741cd050a3fe47156848b",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 96656,
+      "captured_at_utc": "2026-11-22T04:18:19.314740+00:00",
+      "encrypted_filename": "profile_145.html",
+      "observed_profile_url_sha256": "7ee75112f92c1819799347a967a3bea17a2c1190d8b88f1f2d38654cf48f19e8",
+      "observed_racecard_name": "アルムランラン",
+      "priority_index": 145,
+      "races": [
+        4
+      ],
+      "request_started_at_utc": "2026-11-22T04:18:17.380187+00:00",
+      "sha256": "e6bfaaaeaf39af00cac0d4944bc0158f42e6cd94075182159974b0af86bbf374",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 96574,
+      "captured_at_utc": "2026-11-22T04:18:21.261040+00:00",
+      "encrypted_filename": "profile_146.html",
+      "observed_profile_url_sha256": "84a114ca1a14c4d528e3b3f544e935f56c79d9238b50afbd374c42f63d81a49c",
+      "observed_racecard_name": "ビスケインブルー",
+      "priority_index": 146,
+      "races": [
+        4
+      ],
+      "request_started_at_utc": "2026-11-22T04:18:19.315009+00:00",
+      "sha256": "26932d9585c489c5675f6f7bb76be8c9d45ade310714d03a2e36b4d73020a7d4",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 96661,
+      "captured_at_utc": "2026-11-22T04:18:23.434369+00:00",
+      "encrypted_filename": "profile_147.html",
+      "observed_profile_url_sha256": "ef2c74412cbc8967b6304eaa0ad3ea70bdc4bc07c430acc996d1f4cbf7360e92",
+      "observed_racecard_name": "ショーヴェントス",
+      "priority_index": 147,
+      "races": [
+        4
+      ],
+      "request_started_at_utc": "2026-11-22T04:18:21.261278+00:00",
+      "sha256": "1bb9005e7a2fe347847dbea7a35db90bf7f23f9e99aff1bdbbf1225e8593168c",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 96618,
+      "captured_at_utc": "2026-11-22T04:18:25.473529+00:00",
+      "encrypted_filename": "profile_148.html",
+      "observed_profile_url_sha256": "75b7de1a7d1925e63246bdbd6c71a0432fa528e3c27fd054e8f1a034d69e9a59",
+      "observed_racecard_name": "ジルドール",
+      "priority_index": 148,
+      "races": [
+        4
+      ],
+      "request_started_at_utc": "2026-11-22T04:18:23.434603+00:00",
+      "sha256": "a6a144c30b06934a7b2463cbabb5062f6a96da291a11563aa15adab97c3b7305",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 128159,
+      "captured_at_utc": "2026-11-22T04:18:27.403822+00:00",
+      "encrypted_filename": "profile_149.html",
+      "observed_profile_url_sha256": "6ecf0e7eac04ed67300ba9806b9f04e8cb14ef43a7bd335d63baa0235984aa0e",
+      "observed_racecard_name": "ビッグスモーキー",
+      "priority_index": 149,
+      "races": [
+        4,
+        1
+      ],
+      "request_started_at_utc": "2026-11-22T04:18:25.473749+00:00",
+      "sha256": "d2e2dd9dda1fabb0a420ec56f0c4531befe93f66d7c55a2e546d0aba6c842b56",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 100910,
+      "captured_at_utc": "2026-11-22T04:18:29.410501+00:00",
+      "encrypted_filename": "profile_150.html",
+      "observed_profile_url_sha256": "60fef7ac4236529a0242aa9deb30a256af6d89fcb952c703fccad7e665b6c293",
+      "observed_racecard_name": "シルヴァニクス",
+      "priority_index": 150,
+      "races": [
+        3
+      ],
+      "request_started_at_utc": "2026-11-22T04:18:27.404111+00:00",
+      "sha256": "d0caa12aa620a20f5728729c006de57d380ffd07f9f3076591d910d2bc5210e9",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 100981,
+      "captured_at_utc": "2026-11-22T04:18:31.272122+00:00",
+      "encrypted_filename": "profile_151.html",
+      "observed_profile_url_sha256": "f566419cd1bc035132907e448c1154556a23bcfd64ff39f5c4c95fe689185b49",
+      "observed_racecard_name": "ドラゴンアンセム",
+      "priority_index": 151,
+      "races": [
+        3
+      ],
+      "request_started_at_utc": "2026-11-22T04:18:29.410756+00:00",
+      "sha256": "49e7e716448bfd0a19516d45a20b7ccdc4625fd16e82884b1a9835b838993bcd",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 100879,
+      "captured_at_utc": "2026-11-22T04:18:33.659837+00:00",
+      "encrypted_filename": "profile_152.html",
+      "observed_profile_url_sha256": "eadf1beb7aaaa564a17c51c46f619ae1e02f5503fcdcb992365a30043f2c9ae2",
+      "observed_racecard_name": "ホウオウトリリオン",
+      "priority_index": 152,
+      "races": [
+        3
+      ],
+      "request_started_at_utc": "2026-11-22T04:18:31.272371+00:00",
+      "sha256": "d66417e9f98276f1ca515dee3746800b020c00bcee08ba6155586545af9ee4a5",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 100769,
+      "captured_at_utc": "2026-11-22T04:18:35.351769+00:00",
+      "encrypted_filename": "profile_153.html",
+      "observed_profile_url_sha256": "daa7fd4cfc8bae5dedf80e2ef411f90f64d772ca52ddc9438d13c4d1b2f1bbcf",
+      "observed_racecard_name": "クオーレサンライズ",
+      "priority_index": 153,
+      "races": [
+        3
+      ],
+      "request_started_at_utc": "2026-11-22T04:18:33.660081+00:00",
+      "sha256": "cfc61f8a152d7a63193a82108b33715395dde04b6a3e1cc43154ef437c206ce1",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 103614,
+      "captured_at_utc": "2026-11-22T04:18:37.312379+00:00",
+      "encrypted_filename": "profile_154.html",
+      "observed_profile_url_sha256": "c9451e2c191f14bbf9b46cddf2245ee88667305da80eb9ae2e5281aa6c306144",
+      "observed_racecard_name": "メイショウジェード",
+      "priority_index": 154,
+      "races": [
+        3
+      ],
+      "request_started_at_utc": "2026-11-22T04:18:35.352038+00:00",
+      "sha256": "d7b9e88b3ccb79ac9ff0e8fc3d19c018aab7dfa0a4370cc7462ac0af113f603e",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 102834,
+      "captured_at_utc": "2026-11-22T04:18:39.393500+00:00",
+      "encrypted_filename": "profile_155.html",
+      "observed_profile_url_sha256": "48afd280afbf84c1deb4380ae01926093972f87032dfc8dc56756f6b667e985d",
+      "observed_racecard_name": "マハロハ",
+      "priority_index": 155,
+      "races": [
+        3
+      ],
+      "request_started_at_utc": "2026-11-22T04:18:37.312624+00:00",
+      "sha256": "003b124b195738f32c996eb54c334a9eca1b858aa411a6c0d4a7e9918f0b004a",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 100644,
+      "captured_at_utc": "2026-11-22T04:18:41.748177+00:00",
+      "encrypted_filename": "profile_156.html",
+      "observed_profile_url_sha256": "1ca22145f030da06f62d8edad4f7ed1dbf7721e6891b4711fddc7fa18360b25d",
+      "observed_racecard_name": "ヒロノリホープ",
+      "priority_index": 156,
+      "races": [
+        3
+      ],
+      "request_started_at_utc": "2026-11-22T04:18:39.393730+00:00",
+      "sha256": "0aa1bb9ac86efe20a4e4ccd1ec44695d8917c1624440569b62e2a8af6c79ac8d",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 100951,
+      "captured_at_utc": "2026-11-22T04:18:43.365168+00:00",
+      "encrypted_filename": "profile_157.html",
+      "observed_profile_url_sha256": "1ef6b377d1d58a4d8053ed78130b8d4fb6d437d9eb58f34e158039c8a94ecff3",
+      "observed_racecard_name": "キララハピネス",
+      "priority_index": 157,
+      "races": [
+        3
+      ],
+      "request_started_at_utc": "2026-11-22T04:18:41.748422+00:00",
+      "sha256": "bd919aa4c546887d3053637c834e9dd07925eccda75d52d2f524e773fa9f0c85",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 100545,
+      "captured_at_utc": "2026-11-22T04:18:45.012149+00:00",
+      "encrypted_filename": "profile_158.html",
+      "observed_profile_url_sha256": "be281dc7c4c7f88616ba1c103cccad3b0a8fb6f7372a054b05cc9948ab2b559e",
+      "observed_racecard_name": "マーヴィン",
+      "priority_index": 158,
+      "races": [
+        3
+      ],
+      "request_started_at_utc": "2026-11-22T04:18:43.365414+00:00",
+      "sha256": "e305e794a97bf6c4a4a2550c33097d0011def1cab4a9aa59bcb5f92a739e71f5",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 101909,
+      "captured_at_utc": "2026-11-22T04:18:47.299361+00:00",
+      "encrypted_filename": "profile_159.html",
+      "observed_profile_url_sha256": "fe0ece806d861c6b34f485e4067f1aca59a0626f9743963a46b14ee2ada56db4",
+      "observed_racecard_name": "オンユアマークス",
+      "priority_index": 159,
+      "races": [
+        3
+      ],
+      "request_started_at_utc": "2026-11-22T04:18:45.012383+00:00",
+      "sha256": "515573cdc6caf11b0cf27503dc4a8cb5bdf33bf45a351b27ddeec412370f4f83",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 100965,
+      "captured_at_utc": "2026-11-22T04:18:49.332588+00:00",
+      "encrypted_filename": "profile_160.html",
+      "observed_profile_url_sha256": "aed99fe958bc3b40393e05f6d943845d444c7ca0e08b4d5348445b6102e2f7ed",
+      "observed_racecard_name": "ナムラレーヴ",
+      "priority_index": 160,
+      "races": [
+        2
+      ],
+      "request_started_at_utc": "2026-11-22T04:18:47.299627+00:00",
+      "sha256": "11aecfd9a19c62ec89f2a50ccdd6c57f0890ba0e130a0c86d0a822fcdc3dc8b1",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 105522,
+      "captured_at_utc": "2026-11-22T04:18:51.372267+00:00",
+      "encrypted_filename": "profile_161.html",
+      "observed_profile_url_sha256": "f69e0ccd6af414c1e90af826dfd072082b65a64043b932392594ecbae255396f",
+      "observed_racecard_name": "ベイビーブラザー",
+      "priority_index": 161,
+      "races": [
+        2
+      ],
+      "request_started_at_utc": "2026-11-22T04:18:49.332868+00:00",
+      "sha256": "4cf4ab25f927e747e850a04fe3621c25ceeb9dc22c781e525e425c8f0f8b5d19",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 100971,
+      "captured_at_utc": "2026-11-22T04:18:53.365538+00:00",
+      "encrypted_filename": "profile_162.html",
+      "observed_profile_url_sha256": "ebde2f8ca9082ea91753036cc92a774325c2af44fbef84970443368c1aabb5ed",
+      "observed_racecard_name": "テーオーレコード",
+      "priority_index": 162,
+      "races": [
+        2
+      ],
+      "request_started_at_utc": "2026-11-22T04:18:51.372523+00:00",
+      "sha256": "304a0f9da065254b502a953934af9b2a5b736bfebad38387fd0a13bae5740d15",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 100836,
+      "captured_at_utc": "2026-11-22T04:18:55.462585+00:00",
+      "encrypted_filename": "profile_163.html",
+      "observed_profile_url_sha256": "c85a115ce6ddb90663668ad080dae2414910db983045a24a00a6d5d5ecae561e",
+      "observed_racecard_name": "シングインザレイン",
+      "priority_index": 163,
+      "races": [
+        2
+      ],
+      "request_started_at_utc": "2026-11-22T04:18:53.365782+00:00",
+      "sha256": "6fec25175eb5ec4e3dae2dcc4e75ff128588a6905d8a2984e1bfcb76f5f6c7bd",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 102822,
+      "captured_at_utc": "2026-11-22T04:18:57.483183+00:00",
+      "encrypted_filename": "profile_164.html",
+      "observed_profile_url_sha256": "d4f4e423724e75e9d3d31dd53b2c4b5f11b02a08bd0995bef8550d38921a7436",
+      "observed_racecard_name": "ウィナーズクロノ",
+      "priority_index": 164,
+      "races": [
+        2
+      ],
+      "request_started_at_utc": "2026-11-22T04:18:55.462852+00:00",
+      "sha256": "f6dc9f17bf97887acde98c644378fde5701fd9025231d0d5d439f6d7a10cc04a",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 101017,
+      "captured_at_utc": "2026-11-22T04:18:59.684570+00:00",
+      "encrypted_filename": "profile_165.html",
+      "observed_profile_url_sha256": "b576ae4cf5e561990b7cf8035b36983c342cb1b8efa93fa444459b2d924c7333",
+      "observed_racecard_name": "プラナベルデ",
+      "priority_index": 165,
+      "races": [
+        2
+      ],
+      "request_started_at_utc": "2026-11-22T04:18:57.483430+00:00",
+      "sha256": "46d21ac61b7cfbcb17160f521c12bd5c2d0bdf25c761ee899426bb83221365d4",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 100842,
+      "captured_at_utc": "2026-11-22T04:19:01.316309+00:00",
+      "encrypted_filename": "profile_166.html",
+      "observed_profile_url_sha256": "4dac6075b6a30e663437bc7fc395ef111f4a9618c8fb2d45baad9ebaf9eee730",
+      "observed_racecard_name": "カレラ",
+      "priority_index": 166,
+      "races": [
+        2
+      ],
+      "request_started_at_utc": "2026-11-22T04:18:59.684842+00:00",
+      "sha256": "8a21f56f25fcef8daeff0d670777f0bd66ac8c6cd63cc7b1c948617eb8db4a1c",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 100733,
+      "captured_at_utc": "2026-11-22T04:19:03.512897+00:00",
+      "encrypted_filename": "profile_167.html",
+      "observed_profile_url_sha256": "631f20831940b17dbea776903dd798993447944a585ab0af17de00e0c9b5d333",
+      "observed_racecard_name": "スターオブファイア",
+      "priority_index": 167,
+      "races": [
+        2
+      ],
+      "request_started_at_utc": "2026-11-22T04:19:01.316546+00:00",
+      "sha256": "da6e8036b64959b537c452958771d9cd238ea4bbbfc1225ed3f3019e1c760d10",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 101984,
+      "captured_at_utc": "2026-11-22T04:19:05.354574+00:00",
+      "encrypted_filename": "profile_168.html",
+      "observed_profile_url_sha256": "8da20d2868a3340e7d4c7db9574ecc0d1867eeff47ff8e66af5abff89b2898d3",
+      "observed_racecard_name": "パロディ",
+      "priority_index": 168,
+      "races": [
+        2
+      ],
+      "request_started_at_utc": "2026-11-22T04:19:03.513141+00:00",
+      "sha256": "5065a9e341fdd804970c4a9c8bb5164052f0aa9b606f143129dd7cc1f30cd81c",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 104634,
+      "captured_at_utc": "2026-11-22T04:19:07.235192+00:00",
+      "encrypted_filename": "profile_169.html",
+      "observed_profile_url_sha256": "e90286fbaad976eeb2eab2d3ce4ac9eba07baaa1c07d6b50187871a6aa09a666",
+      "observed_racecard_name": "スマートメモリー",
+      "priority_index": 169,
+      "races": [
+        2
+      ],
+      "request_started_at_utc": "2026-11-22T04:19:05.354798+00:00",
+      "sha256": "009e7a7ce0488eb98d4b7910e6b19e85e5f91dc959667c3497b57e2c35dc62ef",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 100920,
+      "captured_at_utc": "2026-11-22T04:19:09.375863+00:00",
+      "encrypted_filename": "profile_170.html",
+      "observed_profile_url_sha256": "e8e3a4a521e7962e7cc50094883bcf35370c4fdde9756198cffe42c95031f367",
+      "observed_racecard_name": "ドリームハロウ",
+      "priority_index": 170,
+      "races": [
+        2
+      ],
+      "request_started_at_utc": "2026-11-22T04:19:07.235444+00:00",
+      "sha256": "8d0ae1d148bff67acc7b3be628e9f3db33ae9df3d9e8a6c337d3a7b69fb2452e",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 100970,
+      "captured_at_utc": "2026-11-22T04:19:11.349545+00:00",
+      "encrypted_filename": "profile_171.html",
+      "observed_profile_url_sha256": "2486bd0c6a071e99965a3fb6d130f169b197ad8d046782b684c8c35d67727756",
+      "observed_racecard_name": "ブランル",
+      "priority_index": 171,
+      "races": [
+        2
+      ],
+      "request_started_at_utc": "2026-11-22T04:19:09.376108+00:00",
+      "sha256": "3f0b12e26d8fe262a80c05509570496bb1795fae99bd59d33e8d37a3a9c4f487",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 101014,
+      "captured_at_utc": "2026-11-22T04:19:13.544924+00:00",
+      "encrypted_filename": "profile_172.html",
+      "observed_profile_url_sha256": "c4491ecee5a5d2fd05b80c2a08363fb9a1e5096b0c4a68cf803920696b9ab91c",
+      "observed_racecard_name": "レッドガレオン",
+      "priority_index": 172,
+      "races": [
+        2
+      ],
+      "request_started_at_utc": "2026-11-22T04:19:11.349781+00:00",
+      "sha256": "c59295fe66058290fcfb3ef91ccb307e967ae0b9bc6a153558369bd0b9bc7087",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 116998,
+      "captured_at_utc": "2026-11-22T04:19:15.386475+00:00",
+      "encrypted_filename": "profile_173.html",
+      "observed_profile_url_sha256": "8bf5c60a272f1239eb06b2f26f373f71718f98ad35775a9e26f53740d967c1ae",
+      "observed_racecard_name": "アメリカンステージ",
+      "priority_index": 173,
+      "races": [
+        2
+      ],
+      "request_started_at_utc": "2026-11-22T04:19:13.545173+00:00",
+      "sha256": "5500d684e878c5d8f60110ce27b89c2cd96dd0728a9c253e335f267e1f79ae96",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 102764,
+      "captured_at_utc": "2026-11-22T04:19:17.337024+00:00",
+      "encrypted_filename": "profile_174.html",
+      "observed_profile_url_sha256": "6111deec71ba6356f5565a815473f89c3550d4223dc31c171f283fab8481a07f",
+      "observed_racecard_name": "マシュマロデイズ",
+      "priority_index": 174,
+      "races": [
+        1
+      ],
+      "request_started_at_utc": "2026-11-22T04:19:15.386743+00:00",
+      "sha256": "862168acda50a9c1632ca065d15f867a01e5635731f87bc557f5c17c56383fcd",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 100472,
+      "captured_at_utc": "2026-11-22T04:19:19.318661+00:00",
+      "encrypted_filename": "profile_175.html",
+      "observed_profile_url_sha256": "5a376667018fae16c6e57affe82a71eecc53421858046be368c81799d2616015",
+      "observed_racecard_name": "エイントノーウェイ",
+      "priority_index": 175,
+      "races": [
+        1
+      ],
+      "request_started_at_utc": "2026-11-22T04:19:17.337274+00:00",
+      "sha256": "af48f29895892afe883c96d3c8e174206f57de21ddbc670f40ffcf369d3fb9c4",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 101846,
+      "captured_at_utc": "2026-11-22T04:19:21.339533+00:00",
+      "encrypted_filename": "profile_176.html",
+      "observed_profile_url_sha256": "bbf58c501915c9ad6a5e82b0ea507ff63f4889764832e5d8a9abbaac9a74bff5",
+      "observed_racecard_name": "リケアワルツ",
+      "priority_index": 176,
+      "races": [
+        1
+      ],
+      "request_started_at_utc": "2026-11-22T04:19:19.318922+00:00",
+      "sha256": "9480a083eb4b9cf9cb92a74ddeaff2ceaaf3b035ea80f8dd69426921f0200a35",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 100951,
+      "captured_at_utc": "2026-11-22T04:19:23.424452+00:00",
+      "encrypted_filename": "profile_177.html",
+      "observed_profile_url_sha256": "41c0e7349514aa70de23c1ee735af868d04c122bd918dfff0cd23c8fc7b438e7",
+      "observed_racecard_name": "ヒガンバナ",
+      "priority_index": 177,
+      "races": [
+        1
+      ],
+      "request_started_at_utc": "2026-11-22T04:19:21.339786+00:00",
+      "sha256": "c5cba991b6a103c68b305e1d1366194b73f0faedeb36fea411bc578fda85365b",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 100872,
+      "captured_at_utc": "2026-11-22T04:19:25.012721+00:00",
+      "encrypted_filename": "profile_178.html",
+      "observed_profile_url_sha256": "ad7e77465bd2f355dcdbef5298e82003a34117ae6bbf3bab31b4b0b68a1544d8",
+      "observed_racecard_name": "タマモウララカ",
+      "priority_index": 178,
+      "races": [
+        1
+      ],
+      "request_started_at_utc": "2026-11-22T04:19:23.424698+00:00",
+      "sha256": "382d11ff59311d47210eb6d0ddcc1a78b244ba9168b3efe56197d4a336cf86b9",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 101634,
+      "captured_at_utc": "2026-11-22T04:19:27.482714+00:00",
+      "encrypted_filename": "profile_179.html",
+      "observed_profile_url_sha256": "95404cd8a1428eda95cf4527cc99f35ea23d0443635873f71f6f5587d4d2ceb0",
+      "observed_racecard_name": "アップルペアー",
+      "priority_index": 179,
+      "races": [
+        1
+      ],
+      "request_started_at_utc": "2026-11-22T04:19:25.013001+00:00",
+      "sha256": "0e9b6149f13b7a6576f9435239e60b23990eb709bea967d4540043c6a7cac217",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 100886,
+      "captured_at_utc": "2026-11-22T04:19:29.370047+00:00",
+      "encrypted_filename": "profile_180.html",
+      "observed_profile_url_sha256": "15cb0d1ac5b345835f6123c5a3a10fee5db3ca9750a765aecbe7a436f2dc96f6",
+      "observed_racecard_name": "テムバンヴァン",
+      "priority_index": 180,
+      "races": [
+        1
+      ],
+      "request_started_at_utc": "2026-11-22T04:19:27.482988+00:00",
+      "sha256": "84e1574ca13c42aac84138836a9058d769316a0217eff4a2d15c539f2d5d0af6",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 100853,
+      "captured_at_utc": "2026-11-22T04:19:31.367184+00:00",
+      "encrypted_filename": "profile_181.html",
+      "observed_profile_url_sha256": "b78639c7d9c00db684baabf5ea7d1530b2e7c760483fee81cbfc1c6fa5c4f661",
+      "observed_racecard_name": "ポアサムシュガー",
+      "priority_index": 181,
+      "races": [
+        1
+      ],
+      "request_started_at_utc": "2026-11-22T04:19:29.370300+00:00",
+      "sha256": "35acac3eaf6337f59e3968325143a4def3bb7e3682029465c60b3300ae93a507",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 100860,
+      "captured_at_utc": "2026-11-22T04:19:33.213050+00:00",
+      "encrypted_filename": "profile_182.html",
+      "observed_profile_url_sha256": "7ab021c8caf95ed9f74a16e354a5b7d1a7fdbfd33d9b497c746b31e6ef4e198d",
+      "observed_racecard_name": "アディエル",
+      "priority_index": 182,
+      "races": [
+        1
+      ],
+      "request_started_at_utc": "2026-11-22T04:19:31.367424+00:00",
+      "sha256": "9e420e226d00a639766dca8ea16ea8916fabe8726bfd27c244097904ffe8bc98",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 101856,
+      "captured_at_utc": "2026-11-22T04:19:35.368364+00:00",
+      "encrypted_filename": "profile_183.html",
+      "observed_profile_url_sha256": "45e2c3a0cf3ae7fe884bfdbdbd3c7cc4544ee61cc2efc4e3b903702fbe4efec5",
+      "observed_racecard_name": "バッテリー",
+      "priority_index": 183,
+      "races": [
+        1
+      ],
+      "request_started_at_utc": "2026-11-22T04:19:33.213281+00:00",
+      "sha256": "756e47ac32dfe5839611dc87560ea5d984ea521982d2d6e4a608f74177a42ec7",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 102034,
+      "captured_at_utc": "2026-11-22T04:19:37.244828+00:00",
+      "encrypted_filename": "profile_184.html",
+      "observed_profile_url_sha256": "ac87cd9d118330ba50ed9f5e30adc5e14793320f74d9c8ca4aa3e2541e4ecd08",
+      "observed_racecard_name": "カフジペピーノ",
+      "priority_index": 184,
+      "races": [
+        1
+      ],
+      "request_started_at_utc": "2026-11-22T04:19:35.368594+00:00",
+      "sha256": "339ced01bb831fa53f86e2076ddb16aceb735dbd2f5b9b45762a0ff01f8f731a",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    },
+    {
+      "bytes": 100807,
+      "captured_at_utc": "2026-11-22T04:19:39.476384+00:00",
+      "encrypted_filename": "profile_185.html",
+      "observed_profile_url_sha256": "5bba47f3eb33a1c0fe13aea24bacb64e5ef203b924c9d008323031ee7c4ddf4c",
+      "observed_racecard_name": "バンブトンウーノ",
+      "priority_index": 185,
+      "races": [
+        1
+      ],
+      "request_started_at_utc": "2026-11-22T04:19:37.245080+00:00",
+      "sha256": "0672d88cae3cfffce8ff691f88342fee821df5bb5371378e39fb2cad11629198",
+      "state": "OFFICIAL_PROFILE_ORIGINAL_SAVED_HISTORY_NOT_PARSED",
+      "visible_name_match": true
+    }
+  ],
+  "permanent_horse_ids_verified": false,
+  "planned_unique_horse_profiles": 185,
+  "schema": "kyoto_nov22_real_profile_originals.v1",
+  "source_only": true,
+  "started_at_utc": "2026-11-22T04:13:30.423000+00:00",
+  "training_ready": false
+}
