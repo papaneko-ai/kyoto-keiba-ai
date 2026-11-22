@@ -38,8 +38,9 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          for f in jra_prior_form_offline.py kyoto_g04_all_horse_profiles.py kyoto_g05_official_track.py; do
-            cp "frozen/diagnostics/$f" "diagnostics/$f"
+          for src in frozen/diagnostics/*.py; do
+            target="diagnostics/${src##*/}"
+            if [ ! -e "$target" ]; then cp "$src" "$target"; fi
           done
           python -m diagnostics.kyoto_nov22_five_horses_track_exact_layout
       - uses: actions/upload-artifact@v4
