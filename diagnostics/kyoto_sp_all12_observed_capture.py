@@ -38,9 +38,9 @@ def _verified_archived_sunday_r1(raw, source, item, day):
         text=raw.decode("cp932",errors="replace")
     visible=" ".join(BeautifulSoup(text,"html.parser").stripped_strings)
     return bool(
-        re.search(r"2026\\s*年\\s*11\\s*月\\s*22\\s*日",visible)
+        re.search(r"2026\s*年\s*11\s*月\s*22\s*日",visible)
         and "京都" in visible
-        and re.search(r"(?<![0-9])0?1\\s*(?:R|レース)(?![0-9])",visible,re.I)
+        and re.search(r"(?<![0-9])0?1\s*(?:R|レース)(?![0-9])",visible,re.I)
         and "出馬表" in visible
         and "馬番" in visible and "馬名" in visible
     )
