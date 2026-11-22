@@ -67,7 +67,7 @@ def _identity(raw,race):
     identity=(("京都" in header or "京都" in text[:1200])
               and (DATE in header or DATE_OTHER in header or
                    DATE in text[:1200] or DATE_OTHER in text[:1200])
-              and bool(re.search(rf"(?<![0-9])0?{race}\\s*(?:R|レース)(?![0-9])",header,re.I)))
+              and bool(re.search(rf"(?<![0-9])0?{race}\s*(?:R|レース)(?![0-9])",header,re.I)))
     return {"same_day_kyoto_race_heading":bool(identity),
             "has_horse_number_label":"馬番" in text,
             "has_horse_name_label":"馬名" in text}
