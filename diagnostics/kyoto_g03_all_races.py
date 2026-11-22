@@ -111,7 +111,13 @@ def parse(raw, day, race, url, utc):
     text=soup.get_text(" ",strip=True)
     if "京都" not in text:
         raise G03Error("kyoto_venue_not_in_original")
-    times=set(re.findall(r"発走(?:予定)?(?:時刻)?\s*[:：]?\s*([01]?\d|2[0-3]):([0-5]\d)",soup.get_text(" ",strip=True)))
+    # Today's actual official PC page uses 発走時刻：10時05分, while
+    # older historical pages use 10:05. Both must independently bind
+    # exactly ONE same-race start; do not accept ambiguity or inference.
+    text=soup.get_text(" ",strip=True)
+    colon=re.findall(r"発走(?:予定)?(?:時刻)?\\s*[:：]?\\s*([01]?\\d|2[0-3]):([0-5]\\d)",text)
+    japanese=re.findall(r"発走(?:予定)?(?:時刻)?\\s*[:：]?\\s*([01]?\\d|2[0-3])\\s*時\\s*([0-5]?\\d)\\s*分",text)
+    times={(int(h),int(m)) for h,m in colon+japanese}
     if len(times)!=1: raise G03Error("start_time_not_proven")
     hh,mm=next(iter(times))
     return {"local_race_key":f"KYOTO:{day}:{race:02d}","official_race_id_verified":False,"race":race,
