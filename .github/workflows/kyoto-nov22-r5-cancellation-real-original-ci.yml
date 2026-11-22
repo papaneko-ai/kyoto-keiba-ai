@@ -1,0 +1,36 @@
+name: Nov22 real R5 canceled odds independent strict replay
+on:
+  push:
+    branches: [fix/nov22-remaining-full-acquisition-evidence-20261122]
+    paths:
+      - 'diagnostics/kyoto_nov22_r5_cancellation_market_parser.py'
+      - '.github/workflows/kyoto-nov22-r5-cancellation-real-original-ci.yml'
+permissions:
+  contents: read
+  actions: read
+jobs:
+  canceled-markets:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    env:
+      GH_TOKEN: ${{ github.token }}
+      KYOTO_JRA_ARCHIVE_AES256_HEX: ${{ secrets.KYOTO_JRA_ARCHIVE_AES256_HEX }}
+    steps:
+      - uses: actions/checkout@v4
+        with: {persist-credentials: false}
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.11'}
+      - run: python -m pip install 'beautifulsoup4>=4.12,<5' 'cryptography>=43,<47'
+      - name: Retrieve actual original exact source only
+        run: |
+          mkdir -p market
+          gh run download 44983969532 -R "$GITHUB_REPOSITORY" -n kyoto-nov22-actual-market-originals-44983969532 -D market
+      - name: Verify canceled pairs never become numerical quotes
+        run: python -m diagnostics.kyoto_nov22_r5_cancellation_market_parser
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: kyoto-race5-real-canceled-market-proof-${{ github.run_id }}
+          path: market5_cancellation_proof/
+          retention-days: 90
+          if-no-files-found: warn
