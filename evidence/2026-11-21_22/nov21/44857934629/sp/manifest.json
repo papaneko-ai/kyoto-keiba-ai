@@ -1,0 +1,17 @@
+{
+  "ciphertext_sha256": "9469cc4a0036014cedfd5808db78f232d318c81b6e016c4ae3cb881c18ce63de",
+  "day": "20261121",
+  "encryption": "AES-256-GCM",
+  "file_names": [
+    "official_sp_discovery_1.html",
+    "receipt.json",
+    "source_verification.json",
+    "sp_all12_receipt.json",
+    "sp_discovery_receipt.json"
+  ],
+  "nonce_hex": "3f9703387e1461112ce5080b",
+  "plaintext_uploaded": false,
+  "repo": "papaneko-ai/kyoto-keiba-ai",
+  "run_id": "44857934629",
+  "schema": "kyoto_nov15_encrypted_artifact.v1"
+}
