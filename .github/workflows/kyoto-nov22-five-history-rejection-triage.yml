@@ -1,0 +1,31 @@
+name: Nov22 identify exact 5 profile history rejections and G05 missing fields
+on:
+  push:
+    branches: [fix/nov22-remaining-full-acquisition-evidence-20261122]
+    paths: ['.github/workflows/kyoto-nov22-five-history-rejection-triage.yml']
+permissions:
+  contents: read
+  actions: read
+jobs:
+  saved-results-only:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+        with: {persist-credentials: false}
+      - name: Inspect only actual independent prior-history and ground safe receipt
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p inspected
+          gh run download 44987362610 -R "$GITHUB_REPOSITORY" -n kyoto-nov22-185-real-history-track-44987362610 -D inspected
+          python - <<'PY'
+          import json
+          d=json.load(open("inspected/independent_actual_185_history_and_ground.json"))
+          for x in d["items"]:
+            if x["state"]!="OFFLINE_PRIOR_HISTORY_PARSED_SOURCE_NOT_PRERACE":
+              print("REJECTED_PROFILE",x["priority_index"],x["state"],x.get("reason","")[:140])
+          print("TRACK_FIELDS",json.dumps(d["track"],ensure_ascii=False,sort_keys=True)[:3500])
+          PY
