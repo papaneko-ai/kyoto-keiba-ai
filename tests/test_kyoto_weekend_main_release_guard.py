@@ -7,7 +7,7 @@ WF=Path(".github/workflows/kyoto-20261121-22-two-source-production-observer.yml"
 REG=Path("docs/diagnostics/KYOTO_20261116_INDEPENDENT_RELEASE_BLOCKERS.json")
 NOV21_PIN="de2544c1e9f9951a265419461267146b4023c2ab"
 NOV22_BASELINE_PIN="989aaba017c5450fed91b383421f5d2da53c6c69"
-NOV22_REVIEWED_PIN="5d25db562e36eb748f7d5b6ce58866f91b239952"
+NOV22_REVIEWED_PIN="2dce4f5fa9d0ce48e460a95664fe3207c7f95ba6"
 HISTORIC_APPROVED_PIN="c96df31542cb94435ca36cb4a1b8bd6de938233f"
 
 class SourceOnlyReleaseAcceptance(unittest.TestCase):
