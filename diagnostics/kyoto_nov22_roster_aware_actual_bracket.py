@@ -45,7 +45,7 @@ def independently_saved_frame_roster(raw):
         a=n.get_text(" ",strip=True)
         b=f.get_text(" ",strip=True)
         if not a.isascii() or not b.isascii() or not a.isdecimal() or not b.isdecimal():
-            raise ValueError("INVALID_FRAME_DIGITS")
+            raise ValueError("INVALID_FRAME_DIGITS:num="+repr(a[:30])+" frame="+repr(b[:30]))
         rows.append((int(a),int(b)))
     if not 2<=len(rows)<=18 or [n for n,f in rows]!=list(range(1,len(rows)+1)):
         raise ValueError("ROSTER_NUMBER_SEQUENCE_UNVERIFIED")
