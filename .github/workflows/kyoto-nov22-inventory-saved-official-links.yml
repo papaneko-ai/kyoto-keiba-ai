@@ -1,0 +1,44 @@
+name: Nov22 saved official JRA source links inventory zero HTTP
+on:
+  push:
+    branches: [diagnostic/nov22-direct-official-source-encrypted-20261122]
+    paths:
+      - 'diagnostics/kyoto_nov22_direct_navigation_from_probe.py'
+      - '.github/workflows/kyoto-nov22-inventory-saved-official-links.yml'
+permissions:
+  contents: read
+  actions: read
+jobs:
+  inventory-original-links:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    env:
+      GH_TOKEN: ${{ github.token }}
+      KYOTO_JRA_ARCHIVE_AES256_HEX: ${{ secrets.KYOTO_JRA_ARCHIVE_AES256_HEX }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install 'beautifulsoup4>=4.12,<5' 'cryptography>=43,<47'
+      - name: Fetch only known prior protected encrypted JRA 1R source artifact
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p nov22_saved_originals
+          gh run download 44965785992 --repo "$GITHUB_REPOSITORY" --name kyoto-nov22-direct-official-r1-encrypted-44965785992 --dir nov22_saved_originals
+      - name: Decrypt private original, list exact observed 12R anchors without GET
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m diagnostics.kyoto_nov22_direct_navigation_from_probe
+      - name: Retain metadata and exact public official anchor URLs, never raw HTML
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: kyoto-nov22-observed-official-links-${{ github.run_id }}
+          path: nov22_navigation_inventory/
+          if-no-files-found: warn
+          retention-days: 30
