@@ -1,0 +1,104 @@
+{
+  "ciphertext_only": true,
+  "day": "20261122",
+  "files": [
+    {
+      "chunks": [
+        {
+          "path": "evidence/2026-11-21_22/nov22/horse_profiles/horse_profiles.tar.gz.aesgcm.chunk000",
+          "sha256": "506faed498bf33a2057edd195aa416aa9412dae599f9de2a1c636468b7d32e65",
+          "size": 524288
+        },
+        {
+          "path": "evidence/2026-11-21_22/nov22/horse_profiles/horse_profiles.tar.gz.aesgcm.chunk001",
+          "sha256": "da62edbfadc9c1112bfcbc01978058d3e0a7f779d2365c92b03a650e6eac627c",
+          "size": 524288
+        },
+        {
+          "path": "evidence/2026-11-21_22/nov22/horse_profiles/horse_profiles.tar.gz.aesgcm.chunk002",
+          "sha256": "90cdfcd6f2c43a60ce3de734d8312baa5b56f8376d6bffcfdf6b51de5ee594f7",
+          "size": 524288
+        },
+        {
+          "path": "evidence/2026-11-21_22/nov22/horse_profiles/horse_profiles.tar.gz.aesgcm.chunk003",
+          "sha256": "5318c99e774e8f6de58747c8baf7e792e3e0c2b5720e26d69c9d7d8127e16cf4",
+          "size": 524288
+        },
+        {
+          "path": "evidence/2026-11-21_22/nov22/horse_profiles/horse_profiles.tar.gz.aesgcm.chunk004",
+          "sha256": "e1d5358f4193a5b32b56be696c0c172fbb51be195d0a8152fa762463e97aa978",
+          "size": 313992
+        }
+      ],
+      "file": "evidence/2026-11-21_22/nov22/horse_profiles/horse_profiles.tar.gz.aesgcm",
+      "original_sha256": "d82799e46b629de831ea61d227deeb3847917f6726a77d4a7e8234bf7c66d036",
+      "original_size": 2411144
+    },
+    {
+      "chunks": [
+        {
+          "path": "evidence/2026-11-21_22/nov22/horse_profiles/ciphertext_sha256.txt.chunk000",
+          "sha256": "4e737e640e2fe158050f2bc693681b996885d8a183b6ba95c948d9bbb9a08be7",
+          "size": 65
+        }
+      ],
+      "file": "evidence/2026-11-21_22/nov22/horse_profiles/ciphertext_sha256.txt",
+      "original_sha256": "4e737e640e2fe158050f2bc693681b996885d8a183b6ba95c948d9bbb9a08be7",
+      "original_size": 65
+    },
+    {
+      "chunks": [
+        {
+          "path": "evidence/2026-11-21_22/nov22/horse_profiles/safe_profile_receipt.json.chunk000",
+          "sha256": "863577fc5ed91aac660b5624e69a01332008ade698ba464d481b27bef25138a0",
+          "size": 116108
+        }
+      ],
+      "file": "evidence/2026-11-21_22/nov22/horse_profiles/safe_profile_receipt.json",
+      "original_sha256": "863577fc5ed91aac660b5624e69a01332008ade698ba464d481b27bef25138a0",
+      "original_size": 116108
+    },
+    {
+      "chunks": [
+        {
+          "path": "evidence/2026-11-21_22/nov22/track/ground_original.tar.gz.aesgcm.chunk000",
+          "sha256": "567f887d3f04c5fa9081416da88ffed0488b1bd31dc583e3a6dbfe02f321876e",
+          "size": 12463
+        }
+      ],
+      "file": "evidence/2026-11-21_22/nov22/track/ground_original.tar.gz.aesgcm",
+      "original_sha256": "567f887d3f04c5fa9081416da88ffed0488b1bd31dc583e3a6dbfe02f321876e",
+      "original_size": 12463
+    },
+    {
+      "chunks": [
+        {
+          "path": "evidence/2026-11-21_22/nov22/track/source_sha256.txt.chunk000",
+          "sha256": "30432a8d385c4e548a2eee4f1ddd54ca2a31ae1ef84e5b5e0f5e689290244411",
+          "size": 65
+        }
+      ],
+      "file": "evidence/2026-11-21_22/nov22/track/source_sha256.txt",
+      "original_sha256": "30432a8d385c4e548a2eee4f1ddd54ca2a31ae1ef84e5b5e0f5e689290244411",
+      "original_size": 65
+    },
+    {
+      "chunks": [
+        {
+          "path": "evidence/2026-11-21_22/nov22/track/safe_track_receipt.json.chunk000",
+          "sha256": "e7fd8001a44a80ec7cf45f1b55b0e1386d8fba163d52674317b723f84ad058a1",
+          "size": 468
+        }
+      ],
+      "file": "evidence/2026-11-21_22/nov22/track/safe_track_receipt.json",
+      "original_sha256": "e7fd8001a44a80ec7cf45f1b55b0e1386d8fba163d52674317b723f84ad058a1",
+      "original_size": 468
+    }
+  ],
+  "horse_history_fields_verified": false,
+  "profile_count_claim_source_only": 185,
+  "profile_run": 44984067104,
+  "schema": "kyoto_nov22_profile_track_recoverable_chunks.v1",
+  "track_fields_verified": false,
+  "track_run": 44984408658
+}
