@@ -1,0 +1,37 @@
+name: Nov22 genuine official result payout navigation from saved originals
+on:
+  push:
+    branches: [fix/nov22-remaining-full-acquisition-evidence-20261122]
+    paths:
+      - 'diagnostics/kyoto_nov22_official_result_payout_navigation.py'
+      - '.github/workflows/kyoto-nov22-result-payout-navigation-audit.yml'
+permissions:
+  contents: read
+  actions: read
+jobs:
+  actual-navigation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      GH_TOKEN: ${{ github.token }}
+      KYOTO_JRA_ARCHIVE_AES256_HEX: ${{ secrets.KYOTO_JRA_ARCHIVE_AES256_HEX }}
+    steps:
+      - uses: actions/checkout@v4
+        with: {persist-credentials: false}
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.11'}
+      - run: python -m pip install 'beautifulsoup4>=4.12,<5' 'cryptography>=43,<47'
+      - name: Load already validated raw actual original and inspect navigation, no network
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p nov22_all12_source
+          gh run download 44966013490 -R "$GITHUB_REPOSITORY" -n kyoto-nov22-real-observed-all12-encrypted-44966013490 -D nov22_all12_source
+          python -m diagnostics.kyoto_nov22_official_result_payout_navigation
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: nov22-observed-official-result-payout-links-${{ github.run_id }}
+          path: postrace_anchor_audit/
+          retention-days: 90
+          if-no-files-found: warn
