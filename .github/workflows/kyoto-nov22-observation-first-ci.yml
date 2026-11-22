@@ -1,0 +1,23 @@
+name: Nov22 observation first with hard provenance and AES guards
+on:
+  push:
+    branches: [fix/nov22-observation-first-nonblocking-regression-20261122]
+  pull_request:
+    paths:
+      - '.github/workflows/kyoto-20261121-22-two-source-production-observer.yml'
+      - 'tests/test_kyoto_nov22_observation_first_contract.py'
+permissions:
+  contents: read
+jobs:
+  source-first:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Ensure only advisory synthetic checks nonblocking, original hard source guards intact
+        run: python -m unittest -v tests.test_kyoto_nov22_observation_first_contract tests.test_kyoto_nov22_recover_live_capture_preflight tests.test_kyoto_weekend_main_release_guard
