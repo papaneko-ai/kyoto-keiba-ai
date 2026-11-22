@@ -108,7 +108,7 @@
       "test_file": "tests/test_kyoto_weekend_sp_discovery.py",
       "test": "test_adversarial_host_ignored",
       "source_file": "diagnostics/kyoto_weekend_sp_discovery.py",
-      "source_token": "u.hostname!=\"sp.jra.jp\"",
+      "source_token": "u.hostname not in (\"sp.jra.jp\",\"app.jra.jp\")",
       "classification": "evidenced_by_executable_test"
     },
     {
