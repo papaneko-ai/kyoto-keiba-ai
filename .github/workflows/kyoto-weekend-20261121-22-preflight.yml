@@ -1,7 +1,7 @@
 name: Kyoto Nov21-22 capture release preflight no official HTTP
 on:
   push:
-    branches: [jra-html-diagnostic-20261105, fix/nov22-frozen-sp-real-anchor-source-20261122]
+    branches: [jra-html-diagnostic-20261105, fix/nov22-frozen-sp-real-anchor-source-20261122, fix/nov22-sp-reuse-saved-real-r1-20261122]
     paths:
       - 'diagnostics/kyoto_weekend_capture.py'
       - 'tests/test_kyoto_weekend_capture.py'
