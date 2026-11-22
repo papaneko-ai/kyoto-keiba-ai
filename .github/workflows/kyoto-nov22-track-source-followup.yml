@@ -1,0 +1,52 @@
+name: Nov22 Kyoto official track source HTML follow-up after profile acquisition
+on:
+  push:
+    branches: [capture/nov22-remaining-races-real-market-originals-20261122]
+    paths:
+      - 'diagnostics/kyoto_nov22_track_source_followup.py'
+      - '.github/workflows/kyoto-nov22-track-source-followup.yml'
+permissions:
+  contents: read
+  actions: read
+jobs:
+  one-ground-official-original-after-profile:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      GH_TOKEN: ${{ github.token }}
+      KYOTO_JRA_ARCHIVE_AES256_HEX: ${{ secrets.KYOTO_JRA_ARCHIVE_AES256_HEX }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install 'cryptography>=43,<47'
+      - name: Wait until prior exact original profile fetch completes to prevent overlapping JRA requests
+        shell: bash
+        run: |
+          set -euo pipefail
+          for attempt in $(seq 1 110); do
+            status="$(gh run view 44984067104 --repo "$GITHUB_REPOSITORY" --json status --jq .status)"
+            if [ "$status" = completed ]; then
+              echo NO_OVERLAPPING_JRA_HTTP
+              exit 0
+            fi
+            sleep 8
+          done
+          echo PREVIOUS_PROFILE_JOB_STILL_ACTIVE
+          exit 1
+      - name: Read Kyoto actual official ground page once and preserve SHA UTC AES source
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m diagnostics.kyoto_nov22_track_source_followup
+      - name: Retain ciphertext and independently reproducible safe track metadata only
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: kyoto-nov22-real-ground-official-source-${{ github.run_id }}
+          path: nov22_track/sealed/
+          retention-days: 30
+          if-no-files-found: warn
