@@ -1,0 +1,52 @@
+name: Nov22 frozen G03 parser replay on real observed 12R originals
+on:
+  push:
+    branches: [diagnostic/nov22-direct-official-source-encrypted-20261122]
+    paths:
+      - 'diagnostics/kyoto_nov22_replay_frozen_g03.py'
+      - '.github/workflows/kyoto-nov22-frozen-g03-real-source-replay.yml'
+permissions:
+  contents: read
+  actions: read
+jobs:
+  existing-parser-vs-real-sources:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    env:
+      GH_TOKEN: ${{ github.token }}
+      KYOTO_JRA_ARCHIVE_AES256_HEX: ${{ secrets.KYOTO_JRA_ARCHIVE_AES256_HEX }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: diagnostic/nov22-direct-official-source-encrypted-20261122
+          path: rescue
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          ref: 2dce4f5fa9d0ce48e460a95664fe3207c7f95ba6
+          path: frozen
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install 'beautifulsoup4>=4.12,<5' 'cryptography>=43,<47'
+      - name: Download actual encrypted pre-race raw 12R originals
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p frozen/nov22_all12_source
+          gh run download 44966013490 --repo "$GITHUB_REPOSITORY" --name kyoto-nov22-real-observed-all12-encrypted-44966013490 --dir frozen/nov22_all12_source
+      - name: Execute existing frozen G03 racecard/horse validation on actual source bytes
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd frozen
+          PYTHONPATH=. python ../rescue/diagnostics/kyoto_nov22_replay_frozen_g03.py
+      - name: Keep only safe parser success or rejected error classes
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: kyoto-nov22-real-g03-parser-${{ github.run_id }}
+          path: frozen/nov22_frozen_g03_replay/
+          if-no-files-found: warn
+          retention-days: 30
