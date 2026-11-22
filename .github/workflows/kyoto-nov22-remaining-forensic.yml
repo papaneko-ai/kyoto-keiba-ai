@@ -1,0 +1,41 @@
+name: Nov22 root-cause forensic saved originals three missing families zero JRA
+on:
+  push:
+    branches: [fix/nov22-remaining-full-acquisition-evidence-20261122]
+    paths:
+      - 'diagnostics/kyoto_nov22_real_remaining_forensic.py'
+      - '.github/workflows/kyoto-nov22-remaining-forensic.yml'
+permissions:
+  contents: read
+  actions: read
+jobs:
+  source-forensics:
+    runs-on: ubuntu-latest
+    timeout-minutes: 7
+    env:
+      GH_TOKEN: ${{ github.token }}
+      KYOTO_JRA_ARCHIVE_AES256_HEX: ${{ secrets.KYOTO_JRA_ARCHIVE_AES256_HEX }}
+    steps:
+      - uses: actions/checkout@v4
+        with: {persist-credentials: false}
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.11'}
+      - run: python -m pip install 'beautifulsoup4>=4.12,<5' 'cryptography>=43,<47'
+      - name: Reopen actual encrypted JRA receipts already captured, never refetch
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p nov22_input/market nov22_input/profiles nov22_input/track
+          gh run download 44983969532 -R "$GITHUB_REPOSITORY" -n kyoto-nov22-actual-market-originals-44983969532 -D nov22_input/market
+          gh run download 44984067104 -R "$GITHUB_REPOSITORY" -n kyoto-nov22-observed-horse-profiles-44984067104 -D nov22_input/profiles
+          gh run download 44984408658 -R "$GITHUB_REPOSITORY" -n kyoto-nov22-real-ground-official-source-44984408658 -D nov22_input/track
+      - name: Inspect actual 5R tokens, profile structure and Kyoto track source markers
+        run: python -m diagnostics.kyoto_nov22_real_remaining_forensic
+      - name: Preserve minimal evidence-only diagnostic
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: nov22-forensic-source-layout-${{ github.run_id }}
+          path: nov22_forensic/
+          retention-days: 90
+          if-no-files-found: warn
