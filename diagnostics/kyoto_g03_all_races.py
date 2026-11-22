@@ -121,7 +121,7 @@ def parse(raw, day, race, url, utc):
     if len(times)!=1: raise G03Error("start_time_not_proven")
     hh,mm=next(iter(times))
     return {"local_race_key":f"KYOTO:{day}:{race:02d}","official_race_id_verified":False,"race":race,
-            "start_time_jst":f"{int(hh):02d}:{mm}","runner_count":len(horses),"runners":horses,
+            "start_time_jst":f"{hh:02d}:{mm:02d}","runner_count":len(horses),"runners":horses,
             "url":url,"sha256":hashlib.sha256(raw).hexdigest(),"bytes":len(raw),"utc":utc}
 
 def audit(day, meeting_original, meeting_url, fetch, utc, output):
