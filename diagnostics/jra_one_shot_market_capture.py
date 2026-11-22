@@ -285,8 +285,10 @@ def observed_next_market_action(raw, channel, spec, *, step):
     return next(iter(candidates))
 
 def http_fetch(opener,channel,path,*,cname=None,referer=None,pacer=None):
-    host="jra.jp" if channel=="PC" else "sp.jra.jp"
     u=urlsplit(path)
+    host="jra.jp" if channel=="PC" else u.hostname
+    if channel=="SP" and host not in ("sp.jra.jp","app.jra.jp"):
+        raise SourceChainError("invalid_target_origin")
     if (u.scheme!="https" or u.hostname!=host or u.port is not None
         or u.username or u.password or u.fragment
         or u.path not in ("/JRADB/accessD.html","/JRADB/accessO.html")
