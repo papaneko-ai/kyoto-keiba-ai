@@ -66,5 +66,6 @@ def main():
     print("REAL_NOV22_G03_RACES_PARSED="+str(proven)+"/12")
     print("G03_SOURCE_REPLAY_RESULT="+json.dumps({
         k:v["state"] for k,v in out["races"].items()},sort_keys=True))
+    print("G03_PARSER_REJECTION_REASONS="+json.dumps({k:v.get("reason","") for k,v in out["races"].items() if v["state"]=="G03_SOURCE_PARSER_REJECTED"},sort_keys=True))
     print("NO_JRA_HTTP;MARKET_PRICES_UNVERIFIED")
 if __name__=="__main__":main()
