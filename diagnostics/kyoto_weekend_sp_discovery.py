@@ -21,7 +21,7 @@ SEED = "https://sp.jra.jp/"
 # JRA SP actual Kyoto R1 2026-11-22 official URL independently observed.
 # This is a single navigation seed, NOT synthesized race URLs or 12R proof.
 OFFICIAL_OBSERVED_NOV22_R1 = (
-    "https://sp.jra.jp/JRADB/accessD.html?"
+    "https://app.jra.jp/JRADB/accessD.html?"
     "CNAME=sw01dde0108202605060120261122%2F90"
 )
 LIMIT = 1_500_000
@@ -47,7 +47,7 @@ def official_sp_anchors(raw, parent, day):
             continue
         url=urljoin(parent,href)
         u=urlsplit(url)
-        if (u.scheme!="https" or u.hostname!="sp.jra.jp" or u.port is not None
+        if (u.scheme!="https" or u.hostname not in ("sp.jra.jp","app.jra.jp") or u.port is not None
             or u.username or u.password or u.fragment
             or u.path!="/JRADB/accessD.html"):
             continue
