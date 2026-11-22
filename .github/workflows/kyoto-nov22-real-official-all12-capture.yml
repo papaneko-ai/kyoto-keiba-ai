@@ -1,0 +1,50 @@
+name: Nov22 real official 12R observed-anchor PC-first SP-fallback encrypted capture
+on:
+  push:
+    branches: [diagnostic/nov22-direct-official-source-encrypted-20261122]
+    paths:
+      - 'diagnostics/kyoto_nov22_direct_all12_official_capture.py'
+      - '.github/workflows/kyoto-nov22-real-official-all12-capture.yml'
+permissions:
+  contents: read
+  actions: read
+jobs:
+  actual-same-day-source-capture:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    env:
+      GH_TOKEN: ${{ github.token }}
+      KYOTO_JRA_ARCHIVE_AES256_HEX: ${{ secrets.KYOTO_JRA_ARCHIVE_AES256_HEX }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install 'beautifulsoup4>=4.12,<5' 'cryptography>=43,<47'
+      - name: Retrieve separately authenticated earlier encrypted real 1R originals
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p nov22_saved_originals
+          gh run download 44965785992 --repo "$GITHUB_REPOSITORY" --name kyoto-nov22-direct-official-r1-encrypted-44965785992 --dir nov22_saved_originals
+      - name: Retrieve exact observed 1-12R JRA official links independently extracted from originals
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p nov22_saved_links
+          gh run download 44965887524 --repo "$GITHUB_REPOSITORY" --name kyoto-nov22-observed-official-links-44965887524 --dir nov22_saved_links
+      - name: Capture 12 real official racecard HTML sources; PC first, SP fallback, SHA/UTC and AES
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m diagnostics.kyoto_nov22_direct_all12_official_capture
+      - name: Retain ciphertext and metadata only; never original plaintext
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: kyoto-nov22-real-observed-all12-encrypted-${{ github.run_id }}
+          path: nov22_all12_capture/sealed/
+          if-no-files-found: warn
+          retention-days: 30
