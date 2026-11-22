@@ -198,7 +198,7 @@ def _capture_sp_observed_markets(root, opener, racecard, referer,
             receipt["network_requests_started"]+=1
             page=http_fetch(opener,"SP",item["official_post_url"],
                             cname=item["cname"],
-                            referer="https://sp.jra.jp/JRADB/accessO.html",
+                            referer=f"https://{source_host}/JRADB/accessO.html",
                             pacer=pacer)
             (root/f"official_sp_{market}_odds.html").write_bytes(page["raw"])
             receipt[f"sp_{market}_sha256"]=page["sha256"]
