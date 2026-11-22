@@ -1,0 +1,263 @@
+{
+  "all_twelve_rosters_parsed": false,
+  "both_markets_verified": false,
+  "day": "20261122",
+  "prediction_ready": false,
+  "races": {
+    "1": {
+      "PC": {
+        "bytes": 148993,
+        "captured_at_utc": "2026-11-22T00:16:21.242955+00:00",
+        "channel": "PC",
+        "identity_hints": {
+          "has_horse_name_label": true,
+          "has_horse_number_label": true,
+          "same_day_kyoto_race_heading": true
+        },
+        "observed_official_url": "https://jra.jp/JRADB/accessD.html?CNAME=pw01dde0108202605060120261122/03",
+        "race": 1,
+        "reused_existing_original": true,
+        "sha256": "a6c4eb195f50d66c413c49ab00e9322439b7474b2e2aa1c857ca59ab1d8b9448",
+        "state": "REAL_OFFICIAL_ORIGINAL_SAVED_ROSTER_NOT_AUTHENTICATED"
+      },
+      "SP": {
+        "bytes": 47890,
+        "captured_at_utc": "2026-11-22T00:16:24.006840+00:00",
+        "channel": "SP",
+        "identity_hints": {
+          "has_horse_name_label": true,
+          "has_horse_number_label": true,
+          "same_day_kyoto_race_heading": true
+        },
+        "observed_official_url": "https://app.jra.jp/JRADB/accessD.html?CNAME=sw01dde0108202605060120261122/90",
+        "race": 1,
+        "reused_existing_original": true,
+        "sha256": "e512f210c012f016d301455e2c717542bfd86fcd88171a0a70923b942b98dfaf",
+        "state": "REAL_OFFICIAL_ORIGINAL_SAVED_ROSTER_NOT_AUTHENTICATED"
+      }
+    },
+    "10": {
+      "PC": {
+        "bytes": 216434,
+        "captured_at_utc": "2026-11-22T00:19:21.273724+00:00",
+        "channel": "PC",
+        "identity_hints": {
+          "has_horse_name_label": true,
+          "has_horse_number_label": true,
+          "same_day_kyoto_race_heading": true
+        },
+        "observed_official_url": "https://jra.jp/JRADB/accessD.html?CNAME=pw01dde0108202605061020261122/A0",
+        "race": 10,
+        "reused_existing_original": false,
+        "sha256": "aff05101e9ef71fca9be650909daed5046ba18142b3cdcd47b8b355ae6a8bb48",
+        "state": "REAL_OFFICIAL_ORIGINAL_SAVED_ROSTER_NOT_AUTHENTICATED"
+      },
+      "SP": {
+        "state": "PC_OFFICIAL_SOURCE_PRESENT_SP_DUPLICATE_NOT_NEEDED"
+      }
+    },
+    "11": {
+      "PC": {
+        "bytes": 257139,
+        "captured_at_utc": "2026-11-22T00:19:23.340969+00:00",
+        "channel": "PC",
+        "identity_hints": {
+          "has_horse_name_label": true,
+          "has_horse_number_label": true,
+          "same_day_kyoto_race_heading": true
+        },
+        "observed_official_url": "https://jra.jp/JRADB/accessD.html?CNAME=pw01dde0108202605061120261122/55",
+        "race": 11,
+        "reused_existing_original": false,
+        "sha256": "7c6dfbf64b679438602ee052d2db7b53a9fec15f156a327908dd3b9e3a16d68b",
+        "state": "REAL_OFFICIAL_ORIGINAL_SAVED_ROSTER_NOT_AUTHENTICATED"
+      },
+      "SP": {
+        "state": "PC_OFFICIAL_SOURCE_PRESENT_SP_DUPLICATE_NOT_NEEDED"
+      }
+    },
+    "12": {
+      "PC": {
+        "bytes": 200177,
+        "captured_at_utc": "2026-11-22T00:19:25.414233+00:00",
+        "channel": "PC",
+        "identity_hints": {
+          "has_horse_name_label": true,
+          "has_horse_number_label": true,
+          "same_day_kyoto_race_heading": true
+        },
+        "observed_official_url": "https://jra.jp/JRADB/accessD.html?CNAME=pw01dde0108202605061220261122/0A",
+        "race": 12,
+        "reused_existing_original": false,
+        "sha256": "fa34bdba9f6592ebc602c66e372eb28b6ac423f8b0fb6e97ac9ba274ac29f1df",
+        "state": "REAL_OFFICIAL_ORIGINAL_SAVED_ROSTER_NOT_AUTHENTICATED"
+      },
+      "SP": {
+        "state": "PC_OFFICIAL_SOURCE_PRESENT_SP_DUPLICATE_NOT_NEEDED"
+      }
+    },
+    "2": {
+      "PC": {
+        "bytes": 160633,
+        "captured_at_utc": "2026-11-22T00:19:05.361329+00:00",
+        "channel": "PC",
+        "identity_hints": {
+          "has_horse_name_label": true,
+          "has_horse_number_label": true,
+          "same_day_kyoto_race_heading": true
+        },
+        "observed_official_url": "https://jra.jp/JRADB/accessD.html?CNAME=pw01dde0108202605060220261122/B8",
+        "race": 2,
+        "reused_existing_original": false,
+        "sha256": "504fbfea8836c3046486fe4267d3c0ac65ab24b9198f41131ff034569b709da0",
+        "state": "REAL_OFFICIAL_ORIGINAL_SAVED_ROSTER_NOT_AUTHENTICATED"
+      },
+      "SP": {
+        "state": "PC_OFFICIAL_SOURCE_PRESENT_SP_DUPLICATE_NOT_NEEDED"
+      }
+    },
+    "3": {
+      "PC": {
+        "bytes": 135857,
+        "captured_at_utc": "2026-11-22T00:19:07.283257+00:00",
+        "channel": "PC",
+        "identity_hints": {
+          "has_horse_name_label": true,
+          "has_horse_number_label": true,
+          "same_day_kyoto_race_heading": true
+        },
+        "observed_official_url": "https://jra.jp/JRADB/accessD.html?CNAME=pw01dde0108202605060320261122/6D",
+        "race": 3,
+        "reused_existing_original": false,
+        "sha256": "3c10340938b8988322fed798a9a5e39eeb5485c9eb6bc9af0782c5a4ffb95cad",
+        "state": "REAL_OFFICIAL_ORIGINAL_SAVED_ROSTER_NOT_AUTHENTICATED"
+      },
+      "SP": {
+        "state": "PC_OFFICIAL_SOURCE_PRESENT_SP_DUPLICATE_NOT_NEEDED"
+      }
+    },
+    "4": {
+      "PC": {
+        "bytes": 117560,
+        "captured_at_utc": "2026-11-22T00:19:09.378344+00:00",
+        "channel": "PC",
+        "identity_hints": {
+          "has_horse_name_label": true,
+          "has_horse_number_label": true,
+          "same_day_kyoto_race_heading": true
+        },
+        "observed_official_url": "https://jra.jp/JRADB/accessD.html?CNAME=pw01dde0108202605060420261122/22",
+        "race": 4,
+        "reused_existing_original": false,
+        "sha256": "e6fdccc166159c646f11b8ed2e12df4d74cf7bd16b41fd9ef70e72fdafc2ce55",
+        "state": "REAL_OFFICIAL_ORIGINAL_SAVED_ROSTER_NOT_AUTHENTICATED"
+      },
+      "SP": {
+        "state": "PC_OFFICIAL_SOURCE_PRESENT_SP_DUPLICATE_NOT_NEEDED"
+      }
+    },
+    "5": {
+      "PC": {
+        "bytes": 124343,
+        "captured_at_utc": "2026-11-22T00:19:11.131735+00:00",
+        "channel": "PC",
+        "identity_hints": {
+          "has_horse_name_label": true,
+          "has_horse_number_label": true,
+          "same_day_kyoto_race_heading": true
+        },
+        "observed_official_url": "https://jra.jp/JRADB/accessD.html?CNAME=pw01dde0108202605060520261122/D7",
+        "race": 5,
+        "reused_existing_original": false,
+        "sha256": "7b6a07a3a3536ba388c327145e3f9990092ff6b29f1861a55e5cbf297e5d0b45",
+        "state": "REAL_OFFICIAL_ORIGINAL_SAVED_ROSTER_NOT_AUTHENTICATED"
+      },
+      "SP": {
+        "state": "PC_OFFICIAL_SOURCE_PRESENT_SP_DUPLICATE_NOT_NEEDED"
+      }
+    },
+    "6": {
+      "PC": {
+        "bytes": 226869,
+        "captured_at_utc": "2026-11-22T00:19:13.475064+00:00",
+        "channel": "PC",
+        "identity_hints": {
+          "has_horse_name_label": true,
+          "has_horse_number_label": true,
+          "same_day_kyoto_race_heading": true
+        },
+        "observed_official_url": "https://jra.jp/JRADB/accessD.html?CNAME=pw01dde0108202605060620261122/8C",
+        "race": 6,
+        "reused_existing_original": false,
+        "sha256": "dde76ecc51ee571824b5bf99afd653791fb9cca07f6004af5625fe5fe058d115",
+        "state": "REAL_OFFICIAL_ORIGINAL_SAVED_ROSTER_NOT_AUTHENTICATED"
+      },
+      "SP": {
+        "state": "PC_OFFICIAL_SOURCE_PRESENT_SP_DUPLICATE_NOT_NEEDED"
+      }
+    },
+    "7": {
+      "PC": {
+        "bytes": 243003,
+        "captured_at_utc": "2026-11-22T00:19:15.422002+00:00",
+        "channel": "PC",
+        "identity_hints": {
+          "has_horse_name_label": true,
+          "has_horse_number_label": true,
+          "same_day_kyoto_race_heading": true
+        },
+        "observed_official_url": "https://jra.jp/JRADB/accessD.html?CNAME=pw01dde0108202605060720261122/41",
+        "race": 7,
+        "reused_existing_original": false,
+        "sha256": "4764c74a464e42d69e4fffa0ad3b5dff03042bb065a44559c3338f6e2c3d212f",
+        "state": "REAL_OFFICIAL_ORIGINAL_SAVED_ROSTER_NOT_AUTHENTICATED"
+      },
+      "SP": {
+        "state": "PC_OFFICIAL_SOURCE_PRESENT_SP_DUPLICATE_NOT_NEEDED"
+      }
+    },
+    "8": {
+      "PC": {
+        "bytes": 172811,
+        "captured_at_utc": "2026-11-22T00:19:17.240905+00:00",
+        "channel": "PC",
+        "identity_hints": {
+          "has_horse_name_label": true,
+          "has_horse_number_label": true,
+          "same_day_kyoto_race_heading": true
+        },
+        "observed_official_url": "https://jra.jp/JRADB/accessD.html?CNAME=pw01dde0108202605060820261122/F6",
+        "race": 8,
+        "reused_existing_original": false,
+        "sha256": "8e79afc2902f325dad6afb99e2c3e6b4ec3eacb2310ca323a388de9267d4963f",
+        "state": "REAL_OFFICIAL_ORIGINAL_SAVED_ROSTER_NOT_AUTHENTICATED"
+      },
+      "SP": {
+        "state": "PC_OFFICIAL_SOURCE_PRESENT_SP_DUPLICATE_NOT_NEEDED"
+      }
+    },
+    "9": {
+      "PC": {
+        "bytes": 211289,
+        "captured_at_utc": "2026-11-22T00:19:19.389488+00:00",
+        "channel": "PC",
+        "identity_hints": {
+          "has_horse_name_label": true,
+          "has_horse_number_label": true,
+          "same_day_kyoto_race_heading": true
+        },
+        "observed_official_url": "https://jra.jp/JRADB/accessD.html?CNAME=pw01dde0108202605060920261122/AB",
+        "race": 9,
+        "reused_existing_original": false,
+        "sha256": "2a88d4ae3eb2de644f651b4916729cc42f3b33c03475c4a56c4e9c589626705e",
+        "state": "REAL_OFFICIAL_ORIGINAL_SAVED_ROSTER_NOT_AUTHENTICATED"
+      },
+      "SP": {
+        "state": "PC_OFFICIAL_SOURCE_PRESENT_SP_DUPLICATE_NOT_NEEDED"
+      }
+    }
+  },
+  "schema": "kyoto_nov22_observed_official_all12.v1",
+  "source_only": true,
+  "venue": "KYOTO"
+}
