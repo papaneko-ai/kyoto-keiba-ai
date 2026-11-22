@@ -4,7 +4,7 @@ from datetime import datetime,date,timezone
 from diagnostics.jra_prior_form_offline import parse_horse_history
 def raw(name):
     return ('<html><span class="txt"><span class="opt">競走馬情報</span>'
-            +name+'</span><p>出走履歴</p></html>').encode('utf8')
+            +name+'</span><p>出走履歴</p></html>').encode('cp932')
 def run(name,expected):
     return parse_horse_history(raw(name),
         source_url='https://jra.jp/JRADB/accessU.html?CNAME=pw0100000000/10',
