@@ -115,8 +115,8 @@ def parse(raw, day, race, url, utc):
     # older historical pages use 10:05. Both must independently bind
     # exactly ONE same-race start; do not accept ambiguity or inference.
     text=soup.get_text(" ",strip=True)
-    colon=re.findall(r"発走(?:予定)?(?:時刻)?\\s*[:：]?\\s*([01]?\\d|2[0-3]):([0-5]\\d)",text)
-    japanese=re.findall(r"発走(?:予定)?(?:時刻)?\\s*[:：]?\\s*([01]?\\d|2[0-3])\\s*時\\s*([0-5]?\\d)\\s*分",text)
+    colon=re.findall(r"発走(?:予定)?(?:時刻)?\s*[:：]?\s*([01]?\d|2[0-3]):([0-5]\d)",text)
+    japanese=re.findall(r"発走(?:予定)?(?:時刻)?\s*[:：]?\s*([01]?\d|2[0-3])\s*時\s*([0-5]?\d)\s*分",text)
     times={(int(h),int(m)) for h,m in colon+japanese}
     if len(times)!=1: raise G03Error("start_time_not_proven")
     hh,mm=next(iter(times))
