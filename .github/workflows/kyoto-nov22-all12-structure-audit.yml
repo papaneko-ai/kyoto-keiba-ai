@@ -1,0 +1,44 @@
+name: Nov22 actual 12R JRA HTML structure source/odds audit offline
+on:
+  push:
+    branches: [diagnostic/nov22-direct-official-source-encrypted-20261122]
+    paths:
+      - 'diagnostics/kyoto_nov22_offline_source_structure_audit.py'
+      - '.github/workflows/kyoto-nov22-all12-structure-audit.yml'
+permissions:
+  contents: read
+  actions: read
+jobs:
+  actual-source-structure:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    env:
+      GH_TOKEN: ${{ github.token }}
+      KYOTO_JRA_ARCHIVE_AES256_HEX: ${{ secrets.KYOTO_JRA_ARCHIVE_AES256_HEX }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install 'beautifulsoup4>=4.12,<5' 'cryptography>=43,<47'
+      - name: Retrieve prior independently encrypted exact source artifact
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p nov22_all12_source
+          gh run download 44966013490 --repo "$GITHUB_REPOSITORY" --name kyoto-nov22-real-observed-all12-encrypted-44966013490 --dir nov22_all12_source
+      - name: Offline actual 12R per-race SHA/UTC and real HTML structure audit
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m diagnostics.kyoto_nov22_offline_source_structure_audit
+      - name: Retain only SHA/UTC and safe structured candidate counts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: kyoto-nov22-source-structure-${{ github.run_id }}
+          path: nov22_all12_analysis/
+          if-no-files-found: warn
+          retention-days: 30
