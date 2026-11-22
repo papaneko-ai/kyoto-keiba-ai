@@ -1,0 +1,2002 @@
+{
+  "approval_required_for_new_collector": true,
+  "automated_repair_state": "RECEIPT_GENERATED_NO_CODE_MUTATION",
+  "content_sha256": "392a35f3f2c80d8d911b0f63ddb318bc4b17a2f42317656887ce6077eb0a70bc",
+  "counts": {
+    "bracket_quinella_odds": {
+      "ATTEMPT_FAILED": 0,
+      "CONFLICT": 0,
+      "NOT_APPLICABLE": 0,
+      "ORIGINAL_VERIFIED": 0,
+      "RAW_SAVED_UNVERIFIED": 0,
+      "STRUCTURED_VERIFIED": 0,
+      "UNOBSERVED": 12
+    },
+    "horse_profile": {
+      "ATTEMPT_FAILED": 0,
+      "CONFLICT": 0,
+      "NOT_APPLICABLE": 0,
+      "ORIGINAL_VERIFIED": 0,
+      "RAW_SAVED_UNVERIFIED": 0,
+      "STRUCTURED_VERIFIED": 0,
+      "UNOBSERVED": 12
+    },
+    "official_payout": {
+      "ATTEMPT_FAILED": 0,
+      "CONFLICT": 0,
+      "NOT_APPLICABLE": 0,
+      "ORIGINAL_VERIFIED": 0,
+      "RAW_SAVED_UNVERIFIED": 0,
+      "STRUCTURED_VERIFIED": 0,
+      "UNOBSERVED": 12
+    },
+    "official_result": {
+      "ATTEMPT_FAILED": 0,
+      "CONFLICT": 0,
+      "NOT_APPLICABLE": 0,
+      "ORIGINAL_VERIFIED": 0,
+      "RAW_SAVED_UNVERIFIED": 0,
+      "STRUCTURED_VERIFIED": 0,
+      "UNOBSERVED": 12
+    },
+    "past_performances": {
+      "ATTEMPT_FAILED": 0,
+      "CONFLICT": 0,
+      "NOT_APPLICABLE": 0,
+      "ORIGINAL_VERIFIED": 0,
+      "RAW_SAVED_UNVERIFIED": 0,
+      "STRUCTURED_VERIFIED": 0,
+      "UNOBSERVED": 12
+    },
+    "quinella_odds": {
+      "ATTEMPT_FAILED": 0,
+      "CONFLICT": 0,
+      "NOT_APPLICABLE": 0,
+      "ORIGINAL_VERIFIED": 0,
+      "RAW_SAVED_UNVERIFIED": 0,
+      "STRUCTURED_VERIFIED": 0,
+      "UNOBSERVED": 12
+    },
+    "racecard_original": {
+      "ATTEMPT_FAILED": 0,
+      "CONFLICT": 0,
+      "NOT_APPLICABLE": 0,
+      "ORIGINAL_VERIFIED": 12,
+      "RAW_SAVED_UNVERIFIED": 0,
+      "STRUCTURED_VERIFIED": 0,
+      "UNOBSERVED": 0
+    },
+    "roster": {
+      "ATTEMPT_FAILED": 0,
+      "CONFLICT": 0,
+      "NOT_APPLICABLE": 0,
+      "ORIGINAL_VERIFIED": 0,
+      "RAW_SAVED_UNVERIFIED": 0,
+      "STRUCTURED_VERIFIED": 12,
+      "UNOBSERVED": 0
+    },
+    "track_conditions": {
+      "ATTEMPT_FAILED": 0,
+      "CONFLICT": 0,
+      "NOT_APPLICABLE": 0,
+      "ORIGINAL_VERIFIED": 0,
+      "RAW_SAVED_UNVERIFIED": 0,
+      "STRUCTURED_VERIFIED": 0,
+      "UNOBSERVED": 12
+    }
+  },
+  "day": "20261122",
+  "families": [
+    "racecard_original",
+    "roster",
+    "horse_profile",
+    "past_performances",
+    "track_conditions",
+    "quinella_odds",
+    "bracket_quinella_odds",
+    "official_result",
+    "official_payout"
+  ],
+  "market_prices_verified": false,
+  "missing_keys": [
+    "KYOTO:20261122:01:horse_profile",
+    "KYOTO:20261122:01:past_performances",
+    "KYOTO:20261122:01:track_conditions",
+    "KYOTO:20261122:01:quinella_odds",
+    "KYOTO:20261122:01:bracket_quinella_odds",
+    "KYOTO:20261122:01:official_result",
+    "KYOTO:20261122:01:official_payout",
+    "KYOTO:20261122:02:horse_profile",
+    "KYOTO:20261122:02:past_performances",
+    "KYOTO:20261122:02:track_conditions",
+    "KYOTO:20261122:02:quinella_odds",
+    "KYOTO:20261122:02:bracket_quinella_odds",
+    "KYOTO:20261122:02:official_result",
+    "KYOTO:20261122:02:official_payout",
+    "KYOTO:20261122:03:horse_profile",
+    "KYOTO:20261122:03:past_performances",
+    "KYOTO:20261122:03:track_conditions",
+    "KYOTO:20261122:03:quinella_odds",
+    "KYOTO:20261122:03:bracket_quinella_odds",
+    "KYOTO:20261122:03:official_result",
+    "KYOTO:20261122:03:official_payout",
+    "KYOTO:20261122:04:horse_profile",
+    "KYOTO:20261122:04:past_performances",
+    "KYOTO:20261122:04:track_conditions",
+    "KYOTO:20261122:04:quinella_odds",
+    "KYOTO:20261122:04:bracket_quinella_odds",
+    "KYOTO:20261122:04:official_result",
+    "KYOTO:20261122:04:official_payout",
+    "KYOTO:20261122:05:horse_profile",
+    "KYOTO:20261122:05:past_performances",
+    "KYOTO:20261122:05:track_conditions",
+    "KYOTO:20261122:05:quinella_odds",
+    "KYOTO:20261122:05:bracket_quinella_odds",
+    "KYOTO:20261122:05:official_result",
+    "KYOTO:20261122:05:official_payout",
+    "KYOTO:20261122:06:horse_profile",
+    "KYOTO:20261122:06:past_performances",
+    "KYOTO:20261122:06:track_conditions",
+    "KYOTO:20261122:06:quinella_odds",
+    "KYOTO:20261122:06:bracket_quinella_odds",
+    "KYOTO:20261122:06:official_result",
+    "KYOTO:20261122:06:official_payout",
+    "KYOTO:20261122:07:horse_profile",
+    "KYOTO:20261122:07:past_performances",
+    "KYOTO:20261122:07:track_conditions",
+    "KYOTO:20261122:07:quinella_odds",
+    "KYOTO:20261122:07:bracket_quinella_odds",
+    "KYOTO:20261122:07:official_result",
+    "KYOTO:20261122:07:official_payout",
+    "KYOTO:20261122:08:horse_profile",
+    "KYOTO:20261122:08:past_performances",
+    "KYOTO:20261122:08:track_conditions",
+    "KYOTO:20261122:08:quinella_odds",
+    "KYOTO:20261122:08:bracket_quinella_odds",
+    "KYOTO:20261122:08:official_result",
+    "KYOTO:20261122:08:official_payout",
+    "KYOTO:20261122:09:horse_profile",
+    "KYOTO:20261122:09:past_performances",
+    "KYOTO:20261122:09:track_conditions",
+    "KYOTO:20261122:09:quinella_odds",
+    "KYOTO:20261122:09:bracket_quinella_odds",
+    "KYOTO:20261122:09:official_result",
+    "KYOTO:20261122:09:official_payout",
+    "KYOTO:20261122:10:horse_profile",
+    "KYOTO:20261122:10:past_performances",
+    "KYOTO:20261122:10:track_conditions",
+    "KYOTO:20261122:10:quinella_odds",
+    "KYOTO:20261122:10:bracket_quinella_odds",
+    "KYOTO:20261122:10:official_result",
+    "KYOTO:20261122:10:official_payout",
+    "KYOTO:20261122:11:horse_profile",
+    "KYOTO:20261122:11:past_performances",
+    "KYOTO:20261122:11:track_conditions",
+    "KYOTO:20261122:11:quinella_odds",
+    "KYOTO:20261122:11:bracket_quinella_odds",
+    "KYOTO:20261122:11:official_result",
+    "KYOTO:20261122:11:official_payout",
+    "KYOTO:20261122:12:horse_profile",
+    "KYOTO:20261122:12:past_performances",
+    "KYOTO:20261122:12:track_conditions",
+    "KYOTO:20261122:12:quinella_odds",
+    "KYOTO:20261122:12:bracket_quinella_odds",
+    "KYOTO:20261122:12:official_result",
+    "KYOTO:20261122:12:official_payout"
+  ],
+  "next_acquisition_priority": [
+    "horse_profile",
+    "past_performances",
+    "track_conditions",
+    "quinella_odds",
+    "bracket_quinella_odds",
+    "official_result",
+    "official_payout"
+  ],
+  "prediction_ready": false,
+  "real_wager_authorized": false,
+  "records": [
+    {
+      "day": "20261122",
+      "failure_classes": [],
+      "family": "racecard_original",
+      "key": "KYOTO:20261122:01:racecard_original",
+      "observations": [
+        {
+          "captured_at_utc": "2026-11-22T00:16:21.242955+00:00",
+          "channel": "PC",
+          "event": "ORIGINAL_BYTE_RECEIPT",
+          "evidence": "SOURCE_SHA_UTC_RECORDED",
+          "sha256": "a6c4eb195f50d66c413c49ab00e9322439b7474b2e2aa1c857ca59ab1d8b9448"
+        },
+        {
+          "channel": "PC",
+          "event": "REUSED_ORIGINAL",
+          "evidence": "NO_NEW_HTTP_ASSERTED"
+        },
+        {
+          "captured_at_utc": "2026-11-22T00:16:24.006840+00:00",
+          "channel": "SP",
+          "event": "ORIGINAL_BYTE_RECEIPT",
+          "evidence": "SOURCE_SHA_UTC_RECORDED",
+          "sha256": "e512f210c012f016d301455e2c717542bfd86fcd88171a0a70923b942b98dfaf"
+        },
+        {
+          "channel": "SP",
+          "event": "REUSED_ORIGINAL",
+          "evidence": "NO_NEW_HTTP_ASSERTED"
+        }
+      ],
+      "proof_status": "SOURCE_RECEIPT_SHA_UTC_ONLY",
+      "race": 1,
+      "source_channel": "PC",
+      "source_sha256": "a6c4eb195f50d66c413c49ab00e9322439b7474b2e2aa1c857ca59ab1d8b9448",
+      "source_utc": "2026-11-22T00:16:21.242955+00:00",
+      "state": "ORIGINAL_VERIFIED"
+    },
+    {
+      "day": "20261122",
+      "failure_classes": [],
+      "family": "roster",
+      "key": "KYOTO:20261122:01:roster",
+      "observations": [
+        {
+          "captured_at_utc": "2026-11-22T00:16:21.242955+00:00",
+          "channel": "PC",
+          "event": "G03_STRUCTURED_REPLAY",
+          "evidence": "RUNNERS_12_START_10:05",
+          "sha256": "a6c4eb195f50d66c413c49ab00e9322439b7474b2e2aa1c857ca59ab1d8b9448"
+        }
+      ],
+      "proof_status": "G03_PARSER_REPLAY_SAME_ORIGINAL",
+      "race": 1,
+      "source_channel": "PC",
+      "source_sha256": "a6c4eb195f50d66c413c49ab00e9322439b7474b2e2aa1c857ca59ab1d8b9448",
+      "source_utc": "2026-11-22T00:16:21.242955+00:00",
+      "state": "STRUCTURED_VERIFIED"
+    },
+    {
+      "day": "20261122",
+      "failure_classes": [],
+      "family": "horse_profile",
+      "key": "KYOTO:20261122:01:horse_profile",
+      "observations": [
+        {
+          "channel": "PC",
+          "event": "NAVIGATION_ONLY",
+          "evidence": "OBSERVED_LINK_COUNT_12"
+        }
+      ],
+      "proof_status": "NOT_PROVEN",
+      "race": 1,
+      "source_channel": null,
+      "source_sha256": null,
+      "source_utc": null,
+      "state": "UNOBSERVED"
+    },
+    {
+      "day": "20261122",
+      "failure_classes": [],
+      "family": "past_performances",
+      "key": "KYOTO:20261122:01:past_performances",
+      "observations": [
+        {
+          "channel": "PC",
+          "event": "NAVIGATION_ONLY",
+          "evidence": "OBSERVED_LINK_COUNT_18"
+        }
+      ],
+      "proof_status": "NOT_PROVEN",
+      "race": 1,
+      "source_channel": null,
+      "source_sha256": null,
+      "source_utc": null,
+      "state": "UNOBSERVED"
+    },
+    {
+      "day": "20261122",
+      "failure_classes": [],
+      "family": "track_conditions",
+      "key": "KYOTO:20261122:01:track_conditions",
+      "observations": [],
+      "proof_status": "NOT_PROVEN",
+      "race": 1,
+      "source_channel": null,
+      "source_sha256": null,
+      "source_utc": null,
+      "state": "UNOBSERVED"
+    },
+    {
+      "day": "20261122",
+      "failure_classes": [],
+      "family": "quinella_odds",
+      "key": "KYOTO:20261122:01:quinella_odds",
+      "observations": [],
+      "proof_status": "NOT_PROVEN",
+      "race": 1,
+      "source_channel": null,
+      "source_sha256": null,
+      "source_utc": null,
+      "state": "UNOBSERVED"
+    },
+    {
+      "day": "20261122",
+      "failure_classes": [],
+      "family": "bracket_quinella_odds",
+      "key": "KYOTO:20261122:01:bracket_quinella_odds",
+      "observations": [],
+      "proof_status": "NOT_PROVEN",
+      "race": 1,
+      "source_channel": null,
+      "source_sha256": null,
+      "source_utc": null,
+      "state": "UNOBSERVED"
+    },
+    {
+      "day": "20261122",
+      "failure_classes": [],
+      "family": "official_result",
+      "key": "KYOTO:20261122:01:official_result",
+      "observations": [],
+      "proof_status": "NOT_PROVEN",
+      "race": 1,
+      "source_channel": null,
+      "source_sha256": null,
+      "source_utc": null,
+      "state": "UNOBSERVED"
+    },
+    {
+      "day": "20261122",
+      "failure_classes": [],
+      "family": "official_payout",
+      "key": "KYOTO:20261122:01:official_payout",
+      "observations": [],
+      "proof_status": "NOT_PROVEN",
+      "race": 1,
+      "source_channel": null,
+      "source_sha256": null,
+      "source_utc": null,
+      "state": "UNOBSERVED"
+    },
+    {
+      "day": "20261122",
+      "failure_classes": [],
+      "family": "racecard_original",
+      "key": "KYOTO:20261122:02:racecard_original",
+      "observations": [
+        {
+          "captured_at_utc": "2026-11-22T00:19:05.361329+00:00",
+          "channel": "PC",
+          "event": "ORIGINAL_BYTE_RECEIPT",
+          "evidence": "SOURCE_SHA_UTC_RECORDED",
+          "sha256": "504fbfea8836c3046486fe4267d3c0ac65ab24b9198f41131ff034569b709da0"
+        },
+        {
+          "channel": "SP",
+          "event": "DELIBERATE_SKIP",
+          "evidence": "PC_SOURCE_EXISTED"
+        }
+      ],
+      "proof_status": "SOURCE_RECEIPT_SHA_UTC_ONLY",
+      "race": 2,
+      "source_channel": "PC",
+      "source_sha256": "504fbfea8836c3046486fe4267d3c0ac65ab24b9198f41131ff034569b709da0",
+      "source_utc": "2026-11-22T00:19:05.361329+00:00",
+      "state": "ORIGINAL_VERIFIED"
+    },
+    {
+      "day": "20261122",
+      "failure_classes": [],
+      "family": "roster",
+      "key": "KYOTO:20261122:02:roster",
+      "observations": [
+        {
+          "captured_at_utc": "2026-11-22T00:19:05.361329+00:00",
+          "channel": "PC",
+          "event": "G03_STRUCTURED_REPLAY",
+          "evidence": "RUNNERS_13_START_10:35",
+          "sha256": "504fbfea8836c3046486fe4267d3c0ac65ab24b9198f41131ff034569b709da0"
+        }
+      ],
+      "proof_status": "G03_PARSER_REPLAY_SAME_ORIGINAL",
+      "race": 2,
+      "source_channel": "PC",
+      "source_sha256": "504fbfea8836c3046486fe4267d3c0ac65ab24b9198f41131ff034569b709da0",
+      "source_utc": "2026-11-22T00:19:05.361329+00:00",
+      "state": "STRUCTURED_VERIFIED"
+    },
+    {
+      "day": "20261122",
+      "failure_classes": [],
+      "family": "horse_profile",
+      "key": "KYOTO:20261122:02:horse_profile",
+      "observations": [
+        {
+          "channel": "PC",
+          "event": "NAVIGATION_ONLY",
+          "evidence": "OBSERVED_LINK_COUNT_13"
+        }
+      ],
+      "proof_status": "NOT_PROVEN",
+      "race": 2,
+      "source_channel": null,
+      "source_sha256": null,
+      "source_utc": null,
+      "state": "UNOBSERVED"
+    },
+    {
+      "day": "20261122",
+      "failure_classes": [],
+      "family": "past_performances",
+      "key": "KYOTO:20261122:02:past_performances",
+      "observations": [
+        {
+          "channel": "PC",
+          "event": "NAVIGATION_ONLY",
+          "evidence": "OBSERVED_LINK_COUNT_22"
+        }
+      ],
+      "proof_status": "NOT_PROVEN",
+      "race": 2,
+      "source_channel": null,
+      "source_sha256": null,
+      "source_utc": null,
+      "state": "UNOBSERVED"
+    },
+    {
+      "day": "20261122",
+      "failure_classes": [],
+      "family": "track_conditions",
+      "key": "KYOTO:20261122:02:track_conditions",
+      "observations": [],
+      "proof_status": "NOT_PROVEN",
+      "race": 2,
+      "source_channel": null,
+      "source_sha256": null,
+      "source_utc": null,
+      "state": "UNOBSERVED"
+    },
+    {
+      "day": "20261122",
+      "failure_classes": [],
+      "family": "quinella_odds",
+      "key": "KYOTO:20261122:02:quinella_odds",
+      "observations": [],
+      "proof_status": "NOT_PROVEN",
+      "race": 2,
+      "source_channel": null,
+      "source_sha256": null,
+      "source_utc": null,
+      "state": "UNOBSERVED"
+    },
+    {
+      "day": "20261122",
+      "failure_classes": [],
+      "family": "bracket_quinella_odds",
+      "key": "KYOTO:20261122:02:bracket_quinella_odds",
+      "observations": [],
+      "proof_status": "NOT_PROVEN",
+      "race": 2,
+      "source_channel": null,
+      "source_sha256": null,
+      "source_utc": null,
+      "state": "UNOBSERVED"
+    },
+    {
+      "day": "20261122",
+      "failure_classes": [],
+      "family": "official_result",
+      "key": "KYOTO:20261122:02:official_result",
+      "observations": [],
+      "proof_status": "NOT_PROVEN",
+      "race": 2,
+      "source_channel": null,
+      "source_sha256": null,
+      "source_utc": null,
+      "state": "UNOBSERVED"
+    },
+    {
+      "day": "20261122",
+      "failure_classes": [],
+      "family": "official_payout",
+      "key": "KYOTO:20261122:02:official_payout",
+      "observations": [],
+      "proof_status": "NOT_PROVEN",
+      "race": 2,
+      "source_channel": null,
+      "source_sha256": null,
+      "source_utc": null,
+      "state": "UNOBSERVED"
+    },
+    {
+      "day": "20261122",
+      "failure_classes": [],
+      "family": "racecard_original",
+      "key": "KYOTO:20261122:03:racecard_original",
+      "observations": [
+        {
+          "captured_at_utc": "2026-11-22T00:19:07.283257+00:00",
+          "channel": "PC",
+          "event": "ORIGINAL_BYTE_RECEIPT",
+          "evidence": "SOURCE_SHA_UTC_RECORDED",
+          "sha256": "3c10340938b8988322fed798a9a5e39eeb5485c9eb6bc9af0782c5a4ffb95cad"
+        },
+        {
+          "channel": "SP",
+          "event": "DELIBERATE_SKIP",
+          "evidence": "PC_SOURCE_EXISTED"
+        }
+      ],
+      "proof_status": "SOURCE_RECEIPT_SHA_UTC_ONLY",
+      "race": 3,
+      "source_channel": "PC",
+      "source_sha256": "3c10340938b8988322fed798a9a5e39eeb5485c9eb6bc9af0782c5a4ffb95cad",
+      "source_utc": "2026-11-22T00:19:07.283257+00:00",
+      "state": "ORIGINAL_VERIFIED"
+    },
+    {
+      "day": "20261122",
+      "failure_classes": [],
+      "family": "roster",
+      "key": "KYOTO:20261122:03:roster",
+      "observations": [
+        {
+          "captured_at_utc": "2026-11-22T00:19:07.283257+00:00",
+          "channel": "PC",
+          "event": "G03_STRUCTURED_REPLAY",
+          "evidence": "RUNNERS_9_START_11:05",
+          "sha256": "3c10340938b8988322fed798a9a5e39eeb5485c9eb6bc9af0782c5a4ffb95cad"
+        }
+      ],
+      "proof_status": "G03_PARSER_REPLAY_SAME_ORIGINAL",
+      "race": 3,
+      "source_channel": "PC",
+      "source_sha256": "3c10340938b8988322fed798a9a5e39eeb5485c9eb6bc9af0782c5a4ffb95cad",
+      "source_utc": "2026-11-22T00:19:07.283257+00:00",
+      "state": "STRUCTURED_VERIFIED"
+    },
+    {
+      "day": "20261122",
+      "failure_classes": [],
+      "family": "horse_profile",
+      "key": "KYOTO:20261122:03:horse_profile",
+      "observations": [
+        {
+          "channel": "PC",
+          "event": "NAVIGATION_ONLY",
+          "evidence": "OBSERVED_LINK_COUNT_9"
+        }
+      ],
+      "proof_status": "NOT_PROVEN",
+      "race": 3,
+      "source_channel": null,
+      "source_sha256": null,
+      "source_utc": null,
+      "state": "UNOBSERVED"
+    },
+    {
+      "day": "20261122",
+      "failure_classes": [],
+      "family": "past_performances",
+      "key": "KYOTO:20261122:03:past_performances",
+      "observations": [
+        {
+          "channel": "PC",
+          "event": "NAVIGATION_ONLY",
+          "evidence": "OBSERVED_LINK_COUNT_14"
+        }
+      ],
+      "proof_status": "NOT_PROVEN",
+      "race": 3,
+      "source_channel": null,
+      "source_sha256": null,
+      "source_utc": null,
+      "state": "UNOBSERVED"
+    },
+    {
+      "day": "20261122",
+      "failure_classes": [],
+      "family": "track_conditions",
+      "key": "KYOTO:20261122:03:track_conditions",
+      "observations": [],
+      "proof_status": "NOT_PROVEN",
+      "race": 3,
+      "source_channel": null,
+      "source_sha256": null,
+      "source_utc": null,
+      "state": "UNOBSERVED"
+    },
+    {
+      "day": "20261122",
+      "failure_classes": [],
+      "family": "quinella_odds",
+      "key": "KYOTO:20261122:03:quinella_odds",
+      "observations": [],
+      "proof_status": "NOT_PROVEN",
+      "race": 3,
+      "source_channel": null,
+      "source_sha256": null,
+      "source_utc": null,
+      "state": "UNOBSERVED"
+    },
+    {
+      "day": "20261122",
+      "failure_classes": [],
+      "family": "bracket_quinella_odds",
+      "key": "KYOTO:20261122:03:bracket_quinella_odds",
+      "observations": [],
+      "proof_status": "NOT_PROVEN",
+      "race": 3,
+      "source_channel": null,
+      "source_sha256": null,
+      "source_utc": null,
+      "state": "UNOBSERVED"
+    },
+    {
+      "day": "20261122",
+      "failure_classes": [],
+      "family": "official_result",
+      "key": "KYOTO:20261122:03:official_result",
+      "observations": [],
+      "proof_status": "NOT_PROVEN",
+      "race": 3,
+      "source_channel": null,
+      "source_sha256": null,
+      "source_utc": null,
+      "state": "UNOBSERVED"
+    },
+    {
+      "day": "20261122",
+      "failure_classes": [],
+      "family": "official_payout",
+      "key": "KYOTO:20261122:03:official_payout",
+      "observations": [],
+      "proof_status": "NOT_PROVEN",
+      "race": 3,
+      "source_channel": null,
+      "source_sha256": null,
+      "source_utc": null,
+      "state": "UNOBSERVED"
+    },
+    {
+      "day": "20261122",
+      "failure_classes": [],
+      "family": "racecard_original",
+      "key": "KYOTO:20261122:04:racecard_original",
+      "observations": [
+        {
+          "captured_at_utc": "2026-11-22T00:19:09.378344+00:00",
+          "channel": "PC",
+          "event": "ORIGINAL_BYTE_RECEIPT",
+          "evidence": "SOURCE_SHA_UTC_RECORDED",
+          "sha256": "e6fdccc166159c646f11b8ed2e12df4d74cf7bd16b41fd9ef70e72fdafc2ce55"
+        },
+        {
+          "channel": "SP",
+          "event": "DELIBERATE_SKIP",
+          "evidence": "PC_SOURCE_EXISTED"
+        }
+      ],
+      "proof_status": "SOURCE_RECEIPT_SHA_UTC_ONLY",
+      "race": 4,
+      "source_channel": "PC",
+      "source_sha256": "e6fdccc166159c646f11b8ed2e12df4d74cf7bd16b41fd9ef70e72fdafc2ce55",
+      "source_utc": "2026-11-22T00:19:09.378344+00:00",
+      "state": "ORIGINAL_VERIFIED"
+    },
+    {
+      "day": "20261122",
+      "failure_classes": [],
+      "family": "roster",
+      "key": "KYOTO:20261122:04:roster",
+      "observations": [
+        {
+          "captured_at_utc": "2026-11-22T00:19:09.378344+00:00",
+          "channel": "PC",
+          "event": "G03_STRUCTURED_REPLAY",
+          "evidence": "RUNNERS_10_START_11:35",
+          "sha256": "e6fdccc166159c646f11b8ed2e12df4d74cf7bd16b41fd9ef70e72fdafc2ce55"
+        }
+      ],
+      "proof_status": "G03_PARSER_REPLAY_SAME_ORIGINAL",
+      "race": 4,
+      "source_channel": "PC",
+      "source_sha256": "e6fdccc166159c646f11b8ed2e12df4d74cf7bd16b41fd9ef70e72fdafc2ce55",
+      "source_utc": "2026-11-22T00:19:09.378344+00:00",
+      "state": "STRUCTURED_VERIFIED"
+    },
+    {
+      "day": "20261122",
+      "failure_classes": [],
+      "family": "horse_profile",
+      "key": "KYOTO:20261122:04:horse_profile",
+      "observations": [
+        {
+          "channel": "PC",
+          "event": "NAVIGATION_ONLY",
+          "evidence": "OBSERVED_LINK_COUNT_10"
+        }
+      ],
+      "proof_status": "NOT_PROVEN",
+      "race": 4,
+      "source_channel": null,
+      "source_sha256": null,
+      "source_utc": null,
+      "state": "UNOBSERVED"
+    },
+    {
+      "day": "20261122",
+      "failure_classes": [],
+      "family": "past_performances",
+      "key": "KYOTO:20261122:04:past_performances",
+      "observations": [],
+      "proof_status": "NOT_PROVEN",
+      "race": 4,
+      "source_channel": null,
+      "source_sha256": null,
+      "source_utc": null,
+      "state": "UNOBSERVED"
+    },
+    {
+      "day": "20261122",
+      "failure_classes": [],
+      "family": "track_conditions",
+      "key": "KYOTO:20261122:04:track_conditions",
+      "observations": [],
+      "proof_status": "NOT_PROVEN",
+      "race": 4,
+      "source_channel": null,
+      "source_sha256": null,
+      "source_utc": null,
+      "state": "UNOBSERVED"
+    },
+    {
+      "day": "20261122",
+      "failure_classes": [],
+      "family": "quinella_odds",
+      "key": "KYOTO:20261122:04:quinella_odds",
+      "observations": [],
+      "proof_status": "NOT_PROVEN",
+      "race": 4,
+      "source_channel": null,
+      "source_sha256": null,
+      "source_utc": null,
+      "state": "UNOBSERVED"
+    },
+    {
+      "day": "20261122",
+      "failure_classes": [],
+      "family": "bracket_quinella_odds",
+      "key": "KYOTO:20261122:04:bracket_quinella_odds",
+      "observations": [],
+      "proof_status": "NOT_PROVEN",
+      "race": 4,
+      "source_channel": null,
+      "source_sha256": null,
+      "source_utc": null,
+      "state": "UNOBSERVED"
+    },
+    {
+      "day": "20261122",
+      "failure_classes": [],
+      "family": "official_result",
+      "key": "KYOTO:20261122:04:official_result",
+      "observations": [],
+      "proof_status": "NOT_PROVEN",
+      "race": 4,
+      "source_channel": null,
+      "source_sha256": null,
+      "source_utc": null,
+      "state": "UNOBSERVED"
+    },
+    {
+      "day": "20261122",
+      "failure_classes": [],
+      "family": "official_payout",
+      "key": "KYOTO:20261122:04:official_payout",
+      "observations": [],
+      "proof_status": "NOT_PROVEN",
+      "race": 4,
+      "source_channel": null,
+      "source_sha256": null,
+      "source_utc": null,
+      "state": "UNOBSERVED"
+    },
+    {
+      "day": "20261122",
+      "failure_classes": [],
+      "family": "racecard_original",
+      "key": "KYOTO:20261122:05:racecard_original",
+      "observations": [
+        {
+          "captured_at_utc": "2026-11-22T00:19:11.131735+00:00",
+          "channel": "PC",
+          "event": "ORIGINAL_BYTE_RECEIPT",
+          "evidence": "SOURCE_SHA_UTC_RECORDED",
+          "sha256": "7b6a07a3a3536ba388c327145e3f9990092ff6b29f1861a55e5cbf297e5d0b45"
+        },
+        {
+          "channel": "SP",
+          "event": "DELIBERATE_SKIP",
+          "evidence": "PC_SOURCE_EXISTED"
+        }
+      ],
+      "proof_status": "SOURCE_RECEIPT_SHA_UTC_ONLY",
+      "race": 5,
+      "source_channel": "PC",
+      "source_sha256": "7b6a07a3a3536ba388c327145e3f9990092ff6b29f1861a55e5cbf297e5d0b45",
+      "source_utc": "2026-11-22T00:19:11.131735+00:00",
+      "state": "ORIGINAL_VERIFIED"
+    },
+    {
+      "day": "20261122",
+      "failure_classes": [],
+      "family": "roster",
+      "key": "KYOTO:20261122:05:roster",
+      "observations": [
+        {
+          "captured_at_utc": "2026-11-22T00:19:11.131735+00:00",
+          "channel": "PC",
+          "event": "G03_STRUCTURED_REPLAY",
+          "evidence": "RUNNERS_12_START_12:25",
+          "sha256": "7b6a07a3a3536ba388c327145e3f9990092ff6b29f1861a55e5cbf297e5d0b45"
+        }
+      ],
+      "proof_status": "G03_PARSER_REPLAY_SAME_ORIGINAL",
+      "race": 5,
+      "source_channel": "PC",
+      "source_sha256": "7b6a07a3a3536ba388c327145e3f9990092ff6b29f1861a55e5cbf297e5d0b45",
+      "source_utc": "2026-11-22T00:19:11.131735+00:00",
+      "state": "STRUCTURED_VERIFIED"
+    },
+    {
+      "day": "20261122",
+      "failure_classes": [],
+      "family": "horse_profile",
+      "key": "KYOTO:20261122:05:horse_profile",
+      "observations": [
+        {
+          "channel": "PC",
+          "event": "NAVIGATION_ONLY",
+          "evidence": "OBSERVED_LINK_COUNT_12"
+        }
+      ],
+      "proof_status": "NOT_PROVEN",
+      "race": 5,
+      "source_channel": null,
+      "source_sha256": null,
+      "source_utc": null,
+      "state": "UNOBSERVED"
+    },
+    {
+      "day": "20261122",
+      "failure_classes": [],
+      "family": "past_performances",
+      "key": "KYOTO:20261122:05:past_performances",
+      "observations": [],
+      "proof_status": "NOT_PROVEN",
+      "race": 5,
+      "source_channel": null,
+      "source_sha256": null,
+      "source_utc": null,
+      "state": "UNOBSERVED"
+    },
+    {
+      "day": "20261122",
+      "failure_classes": [],
+      "family": "track_conditions",
+      "key": "KYOTO:20261122:05:track_conditions",
+      "observations": [],
+      "proof_status": "NOT_PROVEN",
+      "race": 5,
+      "source_channel": null,
+      "source_sha256": null,
+      "source_utc": null,
+      "state": "UNOBSERVED"
+    },
+    {
+      "day": "20261122",
+      "failure_classes": [],
+      "family": "quinella_odds",
+      "key": "KYOTO:20261122:05:quinella_odds",
+      "observations": [],
+      "proof_status": "NOT_PROVEN",
+      "race": 5,
+      "source_channel": null,
+      "source_sha256": null,
+      "source_utc": null,
+      "state": "UNOBSERVED"
+    },
+    {
+      "day": "20261122",
+      "failure_classes": [],
+      "family": "bracket_quinella_odds",
+      "key": "KYOTO:20261122:05:bracket_quinella_odds",
+      "observations": [],
+      "proof_status": "NOT_PROVEN",
+      "race": 5,
+      "source_channel": null,
+      "source_sha256": null,
+      "source_utc": null,
+      "state": "UNOBSERVED"
+    },
+    {
+      "day": "20261122",
+      "failure_classes": [],
+      "family": "official_result",
+      "key": "KYOTO:20261122:05:official_result",
+      "observations": [],
+      "proof_status": "NOT_PROVEN",
+      "race": 5,
+      "source_channel": null,
+      "source_sha256": null,
+      "source_utc": null,
+      "state": "UNOBSERVED"
+    },
+    {
+      "day": "20261122",
+      "failure_classes": [],
+      "family": "official_payout",
+      "key": "KYOTO:20261122:05:official_payout",
+      "observations": [],
+      "proof_status": "NOT_PROVEN",
+      "race": 5,
+      "source_channel": null,
+      "source_sha256": null,
+      "source_utc": null,
+      "state": "UNOBSERVED"
+    },
+    {
+      "day": "20261122",
+      "failure_classes": [],
+      "family": "racecard_original",
+      "key": "KYOTO:20261122:06:racecard_original",
+      "observations": [
+        {
+          "captured_at_utc": "2026-11-22T00:19:13.475064+00:00",
+          "channel": "PC",
+          "event": "ORIGINAL_BYTE_RECEIPT",
+          "evidence": "SOURCE_SHA_UTC_RECORDED",
+          "sha256": "dde76ecc51ee571824b5bf99afd653791fb9cca07f6004af5625fe5fe058d115"
+        },
+        {
+          "channel": "SP",
+          "event": "DELIBERATE_SKIP",
+          "evidence": "PC_SOURCE_EXISTED"
+        }
+      ],
+      "proof_status": "SOURCE_RECEIPT_SHA_UTC_ONLY",
+      "race": 6,
+      "source_channel": "PC",
+      "source_sha256": "dde76ecc51ee571824b5bf99afd653791fb9cca07f6004af5625fe5fe058d115",
+      "source_utc": "2026-11-22T00:19:13.475064+00:00",
+      "state": "ORIGINAL_VERIFIED"
+    },
+    {
+      "day": "20261122",
+      "failure_classes": [],
+      "family": "roster",
+      "key": "KYOTO:20261122:06:roster",
+      "observations": [
+        {
+          "captured_at_utc": "2026-11-22T00:19:13.475064+00:00",
+          "channel": "PC",
+          "event": "G03_STRUCTURED_REPLAY",
+          "evidence": "RUNNERS_16_START_12:55",
+          "sha256": "dde76ecc51ee571824b5bf99afd653791fb9cca07f6004af5625fe5fe058d115"
+        }
+      ],
+      "proof_status": "G03_PARSER_REPLAY_SAME_ORIGINAL",
+      "race": 6,
+      "source_channel": "PC",
+      "source_sha256": "dde76ecc51ee571824b5bf99afd653791fb9cca07f6004af5625fe5fe058d115",
+      "source_utc": "2026-11-22T00:19:13.475064+00:00",
+      "state": "STRUCTURED_VERIFIED"
+    },
+    {
+      "day": "20261122",
+      "failure_classes": [],
+      "family": "horse_profile",
+      "key": "KYOTO:20261122:06:horse_profile",
+      "observations": [
+        {
+          "channel": "PC",
+          "event": "NAVIGATION_ONLY",
+          "evidence": "OBSERVED_LINK_COUNT_16"
+        }
+      ],
+      "proof_status": "NOT_PROVEN",
+      "race": 6,
+      "source_channel": null,
+      "source_sha256": null,
+      "source_utc": null,
+      "state": "UNOBSERVED"
+    },
+    {
+      "day": "20261122",
+      "failure_classes": [],
+      "family": "past_performances",
+      "key": "KYOTO:20261122:06:past_performances",
+      "observations": [
+        {
+          "channel": "PC",
+          "event": "NAVIGATION_ONLY",
+          "evidence": "OBSERVED_LINK_COUNT_64"
+        }
+      ],
+      "proof_status": "NOT_PROVEN",
+      "race": 6,
+      "source_channel": null,
+      "source_sha256": null,
+      "source_utc": null,
+      "state": "UNOBSERVED"
+    },
+    {
+      "day": "20261122",
+      "failure_classes": [],
+      "family": "track_conditions",
+      "key": "KYOTO:20261122:06:track_conditions",
+      "observations": [],
+      "proof_status": "NOT_PROVEN",
+      "race": 6,
+      "source_channel": null,
+      "source_sha256": null,
+      "source_utc": null,
+      "state": "UNOBSERVED"
+    },
+    {
+      "day": "20261122",
+      "failure_classes": [],
+      "family": "quinella_odds",
+      "key": "KYOTO:20261122:06:quinella_odds",
+      "observations": [],
+      "proof_status": "NOT_PROVEN",
+      "race": 6,
+      "source_channel": null,
+      "source_sha256": null,
+      "source_utc": null,
+      "state": "UNOBSERVED"
+    },
+    {
+      "day": "20261122",
+      "failure_classes": [],
+      "family": "bracket_quinella_odds",
+      "key": "KYOTO:20261122:06:bracket_quinella_odds",
+      "observations": [],
+      "proof_status": "NOT_PROVEN",
+      "race": 6,
+      "source_channel": null,
+      "source_sha256": null,
+      "source_utc": null,
+      "state": "UNOBSERVED"
+    },
+    {
+      "day": "20261122",
+      "failure_classes": [],
+      "family": "official_result",
+      "key": "KYOTO:20261122:06:official_result",
+      "observations": [],
+      "proof_status": "NOT_PROVEN",
+      "race": 6,
+      "source_channel": null,
+      "source_sha256": null,
+      "source_utc": null,
+      "state": "UNOBSERVED"
+    },
+    {
+      "day": "20261122",
+      "failure_classes": [],
+      "family": "official_payout",
+      "key": "KYOTO:20261122:06:official_payout",
+      "observations": [],
+      "proof_status": "NOT_PROVEN",
+      "race": 6,
+      "source_channel": null,
+      "source_sha256": null,
+      "source_utc": null,
+      "state": "UNOBSERVED"
+    },
+    {
+      "day": "20261122",
+      "failure_classes": [],
+      "family": "racecard_original",
+      "key": "KYOTO:20261122:07:racecard_original",
+      "observations": [
+        {
+          "captured_at_utc": "2026-11-22T00:19:15.422002+00:00",
+          "channel": "PC",
+          "event": "ORIGINAL_BYTE_RECEIPT",
+          "evidence": "SOURCE_SHA_UTC_RECORDED",
+          "sha256": "4764c74a464e42d69e4fffa0ad3b5dff03042bb065a44559c3338f6e2c3d212f"
+        },
+        {
+          "channel": "SP",
+          "event": "DELIBERATE_SKIP",
+          "evidence": "PC_SOURCE_EXISTED"
+        }
+      ],
+      "proof_status": "SOURCE_RECEIPT_SHA_UTC_ONLY",
+      "race": 7,
+      "source_channel": "PC",
+      "source_sha256": "4764c74a464e42d69e4fffa0ad3b5dff03042bb065a44559c3338f6e2c3d212f",
+      "source_utc": "2026-11-22T00:19:15.422002+00:00",
+      "state": "ORIGINAL_VERIFIED"
+    },
+    {
+      "day": "20261122",
+      "failure_classes": [],
+      "family": "roster",
+      "key": "KYOTO:20261122:07:roster",
+      "observations": [
+        {
+          "captured_at_utc": "2026-11-22T00:19:15.422002+00:00",
+          "channel": "PC",
+          "event": "G03_STRUCTURED_REPLAY",
+          "evidence": "RUNNERS_18_START_13:25",
+          "sha256": "4764c74a464e42d69e4fffa0ad3b5dff03042bb065a44559c3338f6e2c3d212f"
+        }
+      ],
+      "proof_status": "G03_PARSER_REPLAY_SAME_ORIGINAL",
+      "race": 7,
+      "source_channel": "PC",
+      "source_sha256": "4764c74a464e42d69e4fffa0ad3b5dff03042bb065a44559c3338f6e2c3d212f",
+      "source_utc": "2026-11-22T00:19:15.422002+00:00",
+      "state": "STRUCTURED_VERIFIED"
+    },
+    {
+      "day": "20261122",
+      "failure_classes": [],
+      "family": "horse_profile",
+      "key": "KYOTO:20261122:07:horse_profile",
+      "observations": [
+        {
+          "channel": "PC",
+          "event": "NAVIGATION_ONLY",
+          "evidence": "OBSERVED_LINK_COUNT_18"
+        }
+      ],
+      "proof_status": "NOT_PROVEN",
+      "race": 7,
+      "source_channel": null,
+      "source_sha256": null,
+      "source_utc": null,
+      "state": "UNOBSERVED"
+    },
+    {
+      "day": "20261122",
+      "failure_classes": [],
+      "family": "past_performances",
+      "key": "KYOTO:20261122:07:past_performances",
+      "observations": [
+        {
+          "channel": "PC",
+          "event": "NAVIGATION_ONLY",
+          "evidence": "OBSERVED_LINK_COUNT_69"
+        }
+      ],
+      "proof_status": "NOT_PROVEN",
+      "race": 7,
+      "source_channel": null,
+      "source_sha256": null,
+      "source_utc": null,
+      "state": "UNOBSERVED"
+    },
+    {
+      "day": "20261122",
+      "failure_classes": [],
+      "family": "track_conditions",
+      "key": "KYOTO:20261122:07:track_conditions",
+      "observations": [],
+      "proof_status": "NOT_PROVEN",
+      "race": 7,
+      "source_channel": null,
+      "source_sha256": null,
+      "source_utc": null,
+      "state": "UNOBSERVED"
+    },
+    {
+      "day": "20261122",
+      "failure_classes": [],
+      "family": "quinella_odds",
+      "key": "KYOTO:20261122:07:quinella_odds",
+      "observations": [],
+      "proof_status": "NOT_PROVEN",
+      "race": 7,
+      "source_channel": null,
+      "source_sha256": null,
+      "source_utc": null,
+      "state": "UNOBSERVED"
+    },
+    {
+      "day": "20261122",
+      "failure_classes": [],
+      "family": "bracket_quinella_odds",
+      "key": "KYOTO:20261122:07:bracket_quinella_odds",
+      "observations": [],
+      "proof_status": "NOT_PROVEN",
+      "race": 7,
+      "source_channel": null,
+      "source_sha256": null,
+      "source_utc": null,
+      "state": "UNOBSERVED"
+    },
+    {
+      "day": "20261122",
+      "failure_classes": [],
+      "family": "official_result",
+      "key": "KYOTO:20261122:07:official_result",
+      "observations": [],
+      "proof_status": "NOT_PROVEN",
+      "race": 7,
+      "source_channel": null,
+      "source_sha256": null,
+      "source_utc": null,
+      "state": "UNOBSERVED"
+    },
+    {
+      "day": "20261122",
+      "failure_classes": [],
+      "family": "official_payout",
+      "key": "KYOTO:20261122:07:official_payout",
+      "observations": [],
+      "proof_status": "NOT_PROVEN",
+      "race": 7,
+      "source_channel": null,
+      "source_sha256": null,
+      "source_utc": null,
+      "state": "UNOBSERVED"
+    },
+    {
+      "day": "20261122",
+      "failure_classes": [],
+      "family": "racecard_original",
+      "key": "KYOTO:20261122:08:racecard_original",
+      "observations": [
+        {
+          "captured_at_utc": "2026-11-22T00:19:17.240905+00:00",
+          "channel": "PC",
+          "event": "ORIGINAL_BYTE_RECEIPT",
+          "evidence": "SOURCE_SHA_UTC_RECORDED",
+          "sha256": "8e79afc2902f325dad6afb99e2c3e6b4ec3eacb2310ca323a388de9267d4963f"
+        },
+        {
+          "channel": "SP",
+          "event": "DELIBERATE_SKIP",
+          "evidence": "PC_SOURCE_EXISTED"
+        }
+      ],
+      "proof_status": "SOURCE_RECEIPT_SHA_UTC_ONLY",
+      "race": 8,
+      "source_channel": "PC",
+      "source_sha256": "8e79afc2902f325dad6afb99e2c3e6b4ec3eacb2310ca323a388de9267d4963f",
+      "source_utc": "2026-11-22T00:19:17.240905+00:00",
+      "state": "ORIGINAL_VERIFIED"
+    },
+    {
+      "day": "20261122",
+      "failure_classes": [],
+      "family": "roster",
+      "key": "KYOTO:20261122:08:roster",
+      "observations": [
+        {
+          "captured_at_utc": "2026-11-22T00:19:17.240905+00:00",
+          "channel": "PC",
+          "event": "G03_STRUCTURED_REPLAY",
+          "evidence": "RUNNERS_10_START_13:55",
+          "sha256": "8e79afc2902f325dad6afb99e2c3e6b4ec3eacb2310ca323a388de9267d4963f"
+        }
+      ],
+      "proof_status": "G03_PARSER_REPLAY_SAME_ORIGINAL",
+      "race": 8,
+      "source_channel": "PC",
+      "source_sha256": "8e79afc2902f325dad6afb99e2c3e6b4ec3eacb2310ca323a388de9267d4963f",
+      "source_utc": "2026-11-22T00:19:17.240905+00:00",
+      "state": "STRUCTURED_VERIFIED"
+    },
+    {
+      "day": "20261122",
+      "failure_classes": [],
+      "family": "horse_profile",
+      "key": "KYOTO:20261122:08:horse_profile",
+      "observations": [
+        {
+          "channel": "PC",
+          "event": "NAVIGATION_ONLY",
+          "evidence": "OBSERVED_LINK_COUNT_10"
+        }
+      ],
+      "proof_status": "NOT_PROVEN",
+      "race": 8,
+      "source_channel": null,
+      "source_sha256": null,
+      "source_utc": null,
+      "state": "UNOBSERVED"
+    },
+    {
+      "day": "20261122",
+      "failure_classes": [],
+      "family": "past_performances",
+      "key": "KYOTO:20261122:08:past_performances",
+      "observations": [
+        {
+          "channel": "PC",
+          "event": "NAVIGATION_ONLY",
+          "evidence": "OBSERVED_LINK_COUNT_40"
+        }
+      ],
+      "proof_status": "NOT_PROVEN",
+      "race": 8,
+      "source_channel": null,
+      "source_sha256": null,
+      "source_utc": null,
+      "state": "UNOBSERVED"
+    },
+    {
+      "day": "20261122",
+      "failure_classes": [],
+      "family": "track_conditions",
+      "key": "KYOTO:20261122:08:track_conditions",
+      "observations": [],
+      "proof_status": "NOT_PROVEN",
+      "race": 8,
+      "source_channel": null,
+      "source_sha256": null,
+      "source_utc": null,
+      "state": "UNOBSERVED"
+    },
+    {
+      "day": "20261122",
+      "failure_classes": [],
+      "family": "quinella_odds",
+      "key": "KYOTO:20261122:08:quinella_odds",
+      "observations": [],
+      "proof_status": "NOT_PROVEN",
+      "race": 8,
+      "source_channel": null,
+      "source_sha256": null,
+      "source_utc": null,
+      "state": "UNOBSERVED"
+    },
+    {
+      "day": "20261122",
+      "failure_classes": [],
+      "family": "bracket_quinella_odds",
+      "key": "KYOTO:20261122:08:bracket_quinella_odds",
+      "observations": [],
+      "proof_status": "NOT_PROVEN",
+      "race": 8,
+      "source_channel": null,
+      "source_sha256": null,
+      "source_utc": null,
+      "state": "UNOBSERVED"
+    },
+    {
+      "day": "20261122",
+      "failure_classes": [],
+      "family": "official_result",
+      "key": "KYOTO:20261122:08:official_result",
+      "observations": [],
+      "proof_status": "NOT_PROVEN",
+      "race": 8,
+      "source_channel": null,
+      "source_sha256": null,
+      "source_utc": null,
+      "state": "UNOBSERVED"
+    },
+    {
+      "day": "20261122",
+      "failure_classes": [],
+      "family": "official_payout",
+      "key": "KYOTO:20261122:08:official_payout",
+      "observations": [],
+      "proof_status": "NOT_PROVEN",
+      "race": 8,
+      "source_channel": null,
+      "source_sha256": null,
+      "source_utc": null,
+      "state": "UNOBSERVED"
+    },
+    {
+      "day": "20261122",
+      "failure_classes": [],
+      "family": "racecard_original",
+      "key": "KYOTO:20261122:09:racecard_original",
+      "observations": [
+        {
+          "captured_at_utc": "2026-11-22T00:19:19.389488+00:00",
+          "channel": "PC",
+          "event": "ORIGINAL_BYTE_RECEIPT",
+          "evidence": "SOURCE_SHA_UTC_RECORDED",
+          "sha256": "2a88d4ae3eb2de644f651b4916729cc42f3b33c03475c4a56c4e9c589626705e"
+        },
+        {
+          "channel": "SP",
+          "event": "DELIBERATE_SKIP",
+          "evidence": "PC_SOURCE_EXISTED"
+        }
+      ],
+      "proof_status": "SOURCE_RECEIPT_SHA_UTC_ONLY",
+      "race": 9,
+      "source_channel": "PC",
+      "source_sha256": "2a88d4ae3eb2de644f651b4916729cc42f3b33c03475c4a56c4e9c589626705e",
+      "source_utc": "2026-11-22T00:19:19.389488+00:00",
+      "state": "ORIGINAL_VERIFIED"
+    },
+    {
+      "day": "20261122",
+      "failure_classes": [],
+      "family": "roster",
+      "key": "KYOTO:20261122:09:roster",
+      "observations": [
+        {
+          "captured_at_utc": "2026-11-22T00:19:19.389488+00:00",
+          "channel": "PC",
+          "event": "G03_STRUCTURED_REPLAY",
+          "evidence": "RUNNERS_14_START_14:25",
+          "sha256": "2a88d4ae3eb2de644f651b4916729cc42f3b33c03475c4a56c4e9c589626705e"
+        }
+      ],
+      "proof_status": "G03_PARSER_REPLAY_SAME_ORIGINAL",
+      "race": 9,
+      "source_channel": "PC",
+      "source_sha256": "2a88d4ae3eb2de644f651b4916729cc42f3b33c03475c4a56c4e9c589626705e",
+      "source_utc": "2026-11-22T00:19:19.389488+00:00",
+      "state": "STRUCTURED_VERIFIED"
+    },
+    {
+      "day": "20261122",
+      "failure_classes": [],
+      "family": "horse_profile",
+      "key": "KYOTO:20261122:09:horse_profile",
+      "observations": [
+        {
+          "channel": "PC",
+          "event": "NAVIGATION_ONLY",
+          "evidence": "OBSERVED_LINK_COUNT_14"
+        }
+      ],
+      "proof_status": "NOT_PROVEN",
+      "race": 9,
+      "source_channel": null,
+      "source_sha256": null,
+      "source_utc": null,
+      "state": "UNOBSERVED"
+    },
+    {
+      "day": "20261122",
+      "failure_classes": [],
+      "family": "past_performances",
+      "key": "KYOTO:20261122:09:past_performances",
+      "observations": [
+        {
+          "channel": "PC",
+          "event": "NAVIGATION_ONLY",
+          "evidence": "OBSERVED_LINK_COUNT_56"
+        }
+      ],
+      "proof_status": "NOT_PROVEN",
+      "race": 9,
+      "source_channel": null,
+      "source_sha256": null,
+      "source_utc": null,
+      "state": "UNOBSERVED"
+    },
+    {
+      "day": "20261122",
+      "failure_classes": [],
+      "family": "track_conditions",
+      "key": "KYOTO:20261122:09:track_conditions",
+      "observations": [],
+      "proof_status": "NOT_PROVEN",
+      "race": 9,
+      "source_channel": null,
+      "source_sha256": null,
+      "source_utc": null,
+      "state": "UNOBSERVED"
+    },
+    {
+      "day": "20261122",
+      "failure_classes": [],
+      "family": "quinella_odds",
+      "key": "KYOTO:20261122:09:quinella_odds",
+      "observations": [],
+      "proof_status": "NOT_PROVEN",
+      "race": 9,
+      "source_channel": null,
+      "source_sha256": null,
+      "source_utc": null,
+      "state": "UNOBSERVED"
+    },
+    {
+      "day": "20261122",
+      "failure_classes": [],
+      "family": "bracket_quinella_odds",
+      "key": "KYOTO:20261122:09:bracket_quinella_odds",
+      "observations": [],
+      "proof_status": "NOT_PROVEN",
+      "race": 9,
+      "source_channel": null,
+      "source_sha256": null,
+      "source_utc": null,
+      "state": "UNOBSERVED"
+    },
+    {
+      "day": "20261122",
+      "failure_classes": [],
+      "family": "official_result",
+      "key": "KYOTO:20261122:09:official_result",
+      "observations": [],
+      "proof_status": "NOT_PROVEN",
+      "race": 9,
+      "source_channel": null,
+      "source_sha256": null,
+      "source_utc": null,
+      "state": "UNOBSERVED"
+    },
+    {
+      "day": "20261122",
+      "failure_classes": [],
+      "family": "official_payout",
+      "key": "KYOTO:20261122:09:official_payout",
+      "observations": [],
+      "proof_status": "NOT_PROVEN",
+      "race": 9,
+      "source_channel": null,
+      "source_sha256": null,
+      "source_utc": null,
+      "state": "UNOBSERVED"
+    },
+    {
+      "day": "20261122",
+      "failure_classes": [],
+      "family": "racecard_original",
+      "key": "KYOTO:20261122:10:racecard_original",
+      "observations": [
+        {
+          "captured_at_utc": "2026-11-22T00:19:21.273724+00:00",
+          "channel": "PC",
+          "event": "ORIGINAL_BYTE_RECEIPT",
+          "evidence": "SOURCE_SHA_UTC_RECORDED",
+          "sha256": "aff05101e9ef71fca9be650909daed5046ba18142b3cdcd47b8b355ae6a8bb48"
+        },
+        {
+          "channel": "SP",
+          "event": "DELIBERATE_SKIP",
+          "evidence": "PC_SOURCE_EXISTED"
+        }
+      ],
+      "proof_status": "SOURCE_RECEIPT_SHA_UTC_ONLY",
+      "race": 10,
+      "source_channel": "PC",
+      "source_sha256": "aff05101e9ef71fca9be650909daed5046ba18142b3cdcd47b8b355ae6a8bb48",
+      "source_utc": "2026-11-22T00:19:21.273724+00:00",
+      "state": "ORIGINAL_VERIFIED"
+    },
+    {
+      "day": "20261122",
+      "failure_classes": [],
+      "family": "roster",
+      "key": "KYOTO:20261122:10:roster",
+      "observations": [
+        {
+          "captured_at_utc": "2026-11-22T00:19:21.273724+00:00",
+          "channel": "PC",
+          "event": "G03_STRUCTURED_REPLAY",
+          "evidence": "RUNNERS_14_START_15:01",
+          "sha256": "aff05101e9ef71fca9be650909daed5046ba18142b3cdcd47b8b355ae6a8bb48"
+        }
+      ],
+      "proof_status": "G03_PARSER_REPLAY_SAME_ORIGINAL",
+      "race": 10,
+      "source_channel": "PC",
+      "source_sha256": "aff05101e9ef71fca9be650909daed5046ba18142b3cdcd47b8b355ae6a8bb48",
+      "source_utc": "2026-11-22T00:19:21.273724+00:00",
+      "state": "STRUCTURED_VERIFIED"
+    },
+    {
+      "day": "20261122",
+      "failure_classes": [],
+      "family": "horse_profile",
+      "key": "KYOTO:20261122:10:horse_profile",
+      "observations": [
+        {
+          "channel": "PC",
+          "event": "NAVIGATION_ONLY",
+          "evidence": "OBSERVED_LINK_COUNT_14"
+        }
+      ],
+      "proof_status": "NOT_PROVEN",
+      "race": 10,
+      "source_channel": null,
+      "source_sha256": null,
+      "source_utc": null,
+      "state": "UNOBSERVED"
+    },
+    {
+      "day": "20261122",
+      "failure_classes": [],
+      "family": "past_performances",
+      "key": "KYOTO:20261122:10:past_performances",
+      "observations": [
+        {
+          "channel": "PC",
+          "event": "NAVIGATION_ONLY",
+          "evidence": "OBSERVED_LINK_COUNT_56"
+        }
+      ],
+      "proof_status": "NOT_PROVEN",
+      "race": 10,
+      "source_channel": null,
+      "source_sha256": null,
+      "source_utc": null,
+      "state": "UNOBSERVED"
+    },
+    {
+      "day": "20261122",
+      "failure_classes": [],
+      "family": "track_conditions",
+      "key": "KYOTO:20261122:10:track_conditions",
+      "observations": [],
+      "proof_status": "NOT_PROVEN",
+      "race": 10,
+      "source_channel": null,
+      "source_sha256": null,
+      "source_utc": null,
+      "state": "UNOBSERVED"
+    },
+    {
+      "day": "20261122",
+      "failure_classes": [],
+      "family": "quinella_odds",
+      "key": "KYOTO:20261122:10:quinella_odds",
+      "observations": [],
+      "proof_status": "NOT_PROVEN",
+      "race": 10,
+      "source_channel": null,
+      "source_sha256": null,
+      "source_utc": null,
+      "state": "UNOBSERVED"
+    },
+    {
+      "day": "20261122",
+      "failure_classes": [],
+      "family": "bracket_quinella_odds",
+      "key": "KYOTO:20261122:10:bracket_quinella_odds",
+      "observations": [],
+      "proof_status": "NOT_PROVEN",
+      "race": 10,
+      "source_channel": null,
+      "source_sha256": null,
+      "source_utc": null,
+      "state": "UNOBSERVED"
+    },
+    {
+      "day": "20261122",
+      "failure_classes": [],
+      "family": "official_result",
+      "key": "KYOTO:20261122:10:official_result",
+      "observations": [],
+      "proof_status": "NOT_PROVEN",
+      "race": 10,
+      "source_channel": null,
+      "source_sha256": null,
+      "source_utc": null,
+      "state": "UNOBSERVED"
+    },
+    {
+      "day": "20261122",
+      "failure_classes": [],
+      "family": "official_payout",
+      "key": "KYOTO:20261122:10:official_payout",
+      "observations": [],
+      "proof_status": "NOT_PROVEN",
+      "race": 10,
+      "source_channel": null,
+      "source_sha256": null,
+      "source_utc": null,
+      "state": "UNOBSERVED"
+    },
+    {
+      "day": "20261122",
+      "failure_classes": [],
+      "family": "racecard_original",
+      "key": "KYOTO:20261122:11:racecard_original",
+      "observations": [
+        {
+          "captured_at_utc": "2026-11-22T00:19:23.340969+00:00",
+          "channel": "PC",
+          "event": "ORIGINAL_BYTE_RECEIPT",
+          "evidence": "SOURCE_SHA_UTC_RECORDED",
+          "sha256": "7c6dfbf64b679438602ee052d2db7b53a9fec15f156a327908dd3b9e3a16d68b"
+        },
+        {
+          "channel": "SP",
+          "event": "DELIBERATE_SKIP",
+          "evidence": "PC_SOURCE_EXISTED"
+        }
+      ],
+      "proof_status": "SOURCE_RECEIPT_SHA_UTC_ONLY",
+      "race": 11,
+      "source_channel": "PC",
+      "source_sha256": "7c6dfbf64b679438602ee052d2db7b53a9fec15f156a327908dd3b9e3a16d68b",
+      "source_utc": "2026-11-22T00:19:23.340969+00:00",
+      "state": "ORIGINAL_VERIFIED"
+    },
+    {
+      "day": "20261122",
+      "failure_classes": [],
+      "family": "roster",
+      "key": "KYOTO:20261122:11:roster",
+      "observations": [
+        {
+          "captured_at_utc": "2026-11-22T00:19:23.340969+00:00",
+          "channel": "PC",
+          "event": "G03_STRUCTURED_REPLAY",
+          "evidence": "RUNNERS_18_START_15:40",
+          "sha256": "7c6dfbf64b679438602ee052d2db7b53a9fec15f156a327908dd3b9e3a16d68b"
+        }
+      ],
+      "proof_status": "G03_PARSER_REPLAY_SAME_ORIGINAL",
+      "race": 11,
+      "source_channel": "PC",
+      "source_sha256": "7c6dfbf64b679438602ee052d2db7b53a9fec15f156a327908dd3b9e3a16d68b",
+      "source_utc": "2026-11-22T00:19:23.340969+00:00",
+      "state": "STRUCTURED_VERIFIED"
+    },
+    {
+      "day": "20261122",
+      "failure_classes": [],
+      "family": "horse_profile",
+      "key": "KYOTO:20261122:11:horse_profile",
+      "observations": [
+        {
+          "channel": "PC",
+          "event": "NAVIGATION_ONLY",
+          "evidence": "OBSERVED_LINK_COUNT_18"
+        }
+      ],
+      "proof_status": "NOT_PROVEN",
+      "race": 11,
+      "source_channel": null,
+      "source_sha256": null,
+      "source_utc": null,
+      "state": "UNOBSERVED"
+    },
+    {
+      "day": "20261122",
+      "failure_classes": [],
+      "family": "past_performances",
+      "key": "KYOTO:20261122:11:past_performances",
+      "observations": [
+        {
+          "channel": "PC",
+          "event": "NAVIGATION_ONLY",
+          "evidence": "OBSERVED_LINK_COUNT_72"
+        }
+      ],
+      "proof_status": "NOT_PROVEN",
+      "race": 11,
+      "source_channel": null,
+      "source_sha256": null,
+      "source_utc": null,
+      "state": "UNOBSERVED"
+    },
+    {
+      "day": "20261122",
+      "failure_classes": [],
+      "family": "track_conditions",
+      "key": "KYOTO:20261122:11:track_conditions",
+      "observations": [],
+      "proof_status": "NOT_PROVEN",
+      "race": 11,
+      "source_channel": null,
+      "source_sha256": null,
+      "source_utc": null,
+      "state": "UNOBSERVED"
+    },
+    {
+      "day": "20261122",
+      "failure_classes": [],
+      "family": "quinella_odds",
+      "key": "KYOTO:20261122:11:quinella_odds",
+      "observations": [],
+      "proof_status": "NOT_PROVEN",
+      "race": 11,
+      "source_channel": null,
+      "source_sha256": null,
+      "source_utc": null,
+      "state": "UNOBSERVED"
+    },
+    {
+      "day": "20261122",
+      "failure_classes": [],
+      "family": "bracket_quinella_odds",
+      "key": "KYOTO:20261122:11:bracket_quinella_odds",
+      "observations": [],
+      "proof_status": "NOT_PROVEN",
+      "race": 11,
+      "source_channel": null,
+      "source_sha256": null,
+      "source_utc": null,
+      "state": "UNOBSERVED"
+    },
+    {
+      "day": "20261122",
+      "failure_classes": [],
+      "family": "official_result",
+      "key": "KYOTO:20261122:11:official_result",
+      "observations": [],
+      "proof_status": "NOT_PROVEN",
+      "race": 11,
+      "source_channel": null,
+      "source_sha256": null,
+      "source_utc": null,
+      "state": "UNOBSERVED"
+    },
+    {
+      "day": "20261122",
+      "failure_classes": [],
+      "family": "official_payout",
+      "key": "KYOTO:20261122:11:official_payout",
+      "observations": [],
+      "proof_status": "NOT_PROVEN",
+      "race": 11,
+      "source_channel": null,
+      "source_sha256": null,
+      "source_utc": null,
+      "state": "UNOBSERVED"
+    },
+    {
+      "day": "20261122",
+      "failure_classes": [],
+      "family": "racecard_original",
+      "key": "KYOTO:20261122:12:racecard_original",
+      "observations": [
+        {
+          "captured_at_utc": "2026-11-22T00:19:25.414233+00:00",
+          "channel": "PC",
+          "event": "ORIGINAL_BYTE_RECEIPT",
+          "evidence": "SOURCE_SHA_UTC_RECORDED",
+          "sha256": "fa34bdba9f6592ebc602c66e372eb28b6ac423f8b0fb6e97ac9ba274ac29f1df"
+        },
+        {
+          "channel": "SP",
+          "event": "DELIBERATE_SKIP",
+          "evidence": "PC_SOURCE_EXISTED"
+        }
+      ],
+      "proof_status": "SOURCE_RECEIPT_SHA_UTC_ONLY",
+      "race": 12,
+      "source_channel": "PC",
+      "source_sha256": "fa34bdba9f6592ebc602c66e372eb28b6ac423f8b0fb6e97ac9ba274ac29f1df",
+      "source_utc": "2026-11-22T00:19:25.414233+00:00",
+      "state": "ORIGINAL_VERIFIED"
+    },
+    {
+      "day": "20261122",
+      "failure_classes": [],
+      "family": "roster",
+      "key": "KYOTO:20261122:12:roster",
+      "observations": [
+        {
+          "captured_at_utc": "2026-11-22T00:19:25.414233+00:00",
+          "channel": "PC",
+          "event": "G03_STRUCTURED_REPLAY",
+          "evidence": "RUNNERS_13_START_16:20",
+          "sha256": "fa34bdba9f6592ebc602c66e372eb28b6ac423f8b0fb6e97ac9ba274ac29f1df"
+        }
+      ],
+      "proof_status": "G03_PARSER_REPLAY_SAME_ORIGINAL",
+      "race": 12,
+      "source_channel": "PC",
+      "source_sha256": "fa34bdba9f6592ebc602c66e372eb28b6ac423f8b0fb6e97ac9ba274ac29f1df",
+      "source_utc": "2026-11-22T00:19:25.414233+00:00",
+      "state": "STRUCTURED_VERIFIED"
+    },
+    {
+      "day": "20261122",
+      "failure_classes": [],
+      "family": "horse_profile",
+      "key": "KYOTO:20261122:12:horse_profile",
+      "observations": [
+        {
+          "channel": "PC",
+          "event": "NAVIGATION_ONLY",
+          "evidence": "OBSERVED_LINK_COUNT_13"
+        }
+      ],
+      "proof_status": "NOT_PROVEN",
+      "race": 12,
+      "source_channel": null,
+      "source_sha256": null,
+      "source_utc": null,
+      "state": "UNOBSERVED"
+    },
+    {
+      "day": "20261122",
+      "failure_classes": [],
+      "family": "past_performances",
+      "key": "KYOTO:20261122:12:past_performances",
+      "observations": [
+        {
+          "channel": "PC",
+          "event": "NAVIGATION_ONLY",
+          "evidence": "OBSERVED_LINK_COUNT_52"
+        }
+      ],
+      "proof_status": "NOT_PROVEN",
+      "race": 12,
+      "source_channel": null,
+      "source_sha256": null,
+      "source_utc": null,
+      "state": "UNOBSERVED"
+    },
+    {
+      "day": "20261122",
+      "failure_classes": [],
+      "family": "track_conditions",
+      "key": "KYOTO:20261122:12:track_conditions",
+      "observations": [],
+      "proof_status": "NOT_PROVEN",
+      "race": 12,
+      "source_channel": null,
+      "source_sha256": null,
+      "source_utc": null,
+      "state": "UNOBSERVED"
+    },
+    {
+      "day": "20261122",
+      "failure_classes": [],
+      "family": "quinella_odds",
+      "key": "KYOTO:20261122:12:quinella_odds",
+      "observations": [],
+      "proof_status": "NOT_PROVEN",
+      "race": 12,
+      "source_channel": null,
+      "source_sha256": null,
+      "source_utc": null,
+      "state": "UNOBSERVED"
+    },
+    {
+      "day": "20261122",
+      "failure_classes": [],
+      "family": "bracket_quinella_odds",
+      "key": "KYOTO:20261122:12:bracket_quinella_odds",
+      "observations": [],
+      "proof_status": "NOT_PROVEN",
+      "race": 12,
+      "source_channel": null,
+      "source_sha256": null,
+      "source_utc": null,
+      "state": "UNOBSERVED"
+    },
+    {
+      "day": "20261122",
+      "failure_classes": [],
+      "family": "official_result",
+      "key": "KYOTO:20261122:12:official_result",
+      "observations": [],
+      "proof_status": "NOT_PROVEN",
+      "race": 12,
+      "source_channel": null,
+      "source_sha256": null,
+      "source_utc": null,
+      "state": "UNOBSERVED"
+    },
+    {
+      "day": "20261122",
+      "failure_classes": [],
+      "family": "official_payout",
+      "key": "KYOTO:20261122:12:official_payout",
+      "observations": [],
+      "proof_status": "NOT_PROVEN",
+      "race": 12,
+      "source_channel": null,
+      "source_sha256": null,
+      "source_utc": null,
+      "state": "UNOBSERVED"
+    }
+  ],
+  "schema": "kyoto_evidence_complete_family_ledger.v1",
+  "source_only": true
+}
