@@ -36,11 +36,18 @@ jobs:
           gh run download 44984067104 -R "$GITHUB_REPOSITORY" -n kyoto-nov22-observed-horse-profiles-44984067104 -D frozen/real_source/profile
           gh run download 44984408658 -R "$GITHUB_REPOSITORY" -n kyoto-nov22-real-ground-official-source-44984408658 -D frozen/real_source/track
           gh run download 44966013490 -R "$GITHUB_REPOSITORY" -n kyoto-nov22-real-observed-all12-encrypted-44966013490 -D frozen/nov22_all12_source
-      - name: Replay 185 actual unique horse profile bytes with established G04 and history reader
+      - name: Verify bounded official administrative suffix under non-wager source only
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd rescue
+          python -m unittest -v tests.test_jra_horse_official_status_suffix
+      - name: Replay 185 actual unique horse profile bytes with established G04 and repaired history reader
         shell: bash
         run: |
           set -euo pipefail
           cd frozen
+          cp ../rescue/diagnostics/jra_prior_form_offline.py diagnostics/jra_prior_form_offline.py
           PYTHONPATH=.:../rescue python ../rescue/diagnostics/kyoto_nov22_actual_185_profile_history_track_replay.py
       - name: Persist exact rejected source identities and safe counts
         if: always()
