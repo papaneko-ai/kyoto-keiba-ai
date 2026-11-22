@@ -44,8 +44,21 @@ def independently_saved_frame_roster(raw):
         if n is None or f is None:raise ValueError("INCOMPLETE_HORSE_FRAME_ROW")
         a=n.get_text(" ",strip=True)
         b=f.get_text(" ",strip=True)
-        if not a.isascii() or not b.isascii() or not a.isdecimal() or not b.isdecimal():
-            raise ValueError("INVALID_FRAME_DIGITS:num="+repr(a[:30])+" frame="+repr(b[:30])+" element="+str(f)[:180])
+        if not a.isascii() or not a.isdecimal():
+            raise ValueError("INVALID_HORSE_NUMBER")
+        if not b:
+            # Actual JRA Nov22 racecard renders frame as an image, not text.
+            # Both published ALT and IMG source must independently agree.
+            img=f.select_one('img[alt][src]')
+            if img is None:
+                raise ValueError("OFFICIAL_FRAME_IMAGE_MISSING")
+            alt=re.fullmatch(r"枠([1-8])(?:白|黒|赤|青|黄|緑|橙|桃)?",img.get("alt",""))
+            src=re.match(r"^/JRADB/img/waku/([1-8])(?:[^0-9]|$)",img.get("src",""))
+            if alt is None or src is None or alt.group(1)!=src.group(1):
+                raise ValueError("OFFICIAL_FRAME_IMAGE_SOURCE_ALT_CONFLICT")
+            b=alt.group(1)
+        if not b.isascii() or not b.isdecimal():
+            raise ValueError("INVALID_FRAME_DIGITS")
         rows.append((int(a),int(b)))
     if not 2<=len(rows)<=18 or [n for n,f in rows]!=list(range(1,len(rows)+1)):
         raise ValueError("ROSTER_NUMBER_SEQUENCE_UNVERIFIED")
