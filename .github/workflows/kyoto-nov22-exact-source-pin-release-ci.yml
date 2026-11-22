@@ -30,7 +30,7 @@ jobs:
           set -euo pipefail
           python - <<'PY'
           import json,os,urllib.request
-          sha="1d83b80159d86be1145a35a822253b968416a3e8"
+          sha="5d25db562e36eb748f7d5b6ce58866f91b239952"
           url="https://api.github.com/repos/"+os.environ["GITHUB_REPOSITORY"]+"/actions/workflows/kyoto-weekend-20261121-22-preflight.yml/runs?per_page=100"
           headers={"Authorization":"Bearer "+os.environ["GH_TOKEN"],"Accept":"application/vnd.github+json"}
           with urllib.request.urlopen(urllib.request.Request(url,headers=headers),timeout=15) as rsp:
