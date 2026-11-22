@@ -1,0 +1,116 @@
+{
+  "day": "20261122",
+  "market_prices_verified": false,
+  "prediction_ready": false,
+  "races": {
+    "1": {
+      "captured_at_utc": "2026-11-22T00:16:21.242955+00:00",
+      "horse_profiles_observed": 12,
+      "original_sha256": "a6c4eb195f50d66c413c49ab00e9322439b7474b2e2aa1c857ca59ab1d8b9448",
+      "past_run_dates_observed": 18,
+      "runner_count": 12,
+      "start_time_jst": "10:05",
+      "state": "G03_ROSTER_AND_START_PARSED_FROM_ACTUAL_ORIGINAL"
+    },
+    "10": {
+      "captured_at_utc": "2026-11-22T00:19:21.273724+00:00",
+      "horse_profiles_observed": 14,
+      "original_sha256": "aff05101e9ef71fca9be650909daed5046ba18142b3cdcd47b8b355ae6a8bb48",
+      "past_run_dates_observed": 56,
+      "runner_count": 14,
+      "start_time_jst": "15:01",
+      "state": "G03_ROSTER_AND_START_PARSED_FROM_ACTUAL_ORIGINAL"
+    },
+    "11": {
+      "captured_at_utc": "2026-11-22T00:19:23.340969+00:00",
+      "horse_profiles_observed": 18,
+      "original_sha256": "7c6dfbf64b679438602ee052d2db7b53a9fec15f156a327908dd3b9e3a16d68b",
+      "past_run_dates_observed": 72,
+      "runner_count": 18,
+      "start_time_jst": "15:40",
+      "state": "G03_ROSTER_AND_START_PARSED_FROM_ACTUAL_ORIGINAL"
+    },
+    "12": {
+      "captured_at_utc": "2026-11-22T00:19:25.414233+00:00",
+      "horse_profiles_observed": 13,
+      "original_sha256": "fa34bdba9f6592ebc602c66e372eb28b6ac423f8b0fb6e97ac9ba274ac29f1df",
+      "past_run_dates_observed": 52,
+      "runner_count": 13,
+      "start_time_jst": "16:20",
+      "state": "G03_ROSTER_AND_START_PARSED_FROM_ACTUAL_ORIGINAL"
+    },
+    "2": {
+      "captured_at_utc": "2026-11-22T00:19:05.361329+00:00",
+      "horse_profiles_observed": 13,
+      "original_sha256": "504fbfea8836c3046486fe4267d3c0ac65ab24b9198f41131ff034569b709da0",
+      "past_run_dates_observed": 22,
+      "runner_count": 13,
+      "start_time_jst": "10:35",
+      "state": "G03_ROSTER_AND_START_PARSED_FROM_ACTUAL_ORIGINAL"
+    },
+    "3": {
+      "captured_at_utc": "2026-11-22T00:19:07.283257+00:00",
+      "horse_profiles_observed": 9,
+      "original_sha256": "3c10340938b8988322fed798a9a5e39eeb5485c9eb6bc9af0782c5a4ffb95cad",
+      "past_run_dates_observed": 14,
+      "runner_count": 9,
+      "start_time_jst": "11:05",
+      "state": "G03_ROSTER_AND_START_PARSED_FROM_ACTUAL_ORIGINAL"
+    },
+    "4": {
+      "captured_at_utc": "2026-11-22T00:19:09.378344+00:00",
+      "horse_profiles_observed": 10,
+      "original_sha256": "e6fdccc166159c646f11b8ed2e12df4d74cf7bd16b41fd9ef70e72fdafc2ce55",
+      "past_run_dates_observed": 0,
+      "runner_count": 10,
+      "start_time_jst": "11:35",
+      "state": "G03_ROSTER_AND_START_PARSED_FROM_ACTUAL_ORIGINAL"
+    },
+    "5": {
+      "captured_at_utc": "2026-11-22T00:19:11.131735+00:00",
+      "horse_profiles_observed": 12,
+      "original_sha256": "7b6a07a3a3536ba388c327145e3f9990092ff6b29f1861a55e5cbf297e5d0b45",
+      "past_run_dates_observed": 0,
+      "runner_count": 12,
+      "start_time_jst": "12:25",
+      "state": "G03_ROSTER_AND_START_PARSED_FROM_ACTUAL_ORIGINAL"
+    },
+    "6": {
+      "captured_at_utc": "2026-11-22T00:19:13.475064+00:00",
+      "horse_profiles_observed": 16,
+      "original_sha256": "dde76ecc51ee571824b5bf99afd653791fb9cca07f6004af5625fe5fe058d115",
+      "past_run_dates_observed": 64,
+      "runner_count": 16,
+      "start_time_jst": "12:55",
+      "state": "G03_ROSTER_AND_START_PARSED_FROM_ACTUAL_ORIGINAL"
+    },
+    "7": {
+      "captured_at_utc": "2026-11-22T00:19:15.422002+00:00",
+      "horse_profiles_observed": 18,
+      "original_sha256": "4764c74a464e42d69e4fffa0ad3b5dff03042bb065a44559c3338f6e2c3d212f",
+      "past_run_dates_observed": 69,
+      "runner_count": 18,
+      "start_time_jst": "13:25",
+      "state": "G03_ROSTER_AND_START_PARSED_FROM_ACTUAL_ORIGINAL"
+    },
+    "8": {
+      "captured_at_utc": "2026-11-22T00:19:17.240905+00:00",
+      "horse_profiles_observed": 10,
+      "original_sha256": "8e79afc2902f325dad6afb99e2c3e6b4ec3eacb2310ca323a388de9267d4963f",
+      "past_run_dates_observed": 40,
+      "runner_count": 10,
+      "start_time_jst": "13:55",
+      "state": "G03_ROSTER_AND_START_PARSED_FROM_ACTUAL_ORIGINAL"
+    },
+    "9": {
+      "captured_at_utc": "2026-11-22T00:19:19.389488+00:00",
+      "horse_profiles_observed": 14,
+      "original_sha256": "2a88d4ae3eb2de644f651b4916729cc42f3b33c03475c4a56c4e9c589626705e",
+      "past_run_dates_observed": 56,
+      "runner_count": 14,
+      "start_time_jst": "14:25",
+      "state": "G03_ROSTER_AND_START_PARSED_FROM_ACTUAL_ORIGINAL"
+    }
+  },
+  "schema": "kyoto_nov22_frozen_g03_on_actual_source.v1"
+}
