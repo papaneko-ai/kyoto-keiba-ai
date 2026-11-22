@@ -1,0 +1,32 @@
+name: Nov22 market parser failures per race offline root-cause matrix
+on:
+  push:
+    branches: [capture/nov22-remaining-races-real-market-originals-20261122]
+    paths: ['.github/workflows/kyoto-nov22-market-parser-failure-matrix.yml']
+permissions:
+  contents: read
+  actions: read
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Download prior numeric evidence only and print per-race failures
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p numeric
+          gh run download 44984175986 --repo "$GITHUB_REPOSITORY" --name kyoto-nov22-numeric-actual-market-replay-44984175986 --dir numeric
+          python - <<'PY'
+          import json
+          d=json.load(open("numeric/market_numeric_replay.json"))
+          for race in range(1,13):
+              items=d["races"][str(race)]
+              print("RACE",race,"QUINELLA",items["quinella"]["state"],items["quinella"].get("reason",""),
+                    "BRACKET",items["bracket_quinella"]["state"],items["bracket_quinella"].get("reason",""))
+          PY
