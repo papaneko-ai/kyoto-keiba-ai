@@ -1,88 +1,129 @@
-"""Archive only encrypted source and safe receipts, append-only in GitHub evidence branch.
+"""Idempotent, verified GitHub archival of ciphertext and SAFE receipts only.
 
-No source-site HTTP. Never commit plaintext HTML, tokens, or AES keys.
+Directly archives observed Nov21 4x PC/SP failure/source attempts plus Nov22
+12R success/G03/108-family ledger in a separate evidence branch. Never
+touch main, never publish plaintext or use a JRA HTTP request.
 """
 import base64
 import hashlib
 import json
 import os
+import re
 import subprocess
 from pathlib import Path
 
-EVIDENCE_BRANCH="archive/kyoto-ai-encrypted-original-evidence"
 REPO=os.environ["GITHUB_REPOSITORY"]
-ROOT=Path("evidence_intake")
-ALLOWED_EXT=(".aesgcm",".json",".txt")
-MAX_FILE=2_000_000
+BRANCH="archive/kyoto-ai-encrypted-original-evidence"
+ROOT=Path("intake")
+RUNS=(44848944302,44854931835,44857934629,44861934823)
+MAX_BYTES=1_500_000
+FILES={
+    "nov22/full12":("ciphertext_sha256.txt","originals_all12.tar.gz.aesgcm","source_receipts_summary.json"),
+    "nov22/g03":("safe_race_parser_results.json",),
+    "nov22/ledger":("nov22_108_records.json",)
+}
+FAILURE_ALLOWED={
+    "pc":("manifest.json","safe_stop.json","originals.tar.gz.aesgcm"),
+    "sp":("manifest.json","safe_stop.json","originals.tar.gz.aesgcm"),
+}
 
-def gh(*args,input=None):
-    result=subprocess.run(["gh","api",*args],input=input,
-                          capture_output=True,text=True,check=False)
-    if result.returncode!=0:
-        raise RuntimeError("github_archive_api_failure:"+result.stderr[:200])
-    return json.loads(result.stdout) if result.stdout else {}
+def api(method,path,payload=None):
+    cmd=["gh","api","-X",method,f"repos/{REPO}/{path}"]
+    if payload is not None:cmd+=["--input","-"]
+    p=subprocess.run(cmd,input=json.dumps(payload) if payload is not None else None,
+                     text=True,capture_output=True)
+    if p.returncode:
+        if method=="GET" and "404" in p.stderr:return None
+        raise RuntimeError("GitHub API rejected "+method+" "+path+": "+p.stderr[:240])
+    return json.loads(p.stdout)
 
-def classify(name):
-    if name.endswith(".aesgcm"):return "ENCRYPTED_SOURCE"
-    if name.endswith(".json"):return "SAFE_RECEIPT"
-    if name.endswith(".txt"):return "DIGEST_TEXT"
-    raise ValueError("unapproved_archive_extension")
+def approved_files():
+    for run in RUNS:
+        for lane in ("pc","sp"):
+            folder=ROOT/"nov21"/str(run)/lane
+            if not folder.is_dir():raise ValueError("missing_evidence:"+str(folder))
+            names={p.name for p in folder.iterdir()}
+            if not names or not names.issubset(FAILURE_ALLOWED[lane]):
+                raise ValueError("unapproved_failure_evidence_file:"+str(folder))
+            if not ("manifest.json" in names or "safe_stop.json" in names):
+                raise ValueError("missing_failure_receipt")
+            yield from sorted(folder.iterdir())
+    for area,names in FILES.items():
+        folder=ROOT/area
+        if not folder.is_dir() or set(p.name for p in folder.iterdir())!=set(names):
+            raise ValueError("source_success_bundle_incomplete:"+area)
+        yield from sorted(folder.iterdir())
+
+def validate(file):
+    if file.is_symlink() or not file.is_file():
+        raise ValueError("invalid_evidence_file")
+    data=file.read_bytes()
+    if not 0<len(data)<=MAX_BYTES:raise ValueError("size_out_of_scope")
+    name=file.name
+    if name.endswith(".aesgcm"):
+        if len(data)<32:raise ValueError("ciphertext_too_short")
+        kind="ENCRYPTED_SOURCE"
+    elif name.endswith(".json"):
+        obj=json.loads(data.decode("utf-8"))
+        if not isinstance(obj,dict):raise ValueError("unsafe_receipt_type")
+        kind="SAFE_METADATA"
+    elif name=="ciphertext_sha256.txt":
+        if not re.fullmatch(rb"[0-9a-f]{64}\\n?",data):
+            raise ValueError("invalid_sha256_file")
+        kind="DIGEST"
+    else:raise ValueError("unapproved_evidence_extension")
+    return data,kind
 
 def main():
     inventory=[]
-    for area in ("nov21_failure_evidence","nov22_real_all12",
-                 "nov22_g03","nov22_family_ledger"):
-        folder=ROOT/area
-        if not folder.is_dir() or folder.is_symlink():
-            raise ValueError("missing_evidence_bundle:"+area)
-        files=sorted(p for p in folder.iterdir() if p.is_file() and not p.is_symlink())
-        if not files:raise ValueError("empty_evidence_bundle:"+area)
-        for file in files:
-            kind=classify(file.name)
-            if area=="nov22_real_all12" and file.name=="originals_all12.tar.gz.aesgcm":
-                pass
-            elif kind=="ENCRYPTED_SOURCE":
-                pass
-            elif kind=="SAFE_RECEIPT" and file.stat().st_size<=MAX_FILE:
-                obj=json.loads(file.read_text(encoding="utf8"))
-                if not isinstance(obj,(dict,list)):
-                    raise ValueError("unsafe_receipt_shape")
-            elif kind=="DIGEST_TEXT" and file.stat().st_size<=MAX_FILE:
-                raw=file.read_text(encoding="utf8")
-                if not raw.strip() or len(raw)>1500:
-                    raise ValueError("invalid_digest_receipt")
-            else:
-                raise ValueError("file_not_approved")
-            data=file.read_bytes()
-            if not 0<len(data)<=MAX_FILE:
-                raise ValueError("file_size_outside_limit")
-            sha=hashlib.sha256(data).hexdigest()
-            path=f"evidence/2026-11-21_22/{area}/{file.name}"
-            # No 'sha' parameter: server must reject overwrites (409/422).
-            gh("-X","PUT",f"repos/{REPO}/contents/{path}",
-               "-f","message=archive encrypted 2026-11-21_22 evidence "+area,
-               "-f","branch="+EVIDENCE_BRANCH,
-               "-f","content="+base64.b64encode(data).decode("ascii"))
-            inventory.append({"path":path,"kind":kind,"size":len(data),"sha256":sha})
-            print("APPEND_ONLY_ARCHIVE_PASS",area,file.name,sha)
-    manifest={"schema":"kyoto_archived_protected_originals.v1",
-              "day_range":["20261121","20261122"],
-              "immutable_source_run":44966013490,
-              "failure_source_runs":[44848944302,44854931835,44857934629,44861934823],
-              "g03_source_run":44966654858,
-              "ledger_source_run":44983258092,
-              "files":inventory,
-              "no_plaintext_html_committed":True,
-              "no_jra_http":True,
-              "audit_required_for_key_restoration":True}
-    content=json.dumps(manifest,ensure_ascii=False,sort_keys=True,indent=2).encode()+b"\n"
-    gh("-X","PUT",f"repos/{REPO}/contents/evidence/2026-11-21_22/ARCHIVE_MANIFEST.json",
-       "-f","message=fix archive manifest and immutable SHA256 for Nov21 failures and Nov22 source success",
-       "-f","branch="+EVIDENCE_BRANCH,
-       "-f","content="+base64.b64encode(content).decode("ascii"))
+    files=list(approved_files())
+    if len(files)!=18:raise ValueError("expected_evidence_count_18_got_"+str(len(files)))
+    # Check parent-source ciphertext before transmitting any archive bytes.
+    base=ROOT/"nov22/full12"
+    expected=(base/"ciphertext_sha256.txt").read_text().strip()
+    actual=hashlib.sha256((base/"originals_all12.tar.gz.aesgcm").read_bytes()).hexdigest()
+    if actual!=expected:raise ValueError("REAL_12R_ARCHIVE_SHA_MISMATCH")
+    for file in files:
+        data,kind=validate(file)
+        dest="evidence/2026-11-21_22/"+file.relative_to(ROOT).as_posix()
+        sha=hashlib.sha256(data).hexdigest()
+        endpoint="contents/"+dest
+        prior=api("GET",endpoint+"?ref="+BRANCH)
+        if prior is not None:
+            existing=base64.b64decode(prior["content"].replace("\n",""))
+            if hashlib.sha256(existing).hexdigest()!=sha:
+                raise ValueError("ARCHIVE_COLLISION_DIFFERENT_BYTES:"+dest)
+            print("EXISTING_BYTE_IDENTICAL",dest,sha)
+        else:
+            stored=api("PUT",endpoint,{
+                "message":"archive immutable Nov21 failure or Nov22 source-proof artifact "+file.name,
+                "branch":BRANCH,"content":base64.b64encode(data).decode("ascii")})
+            if not stored.get("content",{}).get("sha"):
+                raise ValueError("storage_acknowledgment_missing")
+            verify=api("GET",endpoint+"?ref="+BRANCH)
+            if hashlib.sha256(base64.b64decode(verify["content"].replace("\n",""))).hexdigest()!=sha:
+                raise ValueError("ARCHIVED_BYTES_DO_NOT_MATCH")
+            print("ARCHIVED_BYTE_IDENTICAL",dest,sha)
+        inventory.append({"path":dest,"kind":kind,"size":len(data),"sha256":sha})
+    manifest={"schema":"kyoto_encrypted_evidence_archive.v1",
+              "source_runs":{"failure":list(RUNS),"all12":44966013490,
+                             "g03":44966654858,"ledger":44983258092},
+              "day_range":["20261121","20261122"],"files":inventory,
+              "real_racecard_originals_12r_proven":True,
+              "source_only":True,"markets_unverified":True,
+              "plain_html_committed":False}
+    payload=(json.dumps(manifest,ensure_ascii=False,sort_keys=True,indent=2)+"\n").encode()
+    mpath="contents/evidence/2026-11-21_22/ARCHIVE_MANIFEST.json"
+    old=api("GET",mpath+"?ref="+BRANCH)
+    if old is not None:
+        if base64.b64decode(old["content"].replace("\n",""))!=payload:
+            raise ValueError("MANIFEST_CONFLICT_REVIEW_REQUIRED")
+    else:
+        api("PUT",mpath,{"message":"final verified Nov21 failures Nov22 successes SHA manifest",
+                        "branch":BRANCH,"content":base64.b64encode(payload).decode()})
     Path("evidence_archive_receipt").mkdir(exist_ok=True)
-    Path("evidence_archive_receipt/manifest.json").write_bytes(content)
-    print("ARCHIVED_EVIDENCE_FILES",len(inventory))
-    print("ARCHIVED_SOURCE_ONLY_UNVERIFIED_MARKETS")
+    Path("evidence_archive_receipt/manifest.json").write_bytes(payload)
+    print("ARCHIVED_FAILURE_AND_SUCCESS_FILES="+str(len(inventory)))
+    print("ARCHIVE_NO_JRA_HTTP_NO_PRODUCTION_CHANGE")
 
 if __name__=="__main__":main()
