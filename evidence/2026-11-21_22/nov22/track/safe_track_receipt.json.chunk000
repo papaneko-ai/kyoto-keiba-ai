@@ -1,0 +1,12 @@
+{
+  "bytes": 73645,
+  "captured_at_utc": "2026-11-22T04:19:50.787527+00:00",
+  "day": "20261122",
+  "requested_at_utc": "2026-11-22T04:19:49.811462+00:00",
+  "same_day_ground_verified": false,
+  "schema": "kyoto_nov22_observed_official_ground.v1",
+  "sha256": "0e5e1367e39aed43f171867fa0506b29f3af75a67c271abb56b1e13e0ce8334f",
+  "source_only": true,
+  "source_url": "https://jra.jp/keiba/baba/index2.html",
+  "state": "OFFICIAL_GROUND_HTML_SAVED_FIELDS_UNVERIFIED"
+}
