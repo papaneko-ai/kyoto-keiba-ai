@@ -28,13 +28,13 @@ def reconcile(source, parsed, ledger):
         result["racecard_originals"]+=int(original)
         row=parsed.get("races",{}).get(str(race),{})
         structured=(original and isinstance(row,dict) and
-                    row.get("source_sha256") in [sha for _,sha in verified] and
-                    row.get("roster_parsed") is True)
+                    row.get("original_sha256") in [sha for _,sha in verified] and
+                    row.get("state") == "G03_ROSTER_AND_START_PARSED_FROM_ACTUAL_ORIGINAL")
         result["structured_rosters"]+=int(structured)
         result["races"][str(race)]={"original_verified":original,
                                    "channels":[ch for ch,_ in verified],
                                    "roster_verified":bool(structured)}
-    result["ledger_record_count"]=len(ledger) if isinstance(ledger,list) else None
+    result["ledger_record_count"]=(len(ledger) if isinstance(ledger,list) else len(ledger.get("records",[])) if isinstance(ledger,dict) else None)
     return result
 
 def main():
