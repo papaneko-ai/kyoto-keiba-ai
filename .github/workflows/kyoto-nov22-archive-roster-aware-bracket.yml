@@ -1,0 +1,48 @@
+name: Nov22 preserve corrected 11R roster-aware bracket numeric verification
+on:
+  push:
+    branches: [capture/nov22-remaining-races-real-market-originals-20261122]
+    paths: ['.github/workflows/kyoto-nov22-archive-roster-aware-bracket.yml']
+permissions:
+  contents: write
+  actions: read
+jobs:
+  save-corrected-bracket-proof:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Append corrected official-racecard-frame-tested numeric results to evidence archive
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p corrected
+          gh run download 44984468709 --repo "$GITHUB_REPOSITORY" --name kyoto-nov22-actual-bracket-roster-verified-44984468709 --dir corrected
+          python - <<'PY'
+          import base64,hashlib,json,os,subprocess
+          from pathlib import Path
+          file=Path('corrected/safe_replay.json')
+          data=file.read_bytes()
+          report=json.loads(data)
+          count=sum(x.get('state')=='ROSTER_AWARE_NUMERIC_BRACKET_VALIDATED' for x in report['races'].values())
+          assert count==11
+          dest='evidence/2026-11-21_22/nov22/paired_markets/verification/roster_aware_bracket_11_of_12.json'
+          repo=os.environ['GITHUB_REPOSITORY']
+          content=base64.b64encode(data).decode()
+          command=['gh','api','-X','PUT',f'repos/{repo}/contents/{dest}',
+              '--input','-']
+          payload={'branch':'archive/kyoto-ai-encrypted-original-evidence',
+             'message':'preserve corrected independent Nov22 actual bracket numeric source 11/12',
+             'content':content}
+          subprocess.run(command,input=json.dumps(payload),text=True,check=True,
+                         capture_output=True)
+          url=f'repos/{repo}/contents/{dest}?ref=archive/kyoto-ai-encrypted-original-evidence'
+          response=json.loads(subprocess.check_output(['gh','api',url]))
+          saved=base64.b64decode(response['content'])
+          assert hashlib.sha256(saved).digest()==hashlib.sha256(data).digest()
+          print('CORRECTED_ACTUAL_BRACKET_PROOF_IN_GITHUB_ARCHIVE=11/12')
+          PY
