@@ -1,0 +1,59 @@
+name: Nov22 actual horse profiles histories from saved 12R official racecards
+on:
+  push:
+    branches: [capture/nov22-remaining-races-real-market-originals-20261122]
+    paths:
+      - 'diagnostics/kyoto_nov22_horse_profile_followup.py'
+      - '.github/workflows/kyoto-nov22-real-profile-followup.yml'
+permissions:
+  contents: read
+  actions: read
+jobs:
+  actual-horse-profiles-after-market-capture:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      GH_TOKEN: ${{ github.token }}
+      KYOTO_JRA_ARCHIVE_AES256_HEX: ${{ secrets.KYOTO_JRA_ARCHIVE_AES256_HEX }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install profile parser and AES
+        run: python -m pip install 'beautifulsoup4>=4.12,<5' 'cryptography>=43,<47'
+      - name: Ensure no concurrent JRA traffic with same-day market-capture experiment
+        shell: bash
+        run: |
+          set -euo pipefail
+          for attempt in $(seq 1 75); do
+            status="$(gh run view 44983969532 --repo "$GITHUB_REPOSITORY" --json status --jq .status)"
+            if [ "$status" = completed ]; then
+              echo PRECEDING_MARKET_RUN_COMPLETED_NONOVERLAP
+              exit 0
+            fi
+            sleep 8
+          done
+          echo MARKET_RUN_STILL_ACTIVE_PREVENT_CONCURRENT_HTTP
+          exit 1
+      - name: Download same original Kyoto 12R AES archive and SHA
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p nov22_all12_source
+          gh run download 44966013490 --repo "$GITHUB_REPOSITORY" --name kyoto-nov22-real-observed-all12-encrypted-44966013490 --dir nov22_all12_source
+      - name: Fetch unique JRA horse profile originals prioritizing remaining races
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m diagnostics.kyoto_nov22_horse_profile_followup
+      - name: Persist encrypted-only original profiles SHA/UTC and attempted/failure audit
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: kyoto-nov22-observed-horse-profiles-${{ github.run_id }}
+          path: nov22_profile_capture/sealed/
+          retention-days: 30
+          if-no-files-found: warn
