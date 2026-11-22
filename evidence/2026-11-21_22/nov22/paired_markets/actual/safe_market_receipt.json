@@ -1,0 +1,467 @@
+{
+  "actual_wager_authorized": false,
+  "captured_batch_at_utc": "2026-11-22T04:11:56.176570+00:00",
+  "day": "20261122",
+  "pre_race_odds_certified": false,
+  "prediction_ready": false,
+  "races": {
+    "1": {
+      "PC": {
+        "market_items": {
+          "bracket_quinella": {
+            "bytes": 80392,
+            "captured_at_utc": "2026-11-22T04:13:07.361413+00:00",
+            "http_status": 200,
+            "official_post_url": "https://jra.jp/JRADB/accessO.html",
+            "requested_at_utc": "2026-11-22T04:13:06.491756+00:00",
+            "sha256": "930034a08a4bf0309987a30714d73b59a45f63214da456b5ce255a6160be15b5",
+            "state": "RAW_ORIGINAL_SAVED_NUMERICAL_PARSER_NOT_YET_VERIFIED"
+          },
+          "quinella": {
+            "bytes": 83043,
+            "captured_at_utc": "2026-11-22T04:13:05.255286+00:00",
+            "http_status": 200,
+            "official_post_url": "https://jra.jp/JRADB/accessO.html",
+            "requested_at_utc": "2026-11-22T04:13:04.491671+00:00",
+            "sha256": "cc70eb423598fc49f83d6697d9da9c01151e5303a86b4c71114af958cdf454e1",
+            "state": "RAW_ORIGINAL_SAVED_NUMERICAL_PARSER_NOT_YET_VERIFIED"
+          }
+        },
+        "market_phase": "FINAL_ODDS_OR_POST_START",
+        "odds_menu_action_sha256": "dccbe1914c879f617eb3f0f2e528b5d470aec5aaeea15a2052e588238ca41465",
+        "odds_menu_receipt": {
+          "bytes": 85386,
+          "captured_at_utc": "2026-11-22T04:13:03.388190+00:00",
+          "http_status": 200,
+          "official_post_url": "https://jra.jp/JRADB/accessO.html",
+          "requested_at_utc": "2026-11-22T04:13:02.491565+00:00",
+          "sha256": "141c8ea568ad64f0b2e7e6efda56a7a3ad3d79e74f42edc2fd8d77b3a825509c"
+        },
+        "state": "OFFICIAL_ODDS_MENU_RAW_SAVED"
+      },
+      "SP": {
+        "state": "PC_BOTH_MARKET_ORIGINALS_SAVED_SKIP_DUPLICATE"
+      }
+    },
+    "10": {
+      "PC": {
+        "market_items": {
+          "bracket_quinella": {
+            "bytes": 81210,
+            "captured_at_utc": "2026-11-22T04:12:13.414200+00:00",
+            "http_status": 200,
+            "official_post_url": "https://jra.jp/JRADB/accessO.html",
+            "requested_at_utc": "2026-11-22T04:12:12.488928+00:00",
+            "sha256": "b1abe26badb8bdd55804d66237a318a8a0d75ab8591338b6108988231b09ea4f",
+            "state": "RAW_ORIGINAL_SAVED_NUMERICAL_PARSER_NOT_YET_VERIFIED"
+          },
+          "quinella": {
+            "bytes": 86903,
+            "captured_at_utc": "2026-11-22T04:12:11.395636+00:00",
+            "http_status": 200,
+            "official_post_url": "https://jra.jp/JRADB/accessO.html",
+            "requested_at_utc": "2026-11-22T04:12:10.488843+00:00",
+            "sha256": "64c2289a08552dbd2e802f9e4bee1b980932d221bcb2dda23fd980d977c8b72b",
+            "state": "RAW_ORIGINAL_SAVED_NUMERICAL_PARSER_NOT_YET_VERIFIED"
+          }
+        },
+        "market_phase": "FINAL_ODDS_OR_POST_START",
+        "odds_menu_action_sha256": "0a192b3cda0d44fda68bb0f42799e5c5cc2b700b4673f76d6ad3c7f0c6ab2958",
+        "odds_menu_receipt": {
+          "bytes": 87423,
+          "captured_at_utc": "2026-11-22T04:12:09.393938+00:00",
+          "http_status": 200,
+          "official_post_url": "https://jra.jp/JRADB/accessO.html",
+          "requested_at_utc": "2026-11-22T04:12:08.488738+00:00",
+          "sha256": "8639858f63fd4d1ba4f20f2ec537bdd3467815a131dde990b9f5dc32eda8fae9"
+        },
+        "state": "OFFICIAL_ODDS_MENU_RAW_SAVED"
+      },
+      "SP": {
+        "state": "PC_BOTH_MARKET_ORIGINALS_SAVED_SKIP_DUPLICATE"
+      }
+    },
+    "11": {
+      "PC": {
+        "market_items": {
+          "bracket_quinella": {
+            "bytes": 81385,
+            "captured_at_utc": "2026-11-22T04:12:07.639294+00:00",
+            "http_status": 200,
+            "official_post_url": "https://jra.jp/JRADB/accessO.html",
+            "requested_at_utc": "2026-11-22T04:12:06.488608+00:00",
+            "sha256": "8c91876465ace90cea518903475b0798c099538be4481dda8e91a95775116022",
+            "state": "RAW_ORIGINAL_SAVED_NUMERICAL_PARSER_NOT_YET_VERIFIED"
+          },
+          "quinella": {
+            "bytes": 93743,
+            "captured_at_utc": "2026-11-22T04:12:05.509973+00:00",
+            "http_status": 200,
+            "official_post_url": "https://jra.jp/JRADB/accessO.html",
+            "requested_at_utc": "2026-11-22T04:12:04.488534+00:00",
+            "sha256": "30fbecb4fc941300da13cedf9db9826116cf6f76eff54c8749fe0b249d9d7f6d",
+            "state": "RAW_ORIGINAL_SAVED_NUMERICAL_PARSER_NOT_YET_VERIFIED"
+          }
+        },
+        "market_phase": "FINAL_ODDS_OR_POST_START",
+        "odds_menu_action_sha256": "ffe7edcd8687f53dc423ea3002e9ea005f613040ab533eb4b6cf47869d0a4894",
+        "odds_menu_receipt": {
+          "bytes": 90739,
+          "captured_at_utc": "2026-11-22T04:12:03.522170+00:00",
+          "http_status": 200,
+          "official_post_url": "https://jra.jp/JRADB/accessO.html",
+          "requested_at_utc": "2026-11-22T04:12:02.488402+00:00",
+          "sha256": "c141cb8d222994b42ccb67725d1fad3c2bbbe333bea166ac8e2bd14505fd5cf2"
+        },
+        "state": "OFFICIAL_ODDS_MENU_RAW_SAVED"
+      },
+      "SP": {
+        "state": "PC_BOTH_MARKET_ORIGINALS_SAVED_SKIP_DUPLICATE"
+      }
+    },
+    "12": {
+      "PC": {
+        "market_items": {
+          "bracket_quinella": {
+            "bytes": 81060,
+            "captured_at_utc": "2026-11-22T04:12:01.375634+00:00",
+            "http_status": 200,
+            "official_post_url": "https://jra.jp/JRADB/accessO.html",
+            "requested_at_utc": "2026-11-22T04:12:00.488276+00:00",
+            "sha256": "d84c0d171ab93e66fa629914f92b72cd60ec6fd5a70aa679d2b51c1f7da3a88b",
+            "state": "RAW_ORIGINAL_SAVED_NUMERICAL_PARSER_NOT_YET_VERIFIED"
+          },
+          "quinella": {
+            "bytes": 85267,
+            "captured_at_utc": "2026-11-22T04:11:59.732867+00:00",
+            "http_status": 200,
+            "official_post_url": "https://jra.jp/JRADB/accessO.html",
+            "requested_at_utc": "2026-11-22T04:11:58.488185+00:00",
+            "sha256": "a2bc61d3335f4b26a06093d29e5d595b1b739496eecbf6bb637ee2a61adf9493",
+            "state": "RAW_ORIGINAL_SAVED_NUMERICAL_PARSER_NOT_YET_VERIFIED"
+          }
+        },
+        "market_phase": "FINAL_ODDS_OR_POST_START",
+        "odds_menu_action_sha256": "aebb58d96e58df292f52ce02068c5316124f8bb8d85f1434670c98b6cbbda959",
+        "odds_menu_receipt": {
+          "bytes": 86455,
+          "captured_at_utc": "2026-11-22T04:11:57.384029+00:00",
+          "http_status": 200,
+          "official_post_url": "https://jra.jp/JRADB/accessO.html",
+          "requested_at_utc": "2026-11-22T04:11:56.488175+00:00",
+          "sha256": "1b09410bfc193fd2da2a66d5b797f4c43a3c73e8b7399daaac978f2e52030ff1"
+        },
+        "state": "OFFICIAL_ODDS_MENU_RAW_SAVED"
+      },
+      "SP": {
+        "state": "PC_BOTH_MARKET_ORIGINALS_SAVED_SKIP_DUPLICATE"
+      }
+    },
+    "2": {
+      "PC": {
+        "market_items": {
+          "bracket_quinella": {
+            "bytes": 80383,
+            "captured_at_utc": "2026-11-22T04:13:01.485931+00:00",
+            "http_status": 200,
+            "official_post_url": "https://jra.jp/JRADB/accessO.html",
+            "requested_at_utc": "2026-11-22T04:13:00.491418+00:00",
+            "sha256": "3c1dad2ba1e9a460b033910b696e667268dc8e7bca22d00bdc9f02a077bdae96",
+            "state": "RAW_ORIGINAL_SAVED_NUMERICAL_PARSER_NOT_YET_VERIFIED"
+          },
+          "quinella": {
+            "bytes": 84492,
+            "captured_at_utc": "2026-11-22T04:12:59.473333+00:00",
+            "http_status": 200,
+            "official_post_url": "https://jra.jp/JRADB/accessO.html",
+            "requested_at_utc": "2026-11-22T04:12:58.491307+00:00",
+            "sha256": "b1a11a07550078e65afc56ed6839e98918efd4ee6700992bd6ae62367694e43b",
+            "state": "RAW_ORIGINAL_SAVED_NUMERICAL_PARSER_NOT_YET_VERIFIED"
+          }
+        },
+        "market_phase": "FINAL_ODDS_OR_POST_START",
+        "odds_menu_action_sha256": "23966d7a134bd120fd0483cb5ad30596c7ed79384360c121918cac4a0e4d9369",
+        "odds_menu_receipt": {
+          "bytes": 86112,
+          "captured_at_utc": "2026-11-22T04:12:57.270226+00:00",
+          "http_status": 200,
+          "official_post_url": "https://jra.jp/JRADB/accessO.html",
+          "requested_at_utc": "2026-11-22T04:12:56.491215+00:00",
+          "sha256": "e126544de1b7f82cfc0ea3f3009be37b720a52c48e67cee6a1b7c874b5f36178"
+        },
+        "state": "OFFICIAL_ODDS_MENU_RAW_SAVED"
+      },
+      "SP": {
+        "state": "PC_BOTH_MARKET_ORIGINALS_SAVED_SKIP_DUPLICATE"
+      }
+    },
+    "3": {
+      "PC": {
+        "market_items": {
+          "bracket_quinella": {
+            "bytes": 80368,
+            "captured_at_utc": "2026-11-22T04:12:55.333193+00:00",
+            "http_status": 200,
+            "official_post_url": "https://jra.jp/JRADB/accessO.html",
+            "requested_at_utc": "2026-11-22T04:12:54.491108+00:00",
+            "sha256": "51ed56b94b172bd859781e7afcb5e5d2ebc7555c7f8502a7b9df90d306bfde8f",
+            "state": "RAW_ORIGINAL_SAVED_NUMERICAL_PARSER_NOT_YET_VERIFIED"
+          },
+          "quinella": {
+            "bytes": 79592,
+            "captured_at_utc": "2026-11-22T04:12:53.636707+00:00",
+            "http_status": 200,
+            "official_post_url": "https://jra.jp/JRADB/accessO.html",
+            "requested_at_utc": "2026-11-22T04:12:52.491003+00:00",
+            "sha256": "27e3d5e2c2c84b7ab7183a5aee6b0dfe98671d999f865721e6ce23144e27d9ba",
+            "state": "RAW_ORIGINAL_SAVED_NUMERICAL_PARSER_NOT_YET_VERIFIED"
+          }
+        },
+        "market_phase": "FINAL_ODDS_OR_POST_START",
+        "odds_menu_action_sha256": "40e40bc0b2eb637a3ce0de0f8a2abcacad62b7687d585738ac58e7b32871b212",
+        "odds_menu_receipt": {
+          "bytes": 82909,
+          "captured_at_utc": "2026-11-22T04:12:51.379476+00:00",
+          "http_status": 200,
+          "official_post_url": "https://jra.jp/JRADB/accessO.html",
+          "requested_at_utc": "2026-11-22T04:12:50.490893+00:00",
+          "sha256": "46e8537631e0ff0ec36e44ed0b54f3478b8bfbb11e8025e714a2977a1fba2f73"
+        },
+        "state": "OFFICIAL_ODDS_MENU_RAW_SAVED"
+      },
+      "SP": {
+        "state": "PC_BOTH_MARKET_ORIGINALS_SAVED_SKIP_DUPLICATE"
+      }
+    },
+    "4": {
+      "PC": {
+        "market_items": {
+          "bracket_quinella": {
+            "bytes": 80373,
+            "captured_at_utc": "2026-11-22T04:12:49.318184+00:00",
+            "http_status": 200,
+            "official_post_url": "https://jra.jp/JRADB/accessO.html",
+            "requested_at_utc": "2026-11-22T04:12:48.490788+00:00",
+            "sha256": "25f2324c0f5b363aee7377971d79004356f22bbe60d0e5ad5f0b539b679972f0",
+            "state": "RAW_ORIGINAL_SAVED_NUMERICAL_PARSER_NOT_YET_VERIFIED"
+          },
+          "quinella": {
+            "bytes": 80741,
+            "captured_at_utc": "2026-11-22T04:12:47.570025+00:00",
+            "http_status": 200,
+            "official_post_url": "https://jra.jp/JRADB/accessO.html",
+            "requested_at_utc": "2026-11-22T04:12:46.490683+00:00",
+            "sha256": "78c04e0eb36f300c229b8d22f594f5f1251f2d025588d4a2c8930c06577ff4c0",
+            "state": "RAW_ORIGINAL_SAVED_NUMERICAL_PARSER_NOT_YET_VERIFIED"
+          }
+        },
+        "market_phase": "FINAL_ODDS_OR_POST_START",
+        "odds_menu_action_sha256": "d637430564fc068cbb6e21d725df9b5ead899a619eff3dbdb1ea247467da125a",
+        "odds_menu_receipt": {
+          "bytes": 83796,
+          "captured_at_utc": "2026-11-22T04:12:45.272162+00:00",
+          "http_status": 200,
+          "official_post_url": "https://jra.jp/JRADB/accessO.html",
+          "requested_at_utc": "2026-11-22T04:12:44.490573+00:00",
+          "sha256": "3f87f8a4bd9c98e17e4ba9876e87765cca321434e3d9c0aaa70c65ef2a2749f2"
+        },
+        "state": "OFFICIAL_ODDS_MENU_RAW_SAVED"
+      },
+      "SP": {
+        "state": "PC_BOTH_MARKET_ORIGINALS_SAVED_SKIP_DUPLICATE"
+      }
+    },
+    "5": {
+      "PC": {
+        "market_items": {
+          "bracket_quinella": {
+            "bytes": 80498,
+            "captured_at_utc": "2026-11-22T04:12:43.350310+00:00",
+            "http_status": 200,
+            "official_post_url": "https://jra.jp/JRADB/accessO.html",
+            "requested_at_utc": "2026-11-22T04:12:42.490500+00:00",
+            "sha256": "acea93a4660b4b19db623043a9c313fc19366cf8e5f3f08859b6279467fe88c9",
+            "state": "RAW_ORIGINAL_SAVED_NUMERICAL_PARSER_NOT_YET_VERIFIED"
+          },
+          "quinella": {
+            "bytes": 83419,
+            "captured_at_utc": "2026-11-22T04:12:41.545191+00:00",
+            "http_status": 200,
+            "official_post_url": "https://jra.jp/JRADB/accessO.html",
+            "requested_at_utc": "2026-11-22T04:12:40.490362+00:00",
+            "sha256": "ab8643d29478683f4eda905d1b450ddf30d72e8c96bcab8b144ae0f1c0f1f38d",
+            "state": "RAW_ORIGINAL_SAVED_NUMERICAL_PARSER_NOT_YET_VERIFIED"
+          }
+        },
+        "market_phase": "FINAL_ODDS_OR_POST_START",
+        "odds_menu_action_sha256": "f7aca29008028a6b0ef3da1e0898cdc86f19b6a65295ea42c8ea79cb4fdb2537",
+        "odds_menu_receipt": {
+          "bytes": 85378,
+          "captured_at_utc": "2026-11-22T04:12:39.380275+00:00",
+          "http_status": 200,
+          "official_post_url": "https://jra.jp/JRADB/accessO.html",
+          "requested_at_utc": "2026-11-22T04:12:38.490254+00:00",
+          "sha256": "769521656a65e37be36db7e9f4126eb0b4bc896c428d8eee10e59dfd24f9612c"
+        },
+        "state": "OFFICIAL_ODDS_MENU_RAW_SAVED"
+      },
+      "SP": {
+        "state": "PC_BOTH_MARKET_ORIGINALS_SAVED_SKIP_DUPLICATE"
+      }
+    },
+    "6": {
+      "PC": {
+        "market_items": {
+          "bracket_quinella": {
+            "bytes": 80392,
+            "captured_at_utc": "2026-11-22T04:12:37.534413+00:00",
+            "http_status": 200,
+            "official_post_url": "https://jra.jp/JRADB/accessO.html",
+            "requested_at_utc": "2026-11-22T04:12:36.490176+00:00",
+            "sha256": "625e155f463a1c61e6dd7c9cd499c54ada1544eb682d81599f49673d87c7f1de",
+            "state": "RAW_ORIGINAL_SAVED_NUMERICAL_PARSER_NOT_YET_VERIFIED"
+          },
+          "quinella": {
+            "bytes": 89136,
+            "captured_at_utc": "2026-11-22T04:12:35.362925+00:00",
+            "http_status": 200,
+            "official_post_url": "https://jra.jp/JRADB/accessO.html",
+            "requested_at_utc": "2026-11-22T04:12:34.490084+00:00",
+            "sha256": "97e17638aa9bf410b0df8261871e9022335a4fa116a7aa4a09d4e8614de1dba0",
+            "state": "RAW_ORIGINAL_SAVED_NUMERICAL_PARSER_NOT_YET_VERIFIED"
+          }
+        },
+        "market_phase": "FINAL_ODDS_OR_POST_START",
+        "odds_menu_action_sha256": "7b174e434eeaa6e53792f899e2bedc658dfb9ecd810de0feae1f0924389a10f0",
+        "odds_menu_receipt": {
+          "bytes": 88737,
+          "captured_at_utc": "2026-11-22T04:12:33.495046+00:00",
+          "http_status": 200,
+          "official_post_url": "https://jra.jp/JRADB/accessO.html",
+          "requested_at_utc": "2026-11-22T04:12:32.489984+00:00",
+          "sha256": "9d80e3f7817571aa8725ea97bfe1e81017dea7281cbb84854c74a1c0e2e9162b"
+        },
+        "state": "OFFICIAL_ODDS_MENU_RAW_SAVED"
+      },
+      "SP": {
+        "state": "PC_BOTH_MARKET_ORIGINALS_SAVED_SKIP_DUPLICATE"
+      }
+    },
+    "7": {
+      "PC": {
+        "market_items": {
+          "bracket_quinella": {
+            "bytes": 80547,
+            "captured_at_utc": "2026-11-22T04:12:31.592167+00:00",
+            "http_status": 200,
+            "official_post_url": "https://jra.jp/JRADB/accessO.html",
+            "requested_at_utc": "2026-11-22T04:12:30.489872+00:00",
+            "sha256": "c6e5278aef7bd0730143a258b447f713e16ff484d4c3e77fb056709c6a19a192",
+            "state": "RAW_ORIGINAL_SAVED_NUMERICAL_PARSER_NOT_YET_VERIFIED"
+          },
+          "quinella": {
+            "bytes": 93095,
+            "captured_at_utc": "2026-11-22T04:12:29.521307+00:00",
+            "http_status": 200,
+            "official_post_url": "https://jra.jp/JRADB/accessO.html",
+            "requested_at_utc": "2026-11-22T04:12:28.489763+00:00",
+            "sha256": "035206cc05fc7ab10a28cecb9e26138eeb29902b66d77a8eebb1d1d523474c37",
+            "state": "RAW_ORIGINAL_SAVED_NUMERICAL_PARSER_NOT_YET_VERIFIED"
+          }
+        },
+        "market_phase": "FINAL_ODDS_OR_POST_START",
+        "odds_menu_action_sha256": "39f8d7a2488afacdefe09b5b8d3e75903339babd326a8cabe8b211757941d421",
+        "odds_menu_receipt": {
+          "bytes": 90467,
+          "captured_at_utc": "2026-11-22T04:12:27.382669+00:00",
+          "http_status": 200,
+          "official_post_url": "https://jra.jp/JRADB/accessO.html",
+          "requested_at_utc": "2026-11-22T04:12:26.489674+00:00",
+          "sha256": "59569e394d9796d1e7cea293e968a211024f6a97fdd94ac23230c1f5adbfc7e7"
+        },
+        "state": "OFFICIAL_ODDS_MENU_RAW_SAVED"
+      },
+      "SP": {
+        "state": "PC_BOTH_MARKET_ORIGINALS_SAVED_SKIP_DUPLICATE"
+      }
+    },
+    "8": {
+      "PC": {
+        "market_items": {
+          "bracket_quinella": {
+            "bytes": 80627,
+            "captured_at_utc": "2026-11-22T04:12:25.452139+00:00",
+            "http_status": 200,
+            "official_post_url": "https://jra.jp/JRADB/accessO.html",
+            "requested_at_utc": "2026-11-22T04:12:24.489561+00:00",
+            "sha256": "b0d02d96d5d7f3ff02f4f2ba06435f3340350ed08a9cb11cf9328bfa820b840d",
+            "state": "RAW_ORIGINAL_SAVED_NUMERICAL_PARSER_NOT_YET_VERIFIED"
+          },
+          "quinella": {
+            "bytes": 81053,
+            "captured_at_utc": "2026-11-22T04:12:23.522884+00:00",
+            "http_status": 200,
+            "official_post_url": "https://jra.jp/JRADB/accessO.html",
+            "requested_at_utc": "2026-11-22T04:12:22.489488+00:00",
+            "sha256": "70b3cc3c60b9ba55a5ba872a6bbe1622aeef210642f2a4694f5c9d574866fea9",
+            "state": "RAW_ORIGINAL_SAVED_NUMERICAL_PARSER_NOT_YET_VERIFIED"
+          }
+        },
+        "market_phase": "FINAL_ODDS_OR_POST_START",
+        "odds_menu_action_sha256": "eacc285098d1f2b69bbeda2f9f63b98f8d97d495fb76187e8f2f4acb89ea39ee",
+        "odds_menu_receipt": {
+          "bytes": 83931,
+          "captured_at_utc": "2026-11-22T04:12:21.478350+00:00",
+          "http_status": 200,
+          "official_post_url": "https://jra.jp/JRADB/accessO.html",
+          "requested_at_utc": "2026-11-22T04:12:20.489343+00:00",
+          "sha256": "44bf54bccf18247e2fb34e7c4d2f4a28a16e7ba7afb7f24489f7c79199b5f134"
+        },
+        "state": "OFFICIAL_ODDS_MENU_RAW_SAVED"
+      },
+      "SP": {
+        "state": "PC_BOTH_MARKET_ORIGINALS_SAVED_SKIP_DUPLICATE"
+      }
+    },
+    "9": {
+      "PC": {
+        "market_items": {
+          "bracket_quinella": {
+            "bytes": 81212,
+            "captured_at_utc": "2026-11-22T04:12:19.713079+00:00",
+            "http_status": 200,
+            "official_post_url": "https://jra.jp/JRADB/accessO.html",
+            "requested_at_utc": "2026-11-22T04:12:18.489249+00:00",
+            "sha256": "4525a09bbd18fb9cdf240c09bb05aed3c7835f44c6ccc3ee1460ad2db4ff758f",
+            "state": "RAW_ORIGINAL_SAVED_NUMERICAL_PARSER_NOT_YET_VERIFIED"
+          },
+          "quinella": {
+            "bytes": 86931,
+            "captured_at_utc": "2026-11-22T04:12:17.371419+00:00",
+            "http_status": 200,
+            "official_post_url": "https://jra.jp/JRADB/accessO.html",
+            "requested_at_utc": "2026-11-22T04:12:16.489142+00:00",
+            "sha256": "9d4afd59a1084855a8d4b89da03d4c1b00988f0dad93dba6362c6c920e8b0ae1",
+            "state": "RAW_ORIGINAL_SAVED_NUMERICAL_PARSER_NOT_YET_VERIFIED"
+          }
+        },
+        "market_phase": "FINAL_ODDS_OR_POST_START",
+        "odds_menu_action_sha256": "e83159dcf44af6dc9c3583b5c92656aca7bf6b99ef6c7aaf68b0e76af0d5b4f3",
+        "odds_menu_receipt": {
+          "bytes": 87423,
+          "captured_at_utc": "2026-11-22T04:12:15.460997+00:00",
+          "http_status": 200,
+          "official_post_url": "https://jra.jp/JRADB/accessO.html",
+          "requested_at_utc": "2026-11-22T04:12:14.489042+00:00",
+          "sha256": "40e44a4a79ee53dd767aa59322570d3893b9a9bb4c72f0aa581b696b19b4c0a5"
+        },
+        "state": "OFFICIAL_ODDS_MENU_RAW_SAVED"
+      },
+      "SP": {
+        "state": "PC_BOTH_MARKET_ORIGINALS_SAVED_SKIP_DUPLICATE"
+      }
+    }
+  },
+  "schema": "kyoto_nov22_real_odds_followup.v1",
+  "source_only": true
+}
