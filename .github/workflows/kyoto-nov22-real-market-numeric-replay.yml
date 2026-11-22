@@ -1,0 +1,52 @@
+name: Nov22 actual 12R numerical odds parser replay from saved JRA source
+on:
+  push:
+    branches: [capture/nov22-remaining-races-real-market-originals-20261122]
+    paths:
+      - 'diagnostics/kyoto_nov22_market_numeric_replay.py'
+      - '.github/workflows/kyoto-nov22-real-market-numeric-replay.yml'
+permissions:
+  contents: read
+  actions: read
+jobs:
+  numerical-reparse:
+    runs-on: ubuntu-latest
+    timeout-minutes: 7
+    env:
+      GH_TOKEN: ${{ github.token }}
+      KYOTO_JRA_ARCHIVE_AES256_HEX: ${{ secrets.KYOTO_JRA_ARCHIVE_AES256_HEX }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: rescue
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          ref: 2dce4f5fa9d0ce48e460a95664fe3207c7f95ba6
+          path: frozen
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install 'beautifulsoup4>=4.12,<5' 'cryptography>=43,<47'
+      - name: Download observed SHA-verified 12R both-market originals
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p frozen/nov22_market_source frozen/nov22_g03
+          gh run download 44983969532 --repo "$GITHUB_REPOSITORY" --name kyoto-nov22-actual-market-originals-44983969532 --dir frozen/nov22_market_source
+          gh run download 44966654858 --repo "$GITHUB_REPOSITORY" --name kyoto-nov22-jp-start-real12-44966654858 --dir frozen/nov22_g03
+      - name: Run established independent numeric odds parsers on actual JRA source
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd frozen
+          PYTHONPATH=. python ../rescue/diagnostics/kyoto_nov22_market_numeric_replay.py
+      - name: Retain safe numeric parse counts and failure classes
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: kyoto-nov22-numeric-actual-market-replay-${{ github.run_id }}
+          path: frozen/nov22_market_numeric_report/
+          retention-days: 90
+          if-no-files-found: warn
