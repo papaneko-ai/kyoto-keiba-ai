@@ -1,0 +1,124 @@
+{
+  "day": "20261122",
+  "pre_race_odds_approved": false,
+  "races": {
+    "1": {
+      "actual_roster_size": 12,
+      "captured_at_utc": "2026-11-22T04:13:07.361413+00:00",
+      "channel": "PC",
+      "dimension": 8,
+      "historical_final_detected": true,
+      "original_sha256": "930034a08a4bf0309987a30714d73b59a45f63214da456b5ce255a6160be15b5",
+      "pair_count": 32,
+      "state": "ROSTER_AWARE_NUMERIC_BRACKET_VALIDATED"
+    },
+    "10": {
+      "actual_roster_size": 14,
+      "captured_at_utc": "2026-11-22T04:12:13.414200+00:00",
+      "channel": "PC",
+      "dimension": 8,
+      "historical_final_detected": true,
+      "original_sha256": "b1abe26badb8bdd55804d66237a318a8a0d75ab8591338b6108988231b09ea4f",
+      "pair_count": 34,
+      "state": "ROSTER_AWARE_NUMERIC_BRACKET_VALIDATED"
+    },
+    "11": {
+      "actual_roster_size": 18,
+      "captured_at_utc": "2026-11-22T04:12:07.639294+00:00",
+      "channel": "PC",
+      "dimension": 8,
+      "historical_final_detected": true,
+      "original_sha256": "8c91876465ace90cea518903475b0798c099538be4481dda8e91a95775116022",
+      "pair_count": 36,
+      "state": "ROSTER_AWARE_NUMERIC_BRACKET_VALIDATED"
+    },
+    "12": {
+      "actual_roster_size": 13,
+      "captured_at_utc": "2026-11-22T04:12:01.375634+00:00",
+      "channel": "PC",
+      "dimension": 8,
+      "historical_final_detected": true,
+      "original_sha256": "d84c0d171ab93e66fa629914f92b72cd60ec6fd5a70aa679d2b51c1f7da3a88b",
+      "pair_count": 33,
+      "state": "ROSTER_AWARE_NUMERIC_BRACKET_VALIDATED"
+    },
+    "2": {
+      "actual_roster_size": 13,
+      "captured_at_utc": "2026-11-22T04:13:01.485931+00:00",
+      "channel": "PC",
+      "dimension": 8,
+      "historical_final_detected": true,
+      "original_sha256": "3c1dad2ba1e9a460b033910b696e667268dc8e7bca22d00bdc9f02a077bdae96",
+      "pair_count": 33,
+      "state": "ROSTER_AWARE_NUMERIC_BRACKET_VALIDATED"
+    },
+    "3": {
+      "actual_roster_size": 9,
+      "captured_at_utc": "2026-11-22T04:12:55.333193+00:00",
+      "channel": "PC",
+      "dimension": 8,
+      "historical_final_detected": true,
+      "original_sha256": "51ed56b94b172bd859781e7afcb5e5d2ebc7555c7f8502a7b9df90d306bfde8f",
+      "pair_count": 29,
+      "state": "ROSTER_AWARE_NUMERIC_BRACKET_VALIDATED"
+    },
+    "4": {
+      "actual_roster_size": 10,
+      "captured_at_utc": "2026-11-22T04:12:49.318184+00:00",
+      "channel": "PC",
+      "dimension": 8,
+      "historical_final_detected": true,
+      "original_sha256": "25f2324c0f5b363aee7377971d79004356f22bbe60d0e5ad5f0b539b679972f0",
+      "pair_count": 30,
+      "state": "ROSTER_AWARE_NUMERIC_BRACKET_VALIDATED"
+    },
+    "5": {
+      "actual_roster_size": 12,
+      "error_class": "OddsMatrixError",
+      "reason": "invalid_market_odds",
+      "state": "ROSTER_AWARE_BRACKET_REJECTED"
+    },
+    "6": {
+      "actual_roster_size": 16,
+      "captured_at_utc": "2026-11-22T04:12:37.534413+00:00",
+      "channel": "PC",
+      "dimension": 8,
+      "historical_final_detected": true,
+      "original_sha256": "625e155f463a1c61e6dd7c9cd499c54ada1544eb682d81599f49673d87c7f1de",
+      "pair_count": 36,
+      "state": "ROSTER_AWARE_NUMERIC_BRACKET_VALIDATED"
+    },
+    "7": {
+      "actual_roster_size": 18,
+      "captured_at_utc": "2026-11-22T04:12:31.592167+00:00",
+      "channel": "PC",
+      "dimension": 8,
+      "historical_final_detected": true,
+      "original_sha256": "c6e5278aef7bd0730143a258b447f713e16ff484d4c3e77fb056709c6a19a192",
+      "pair_count": 36,
+      "state": "ROSTER_AWARE_NUMERIC_BRACKET_VALIDATED"
+    },
+    "8": {
+      "actual_roster_size": 10,
+      "captured_at_utc": "2026-11-22T04:12:25.452139+00:00",
+      "channel": "PC",
+      "dimension": 8,
+      "historical_final_detected": true,
+      "original_sha256": "b0d02d96d5d7f3ff02f4f2ba06435f3340350ed08a9cb11cf9328bfa820b840d",
+      "pair_count": 30,
+      "state": "ROSTER_AWARE_NUMERIC_BRACKET_VALIDATED"
+    },
+    "9": {
+      "actual_roster_size": 14,
+      "captured_at_utc": "2026-11-22T04:12:19.713079+00:00",
+      "channel": "PC",
+      "dimension": 8,
+      "historical_final_detected": true,
+      "original_sha256": "4525a09bbd18fb9cdf240c09bb05aed3c7835f44c6ccc3ee1460ad2db4ff758f",
+      "pair_count": 34,
+      "state": "ROSTER_AWARE_NUMERIC_BRACKET_VALIDATED"
+    }
+  },
+  "schema": "kyoto_nov22_real_roster_aware_bracket_replay.v1",
+  "source_only": true
+}
