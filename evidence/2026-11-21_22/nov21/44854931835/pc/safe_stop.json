@@ -1,0 +1,1 @@
+{"JRA_success": false, "actual_jra_http_requests": 0, "official_originals_authenticated": false, "operational_credit": 0, "race_day": "20261121", "reason": "CAPTURE_NOT_STARTED", "saved_at_utc": "2026-11-21T02:16:22.819228+00:00", "schema": "kyoto_safe_stop.v1", "state": "NO_CAPTURE_OR_PRE_HTTP_STOP"}
