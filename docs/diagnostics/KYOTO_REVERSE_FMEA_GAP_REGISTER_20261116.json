@@ -1,10 +1,10 @@
 {
   "schema": "kyoto_fmea_reverse_coverage_v1",
   "reference_day": "2026-11-16",
-  "source_branch": "fix/nov22-frozen-sp-real-anchor-source-20261122",
-  "source_commit": "48cf596ad8a9168daf33f0bc744746ea121dbfbd",
+  "source_branch": "fix/nov22-sp-reuse-saved-real-r1-20261122",
+  "source_commit": "c26cb62401988ed0b722ab3cddb3717b0ec370e0",
   "scope": "Nov21/22 production official-source observation and handoff; not forecast market acceptance",
-  "extraction_policy": "Static transitive diagnostics import closure of 7 source entry modules, all top-level functions registered and locked by source Git blob; newly imported modules and newly added functions require inventory expansion. Class-method and runtime dynamic imports are independently declared separate pending scopes. Sunday source refresh: 29 modules / 103 top-level functions enumerated; five newly found functions and six changed source blobs explicitly reopened without any presumed risk closure or real-JRA verification.",
+  "extraction_policy": "Static transitive diagnostics import closure of 7 source entry modules, all top-level functions registered and locked by source Git blob; newly imported modules and newly added functions require inventory expansion. Class-method and runtime dynamic imports are independently declared separate pending scopes. Sunday source refresh: 29 modules / 103 top-level functions enumerated; five newly found functions and six changed source blobs explicitly reopened without any presumed risk closure or real-JRA verification. Nov22 source v2: independently re-lock changed SP discovery and explicitly leave SP all12 archive stage outside fully reviewed FMEA closure. Live release acceptance remains source-only, not complete model certification.",
   "surfaces": [
     {
       "source": "diagnostics/kyoto_weekend_capture.py",
@@ -1223,7 +1223,7 @@
   "notes": "Reverse FMEA explicitly finds risk modes not enumerated by the original 30 cases. Counting passing tests is not an independent proof of completeness.",
   "source_git_blob_sha1": {
     "diagnostics/kyoto_weekend_capture.py": "02cef702a4fabfc4a06bbbc3897281caddcf1348",
-    "diagnostics/kyoto_weekend_sp_discovery.py": "f0cb2a30ef85f096f0f2fc447d48ec2dac49e76f",
+    "diagnostics/kyoto_weekend_sp_discovery.py": "4550db23b4792711356f9eda464edf290f4c4d81",
     "diagnostics/kyoto_weekend_postflight.py": "00fefbbec77e35de814c560e04f45004d17617ab",
     "diagnostics/kyoto_weekend_day21_triage.py": "b172831bcbf98f83b101bab5309002c3782d3aa1",
     "diagnostics/kyoto_nov15_two_original_observer.py": "0ede11014b37f3614293a010695fa93d3ed0c163",
