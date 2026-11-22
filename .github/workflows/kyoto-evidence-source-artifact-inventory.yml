@@ -1,0 +1,35 @@
+name: Kyoto Nov21 failure and Nov22 success artifact file inventory
+on:
+  push:
+    branches: [feature/kyoto-durable-success-failure-ledger-20261122]
+    paths:
+      - '.github/workflows/kyoto-evidence-source-artifact-inventory.yml'
+permissions:
+  contents: read
+  actions: read
+jobs:
+  enumerate-only:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Download encrypted evidence without JRA HTTP
+        shell: bash
+        run: |
+          set -euo pipefail
+          for rid in 44848944302 44854931835 44857934629 44861934823; do
+            for lane in pc sp; do
+              mkdir -p "intake/nov21/$rid/$lane"
+              gh run download "$rid" --repo "$GITHUB_REPOSITORY" --name "kyoto-$lane-$rid-20261121" --dir "intake/nov21/$rid/$lane"
+            done
+          done
+          mkdir -p intake/nov22/full12 intake/nov22/g03 intake/nov22/ledger
+          gh run download 44966013490 --repo "$GITHUB_REPOSITORY" --name kyoto-nov22-real-observed-all12-encrypted-44966013490 --dir intake/nov22/full12
+          gh run download 44966654858 --repo "$GITHUB_REPOSITORY" --name kyoto-nov22-jp-start-real12-44966654858 --dir intake/nov22/g03
+          gh run download 44983258092 --repo "$GITHUB_REPOSITORY" --name kyoto-nov22-complete-evidence-ledger-44983258092 --dir intake/nov22/ledger
+          find intake -type f -printf '%p size=%s bytes\n' | LC_ALL=C sort
+          echo ARTIFACT_METADATA_INSPECTION_ONLY_NO_JRA_HTTP
