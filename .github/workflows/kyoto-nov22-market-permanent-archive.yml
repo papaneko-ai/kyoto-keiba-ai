@@ -1,0 +1,33 @@
+name: Nov22 permanently archive real 12R JRA paired odds source and numeric evidence
+on:
+  push:
+    branches: [capture/nov22-remaining-races-real-market-originals-20261122]
+    paths:
+      - 'diagnostics/kyoto_nov22_market_permanent_archive.py'
+      - '.github/workflows/kyoto-nov22-market-permanent-archive.yml'
+permissions:
+  contents: write
+  actions: read
+jobs:
+  archive-no-source-traffic:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Retrieve actual AES market originals, separate byte proof and numerical parser replay
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p market_to_archive/market market_to_archive/independent market_to_archive/numeric
+          gh run download 44983969532 --repo "$GITHUB_REPOSITORY" --name kyoto-nov22-actual-market-originals-44983969532 --dir market_to_archive/market
+          gh run download 44984131044 --repo "$GITHUB_REPOSITORY" --name kyoto-nov22-independent-market-proof-44984131044 --dir market_to_archive/independent
+          gh run download 44984175986 --repo "$GITHUB_REPOSITORY" --name kyoto-nov22-numeric-actual-market-replay-44984175986 --dir market_to_archive/numeric
+      - name: Append only encrypted originals and truthful independent receipts to protected evidence branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m diagnostics.kyoto_nov22_market_permanent_archive
