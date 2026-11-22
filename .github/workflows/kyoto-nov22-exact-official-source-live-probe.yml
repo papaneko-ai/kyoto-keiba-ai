@@ -1,0 +1,37 @@
+name: Nov22 isolated exact official Kyoto 1R PC and app-SP encrypted source probe
+on:
+  push:
+    branches: [diagnostic/nov22-direct-official-source-encrypted-20261122]
+    paths:
+      - 'diagnostics/kyoto_nov22_exact_official_probe.py'
+      - '.github/workflows/kyoto-nov22-exact-official-source-live-probe.yml'
+permissions:
+  contents: read
+jobs:
+  bounded-two-real-official-gets:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      KYOTO_JRA_ARCHIVE_AES256_HEX: ${{ secrets.KYOTO_JRA_ARCHIVE_AES256_HEX }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install the established authenticated storage dependency
+        run: python -m pip install 'cryptography>=43,<47'
+      - name: Start only two pre-observed JRA read-only source URLs and encrypt original bytes
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m diagnostics.kyoto_nov22_exact_official_probe
+      - name: Retain ONLY encrypted source, SHA256 and safe metadata
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: kyoto-nov22-direct-official-r1-encrypted-${{ github.run_id }}
+          path: nov22_direct_probe/sealed/
+          if-no-files-found: warn
+          retention-days: 30
