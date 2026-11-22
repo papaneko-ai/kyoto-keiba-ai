@@ -1,0 +1,132 @@
+{
+  "day_range": [
+    "20261121",
+    "20261122"
+  ],
+  "files": [
+    {
+      "kind": "SAFE_METADATA",
+      "path": "evidence/2026-11-21_22/nov21/44848944302/pc/manifest.json",
+      "sha256": "c6df076d5704ae36bd9792201fdf3b4d92357472b5fe1f0279b2fc3fd5094e88",
+      "size": 560
+    },
+    {
+      "kind": "ENCRYPTED_SOURCE",
+      "path": "evidence/2026-11-21_22/nov21/44848944302/pc/originals.tar.gz.aesgcm",
+      "sha256": "57338cf64e7bb52c79c08c8ee0b375a4c41144860135cf1e0b0e42828b82e4f3",
+      "size": 14325
+    },
+    {
+      "kind": "SAFE_METADATA",
+      "path": "evidence/2026-11-21_22/nov21/44848944302/sp/manifest.json",
+      "sha256": "23ee9ec26827c5114636778abfc99d2312dc32d4ca035772941a9459a3a7e2ea",
+      "size": 508
+    },
+    {
+      "kind": "ENCRYPTED_SOURCE",
+      "path": "evidence/2026-11-21_22/nov21/44848944302/sp/originals.tar.gz.aesgcm",
+      "sha256": "ebb610cc68af9d1090147ca2a18649853f9fc54d5f14c07f5ec7005e027107ae",
+      "size": 17081
+    },
+    {
+      "kind": "SAFE_METADATA",
+      "path": "evidence/2026-11-21_22/nov21/44854931835/pc/safe_stop.json",
+      "sha256": "47c018a7242394946f1880fc36bdbd96da102f86754aad917dac08cf51ee60f2",
+      "size": 303
+    },
+    {
+      "kind": "SAFE_METADATA",
+      "path": "evidence/2026-11-21_22/nov21/44854931835/sp/manifest.json",
+      "sha256": "f4eb896a2dd76d48da0774965c4de8abb8ab6e458649c5421d0b5555a44bc27d",
+      "size": 508
+    },
+    {
+      "kind": "ENCRYPTED_SOURCE",
+      "path": "evidence/2026-11-21_22/nov21/44854931835/sp/originals.tar.gz.aesgcm",
+      "sha256": "23fe718303c4faf1ac0b438b75842fcebde533487bb01c94955d13bb026fecb0",
+      "size": 17036
+    },
+    {
+      "kind": "SAFE_METADATA",
+      "path": "evidence/2026-11-21_22/nov21/44857934629/pc/safe_stop.json",
+      "sha256": "9831f4dc1394a0b3ce7638499d44d235a31d1b740785ae3a10011852cab8c408",
+      "size": 303
+    },
+    {
+      "kind": "SAFE_METADATA",
+      "path": "evidence/2026-11-21_22/nov21/44857934629/sp/manifest.json",
+      "sha256": "62dc3872f20bda4991efa1307d68d732497fff285b587c5a15fbc3bd49eb1fe7",
+      "size": 508
+    },
+    {
+      "kind": "ENCRYPTED_SOURCE",
+      "path": "evidence/2026-11-21_22/nov21/44857934629/sp/originals.tar.gz.aesgcm",
+      "sha256": "9469cc4a0036014cedfd5808db78f232d318c81b6e016c4ae3cb881c18ce63de",
+      "size": 17094
+    },
+    {
+      "kind": "SAFE_METADATA",
+      "path": "evidence/2026-11-21_22/nov21/44861934823/pc/safe_stop.json",
+      "sha256": "59d44e46053fd582d21c9166d0ec9299fb2c589b2a1cd033534b31da06b8dbbf",
+      "size": 303
+    },
+    {
+      "kind": "SAFE_METADATA",
+      "path": "evidence/2026-11-21_22/nov21/44861934823/sp/manifest.json",
+      "sha256": "2e3beb47955ebd7cc6efe1959781a2ded3cf6447317d11254e5a4d092e5df8aa",
+      "size": 508
+    },
+    {
+      "kind": "ENCRYPTED_SOURCE",
+      "path": "evidence/2026-11-21_22/nov21/44861934823/sp/originals.tar.gz.aesgcm",
+      "sha256": "fa39ccb77ab65645f2cbf991371c98693f539a30eeab8701bab98b4f7b894638",
+      "size": 17101
+    },
+    {
+      "kind": "DIGEST",
+      "path": "evidence/2026-11-21_22/nov22/full12/ciphertext_sha256.txt",
+      "sha256": "864528c55edc76ee7266c1762c4252173c8f4e80c09659687feaf666cb086bdb",
+      "size": 65
+    },
+    {
+      "kind": "ENCRYPTED_SOURCE",
+      "path": "evidence/2026-11-21_22/nov22/full12/originals_all12.tar.gz.aesgcm",
+      "sha256": "8896f2738926dde2b4a7ae7753da5ec0e809c4c188ed36fba34e9ab528374ca9",
+      "size": 556942
+    },
+    {
+      "kind": "SAFE_METADATA",
+      "path": "evidence/2026-11-21_22/nov22/full12/source_receipts_summary.json",
+      "sha256": "c4e5244bfcab6819bbef84fe23f3a919f235290cc42318ffec24931c656428db",
+      "size": 9702
+    },
+    {
+      "kind": "SAFE_METADATA",
+      "path": "evidence/2026-11-21_22/nov22/g03/safe_race_parser_results.json",
+      "sha256": "a488f4472c32466b48b7d49213b1baef6e6fde621bf564af012ebb70a3e68d78",
+      "size": 4614
+    },
+    {
+      "kind": "SAFE_METADATA",
+      "path": "evidence/2026-11-21_22/nov22/ledger/nov22_108_records.json",
+      "sha256": "b58c91381b0c4b8929e49817545e818656604e1091787f559b7942e020aaafd6",
+      "size": 58588
+    }
+  ],
+  "markets_unverified": true,
+  "plain_html_committed": false,
+  "real_racecard_originals_12r_proven": true,
+  "schema": "kyoto_encrypted_evidence_archive.v1",
+  "source_only": true,
+  "source_runs": {
+    "all12": 44966013490,
+    "failure": [
+      44848944302,
+      44854931835,
+      44857934629,
+      44861934823
+    ],
+    "g03": 44966654858,
+    "ledger": 44983258092
+  }
+}
