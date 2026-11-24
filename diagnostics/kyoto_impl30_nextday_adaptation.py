@@ -1,0 +1,136 @@
+"""Authenticated next-day operational adaptation, no arbitrary code or secret changes.
+
+The Saturday evidence handoff signs a bounded policy selected from revalidated
+coverage. Sunday consumes only that exact scheduled run's signed artifact.
+Missing or inconsistent evidence preserves baseline; no acquisition veto.
+"""
+import argparse,hashlib,hmac,json,os,re,subprocess,tempfile,time
+from pathlib import Path
+
+SOURCE_DAY="20261128"
+TARGET_DAY="20261129"
+WORKFLOW="kyoto-20261128-29-result-handoff.yml"
+NAME="Kyoto Nov28-29 authenticated all-run handoff"
+POLICY={"BASELINE":(720,240),"MARKET_OR_ROSTER_RECOVERY":(720,360),"PROFILE_RECOVERY":(600,360)}
+SCHEMA="kyoto_nextday_adaptation.v1"
+
+def canonical(x):
+    return json.dumps(x,sort_keys=True,separators=(",",":"),ensure_ascii=False,allow_nan=False).encode()
+
+def digest(x):
+    return hashlib.sha256(canonical(x)).hexdigest()
+
+def _key(key):
+    if not isinstance(key,str) or not re.fullmatch(r"[a-fA-F0-9]{64}",key):
+        raise ValueError("bad_archive_key")
+    return hmac.digest(bytes.fromhex(key),b"kyoto-nextday-policy-v1","sha256")
+
+def derive(report):
+    """Only a complete Saturday run index plus original-bound coverage can adapt.
+
+    The profile-focus alternative still acquires markets first; SP receives a
+    longer fallback window. All configurations preserve the PC 17-min archive
+    boundary and never change the start-time, identity or request-rate gates.
+    """
+    if report.get("day")!=SOURCE_DAY or report.get("next_day")!=TARGET_DAY:
+        raise ValueError("wrong_source_day")
+    c=report.get("day_source_coverage",{})
+    if (report.get("all_run_metadata_screened") is not True or
+        report.get("github_run_listing_complete") is not True or
+        c.get("schema")!="kyoto_impl30_day_source_coverage.v1" or
+        c.get("day")!=SOURCE_DAY or c.get("race_denominator")!=12 or
+        type(c.get("authenticated_pc_slots")) is not int or c["authenticated_pc_slots"]<1):
+        return {"mode":"BASELINE","reason":"SOURCE_INDEX_INCOMPLETE"}
+    races=c.get("races",{})
+    if set(races)!=set(map(str,range(1,13))):
+        return {"mode":"BASELINE","reason":"RACE_DENOMINATOR_UNVERIFIED"}
+    t=c.get("totals",{})
+    roster=paired=horses=profiles=history=0
+    for r in races.values():
+        if r.get("state")!="ROSTER_VERIFIED" or r.get("racecard",{}).get("state")!="SOURCE_VERIFIED":continue
+        roster+=1
+        paired+=int(r.get("paired_same_slot") is True)
+        for h in r.get("horses",{}).values():
+            horses+=1
+            profiles+=int(h.get("profile",{}).get("state")=="SOURCE_VERIFIED")
+            history+=int(h.get("prior_form",{}).get("state")=="SOURCE_VERIFIED")
+    observed={"racecards":roster,"paired_same_slot_races":paired,
+              "registered_horses_known":horses,"profile":profiles,"prior_form":history}
+    if any(type(t.get(k)) is not int or t[k]!=v for k,v in observed.items()):
+        return {"mode":"BASELINE","reason":"COVERAGE_COUNTS_DISAGREE"}
+    if roster<12 or paired<12:
+        mode="MARKET_OR_ROSTER_RECOVERY";reason="SATURDAY_MARKET_OR_ROSTER_GAP"
+    elif horses and (profiles<horses or history<horses):
+        mode="PROFILE_RECOVERY";reason="SATURDAY_PROFILE_OR_HISTORY_GAP"
+    else:
+        mode="BASELINE";reason="NO_SUPPORTED_ADAPTATION_NEEDED"
+    return {"mode":mode,"reason":reason,"counts":observed}
+
+def make(report,*,repo,run_id,collector_sha,key):
+    if not re.fullmatch(r"[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+",repo) or not str(run_id).isdigit() or not re.fullmatch(r"[a-f0-9]{40}",collector_sha):
+        raise ValueError("invalid_policy_identity")
+    decision=derive(report)
+    body={"schema":SCHEMA,"repo":repo,"source_day":SOURCE_DAY,"target_day":TARGET_DAY,
+          "source_run_id":str(run_id),"collector_sha":collector_sha,
+          "source_report_sha256":digest(report),"decision":decision}
+    return {"body":body,"hmac_sha256":hmac.new(_key(key),canonical(body),hashlib.sha256).hexdigest()}
+
+def accept(doc,report,*,repo,run_id,collector_sha,key):
+    body=doc["body"]
+    if not hmac.compare_digest(doc["hmac_sha256"],hmac.new(_key(key),canonical(body),hashlib.sha256).hexdigest()):
+        raise ValueError("policy_authentication_failed")
+    expected=make(report,repo=repo,run_id=run_id,collector_sha=collector_sha,key=key)
+    if doc!=expected:raise ValueError("policy_context_or_recomputation_mismatch")
+    return body["decision"]["mode"]
+
+def recover(day,*,repo,collector_sha,key,monotonic=time.monotonic):
+    """Bound GitHub lookup to 18 seconds; failure retains source opportunity."""
+    if day!=TARGET_DAY:return "BASELINE","NOT_TARGET_SUNDAY"
+    end=monotonic()+18
+    def timeout(cap):
+        left=end-monotonic()
+        if left<=0:raise TimeoutError("adaptation_lookup_deadline")
+        return min(left,cap)
+    try:
+        _key(key)
+        if not re.fullmatch(r"[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+",repo) or not re.fullmatch(r"[a-f0-9]{40}",collector_sha):
+            raise ValueError("invalid_runtime_identity")
+        def api(endpoint):
+            return json.loads(subprocess.check_output(["gh","api",endpoint],text=True,stderr=subprocess.DEVNULL,timeout=timeout(5)))
+        index=api(f"repos/{repo}/actions/workflows/{WORKFLOW}/runs?created=2026-11-28&per_page=100")
+        runs=index["workflow_runs"]
+        if index["total_count"]!=len(runs) or len(runs)>100 or len({r["id"] for r in runs})!=len(runs):raise ValueError("incomplete_run_index")
+        eligible=[r for r in runs if r.get("name")==NAME and r.get("created_at","")[:10]=="2026-11-28"
+                  and r.get("event")=="schedule" and r.get("status")=="completed" and r.get("conclusion")=="success"
+                  and r.get("head_repository",{}).get("full_name")==repo
+                  and r.get("path","").split("@",1)[0]==".github/workflows/"+WORKFLOW]
+        if len(eligible)!=1:raise ValueError("missing_or_ambiguous_saturday_handoff")
+        rid=eligible[0]["id"]
+        index=api(f"repos/{repo}/actions/runs/{rid}/artifacts?per_page=100")
+        arts=index["artifacts"]
+        if index["total_count"]!=len(arts):raise ValueError("incomplete_artifact_index")
+        name=f"kyoto-handoff-{rid}-{SOURCE_DAY}"
+        if len([a for a in arts if a.get("name")==name and a.get("expired") is False])!=1:raise ValueError("missing_or_ambiguous_artifact")
+        with tempfile.TemporaryDirectory(prefix="kyoto_adaptive_plan_") as tmp:
+            subprocess.run(["gh","run","download",str(rid),"--repo",repo,"--name",name,"--dir",tmp],
+                stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL,check=True,timeout=timeout(10))
+            def read(name):
+                p=Path(tmp)/name
+                if p.is_symlink() or not p.is_file() or not 0<p.stat().st_size<=5_000_000:
+                    raise ValueError("invalid_policy_artifact_file")
+                return json.loads(p.read_text(encoding="utf8"))
+            mode=accept(read("nextday_policy.json"),read("report.json"),repo=repo,run_id=rid,collector_sha=collector_sha,key=key)
+            return mode,"AUTHENTICATED_SATURDAY_HANDOFF_"+str(rid)
+    except Exception as exc:return "BASELINE","FALLBACK_"+type(exc).__name__
+
+def budgets(mode):
+    return POLICY.get(mode,POLICY["BASELINE"])
+
+def main():
+    p=argparse.ArgumentParser();p.add_argument("--report",required=True,type=Path);p.add_argument("--out",required=True,type=Path);a=p.parse_args()
+    report=json.loads(a.report.read_text(encoding="utf8"))
+    sha=subprocess.check_output(["git","rev-parse","HEAD"],text=True).strip()
+    plan=make(report,repo=os.environ["GITHUB_REPOSITORY"],run_id=os.environ["GITHUB_RUN_ID"],collector_sha=sha,key=os.environ["ARCHIVE_KEY"])
+    with a.out.open("x",encoding="utf8") as f:json.dump(plan,f,sort_keys=True,ensure_ascii=False)
+    print("NEXTDAY_POLICY="+plan["body"]["decision"]["mode"])
+if __name__=="__main__":main()
