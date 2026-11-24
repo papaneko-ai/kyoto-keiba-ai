@@ -9,6 +9,7 @@ on:
       - 'fix/impl30-nov28-acquisition-priority-20261124'
       - 'fix/impl30-profile-resume-20261124'
       - 'fix/impl30-day-coverage-20261124'
+      - 'fix/impl30-auxiliary-refresh-20261124'
   pull_request:
     branches: ['fix/impl29-weekend-20261128-29']
   workflow_dispatch:
