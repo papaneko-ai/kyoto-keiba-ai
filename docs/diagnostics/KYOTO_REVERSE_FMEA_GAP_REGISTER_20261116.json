@@ -1242,7 +1242,7 @@
     "diagnostics/jra_source_router.py": "d7eae104adecd60374ac0b6cc9ee622f9e47df95",
     "diagnostics/kyoto_p1_nov14_official_one_shot_nav.py": "0aa2e6e53cb78f317d77c001ce55e101f45b8c50",
     "diagnostics/kyoto_safe_stop_artifact.py": "72201d3149cf8f33e7c7cff5fe18118363ac0890",
-    "diagnostics/kyoto_g03_all_races.py": "77a95c29c80e430afdfa3cc4a40e4a5cd5b45aab",
+    "diagnostics/kyoto_g03_all_races.py": "f4eb6b579f14b6ce0fb741f96be74a269581fdb6",
     "diagnostics/kyoto_g03_weekend_bridge.py": "5f3e4011f84738a057520434ad83351a7d3e0d27",
     "diagnostics/kyoto_g04_all_horse_profiles.py": "540344bcad1cafd723bd474ddf580a56bc3b9931",
     "diagnostics/jra_pending_profile_plan.py": "799e3f11b7a96e6c5fec9796954a2b5ca6e07d1d",
@@ -1418,5 +1418,12 @@
     "capture_sha": "d7e591e591d6538eeb95475b088aa09f0329e5e7",
     "batch_sha": "61e41b5e2d0cc4889daeed3d11c6cb3c2e6655b2",
     "basis": "Nov21 mandatory G03/G05 test stop, Nov22 24 late market originals. No risk closed by this metadata change."
+  },
+  "impl30_restored_actual_start_parser": {
+    "source": "diagnostics/kyoto_g03_all_races.py",
+    "old_blob": "77a95c29c80e430afdfa3cc4a40e4a5cd5b45aab",
+    "new_blob": "f4eb6b579f14b6ce0fb741f96be74a269581fdb6",
+    "prior_actual_run": 44966654858,
+    "review_status": "UNREVIEWED_INDEPENDENT_FMEA"
   }
 }

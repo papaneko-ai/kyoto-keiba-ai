@@ -246,7 +246,12 @@ def gather(day,repo):
                 isinstance(slot,dict) and slot.get("run_id")==str(entry["run"]["id"])):
                 slots.append(slot)
         try:
-            coverage=combine(day,slots)
+            from diagnostics.kyoto_impl30_auxiliary_refresh import saved_slots
+            auxiliary,aux_errors=saved_slots(day,repo,os.getenv("ARCHIVE_KEY",""))
+            coverage=combine(day,slots+auxiliary)
+            coverage["authenticated_pc_slots"]=len(slots)
+            coverage["authenticated_auxiliary_slots"]=len(auxiliary)
+            coverage["auxiliary_errors"]=aux_errors
             coverage["all_scheduled_run_metadata_screened"]=report["all_run_metadata_screened"]
             coverage["expected_scheduled_slots"]=EXPECTED_SCHEDULED_RUNS
             coverage["unassessed_pc_slots"]=max(0,report["observed_schedule_count"]-len(slots))

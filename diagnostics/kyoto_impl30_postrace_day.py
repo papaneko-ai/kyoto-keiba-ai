@@ -127,6 +127,7 @@ def collect_day(root,*,day,seed_raw,seed_sha256,registered,fetch,clock,not_befor
     finally:
         report['structured_result_payout_races']=sum(x['state']=='RESULT_AND_PAYOUT_PARSED_FINAL_NOT_CERTIFIED' for x in report['races'].values())
         report['dual_page_explicit_final_races']=sum(x.get('independent_reconciliation',{}).get('state')=='DUAL_PAGE_EXPLICIT_FINAL' for x in report['races'].values())
+        report['dual_page_published_source_races']=sum(x.get('independent_reconciliation',{}).get('official_payout_publication_verified') is True for x in report['races'].values())
         report['confirmed_final_races']=0
         with (root/'receipt.json').open('x',encoding='utf8') as f:json.dump(report,f,ensure_ascii=False,sort_keys=True,indent=2)
     return report

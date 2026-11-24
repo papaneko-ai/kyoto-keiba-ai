@@ -69,15 +69,55 @@ def prior_archives(day,repo,key,current_run):
                 yield rid,None,type(exc).__name__;continue
             yield rid,raw,None
 
+# JRA's official race-finality and payout rules establish that published
+# payouts follow confirmed placings. This separate evidence chain is not
+# an explicit finality marker, a permanently fixed sporting result, or
+# permission to settle an investment.
+PUBLISHED_RULES=(
+    'https://www.jra.go.jp/keiba/rules/kakutei.html',
+    'https://www.jra.go.jp/kouza/baken/index.html',
+    'https://www.jra.go.jp/faq/pop03/1_6.html',
+)
+
+def published_history(entries,*,day,race):
+    """Deterministic, no overwrite; conflicting amounts never certify a race."""
+    from hashlib import sha256
+    def canonical(x):
+        return json.dumps(x,ensure_ascii=False,sort_keys=True,separators=(',',':'),allow_nan=False).encode()
+    if not entries:return {'state':'MISSING','revisions':[]}
+    revisions=[];last=None;seen=set();head='0'*64
+    try:
+        for entry in sorted(entries,key=lambda e:(max(_utc(e['observation'][k]) for k in ('result_utc','payout_utc')),str(e['run_id']))):
+            rid=str(entry['run_id']);obs=entry['observation']
+            if (not rid.isdigit() or rid in seen or obs.get('day')!=day or obs.get('race')!=race
+                or obs.get('official_payout_publication_verified') is not True
+                or obs.get('settlement_authorized') is not False
+                or set(obs['markets'])!={'quinella','bracket_quinella'}
+                or any(not re.fullmatch(r'[a-f0-9]{64}',obs[k]) for k in ('result_sha256','payout_sha256'))
+                or obs['result_sha256']==obs['payout_sha256']):
+                raise FinalEvidenceRejected('published_identity')
+            seen.add(rid)
+            if last is not None and last['markets']!=obs['markets']:
+                if obs.get('correction') is not True or min(_utc(obs[k]) for k in ('result_utc','payout_utc'))<=max(_utc(last[k]) for k in ('result_utc','payout_utc')):
+                    raise FinalEvidenceRejected('published_amount_conflict')
+            body={'version':len(revisions)+1,'run_id':rid,'previous_sha256':head,'observation':obs}
+            head=sha256(canonical(body)).hexdigest()
+            revisions.append({**body,'sha256':head})
+            last=obs
+    except (ValueError,KeyError,TypeError,AttributeError) as exc:
+        return {'state':'CONFLICT','reason':str(exc)[:100],'revisions':revisions}
+    return {'state':'OFFICIAL_PUBLISHED_PAYOUT_CHAIN','revisions':revisions,'rules':list(PUBLISHED_RULES),'settlement_authorized':False}
+
 def replay_history(current,*,day,repo,key,current_run,roster,starts):
     """Reconstruct version sequence from authenticated bytes per race, never overwrite previous source."""
-    reports=[];complete=True;observations={i:[] for i in range(1,13)}
+    reports=[];complete=True;observations={i:[] for i in range(1,13)};published={i:[] for i in range(1,13)}
     def add(rid,raw):
         nonlocal complete
         try:
             verified=saved_observations(raw,day,roster,starts)
             for race,obs in verified.items():
                 if obs.get('state')=='DUAL_PAGE_EXPLICIT_FINAL':observations[race].append((rid,obs))
+                if obs.get('official_payout_publication_verified') is True:published[race].append({'run_id':rid,'observation':obs})
             reports.append({'run_id':rid,'recomputed_races':len(verified),'explicit_final_matches':sum(o.get('state')=='DUAL_PAGE_EXPLICIT_FINAL' for o in verified.values())})
         except Exception as exc:
             complete=False;reports.append({'run_id':rid,'error_class':type(exc).__name__})
@@ -98,4 +138,4 @@ def replay_history(current,*,day,repo,key,current_run,roster,starts):
                 except (ValueError,KeyError,OSError) as exc:
                     conflict=True;changes.append({'run_id':rid,'state':'REVISION_CONFLICT','reason':type(exc).__name__})
             races[str(race)]={'revisions':changes,'state':'CONFLICT' if conflict else 'SOURCE_REVISION_CHAIN' if changes else 'NO_EXPLICIT_FINAL_OBSERVATION'}
-    return {'schema':'kyoto_impl30_postrace_replay.v1','day':day,'prior_artifact_index_complete':complete,'run_evidence':reports,'races':races,'settlement_authorized':False}
+    return {'schema':'kyoto_impl30_postrace_replay.v1','day':day,'prior_artifact_index_complete':complete,'run_evidence':reports,'races':races,'published_source_observations':{str(k):v for k,v in published.items()},'published_payout_chains':{str(k):published_history(v,day=day,race=k) for k,v in published.items()},'settlement_authorized':False}
