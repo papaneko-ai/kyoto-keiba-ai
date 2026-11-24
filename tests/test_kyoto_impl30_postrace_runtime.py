@@ -47,6 +47,10 @@ class RuntimeTests(unittest.TestCase):
                     self.assertEqual(proof2["day_source_coverage"]["totals"]["registered_horses_known"],36)
                     self.assertEqual(proof2["day_source_coverage"]["authenticated_pc_slots"],1)
                     self.assertFalse(proof2["day_source_coverage"]["full_data_acquisition_certified"])
+                    with patch("diagnostics.kyoto_impl30_day_coverage.combine",side_effect=ValueError("diagnostic unavailable")):
+                        rr,ss,seed3,proof3=recover_inputs(DAY,REPO,KEY,include_coverage=True)
+                    self.assertEqual((rr,ss,seed3),(roster,starts,seed))
+                    self.assertEqual(proof3["day_source_coverage_error"],"ValueError")
                     with self.assertRaisesRegex(ValueError,'no_verified'):recover_inputs(DAY,REPO,'b'*64)
     def test_transport_refusal_stops_next_request_and_bad_targets_never_called(self):
         opener=Mock();pacer=Mock()
