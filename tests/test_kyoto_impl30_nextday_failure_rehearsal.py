@@ -56,6 +56,7 @@ def prepare():
         facts.append({"historical_run_id":rid,"actual_day":"20261121","failed_stage":pc["stage"],"failed_steps":pc["failed_steps"]})
         entry=failed_report(rid,pc["stage"])["scheduled_runs"][0]
         entry["lanes"]["PC"]["job_state"]=pc["state"]
+        entry["lanes"]["PC"]["artifact_evidence_state"]="NOT_INDEPENDENTLY_INSPECTED"
         fixtures.append(entry)
     report=failed_report()
     report["scheduled_runs"]=fixtures
@@ -89,7 +90,7 @@ def consume():
         return real_api(args,**kwargs)
     def download(args,**kwargs):
         result=real_run(args,**kwargs)
-        transfers.append(args[3])
+        if args[:3]==["gh","run","download"]:transfers.append(args[3])
         return result
     def discover(root,**kwargs):
         root.mkdir();(root/"sp_discovery_receipt.json").write_text("{}")
