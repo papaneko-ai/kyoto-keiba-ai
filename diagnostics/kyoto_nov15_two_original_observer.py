@@ -77,7 +77,7 @@ def _single_observed_racecard(meeting_original, meeting_url):
         except G03Error as exc:
             raise ObservationRejected("g03_official_race_links_invalid") from exc
     if actual:
-        if DAY in ("20261121","20261122"):
+        if DAY in ("20261121","20261122","20261128","20261129"):
             return (12,actual[12]) if 12 in actual else None
         chosen=max(actual)
         return chosen,actual[chosen]
@@ -97,7 +97,7 @@ def _single_observed_racecard(meeting_original, meeting_url):
     # Weekend PC/SP parity: both lanes observe exact Kyoto 12R only.
     # Do not silently substitute 11R when SP cannot follow that race.
     # Retain the historic experimental selection policy for older fixtures.
-    if DAY in ("20261121","20261122"):
+    if DAY in ("20261121","20261122","20261128","20261129"):
         if 12 not in choices:
             return None
         race=12
