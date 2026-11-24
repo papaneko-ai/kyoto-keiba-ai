@@ -16,7 +16,7 @@ from http.cookiejar import CookieJar
 from hashlib import sha256
 from bs4 import BeautifulSoup
 from diagnostics.kyoto_impl30_actual_profile_replay import archive
-from diagnostics.jra_multi_capture_20261106 import parse
+from diagnostics.kyoto_g03_all_races import parse
 from diagnostics.kyoto_impl30_postrace_day import observed_actions,parse_result,MENU
 from diagnostics.kyoto_impl30_final_reconcile import reconcile
 from diagnostics.kyoto_nov15_encrypted_evidence import encrypt_evidence,decrypt_evidence
@@ -32,14 +32,10 @@ def actual_inputs(key):
     for race in range(1,13):
         raw=files[f"r{race:02d}_pc_official_racecard.html"];meta=receipt["races"][str(race)]["PC"]
         if sha256(raw).hexdigest()!=meta["sha256"]:raise ValueError("original_sha")
-        rows,errors=parse(raw,race,meeting_date=date(2026,11,22))
-        if errors:raise ValueError("original_roster")
-        soup=BeautifulSoup(raw.decode("cp932",errors="strict"),"html.parser")
-        matches=set(re.findall(r"発走(?:予定)?(?:時刻)?\s*[:：]?\s*([01]?\d|2[0-3]):([0-5]\d)",soup.get_text(" ",strip=True)))
-        if len(matches)!=1:raise ValueError("original_start")
-        h,m=map(int,next(iter(matches)))
+        details=parse(raw,DAY,race,meta["observed_official_url"],meta["captured_at_utc"])
+        h,m=map(int,details["start_time_jst"].split(":"))
         starts[race]=datetime(2026,11,22,h,m,tzinfo=JST).astimezone(timezone.utc).isoformat()
-        roster[race]=[(r["horse_number"],r["frame_number"],r["horse_name"]) for r in rows]
+        roster[race]=[(r["number"],r["frame"],r["name"]) for r in details["runners"]]
         cards[race]=raw
     return cards,roster,starts
 
