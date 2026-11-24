@@ -84,7 +84,9 @@ def reconcile(*,result_raw,payout_raw,day,race,registered,result_url,result_utc,
     refund_a,refund_b=_refunds(a),_refunds(section)
     if refund_a!=refund_b:raise FinalEvidenceRejected('independent_refunds_disagree')
     cancelled={r['horse_number'] for r in rows if r['placing'] in ('取消','除外','出走取消','競走除外')}
-    if cancelled and not refund_a['quinella']:raise FinalEvidenceRejected('cancelled_refunds_unproved')
+    registered_numbers={r['horse_number'] for r in rows}
+    expected_cancel_refunds={p for p in combinations(sorted(registered_numbers),2) if set(p)&cancelled}
+    if not expected_cancel_refunds<=refund_a['quinella']:raise FinalEvidenceRejected('cancelled_refunds_unproved')
     for m,field in (('quinella','horse_number'),('bracket_quinella','frame_number')):
         allowed={r[field] for r in rows}
         if any(not set(p)<=allowed for p in refund_a[m]):raise FinalEvidenceRejected('refund_outside_roster')
@@ -94,7 +96,8 @@ def reconcile(*,result_raw,payout_raw,day,race,registered,result_url,result_utc,
         if pa!=pb or set(pa)!=expected[market] or set(pa)&refund_a[market]:raise FinalEvidenceRejected('payout_or_placing_conflict:'+market)
         markets[market]={'payout_per_100':{'-'.join(map(str,p)):v for p,v in sorted(pa.items())},'refunded_pairs':[list(p) for p in sorted(refund_a[market])]}
     # Explicit finality of BOTH sections, never infer from evening time.
-    final=all(re.search(r'確定(?:結果|払戻|着順)|(?:結果|払戻金|着順)\s*確定',s) for s in (a,section))
+    final=all(re.search(r'(?<![未不非])確定(?:結果|払戻|着順)|(?:結果|払戻金|着順)\s*確定',s)
+              and not re.search(r'未確定|確定前|確定待ち|速報|審議中',s) for s in (a,section))
     correction=any('訂正' in s for s in (a,section))
     if correction and not all('訂正' in s for s in (a,section)):raise FinalEvidenceRejected('correction_not_independently_confirmed')
     return {'schema':'kyoto_impl30_reconciled_postrace.v1','day':day,'race':race,'markets':markets,'result_sha256':sha256(result_raw).hexdigest(),'payout_sha256':sha256(payout_raw).hexdigest(),'result_utc':result_utc,'payout_utc':payout_utc,'state':'DUAL_PAGE_EXPLICIT_FINAL' if final else 'DUAL_PAGE_MATCH_FINALITY_UNPROVEN','correction':correction,'settlement_authorized':False}
