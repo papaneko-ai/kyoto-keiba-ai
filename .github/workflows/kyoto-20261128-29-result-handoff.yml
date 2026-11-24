@@ -29,7 +29,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: 'e172c0d7035e804e9b06c124648c91ee9620cc50'
+          ref: '58f922e7503d6f3295a6135711c5b68237494899'
           persist-credentials: false
       - uses: actions/setup-python@v5
         with:
@@ -43,6 +43,10 @@ jobs:
           mkdir -p handoff
           python -m diagnostics.kyoto_impl25_c12_all_runs_handoff --day "$KYOTO_TARGET_DAY" --repo "$GITHUB_REPOSITORY" --out handoff/report.json
           sha256sum handoff/report.json > handoff/report.sha256
+      - name: Authenticate Saturday policy for automatic Sunday adoption
+        if: ${{ env.KYOTO_TARGET_DAY == '20261128' }}
+        continue-on-error: true
+        run: python -m diagnostics.kyoto_impl30_nextday_adaptation --report handoff/report.json --out handoff/nextday_policy.json
       - name: Upload summary only
         if: always()
         uses: actions/upload-artifact@v4

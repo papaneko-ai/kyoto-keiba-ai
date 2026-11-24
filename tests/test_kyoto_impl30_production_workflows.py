@@ -115,4 +115,12 @@ class ProductionWorkflowContract(unittest.TestCase):
                             commands.index("python -m diagnostics.kyoto_weekend_capture"))
             self.assertLess(commands.index("python -m diagnostics.kyoto_weekend_postflight"),
                             commands.index("--seal-only"))
+    def test_saturday_handoff_authenticates_policy_for_sunday(self):
+        steps=self.handoff["jobs"]["authenticated-handoff"]["steps"]
+        signed=[x for x in steps if "kyoto_impl30_nextday_adaptation" in x.get("run","")]
+        self.assertEqual(len(signed),1)
+        self.assertIn("20261128",signed[0]["if"])
+        self.assertEqual(signed[0]["continue-on-error"],"true")
+        self.assertIn("--report handoff/report.json --out handoff/nextday_policy.json",signed[0]["run"])
+        self.assertLess(steps.index(signed[0]),next(i for i,x in enumerate(steps) if x.get("uses","").startswith("actions/upload-artifact@")))
 if __name__=="__main__":unittest.main()
