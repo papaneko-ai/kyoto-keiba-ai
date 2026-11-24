@@ -1222,7 +1222,7 @@
   },
   "notes": "Reverse FMEA explicitly finds risk modes not enumerated by the original 30 cases. Counting passing tests is not an independent proof of completeness.",
   "source_git_blob_sha1": {
-    "diagnostics/kyoto_weekend_capture.py": "7cc23698151b5f9cd50effd230db72cdd4a781f9",
+    "diagnostics/kyoto_weekend_capture.py": "004dc8f8f38160d22940b3d48046133d63b18ce5",
     "diagnostics/kyoto_weekend_sp_discovery.py": "c5d768e4f420f2cb91db290492bded1d5cd80ef5",
     "diagnostics/kyoto_weekend_postflight.py": "54ef7cb26b1b94d6d7891ba74a2faab1a619523a",
     "diagnostics/kyoto_weekend_day21_triage.py": "a6639d5cab211d37d1eddefaa9bfc5b23901368d",
@@ -1258,7 +1258,7 @@
     {
       "source": "diagnostics/kyoto_weekend_capture.py",
       "old_blob": "02cef702a4fabfc4a06bbbc3897281caddcf1348",
-      "new_blob": "7cc23698151b5f9cd50effd230db72cdd4a781f9",
+      "new_blob": "004dc8f8f38160d22940b3d48046133d63b18ce5",
       "added_functions": [],
       "reopened_functions": [
         "validate_day",
@@ -1425,5 +1425,12 @@
     "new_blob": "f4eb6b579f14b6ce0fb741f96be74a269581fdb6",
     "prior_actual_run": 44966654858,
     "review_status": "UNREVIEWED_INDEPENDENT_FMEA"
+  },
+  "impl30_nextday_policy_reopen": {
+    "source": "diagnostics/kyoto_weekend_capture.py",
+    "new_blob": "004dc8f8f38160d22940b3d48046133d63b18ce5",
+    "new_dependency": "diagnostics/kyoto_impl30_nextday_adaptation.py",
+    "review_status": "UNREVIEWED_INDEPENDENT_FMEA",
+    "closed_risks": 0
   }
 }
