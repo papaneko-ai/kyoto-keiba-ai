@@ -105,7 +105,7 @@ class TursoCaptureClaims:
                 "state":d,"receipt_sha256":e}
     def claim(self,*,claim_key,owner,now_epoch,lease_seconds=180):
         if (not isinstance(claim_key,str) or
-            not re.fullmatch(r"2026112[12]:[0-3]:(0[1-9]|1[0-2]):(PC|SP):(racecard|quinella|bracket_quinella|profile)",claim_key)):
+            not re.fullmatch(r"2026112[1289]:[0-3]:(0[1-9]|1[0-2]):(PC|SP):(racecard|quinella|bracket_quinella|profile)",claim_key)):
             raise ReservationError("claim_key_invalid")
         if not isinstance(owner,str) or not re.fullmatch(r"[a-zA-Z0-9_-]{5,100}",owner):
             raise ReservationError("owner_invalid")
