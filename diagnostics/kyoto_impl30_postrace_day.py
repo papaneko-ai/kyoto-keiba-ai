@@ -64,7 +64,7 @@ def parse_result(raw,*,day,race,url,registered):
         return {**result,'quinella':q,'bracket_quinella':b,'reason':'REFUND_CORRECTION_OR_EXCEPTION_REVIEW'}
     return {**result,'state':'RESULT_AND_PAYOUT_PARSED_FINAL_NOT_CERTIFIED','quinella':q,'bracket_quinella':b}
 
-def collect_day(root,*,day,seed_raw,seed_sha256,registered,fetch,clock,not_before_utc):
+def collect_day(root,*,day,seed_raw,seed_sha256,registered,fetch,clock,not_before_utc,verified_starts=None):
     """All 12 slots retained; observed raw pages saved before any parsing.
 
     fetch(method,url,token) returns {raw, captured_at_utc, requested_url, method,
@@ -88,6 +88,8 @@ def collect_day(root,*,day,seed_raw,seed_sha256,registered,fetch,clock,not_befor
         report['requests'].append({'file':name,'sha256':sha256(raw).hexdigest(),'bytes':len(raw),'captured_at_utc':stamp,'source_url':url,'method':method,'action_token':token})
         return raw,url
     result_meeting=None
+    payout_meeting=None
+    payout_stamp=None
     try:
         for market,(path,label) in MENU.items():
             try:
@@ -97,6 +99,9 @@ def collect_day(root,*,day,seed_raw,seed_sha256,registered,fetch,clock,not_befor
                 meeting,_=save(market+'_meeting.html',one(candidates))
                 report[market+'_meeting_state']='ORIGINAL_OBSERVED_NOT_FINAL_PROOF'
                 if market=='results':result_meeting=meeting
+                else:
+                    payout_meeting=meeting
+                    payout_stamp=report['requests'][-1]['captured_at_utc']
             except Exception as exc:report[market+'_meeting_state']=type(exc).__name__+':'+str(exc)[:80]
         for race in range(1,13):
             row={'state':'RESULT_NOT_OBSERVED'}
@@ -106,10 +111,22 @@ def collect_day(root,*,day,seed_raw,seed_sha256,registered,fetch,clock,not_befor
                 raw,url=save(f'r{race:02d}_result.html',one(candidates))
                 if registered[race] is None:raise PostraceRejected('independent_registered_roster_missing')
                 row=parse_result(raw,day=day,race=race,url=url,registered=registered[race])
+                # Independently parse both original pages, including cases the
+                # legacy single-payout parser cannot resolve (ties/refunds).
+                if verified_starts is not None and verified_starts.get(race) and payout_meeting is not None:
+                    try:
+                        from diagnostics.kyoto_impl30_final_reconcile import reconcile
+                        row["independent_reconciliation"]=reconcile(result_raw=raw,payout_raw=payout_meeting,
+                            day=day,race=race,registered=registered[race],result_url=url,
+                            result_utc=report['requests'][-1]['captured_at_utc'],
+                            payout_utc=payout_stamp,start_utc=verified_starts[race])
+                    except (ValueError,TypeError,KeyError) as exc:
+                        row["independent_reconciliation"]={"state":"RECONCILIATION_PENDING","reason":str(exc)[:100]}
             except Exception as exc:row={'state':'RESULT_SOURCE_OR_PARSE_FAILED','reason':type(exc).__name__+':'+str(exc)[:100]}
             report['races'][str(race)]=row
     finally:
         report['structured_result_payout_races']=sum(x['state']=='RESULT_AND_PAYOUT_PARSED_FINAL_NOT_CERTIFIED' for x in report['races'].values())
+        report['dual_page_explicit_final_races']=sum(x.get('independent_reconciliation',{}).get('state')=='DUAL_PAGE_EXPLICIT_FINAL' for x in report['races'].values())
         report['confirmed_final_races']=0
         with (root/'receipt.json').open('x',encoding='utf8') as f:json.dump(report,f,ensure_ascii=False,sort_keys=True,indent=2)
     return report
