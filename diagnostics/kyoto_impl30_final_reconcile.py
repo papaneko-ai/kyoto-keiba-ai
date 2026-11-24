@@ -76,7 +76,10 @@ def reconcile(*,result_raw,payout_raw,day,race,registered,result_url,result_utc,
     if roster['parse_errors'] or roster['race_count']!=1:raise FinalEvidenceRejected('result_roster_invalid')
     rows=roster['races'][0]['rows'];actual=sorted((r['horse_number'],r['frame_number'],r['horse_name']) for r in rows)
     if actual!=sorted(tuple(x) for x in registered):raise FinalEvidenceRejected('registered_roster_mismatch')
-    first=[r for r in rows if r['placing']=='1'];second=[r for r in rows if r['placing']=='2']
+    def rank(row):
+        match=re.fullmatch(r'(\d{1,2})(?:\s*同着)?',row['placing'])
+        return int(match[1]) if match else None
+    first=[r for r in rows if rank(r)==1];second=[r for r in rows if rank(r)==2]
     if len(first)>=2 and not second:winning=list(combinations(first,2))
     elif len(first)==1 and second:winning=list(product(first,second))
     else:raise FinalEvidenceRejected('unresolved_placing')
