@@ -18,14 +18,17 @@ class Tests(unittest.TestCase):
     def test_normal_and_preliminary(self):
         self.assertEqual(run(*pages())['state'],'DUAL_PAGE_EXPLICIT_FINAL')
         self.assertEqual(run(*pages(status='速報'))['state'],'DUAL_PAGE_MATCH_FINALITY_UNPROVEN')
+        self.assertEqual(run(*pages(status='結果 確定待ち'))['state'],'DUAL_PAGE_MATCH_FINALITY_UNPROVEN')
     def test_dead_heat_second_and_first(self):
         r=run(*pages(places=('1','2','2'),q='1-2 400 円 1-3 500 円'))
         self.assertEqual(r['markets']['quinella']['payout_per_100'],{'1-2':400,'1-3':500})
         self.assertEqual(r['markets']['bracket_quinella']['payout_per_100'],{'1-2':300})
         self.assertEqual(run(*pages(places=('1','1','3')))['state'],'DUAL_PAGE_EXPLICIT_FINAL')
+        self.assertEqual(run(*pages(places=('1 同着','1 同着','3')))['state'],'DUAL_PAGE_EXPLICIT_FINAL')
     def test_cancel_refund_and_unknown(self):
         self.assertEqual(run(*pages(places=('1','2','取消'),extra='返還 馬連: 1-3 2-3 '))['markets']['quinella']['refunded_pairs'],[[1,3],[2,3]])
         with self.assertRaises(FinalEvidenceRejected):run(*pages(places=('1','2','取消')))
+        with self.assertRaises(FinalEvidenceRejected):run(*pages(places=('1','2','取消'),extra='返還 馬連: 1-3 '))
         with self.assertRaises(FinalEvidenceRejected):run(*pages(extra='返還馬番 3'))
     def test_mismatch_and_duplicate(self):
         a,b=pages()
