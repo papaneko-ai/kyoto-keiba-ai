@@ -25,7 +25,7 @@ def records_from_g03(original_root,*,day,skip_invalid_races=False,rejections=Non
     if rejections is not None and not isinstance(rejections,dict):
         raise SourceChainError("rejections_report_invalid")
     root=Path(original_root)
-    if not re.fullmatch(r"2026112[12]",day) or not root.is_dir() or root.is_symlink():
+    if not re.fullmatch(r"2026112[1289]",day) or not root.is_dir() or root.is_symlink():
         raise SourceChainError("g03_day_or_root_invalid")
     receipt=root/"g03_receipt.json"
     if not receipt.is_file() or receipt.is_symlink():
