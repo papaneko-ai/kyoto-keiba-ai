@@ -44,7 +44,7 @@ def recover_inputs(day,repo,key,*,include_coverage=False):
                     try:
                         from diagnostics.kyoto_impl30_day_coverage import extract_slot
                         coverage_slots.append(extract_slot(raw,day,rid))
-                    except (ValueError,TypeError,KeyError,OSError) as exc:
+                    except Exception as exc:
                         coverage_errors.append({"run_id":rid,"error_class":type(exc).__name__})
                 verified=verify_partial(raw,expected_day=day)['verified_race_numbers']
                 records=records_from_g03(raw,day=day,skip_invalid_races=True)
@@ -65,9 +65,14 @@ def recover_inputs(day,repo,key,*,include_coverage=False):
     if seed is None:raise ValueError('no_verified_observed_postrace_menu_seed')
     proof={'sources':sources,'rejected_runs':rejected,'conflicting_races':sorted(conflicts)}
     if include_coverage:
-        from diagnostics.kyoto_impl30_day_coverage import combine
-        proof["day_source_coverage"]=combine(day,coverage_slots)
-        proof["day_source_coverage"]["slot_errors"]=coverage_errors
+        # Day aggregation is not a hard prerequisite for official result GETs.
+        # Preserve the already verified roster even when this diagnostic fails.
+        try:
+            from diagnostics.kyoto_impl30_day_coverage import combine
+            proof["day_source_coverage"]=combine(day,coverage_slots)
+            proof["day_source_coverage"]["slot_errors"]=coverage_errors
+        except Exception as exc:
+            proof["day_source_coverage_error"]=type(exc).__name__
     return roster,starts,seed,proof
 
 def official_fetcher(day,*,clock=None,opener=None,pacer=None):
