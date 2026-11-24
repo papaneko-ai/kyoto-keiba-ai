@@ -2,7 +2,7 @@
   "schema": "kyoto_fmea_reverse_coverage_v1",
   "reference_day": "2026-11-16",
   "source_branch": "fix/impl30-root-causes-20261124",
-  "source_commit": "f400e7a6393e3ebed0791d2d56b4d1849a41dcac",
+  "source_commit": "cbb7a7950c5c4c5a434b3441dd35c1f5d3dee0f4",
   "scope": "Nov21/22 production official-source observation and handoff; not forecast market acceptance",
   "extraction_policy": "Static transitive diagnostics import closure of 7 source entry modules, all top-level functions registered and locked by source Git blob; newly imported modules and newly added functions require inventory expansion. Class-method and runtime dynamic imports are independently declared separate pending scopes. Sunday source refresh: 29 modules / 103 top-level functions enumerated; five newly found functions and six changed source blobs explicitly reopened without any presumed risk closure or real-JRA verification. Nov22 source v2: independently re-lock changed SP discovery and explicitly leave SP all12 archive stage outside fully reviewed FMEA closure. Live release acceptance remains source-only, not complete model certification. Nov22 official app.jra.jp SP repair: three existing critical source modules byte-locked to inspected candidate; 29 registered critical modules retain open and incomplete FMEA; no success assertions for JRA live market response.",
   "surfaces": [
@@ -1228,7 +1228,7 @@
     "diagnostics/kyoto_weekend_day21_triage.py": "a6639d5cab211d37d1eddefaa9bfc5b23901368d",
     "diagnostics/kyoto_nov15_two_original_observer.py": "0858ed767e61f9669301b4ed46c039e5cdb621a1",
     "diagnostics/kyoto_sp_observed_source.py": "c2f07a1752216016b851307eba29d84491cdefac",
-    "diagnostics/kyoto_nov15_encrypted_evidence.py": "139d2f1207868d8409d1825d0ce983a04fd83f21",
+    "diagnostics/kyoto_nov15_encrypted_evidence.py": "79ec12fcae78096ff783efb7f0845f94d24d3760",
     "diagnostics/jra_benchmark_acceptance.py": "edbd6b5b9479fdbf3fc88c7450c0c7ae3260a76f",
     "diagnostics/jra_market_integrity_gate.py": "6f20257575d7c5aeb232512bb64700dee21c3e06",
     "diagnostics/jra_market_source_chain.py": "aecc0619fe087c316f9db1814da748bc1c855a57",
@@ -1367,7 +1367,7 @@
     {
       "source": "diagnostics/kyoto_nov15_encrypted_evidence.py",
       "old_blob": "18d1a9e1591cf8f5dd85d8db4d886cd94378f611",
-      "new_blob": "139d2f1207868d8409d1825d0ce983a04fd83f21",
+      "new_blob": "79ec12fcae78096ff783efb7f0845f94d24d3760",
       "added_functions": [],
       "reopened_functions": [
         "_key",
