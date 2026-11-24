@@ -52,7 +52,7 @@ def extract_slot(root,day,run_id):
         raw=p.read_bytes()
         stamp=original["captured_at_utc"]
         src=proof(original["original_sha256"],stamp,identity)
-        row={"roster_digest":identity,"start_utc":start,"racecard":src,
+        row={"roster_digest":identity,"named_roster_digest":digest(rec["expected_named_runners"]),"start_utc":start,"racecard":src,
              "horses":{str(h["number"]):{} for h in roster},"track":{},"markets":{}}
         output[str(race)]=row
         try:
@@ -128,12 +128,12 @@ def combine(day,slots):
         if not rows:
             row["missing"]=["racecard","roster",*TRACK,*MARKETS,"horse_denominator_unknown","official_result","official_payout"]
             continue
-        signatures={(x["roster_digest"],x["start_utc"],tuple(sorted(x["horses"]))) for _,x in rows}
+        signatures={(x["roster_digest"],x["named_roster_digest"],x["start_utc"],tuple(sorted(x["horses"]))) for _,x in rows}
         if len(signatures)!=1:
             row["state"]="ROSTER_OR_START_CONFLICT"
             row["missing"]=["resolve_roster_or_start_conflict"]
             continue
-        ident,start,numbers=next(iter(signatures));cutoff=_utc(start)
+        ident,named,start,numbers=next(iter(signatures));cutoff=_utc(start)
         def choose(pairs):
             valid=[]
             for rid,p in pairs:
@@ -150,7 +150,7 @@ def combine(day,slots):
                 return {"state":"SAME_TIMESTAMP_CONFLICT"}
             _,rid,p=max(simultaneous,key=lambda x:(x[1],x[2]["sha256"]))
             return {"state":"SOURCE_VERIFIED","run_id":rid,**p}
-        row.update(state="ROSTER_VERIFIED",roster_digest=ident,start_utc=start,racecard=choose([(r,x["racecard"]) for r,x in rows]))
+        row.update(state="ROSTER_VERIFIED",roster_digest=ident,named_roster_digest=named,start_utc=start,racecard=choose([(r,x["racecard"]) for r,x in rows]))
         totals["racecards"]+=int(row["racecard"]["state"]=="SOURCE_VERIFIED")
         totals["registered_horses_known"]+=len(numbers)
         for h in numbers:
@@ -175,3 +175,48 @@ def combine(day,slots):
     return {"schema":"kyoto_impl30_day_source_coverage.v1","day":day,"authenticated_pc_slots":len(accepted),
             "totals":totals,"race_denominator":12,"horse_denominator_complete":totals["racecards"]==12,
             "races":races,"full_data_acquisition_certified":False,"prediction_ready":False}
+
+def include_postrace(coverage,revisions,*,roster,starts):
+    """Bind the independently replayed final-page observation to the same race
+    denominator. No summary is promoted to settlement or full certification.
+    Called only after replay_history has reopened authenticated original bytes.
+    """
+    import copy
+    report=copy.deepcopy(coverage)
+    day=report["day"]
+    if revisions.get("day")!=day or revisions.get("schema")!="kyoto_impl30_postrace_replay.v1":
+        raise ValueError("postrace_day_or_schema")
+    report["postrace_history_index_complete"]=revisions.get("prior_artifact_index_complete") is True
+    report["totals"].update(official_result=0,official_payout=0)
+    for race in range(1,13):
+        row=report["races"][str(race)]
+        post=revisions["races"].get(str(race),{})
+        row["postrace"]={"state":"MISSING_OR_UNVERIFIED"}
+        if row["state"]!="ROSTER_VERIFIED" or not roster.get(race) or not starts.get(race):
+            continue
+        if row["named_roster_digest"]!=digest(roster[race]) or _utc(row["start_utc"])!=_utc(starts[race]):
+            row["postrace"]["state"]="ROSTER_OR_START_CONFLICT"
+            continue
+        if post.get("state")!="SOURCE_REVISION_CHAIN":continue
+        if not report["postrace_history_index_complete"]:
+            row["postrace"]["state"]="REVISION_HISTORY_INCOMPLETE"
+            continue
+        entries=post.get("revisions",[])
+        if not entries:continue
+        latest=entries[-1]
+        obs=latest.get("observation",{})
+        if obs.get("state")!="DUAL_PAGE_EXPLICIT_FINAL" or obs.get("day")!=day or obs.get("race")!=race:
+            continue
+        try:
+            if any(_utc(obs[k])<=_utc(starts[race]) for k in ("result_utc","payout_utc")):continue
+            if set(obs["markets"])!=set(MARKETS):continue
+            result=proof(obs["result_sha256"],obs["result_utc"],obs["markets"])
+            payout=proof(obs["payout_sha256"],obs["payout_utc"],obs["markets"])
+        except (ValueError,KeyError,TypeError):continue
+        row["postrace"]={"state":"DUAL_PAGE_FINAL_SOURCE_RECONCILED",
+                         "result":result,"payout":payout,"run_id":latest["run_id"],
+                         "revision":latest["version"],"settlement_authorized":False}
+        report["totals"]["official_result"]+=1
+        report["totals"]["official_payout"]+=1
+        row["missing"]=[x for x in row["missing"] if x not in ("official_result","official_payout")]
+    return report
