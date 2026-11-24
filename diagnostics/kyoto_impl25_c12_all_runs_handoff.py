@@ -67,6 +67,11 @@ def summarize(day, entries, *, total_count=None, pagination_complete=True):
             normalized.append({"run":_safe_run(run),"state":"RUN_NOT_COMPLETED",
                                "lanes":{c:{"state":"RUN_NOT_COMPLETED"} for c in LANES}})
             continue
+        if e.get("metadata_error"):
+            normalized.append({"run":_safe_run(run),"state":"RUN_METADATA_UNAVAILABLE",
+                               "lanes":{c:{"state":"RUN_METADATA_UNAVAILABLE"} for c in LANES},
+                               "error_class":e["metadata_error"]})
+            continue
         jobs=e.get("jobs")
         artifacts=e.get("artifacts")
         if not isinstance(jobs,list) or not isinstance(artifacts,list):
@@ -113,7 +118,7 @@ def summarize(day, entries, *, total_count=None, pagination_complete=True):
     if scheduled!=EXPECTED_SCHEDULED_RUNS:problems.append("SCHEDULED_RUN_COUNT_NOT_EXACTLY_FOUR")
     for e in normalized:
         if e["state"]!="ALL_LANES_CLASSIFIED":
-            problems.append("RUN_UNFINISHED")
+            problems.append("RUN_METADATA_UNAVAILABLE" if e["state"]=="RUN_METADATA_UNAVAILABLE" else "RUN_UNFINISHED")
             continue
         for lane in LANES:
             x=e["lanes"][lane]
@@ -197,12 +202,18 @@ def gather(day,repo):
             entries.append({"run":run})
             continue
         run_id=run["id"]
-        jobs_doc=_gh(f"repos/{repo}/actions/runs/{run_id}/jobs?per_page=100")
-        art_doc=_gh(f"repos/{repo}/actions/runs/{run_id}/artifacts?per_page=100")
-        if jobs_doc.get("total_count",0)>len(jobs_doc.get("jobs",[])) or art_doc.get("total_count",0)>len(art_doc.get("artifacts",[])):
-            raise HandoffRejected("github_job_artifact_listing_incomplete")
-        jobs=jobs_doc["jobs"]
-        artifacts=art_doc["artifacts"]
+        try:
+            jobs_doc=_gh(f"repos/{repo}/actions/runs/{run_id}/jobs?per_page=100")
+            art_doc=_gh(f"repos/{repo}/actions/runs/{run_id}/artifacts?per_page=100")
+            jobs=jobs_doc["jobs"];artifacts=art_doc["artifacts"]
+            if (not isinstance(jobs,list) or not isinstance(artifacts,list)
+                or jobs_doc.get("total_count")!=len(jobs) or art_doc.get("total_count")!=len(artifacts)):
+                raise HandoffRejected("github_job_artifact_listing_incomplete")
+        except (OSError,ValueError,TypeError,KeyError,subprocess.CalledProcessError,subprocess.TimeoutExpired) as exc:
+            # Isolate one failed run metadata lookup; do not lose other runs
+            # or misrepresent an API failure as a JRA retrieval failure.
+            entries.append({"run":run,"metadata_error":type(exc).__name__})
+            continue
         source={}
         for lane in LANES:
             name=f"kyoto-{lane.lower()}-{run_id}-{day}"
