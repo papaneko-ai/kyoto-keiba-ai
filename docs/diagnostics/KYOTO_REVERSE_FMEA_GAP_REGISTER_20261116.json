@@ -2,7 +2,7 @@
   "schema": "kyoto_fmea_reverse_coverage_v1",
   "reference_day": "2026-11-16",
   "source_branch": "fix/impl30-root-causes-20261124",
-  "source_commit": "0279d4cb7664ce59bf0065b755975f542e94ac1d",
+  "source_commit": "fee418e096eebc8712638ba2954c2c5709f06144",
   "scope": "Nov21/22 production official-source observation and handoff; not forecast market acceptance",
   "extraction_policy": "Static transitive diagnostics import closure of 7 source entry modules, all top-level functions registered and locked by source Git blob; newly imported modules and newly added functions require inventory expansion. Class-method and runtime dynamic imports are independently declared separate pending scopes. Sunday source refresh: 29 modules / 103 top-level functions enumerated; five newly found functions and six changed source blobs explicitly reopened without any presumed risk closure or real-JRA verification. Nov22 source v2: independently re-lock changed SP discovery and explicitly leave SP all12 archive stage outside fully reviewed FMEA closure. Live release acceptance remains source-only, not complete model certification. Nov22 official app.jra.jp SP repair: three existing critical source modules byte-locked to inspected candidate; 29 registered critical modules retain open and incomplete FMEA; no success assertions for JRA live market response.",
   "surfaces": [
@@ -1222,7 +1222,7 @@
   },
   "notes": "Reverse FMEA explicitly finds risk modes not enumerated by the original 30 cases. Counting passing tests is not an independent proof of completeness.",
   "source_git_blob_sha1": {
-    "diagnostics/kyoto_weekend_capture.py": "c49942a834a8fb8938c700cf71501b0e5c9eb5dd",
+    "diagnostics/kyoto_weekend_capture.py": "c6cb372fb320e6ee42cafd425829f180ba923c31",
     "diagnostics/kyoto_weekend_sp_discovery.py": "c5d768e4f420f2cb91db290492bded1d5cd80ef5",
     "diagnostics/kyoto_weekend_postflight.py": "54ef7cb26b1b94d6d7891ba74a2faab1a619523a",
     "diagnostics/kyoto_weekend_day21_triage.py": "a6639d5cab211d37d1eddefaa9bfc5b23901368d",
@@ -1258,7 +1258,7 @@
     {
       "source": "diagnostics/kyoto_weekend_capture.py",
       "old_blob": "02cef702a4fabfc4a06bbbc3897281caddcf1348",
-      "new_blob": "c49942a834a8fb8938c700cf71501b0e5c9eb5dd",
+      "new_blob": "c6cb372fb320e6ee42cafd425829f180ba923c31",
       "added_functions": [],
       "reopened_functions": [
         "validate_day",
@@ -1346,5 +1346,11 @@
         "recover_one"
       ]
     }
-  ]
+  ],
+  "impl30_followup_reopen": {
+    "source": "diagnostics/kyoto_weekend_capture.py",
+    "previous_blob": "c49942a834a8fb8938c700cf71501b0e5c9eb5dd",
+    "new_blob": "c6cb372fb320e6ee42cafd425829f180ba923c31",
+    "reason": "Verified start-time priority integration; retain unresolved review status for all capture functions."
+  }
 }
