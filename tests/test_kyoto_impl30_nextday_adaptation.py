@@ -69,4 +69,23 @@ class NextDay(unittest.TestCase):
         self.assertIn("g06_sealing_reserve_deadline=pc_capture_start_monotonic+market_seconds",src)
         self.assertIn("deadline_monotonic=time.monotonic()+sp_seconds",src)
         self.assertIn("g04_market_reserve_deadline=pc_capture_start_monotonic+1020.0",src)
+    def test_actual_sunday_sp_entrypoint_uses_recovered_budget(self):
+        import os
+        from diagnostics.kyoto_weekend_capture import capture
+        def discover(root,**kwargs):
+            root.mkdir()
+            (root/"sp_discovery_receipt.json").write_text("{}")
+            return {"network_requests_started":0,"racecard_url":"observed-fixture"}
+        for mode,want in [("BASELINE",240),("MARKET_OR_ROSTER_RECOVERY",360)]:
+            with self.subTest(mode=mode),tempfile.TemporaryDirectory() as temp,patch.dict(os.environ,{
+                "KYOTO_TARGET_DAY":TARGET_DAY,"KYOTO_WEEKEND_HTTP_APPROVED":"YES",
+                "GITHUB_EVENT_NAME":"schedule","ARCHIVE_KEY":KEY,"GITHUB_REPOSITORY":REPO,"COLLECTOR_SHA":SHA
+            }),patch("diagnostics.kyoto_weekend_capture.validate_day"),patch("diagnostics.kyoto_weekend_capture.time.monotonic",return_value=1000),patch(
+                "diagnostics.kyoto_impl30_nextday_adaptation.recover",return_value=(mode,"fixture_verified")),patch(
+                "diagnostics.kyoto_weekend_sp_discovery.discover",side_effect=discover),patch(
+                "diagnostics.kyoto_sp_all12_observed_capture.capture_all",return_value={"races":{}}) as live_capture:
+                capture(TARGET_DAY,"SP",str(Path(temp)/"source"),live=True,opener=object())
+                live_capture.assert_called_once()
+                self.assertEqual(live_capture.call_args.kwargs["deadline_monotonic"],1000+want)
+
 if __name__=="__main__":unittest.main()
