@@ -21,7 +21,7 @@ def _html_race_identity(raw,day,venue,race):
     text=soup.get_text(" ",strip=True)
     if not re.fullmatch(r"20\d{6}",day):return False
     year,month,date=int(day[:4]),int(day[4:6]),int(day[6:])
-    return re.search(fr"{year}年\s*{month}月\s*{date}日.{{0,30}}?{re.escape(venue)}.{{0,30}}?{race}\s*レース",text) is not None
+    return re.search(fr"{year}年\s*{month}月\s*{date}日.{{0,30}}?{re.escape(venue)}.{{0,30}}?(?<!\d){race}\s*レース",text) is not None
 
 def audit_source_originals(menu_raw,market_raw,market_urls,*,race_key,
         race_day,venue,race_number,channel,captured_at_utc,
@@ -58,7 +58,11 @@ def audit_source_originals(menu_raw,market_raw,market_urls,*,race_key,
             raise SourceChainError("both_market_originals_required")
         if not _html_race_identity(raw,race_day,venue,race_number):
             raise SourceChainError("market_race_identity_not_proven")
-        data=parse_matrix(raw,market,expected_runners=len(active_runners) if market=="quinella" else None)
+        # Use the same roster-aware bracket parser as individual market recovery.
+        # Ineligible same-frame placeholders are not missing eligible quotes.
+        from diagnostics.kyoto_g06_roster_aware_bracket import parse_bracket_with_roster
+        data=(parse_matrix(raw,market,expected_runners=len(active_runners))
+              if market=="quinella" else parse_bracket_with_roster(raw,active_runners))
         if data["historical_final_detected"]!=phase_final:
             raise SourceChainError("conflicting_market_phases")
         phase="HISTORICAL_FINAL" if historical or phase_final else "LIVE_PRE_RACE"

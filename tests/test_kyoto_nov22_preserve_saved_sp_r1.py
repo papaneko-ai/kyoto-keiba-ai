@@ -4,7 +4,8 @@ import json
 import tempfile
 import unittest
 from pathlib import Path
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
+from datetime import datetime
 from diagnostics.kyoto_sp_all12_observed_capture import capture_all
 from diagnostics.kyoto_weekend_sp_discovery import discover, SEED, OFFICIAL_OBSERVED_NOV22_R1 as R1
 
@@ -55,6 +56,9 @@ class SPDay22SavedR1(unittest.TestCase):
         self.assertTrue(result["races"]["1"]["racecard_fetched"])
         self.assertEqual(result["races"]["1"]["network_requests_started"],0)
         self.assertEqual((self.root/"r01_official_sp_racecard.html").read_bytes(),raw)
+        receipt=json.loads((self.root/"r01_sp_receipt.json").read_text(encoding="utf8"))
+        self.assertEqual(receipt["racecard_captured_at_utc"],STAMP)
+        self.assertEqual(receipt["racecard_sha256"],hashlib.sha256(raw).hexdigest())
         self.assertFalse(result["prediction_ready"])
         self.assertFalse(result["both_markets_verified"])
         client.assert_not_called()
@@ -81,7 +85,9 @@ class SPDay22SavedR1(unittest.TestCase):
 
     def test_homepage_connection_failure_keeps_observed_r1_opportunity(self):
         client=Client({R1:page()})
-        r=discover(self.root/"discovery",day=DAY,opener=client,pacer=Mock())
+        with patch("diagnostics.kyoto_weekend_sp_discovery.datetime", wraps=datetime) as clock:
+            clock.now.return_value=datetime.fromisoformat(STAMP.replace("Z","+00:00"))
+            r=discover(self.root/"discovery",day=DAY,opener=client,pacer=Mock())
         self.assertEqual(client.calls,[SEED,R1])
         self.assertEqual(r["network_requests_started"],2)
         self.assertEqual(len([x for x in r["attempts"] if "sha256" in x]),1)

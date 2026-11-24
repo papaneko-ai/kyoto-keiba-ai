@@ -1,171 +1,11 @@
 {
   "schema": "kyoto_fmea_reverse_coverage_v1",
   "reference_day": "2026-11-16",
-  "source_branch": "fix/nov22-sp-app-host-official-20261122",
-  "source_commit": "7e88a7d4dadcbdc56495f9c5a4b43fd8806c510f",
+  "source_branch": "fix/impl30-root-causes-20261124",
+  "source_commit": "fee418e096eebc8712638ba2954c2c5709f06144",
   "scope": "Nov21/22 production official-source observation and handoff; not forecast market acceptance",
   "extraction_policy": "Static transitive diagnostics import closure of 7 source entry modules, all top-level functions registered and locked by source Git blob; newly imported modules and newly added functions require inventory expansion. Class-method and runtime dynamic imports are independently declared separate pending scopes. Sunday source refresh: 29 modules / 103 top-level functions enumerated; five newly found functions and six changed source blobs explicitly reopened without any presumed risk closure or real-JRA verification. Nov22 source v2: independently re-lock changed SP discovery and explicitly leave SP all12 archive stage outside fully reviewed FMEA closure. Live release acceptance remains source-only, not complete model certification. Nov22 official app.jra.jp SP repair: three existing critical source modules byte-locked to inspected candidate; 29 registered critical modules retain open and incomplete FMEA; no success assertions for JRA live market response.",
   "surfaces": [
-    {
-      "source": "diagnostics/kyoto_weekend_capture.py",
-      "function": "validate_day",
-      "phase": "scheduler_to_capture",
-      "review_required": true,
-      "source_sha_status": "BIND_TO_CI_CHECKOUT",
-      "review_status": "CHANGED_SOURCE_REVIEW_REOPENED"
-    },
-    {
-      "source": "diagnostics/kyoto_weekend_capture.py",
-      "function": "_write_receipt",
-      "phase": "scheduler_to_capture",
-      "review_required": true,
-      "source_sha_status": "BIND_TO_CI_CHECKOUT",
-      "review_status": "CHANGED_SOURCE_REVIEW_REOPENED"
-    },
-    {
-      "source": "diagnostics/kyoto_weekend_capture.py",
-      "function": "_no_claim",
-      "phase": "scheduler_to_capture",
-      "review_required": true,
-      "source_sha_status": "BIND_TO_CI_CHECKOUT",
-      "review_status": "CHANGED_SOURCE_REVIEW_REOPENED"
-    },
-    {
-      "source": "diagnostics/kyoto_weekend_capture.py",
-      "function": "capture",
-      "phase": "scheduler_to_capture",
-      "review_required": true,
-      "source_sha_status": "BIND_TO_CI_CHECKOUT",
-      "review_status": "CHANGED_SOURCE_REVIEW_REOPENED"
-    },
-    {
-      "source": "diagnostics/kyoto_weekend_capture.py",
-      "function": "_preserve_interrupted_originals",
-      "phase": "scheduler_to_capture",
-      "review_required": true,
-      "source_sha_status": "BIND_TO_CI_CHECKOUT",
-      "review_status": "CHANGED_SOURCE_REVIEW_REOPENED"
-    },
-    {
-      "source": "diagnostics/kyoto_weekend_capture.py",
-      "function": "seal",
-      "phase": "scheduler_to_capture",
-      "review_required": true,
-      "source_sha_status": "BIND_TO_CI_CHECKOUT",
-      "review_status": "CHANGED_SOURCE_REVIEW_REOPENED"
-    },
-    {
-      "source": "diagnostics/kyoto_weekend_capture.py",
-      "function": "main",
-      "phase": "scheduler_to_capture",
-      "review_required": true,
-      "source_sha_status": "BIND_TO_CI_CHECKOUT",
-      "review_status": "CHANGED_SOURCE_REVIEW_REOPENED"
-    },
-    {
-      "source": "diagnostics/kyoto_weekend_sp_discovery.py",
-      "function": "official_sp_anchors",
-      "phase": "official_link_navigation",
-      "review_required": true,
-      "source_sha_status": "BIND_TO_CI_CHECKOUT",
-      "review_status": "CHANGED_SOURCE_REVIEW_REOPENED"
-    },
-    {
-      "source": "diagnostics/kyoto_weekend_sp_discovery.py",
-      "function": "discover",
-      "phase": "official_link_navigation",
-      "review_required": true,
-      "source_sha_status": "BIND_TO_CI_CHECKOUT",
-      "review_status": "CHANGED_SOURCE_REVIEW_REOPENED"
-    },
-    {
-      "source": "diagnostics/kyoto_weekend_postflight.py",
-      "function": "_utc",
-      "phase": "provenance_and_timestamp",
-      "review_required": true,
-      "source_sha_status": "BIND_TO_CI_CHECKOUT",
-      "review_status": "CHANGED_SOURCE_REVIEW_REOPENED"
-    },
-    {
-      "source": "diagnostics/kyoto_weekend_postflight.py",
-      "function": "check_originals",
-      "phase": "provenance_and_timestamp",
-      "review_required": true,
-      "source_sha_status": "BIND_TO_CI_CHECKOUT",
-      "review_status": "CHANGED_SOURCE_REVIEW_REOPENED"
-    },
-    {
-      "source": "diagnostics/kyoto_weekend_postflight.py",
-      "function": "main",
-      "phase": "provenance_and_timestamp",
-      "review_required": true,
-      "source_sha_status": "BIND_TO_CI_CHECKOUT",
-      "review_status": "CHANGED_SOURCE_REVIEW_REOPENED"
-    },
-    {
-      "source": "diagnostics/kyoto_weekend_day21_triage.py",
-      "function": "classify",
-      "phase": "first_to_second_day",
-      "review_required": true,
-      "source_sha_status": "BIND_TO_CI_CHECKOUT",
-      "review_status": "CHANGED_SOURCE_REVIEW_REOPENED"
-    },
-    {
-      "source": "diagnostics/kyoto_weekend_day21_triage.py",
-      "function": "main",
-      "phase": "first_to_second_day",
-      "review_required": true,
-      "source_sha_status": "BIND_TO_CI_CHECKOUT",
-      "review_status": "CHANGED_SOURCE_REVIEW_REOPENED"
-    },
-    {
-      "source": "diagnostics/kyoto_nov15_two_original_observer.py",
-      "function": "_parse_kyoto",
-      "phase": "pc_original_http_capture",
-      "review_required": true,
-      "source_sha_status": "BIND_TO_CI_CHECKOUT",
-      "review_status": "CHANGED_SOURCE_REVIEW_REOPENED"
-    },
-    {
-      "source": "diagnostics/kyoto_nov15_two_original_observer.py",
-      "function": "_read",
-      "phase": "pc_original_http_capture",
-      "review_required": true,
-      "source_sha_status": "BIND_TO_CI_CHECKOUT",
-      "review_status": "CHANGED_SOURCE_REVIEW_REOPENED"
-    },
-    {
-      "source": "diagnostics/kyoto_nov15_two_original_observer.py",
-      "function": "_validate_saved_html_encoding",
-      "phase": "pc_original_http_capture",
-      "review_required": true,
-      "source_sha_status": "BIND_TO_CI_CHECKOUT",
-      "review_status": "CHANGED_SOURCE_REVIEW_REOPENED"
-    },
-    {
-      "source": "diagnostics/kyoto_nov15_two_original_observer.py",
-      "function": "_single_observed_racecard",
-      "phase": "pc_original_http_capture",
-      "review_required": true,
-      "source_sha_status": "BIND_TO_CI_CHECKOUT",
-      "review_status": "CHANGED_SOURCE_REVIEW_REOPENED"
-    },
-    {
-      "source": "diagnostics/kyoto_nov15_two_original_observer.py",
-      "function": "observe",
-      "phase": "pc_original_http_capture",
-      "review_required": true,
-      "source_sha_status": "BIND_TO_CI_CHECKOUT",
-      "review_status": "CHANGED_SOURCE_REVIEW_REOPENED"
-    },
-    {
-      "source": "diagnostics/kyoto_nov15_two_original_observer.py",
-      "function": "accept_observation",
-      "phase": "pc_original_http_capture",
-      "review_required": true,
-      "source_sha_status": "BIND_TO_CI_CHECKOUT",
-      "review_status": "CHANGED_SOURCE_REVIEW_REOPENED"
-    },
     {
       "source": "diagnostics/kyoto_sp_observed_source.py",
       "function": "capture_observed_sp",
@@ -303,22 +143,6 @@
       "source_sha_status": "FROZEN_GIT_BLOB"
     },
     {
-      "source": "diagnostics/jra_market_source_chain.py",
-      "function": "_html_race_identity",
-      "phase": "transitively_imported_support",
-      "review_required": true,
-      "review_status": "UNREVIEWED_INDEPENDENT_FMEA",
-      "source_sha_status": "FROZEN_GIT_BLOB"
-    },
-    {
-      "source": "diagnostics/jra_market_source_chain.py",
-      "function": "audit_source_originals",
-      "phase": "transitively_imported_support",
-      "review_required": true,
-      "review_status": "UNREVIEWED_INDEPENDENT_FMEA",
-      "source_sha_status": "FROZEN_GIT_BLOB"
-    },
-    {
       "source": "diagnostics/jra_multi_capture_20261106.py",
       "function": "clock",
       "phase": "transitively_imported_support",
@@ -337,14 +161,6 @@
     {
       "source": "diagnostics/jra_multi_capture_20261106.py",
       "function": "capture",
-      "phase": "transitively_imported_support",
-      "review_required": true,
-      "review_status": "UNREVIEWED_INDEPENDENT_FMEA",
-      "source_sha_status": "FROZEN_GIT_BLOB"
-    },
-    {
-      "source": "diagnostics/jra_odds_matrix_parser.py",
-      "function": "parse_matrix",
       "phase": "transitively_imported_support",
       "review_required": true,
       "review_status": "UNREVIEWED_INDEPENDENT_FMEA",
@@ -791,6 +607,78 @@
       "source_sha_status": "BOUND_TO_CURRENT_GIT_BLOB"
     },
     {
+      "source": "diagnostics/kyoto_nov15_encrypted_evidence.py",
+      "function": "_file_cap",
+      "phase": "authenticated_evidence_storage",
+      "review_required": true,
+      "source_sha_status": "BIND_TO_CI_CHECKOUT",
+      "review_status": "UNREVIEWED_INDEPENDENT_FMEA"
+    },
+    {
+      "source": "diagnostics/kyoto_weekend_capture.py",
+      "function": "validate_day",
+      "phase": "scheduler_to_capture",
+      "review_required": true,
+      "source_sha_status": "BIND_TO_CI_CHECKOUT",
+      "review_status": "UNREVIEWED_INDEPENDENT_FMEA"
+    },
+    {
+      "source": "diagnostics/kyoto_weekend_capture.py",
+      "function": "_write_receipt",
+      "phase": "scheduler_to_capture",
+      "review_required": true,
+      "source_sha_status": "BIND_TO_CI_CHECKOUT",
+      "review_status": "UNREVIEWED_INDEPENDENT_FMEA"
+    },
+    {
+      "source": "diagnostics/kyoto_weekend_capture.py",
+      "function": "_no_claim",
+      "phase": "scheduler_to_capture",
+      "review_required": true,
+      "source_sha_status": "BIND_TO_CI_CHECKOUT",
+      "review_status": "UNREVIEWED_INDEPENDENT_FMEA"
+    },
+    {
+      "source": "diagnostics/kyoto_weekend_capture.py",
+      "function": "capture",
+      "phase": "scheduler_to_capture",
+      "review_required": true,
+      "source_sha_status": "BIND_TO_CI_CHECKOUT",
+      "review_status": "UNREVIEWED_INDEPENDENT_FMEA"
+    },
+    {
+      "source": "diagnostics/kyoto_weekend_capture.py",
+      "function": "_preserve_interrupted_originals",
+      "phase": "scheduler_to_capture",
+      "review_required": true,
+      "source_sha_status": "BIND_TO_CI_CHECKOUT",
+      "review_status": "UNREVIEWED_INDEPENDENT_FMEA"
+    },
+    {
+      "source": "diagnostics/kyoto_weekend_capture.py",
+      "function": "seal",
+      "phase": "scheduler_to_capture",
+      "review_required": true,
+      "source_sha_status": "BIND_TO_CI_CHECKOUT",
+      "review_status": "UNREVIEWED_INDEPENDENT_FMEA"
+    },
+    {
+      "source": "diagnostics/kyoto_weekend_capture.py",
+      "function": "main",
+      "phase": "scheduler_to_capture",
+      "review_required": true,
+      "source_sha_status": "BIND_TO_CI_CHECKOUT",
+      "review_status": "UNREVIEWED_INDEPENDENT_FMEA"
+    },
+    {
+      "source": "diagnostics/kyoto_weekend_sp_discovery.py",
+      "function": "official_sp_anchors",
+      "phase": "official_link_navigation",
+      "review_required": true,
+      "source_sha_status": "BIND_TO_CI_CHECKOUT",
+      "review_status": "UNREVIEWED_INDEPENDENT_FMEA"
+    },
+    {
       "source": "diagnostics/kyoto_weekend_sp_discovery.py",
       "function": "observed_kyoto_race_candidates",
       "phase": "official_link_navigation",
@@ -799,12 +687,124 @@
       "review_status": "UNREVIEWED_INDEPENDENT_FMEA"
     },
     {
-      "source": "diagnostics/kyoto_nov15_encrypted_evidence.py",
-      "function": "_file_cap",
-      "phase": "authenticated_evidence_storage",
+      "source": "diagnostics/kyoto_weekend_sp_discovery.py",
+      "function": "discover",
+      "phase": "official_link_navigation",
       "review_required": true,
       "source_sha_status": "BIND_TO_CI_CHECKOUT",
       "review_status": "UNREVIEWED_INDEPENDENT_FMEA"
+    },
+    {
+      "source": "diagnostics/kyoto_weekend_postflight.py",
+      "function": "_utc",
+      "phase": "provenance_and_timestamp",
+      "review_required": true,
+      "source_sha_status": "BIND_TO_CI_CHECKOUT",
+      "review_status": "UNREVIEWED_INDEPENDENT_FMEA"
+    },
+    {
+      "source": "diagnostics/kyoto_weekend_postflight.py",
+      "function": "check_originals",
+      "phase": "provenance_and_timestamp",
+      "review_required": true,
+      "source_sha_status": "BIND_TO_CI_CHECKOUT",
+      "review_status": "UNREVIEWED_INDEPENDENT_FMEA"
+    },
+    {
+      "source": "diagnostics/kyoto_weekend_postflight.py",
+      "function": "main",
+      "phase": "provenance_and_timestamp",
+      "review_required": true,
+      "source_sha_status": "BIND_TO_CI_CHECKOUT",
+      "review_status": "UNREVIEWED_INDEPENDENT_FMEA"
+    },
+    {
+      "source": "diagnostics/kyoto_weekend_day21_triage.py",
+      "function": "classify",
+      "phase": "first_to_second_day",
+      "review_required": true,
+      "source_sha_status": "BIND_TO_CI_CHECKOUT",
+      "review_status": "UNREVIEWED_INDEPENDENT_FMEA"
+    },
+    {
+      "source": "diagnostics/kyoto_weekend_day21_triage.py",
+      "function": "main",
+      "phase": "first_to_second_day",
+      "review_required": true,
+      "source_sha_status": "BIND_TO_CI_CHECKOUT",
+      "review_status": "UNREVIEWED_INDEPENDENT_FMEA"
+    },
+    {
+      "source": "diagnostics/kyoto_nov15_two_original_observer.py",
+      "function": "_parse_kyoto",
+      "phase": "pc_original_http_capture",
+      "review_required": true,
+      "source_sha_status": "BIND_TO_CI_CHECKOUT",
+      "review_status": "UNREVIEWED_INDEPENDENT_FMEA"
+    },
+    {
+      "source": "diagnostics/kyoto_nov15_two_original_observer.py",
+      "function": "_read",
+      "phase": "pc_original_http_capture",
+      "review_required": true,
+      "source_sha_status": "BIND_TO_CI_CHECKOUT",
+      "review_status": "UNREVIEWED_INDEPENDENT_FMEA"
+    },
+    {
+      "source": "diagnostics/kyoto_nov15_two_original_observer.py",
+      "function": "_validate_saved_html_encoding",
+      "phase": "pc_original_http_capture",
+      "review_required": true,
+      "source_sha_status": "BIND_TO_CI_CHECKOUT",
+      "review_status": "UNREVIEWED_INDEPENDENT_FMEA"
+    },
+    {
+      "source": "diagnostics/kyoto_nov15_two_original_observer.py",
+      "function": "_single_observed_racecard",
+      "phase": "pc_original_http_capture",
+      "review_required": true,
+      "source_sha_status": "BIND_TO_CI_CHECKOUT",
+      "review_status": "UNREVIEWED_INDEPENDENT_FMEA"
+    },
+    {
+      "source": "diagnostics/kyoto_nov15_two_original_observer.py",
+      "function": "observe",
+      "phase": "pc_original_http_capture",
+      "review_required": true,
+      "source_sha_status": "BIND_TO_CI_CHECKOUT",
+      "review_status": "UNREVIEWED_INDEPENDENT_FMEA"
+    },
+    {
+      "source": "diagnostics/kyoto_nov15_two_original_observer.py",
+      "function": "accept_observation",
+      "phase": "pc_original_http_capture",
+      "review_required": true,
+      "source_sha_status": "BIND_TO_CI_CHECKOUT",
+      "review_status": "UNREVIEWED_INDEPENDENT_FMEA"
+    },
+    {
+      "source": "diagnostics/jra_market_source_chain.py",
+      "function": "_html_race_identity",
+      "phase": "transitively_imported_support",
+      "review_required": true,
+      "review_status": "UNREVIEWED_INDEPENDENT_FMEA",
+      "source_sha_status": "BIND_TO_CI_CHECKOUT"
+    },
+    {
+      "source": "diagnostics/jra_market_source_chain.py",
+      "function": "audit_source_originals",
+      "phase": "transitively_imported_support",
+      "review_required": true,
+      "review_status": "UNREVIEWED_INDEPENDENT_FMEA",
+      "source_sha_status": "BIND_TO_CI_CHECKOUT"
+    },
+    {
+      "source": "diagnostics/jra_odds_matrix_parser.py",
+      "function": "parse_matrix",
+      "phase": "transitively_imported_support",
+      "review_required": true,
+      "review_status": "UNREVIEWED_INDEPENDENT_FMEA",
+      "source_sha_status": "BIND_TO_CI_CHECKOUT"
     },
     {
       "source": "diagnostics/kyoto_g06_missing_market_retry.py",
@@ -1212,28 +1212,28 @@
   "old_matrix_pass_count": 30,
   "adjudication": {
     "result": "STRUCTURALLY_ENUMERATED_BUT_FMEA_REVIEW_INCOMPLETE",
-    "open_risks": 20,
+    "open_risks": 25,
     "live_data_authoritative": false,
     "claims_of_no_foreseeable_bugs_prohibited": true,
     "source_observation_may_proceed_only_if_release_policy_allows": true,
-    "top_level_functions_total": 76,
-    "top_level_functions_currently_unreviewed": 47,
+    "top_level_functions_total": 103,
+    "top_level_functions_currently_unreviewed": 94,
     "transitive_local_modules_total": 20
   },
   "notes": "Reverse FMEA explicitly finds risk modes not enumerated by the original 30 cases. Counting passing tests is not an independent proof of completeness.",
   "source_git_blob_sha1": {
-    "diagnostics/kyoto_weekend_capture.py": "02cef702a4fabfc4a06bbbc3897281caddcf1348",
-    "diagnostics/kyoto_weekend_sp_discovery.py": "87459bb878cd6d511eb11cddb68dd8005b8c65ed",
-    "diagnostics/kyoto_weekend_postflight.py": "00fefbbec77e35de814c560e04f45004d17617ab",
-    "diagnostics/kyoto_weekend_day21_triage.py": "b172831bcbf98f83b101bab5309002c3782d3aa1",
-    "diagnostics/kyoto_nov15_two_original_observer.py": "0ede11014b37f3614293a010695fa93d3ed0c163",
+    "diagnostics/kyoto_weekend_capture.py": "c6cb372fb320e6ee42cafd425829f180ba923c31",
+    "diagnostics/kyoto_weekend_sp_discovery.py": "c5d768e4f420f2cb91db290492bded1d5cd80ef5",
+    "diagnostics/kyoto_weekend_postflight.py": "54ef7cb26b1b94d6d7891ba74a2faab1a619523a",
+    "diagnostics/kyoto_weekend_day21_triage.py": "a6639d5cab211d37d1eddefaa9bfc5b23901368d",
+    "diagnostics/kyoto_nov15_two_original_observer.py": "0858ed767e61f9669301b4ed46c039e5cdb621a1",
     "diagnostics/kyoto_sp_observed_source.py": "c2f07a1752216016b851307eba29d84491cdefac",
     "diagnostics/kyoto_nov15_encrypted_evidence.py": "18d1a9e1591cf8f5dd85d8db4d886cd94378f611",
     "diagnostics/jra_benchmark_acceptance.py": "edbd6b5b9479fdbf3fc88c7450c0c7ae3260a76f",
     "diagnostics/jra_market_integrity_gate.py": "6f20257575d7c5aeb232512bb64700dee21c3e06",
-    "diagnostics/jra_market_source_chain.py": "8e6bd6b33e9591b6158e2a14a48afd61a902b374",
+    "diagnostics/jra_market_source_chain.py": "f5eb546f96cc4d5ace2c91210677d23a4c47de1c",
     "diagnostics/jra_multi_capture_20261106.py": "a223f6d20beebd1852e071a44af89e1a98e9ca6d",
-    "diagnostics/jra_odds_matrix_parser.py": "20633583ed9fb69836bf42bf26f51395f89d9f6e",
+    "diagnostics/jra_odds_matrix_parser.py": "27f73b3be02a48c98d931b99217f9da4aa741a2f",
     "diagnostics/jra_odds_source_archive.py": "04ffb7982da138c611ff622a8fba0c0868b618e4",
     "diagnostics/jra_official_link_repair.py": "4bf0b16b4d0a6ff322c813718eb7ec38dd0d2f46",
     "diagnostics/jra_official_market_navigation.py": "f452e6e0778fb9d86af7fa232092892c6ff11f34",
@@ -1250,8 +1250,107 @@
     "diagnostics/kyoto_g03_proof_verify.py": "9eb905f489b050c842b2793bd43e1c5385d77df0",
     "diagnostics/kyoto_g05_conditions.py": "e582c7dd548394d035559444293165d29e6dcd72",
     "diagnostics/kyoto_g05_official_track.py": "a7aafb5503f2af57940188613186f810165b36ab",
-    "diagnostics/kyoto_g06_missing_market_retry.py": "4f75ea3116eb1b2ecc1b53cdb4dd0881f29e1a3c"
+    "diagnostics/kyoto_g06_missing_market_retry.py": "cfb6aaec79e121bd15d628c138ec835fafde6bc5"
   },
-  "revision_note": "G03 delta: frozen old FMEA retained by previous_source_commit; 2 new modules/5 new top-level functions and 2 unresolved blocker families. Synthetic CI does not certify real JRA 12R. Timestamp-provenance correction preserves original saved R12 UTC. G03 parser reuses the existing verified PC parser; rejects wrong venue/day/race/frame and preserves unresolved real-source validation risk. Critical G03 actual-HTML navigation correction: observed 2026-11-07 empty-anchor 12 JRA CNAMEs verified; live 2026-11-21/22 remains unproven. Existing PC observer's 12R visible-label assumption corrected using original observed Kyoto racecard CNAME; no guessed request URLs. Historical mock-only test compatibility preserved; strict 21/22 source identity unchanged. G03 individual observed source URL now persisted per race; independent zero-HTTP verifier challenges each saved SHA, URL, per-runner roster and capture UTC. Future JRA source remains unobserved. G04: add four actual reachable source modules (26 total, 91 top-level functions), per-horse same-session source capture, original SHA/UTC, horse metadata and prior-form parsing; unresolved source gaps remain BLOCKER GAP-23. Historical 84 PC/2 SP raw originals replayed with SHA; observed 10-digit profile source code is kept distinct from permanent-ID proof. Current jockey and assigned weight are accepted only from uniquely observed same-race card cells; no past jockey substitution. Source code and parsing are hash locked. G05 source-only weather/going/bodyweight and Kyoto official track live page, 28 modules/98 functions, 2 unresolved risk families. Missing workout data are NOT invented. G05 same-source preflight adds verified utf8/cp932 decoding and rejects contradictory stale source.",
-  "previous_source_commit": "2b75703ab716f1a742b62556778cc1fde7a9840c"
+  "revision_note": "Impl30 exact source re-enumeration, 29 registered modules compared; changed source functions reopened, not certified. Historical ledger preserved in parent; all 25 risk records unchanged.",
+  "previous_source_commit": "7e88a7d4dadcbdc56495f9c5a4b43fd8806c510f",
+  "impl30_source_reopen": [
+    {
+      "source": "diagnostics/kyoto_weekend_capture.py",
+      "old_blob": "02cef702a4fabfc4a06bbbc3897281caddcf1348",
+      "new_blob": "c6cb372fb320e6ee42cafd425829f180ba923c31",
+      "added_functions": [],
+      "reopened_functions": [
+        "validate_day",
+        "_write_receipt",
+        "_no_claim",
+        "capture",
+        "_preserve_interrupted_originals",
+        "seal",
+        "main"
+      ]
+    },
+    {
+      "source": "diagnostics/kyoto_weekend_sp_discovery.py",
+      "old_blob": "87459bb878cd6d511eb11cddb68dd8005b8c65ed",
+      "new_blob": "c5d768e4f420f2cb91db290492bded1d5cd80ef5",
+      "added_functions": [],
+      "reopened_functions": [
+        "official_sp_anchors",
+        "observed_kyoto_race_candidates",
+        "discover"
+      ]
+    },
+    {
+      "source": "diagnostics/kyoto_weekend_postflight.py",
+      "old_blob": "00fefbbec77e35de814c560e04f45004d17617ab",
+      "new_blob": "54ef7cb26b1b94d6d7891ba74a2faab1a619523a",
+      "added_functions": [],
+      "reopened_functions": [
+        "_utc",
+        "check_originals",
+        "main"
+      ]
+    },
+    {
+      "source": "diagnostics/kyoto_weekend_day21_triage.py",
+      "old_blob": "b172831bcbf98f83b101bab5309002c3782d3aa1",
+      "new_blob": "a6639d5cab211d37d1eddefaa9bfc5b23901368d",
+      "added_functions": [],
+      "reopened_functions": [
+        "classify",
+        "main"
+      ]
+    },
+    {
+      "source": "diagnostics/kyoto_nov15_two_original_observer.py",
+      "old_blob": "0ede11014b37f3614293a010695fa93d3ed0c163",
+      "new_blob": "0858ed767e61f9669301b4ed46c039e5cdb621a1",
+      "added_functions": [],
+      "reopened_functions": [
+        "_parse_kyoto",
+        "_read",
+        "_validate_saved_html_encoding",
+        "_single_observed_racecard",
+        "observe",
+        "accept_observation"
+      ]
+    },
+    {
+      "source": "diagnostics/jra_market_source_chain.py",
+      "old_blob": "8e6bd6b33e9591b6158e2a14a48afd61a902b374",
+      "new_blob": "f5eb546f96cc4d5ace2c91210677d23a4c47de1c",
+      "added_functions": [],
+      "reopened_functions": [
+        "_html_race_identity",
+        "audit_source_originals"
+      ]
+    },
+    {
+      "source": "diagnostics/jra_odds_matrix_parser.py",
+      "old_blob": "20633583ed9fb69836bf42bf26f51395f89d9f6e",
+      "new_blob": "27f73b3be02a48c98d931b99217f9da4aa741a2f",
+      "added_functions": [],
+      "reopened_functions": [
+        "parse_matrix"
+      ]
+    },
+    {
+      "source": "diagnostics/kyoto_g06_missing_market_retry.py",
+      "old_blob": "4f75ea3116eb1b2ecc1b53cdb4dd0881f29e1a3c",
+      "new_blob": "cfb6aaec79e121bd15d628c138ec835fafde6bc5",
+      "added_functions": [],
+      "reopened_functions": [
+        "_date",
+        "_verified_file",
+        "recover_one"
+      ]
+    }
+  ],
+  "impl30_followup_reopen": {
+    "source": "diagnostics/kyoto_weekend_capture.py",
+    "previous_blob": "c49942a834a8fb8938c700cf71501b0e5c9eb5dd",
+    "new_blob": "c6cb372fb320e6ee42cafd425829f180ba923c31",
+    "reason": "Verified start-time priority integration; retain unresolved review status for all capture functions."
+  }
 }
