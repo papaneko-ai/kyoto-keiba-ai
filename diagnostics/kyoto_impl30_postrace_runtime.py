@@ -69,7 +69,12 @@ def recover_inputs(day,repo,key,*,include_coverage=False):
         # Preserve the already verified roster even when this diagnostic fails.
         try:
             from diagnostics.kyoto_impl30_day_coverage import combine
-            proof["day_source_coverage"]=combine(day,coverage_slots)
+            from diagnostics.kyoto_impl30_auxiliary_refresh import saved_slots
+            auxiliary,aux_errors=saved_slots(day,repo,key)
+            proof["day_source_coverage"]=combine(day,coverage_slots+auxiliary)
+            proof["day_source_coverage"]["authenticated_pc_slots"]=len(coverage_slots)
+            proof["day_source_coverage"]["authenticated_auxiliary_slots"]=len(auxiliary)
+            proof["day_source_coverage"]["auxiliary_errors"]=aux_errors
             proof["day_source_coverage"]["slot_errors"]=coverage_errors
         except Exception as exc:
             proof["day_source_coverage_error"]=type(exc).__name__
