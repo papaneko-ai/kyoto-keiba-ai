@@ -73,6 +73,16 @@ def capture(day: str, channel: str, output: str, *, live: bool,
     if live and not re.fullmatch(r"[0-9a-fA-F]{64}",os.getenv("ARCHIVE_KEY","")):
         raise ValueError("archive_key_missing_zero_http")
     root.mkdir()
+    # Only the preverified policy table can alter budgets. An unavailable
+    # Saturday artifact never stops Sunday acquisition.
+    from diagnostics.kyoto_impl30_nextday_adaptation import recover,budgets
+    policy,policy_reason="BASELINE","NOT_LIVE_SUNDAY"
+    if live and day=="20261129":
+        policy,policy_reason=recover(day,repo=os.getenv("GITHUB_REPOSITORY",""),
+            collector_sha=os.getenv("COLLECTOR_SHA",""),key=os.getenv("ARCHIVE_KEY",""))
+    market_seconds,sp_seconds=budgets(policy)
+    print("NEXTDAY_APPLIED_POLICY="+policy+";REASON="+policy_reason+
+          ";PC_MARKET_SECONDS="+str(market_seconds)+";SP_SECONDS="+str(sp_seconds))
     if channel == "PC":
         from diagnostics.kyoto_nov15_two_original_observer import observe
         from diagnostics.kyoto_p1_nov14_official_one_shot_nav import NoRedirect
@@ -85,7 +95,7 @@ def capture(day: str, channel: str, output: str, *, live: bool,
         # shared budget for G05/G04. Reserve five minutes for profiles and
         # preserve the existing absolute 17-minute source/seal boundary.
         pc_capture_start_monotonic=time.monotonic()
-        g06_sealing_reserve_deadline=pc_capture_start_monotonic+720.0
+        g06_sealing_reserve_deadline=pc_capture_start_monotonic+market_seconds
         g04_market_reserve_deadline=pc_capture_start_monotonic+1020.0
         try:
             result = observe(
@@ -345,7 +355,7 @@ def capture(day: str, channel: str, output: str, *, live: bool,
             # 12-minute SP job hard limit. Never start another race past 4 min.
             multi = capture_all(root, day=day, opener=shared_sp_client,
                                 pacer=shared_sp_pacer,
-                                deadline_monotonic=time.monotonic()+240.0)
+                                deadline_monotonic=time.monotonic()+sp_seconds)
             out = _no_claim(day, channel, "SP_ALL12_OBSERVED_ANCHORS_ATTEMPTED",
                             observed_http_requests_started=discovery_requests + sum(
                                 x.get("network_requests_started", 0) for x in multi["races"].values()),
