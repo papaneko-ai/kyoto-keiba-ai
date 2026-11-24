@@ -197,6 +197,7 @@ jobs:
           python -m diagnostics.kyoto_weekend_capture --day "$KYOTO_TARGET_DAY" --channel PC --source pc_raw --destination pc_sealed --seal-only
       - name: Upload only AES-GCM ciphertext or safe-stop receipt
         id: upload_pc_primary
+        continue-on-error: true
         if: always()
         uses: actions/upload-artifact@v4
         with:
@@ -331,6 +332,7 @@ jobs:
           python -m diagnostics.kyoto_weekend_capture --day "$KYOTO_TARGET_DAY" --channel SP --source sp_raw --destination sp_sealed --seal-only
       - name: Upload only AES-GCM ciphertext or safe-stop receipt
         id: upload_sp_primary
+        continue-on-error: true
         if: always()
         uses: actions/upload-artifact@v4
         with:
