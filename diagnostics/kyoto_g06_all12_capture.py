@@ -106,7 +106,19 @@ def run_twelve(root, *, records, authorized_live_http=False, runner=None,
                    and hasattr(item["race_spec"],"race_day")}
     if len(observed_days)>1:
         raise SourceChainError("cross_day_batch_mixing_forbidden")
-    for race in range(1,13):
+    # Prioritize independently observed race start timestamps rather than
+    # link order or race number. Invalid/missing records still receive their
+    # own rejection receipt; never infer a start time from a race number.
+    def order_key(race):
+        try:
+            stamp=datetime.fromisoformat(records[race]["verified_start_utc"].replace("Z","+00:00"))
+            if stamp.tzinfo is None or stamp.utcoffset()!=timezone.utc.utcoffset(None):
+                raise ValueError("invalid_start")
+            return (0,stamp,race)
+        except (ValueError,TypeError,KeyError,AttributeError):
+            return (1,datetime.max.replace(tzinfo=timezone.utc),race)
+    capture_order=sorted(records,key=order_key)
+    for race in capture_order:
         item=records[race]
         entry={"race":race,"state":"NOT_ATTEMPTED","both_markets_verified":False}
         lease=None
@@ -247,6 +259,8 @@ def run_twelve(root, *, records, authorized_live_http=False, runner=None,
                 official_links={ch:proof["observed"] for ch,proof in market_link_proof.items()},
                 attempt_history=[],now_utc=datetime.now(timezone.utc).isoformat(),
                 cutoff_utc=item["verified_start_utc"])
+            if recovered.get("cancellation_conflict"):
+                entry["both_markets_verified"]=False
             if recovered["both_markets_verified"]:
                 entry["both_markets_verified"]=True
                 entry["item_level_completed"]=True
@@ -278,7 +292,9 @@ def run_twelve(root, *, records, authorized_live_http=False, runner=None,
                 except Exception:
                     entry["claim_commit_state"]="RELEASE_UNCONFIRMED_LEASE_EXPIRES"
         results.append(entry)
+    results.sort(key=lambda row:row["race"])
     summary={"schema":"kyoto_g06_all12_source_capture.v1",
+        "capture_order":capture_order,
         "total_races":12,"verified_dual_market_races":sum(x["both_markets_verified"] for x in results),
         "unobserved_link_races":sum(x["state"]=="OFFICIAL_LINK_NOT_OBSERVED" for x in results),
         "time_budget_reserved_for_sealing_races":sum(x["state"]=="G06_TIME_BUDGET_RESERVED_FOR_SEALING" for x in results),

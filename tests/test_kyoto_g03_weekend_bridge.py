@@ -1,6 +1,7 @@
 """G03 production bridge: 12 originals, R12 reuse, partial failures and sealing."""
 import hashlib,json,os,tempfile,unittest
 from pathlib import Path
+from datetime import datetime,timezone
 from unittest.mock import patch
 from diagnostics.kyoto_weekend_capture import capture,seal
 from diagnostics.kyoto_nov15_two_original_observer import _single_observed_racecard
@@ -15,6 +16,17 @@ class Bridge(unittest.TestCase):
         env.start();self.addCleanup(env.stop)
         observer_day=patch("diagnostics.kyoto_nov15_two_original_observer.DAY",DAY)
         observer_day.start();self.addCleanup(observer_day.stop)
+        # These are historical synthetic pages, not current JRA data.
+        # Nov21's three blocked live jobs reused a fixture with today's UTC.
+        # Preserve the strict production cutoff; inject a historical fixture clock.
+        clock=patch("diagnostics.kyoto_g03_weekend_bridge.datetime",wraps=datetime)
+        mocked=clock.start();self.addCleanup(clock.stop)
+        mocked.now.return_value=datetime(2026,11,21,1,7,tzinfo=timezone.utc)
+        # Bridge tests exercise racecard/conditions/market bundle, not profiles.
+        # G04 has its own fetch/identity/clock regression suite.
+        profile=patch("diagnostics.kyoto_g04_all_horse_profiles.capture",
+                      side_effect=ValueError("isolated_g04_fixture"))
+        profile.start();self.addCleanup(profile.stop)
 
     def observer(self,path,**kw):
         root=Path(path);root.mkdir()

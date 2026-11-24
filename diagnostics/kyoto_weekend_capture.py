@@ -80,13 +80,13 @@ def capture(day: str, channel: str, output: str, *, live: bool,
         from diagnostics.kyoto_g03_weekend_bridge import collect_after_observer
         pc_client=opener if opener is not None else build_opener(NoRedirect(),HTTPCookieProcessor(CookieJar()))
         pc_pacer=RequestPacer(min_gap_seconds=2.0)
-        # Reserve ~10 of the PC job's 20 minutes for markets/sealing.
-        # This clock starts before observer/G03; no per-stage resetting.
+        # Nov22 actual market originals arrived after six races had started.
+        # Acquire time-sensitive G06 first after G03, then use the remaining
+        # shared budget for G05/G04. Reserve five minutes for profiles and
+        # preserve the existing absolute 17-minute source/seal boundary.
         pc_capture_start_monotonic=time.monotonic()
-        g04_market_reserve_deadline=pc_capture_start_monotonic+600.0
-        # Leave a safety window for G06 receipts, nested bundling and AES.
-        # Job-wide GitHub timeout is still independently enforced at 20 min.
-        g06_sealing_reserve_deadline=pc_capture_start_monotonic+1020.0
+        g06_sealing_reserve_deadline=pc_capture_start_monotonic+720.0
+        g04_market_reserve_deadline=pc_capture_start_monotonic+1020.0
         try:
             result = observe(
                 root / "pc_originals", now_utc=datetime.now(timezone.utc).isoformat(),
@@ -108,12 +108,6 @@ def capture(day: str, channel: str, output: str, *, live: bool,
                 out["g03_error_class"]=type(exc).__name__
             out["g03_all_race_originals_observed"]=bool(g03.get("complete"))
             out["g03_network_requests_started"]=g03.get("network_requests_started",0)
-            # Profile/history and zero-network same-day G05 are captured
-            # before bounded market collection: all verified early runners
-            # retain their pre-start opportunity instead of waiting for
-            # a full G06 multi-market/recovery batch. G06 still runs and its
-            # individual-race failures remain isolated, with original SHA/
-            # UTC evidence, Turso claims, and AES sealing unchanged.
             # Independently recheck valid G03 race originals before downstream
             # G04/G05. Full-12 certification is not weakened by this path.
             partial_verified=[]
@@ -125,77 +119,6 @@ def capture(day: str, channel: str, output: str, *, live: bool,
                 out["g03_partial_source_excluded"]=partial_proof["excluded_races"]
             except Exception as exc:
                 out["g03_partial_proof_error_class"]=type(exc).__name__
-            # G04 follows only independently revalidated G03 originals.
-            # Reuse the same official-only, no-redirect and paced GET client.
-            # A G04 failure must not discard the successful G03 originals.
-            out["g04_all_horse_profiles_parsed"]=False
-            if partial_verified:
-                try:
-                    from diagnostics.kyoto_g04_all_horse_profiles import capture as g04_capture
-                    from diagnostics.kyoto_nov15_two_original_observer import _read
-                    g04=g04_capture(
-                        root=root / "pc_originals",day=day,
-                        fetch=lambda url: (pc_pacer.before_request(),_read(pc_client,url))[1],
-                        clock=lambda:datetime.now(timezone.utc).isoformat(),allowed=True,
-                        allow_partial=(not bool(g03.get("complete")) or len(partial_verified)<12),
-                        isolate_invalid_links=True,
-                        deadline_monotonic=g04_market_reserve_deadline,
-                        monotonic=time.monotonic)
-                    out["g04_all_horse_profiles_parsed"]=bool(g04["all_profiles_parsed"])
-                    out["g04_profiles_verified"]=g04["profile_verified_count"]
-                    out["g04_profiles_expected"]=g04["expected_horses"]
-                    out["g04_profiles_invalid_navigation"]=g04["invalid_profile_navigation_count"]
-                    out["g04_profiles_deferred_for_g06_budget"]=g04["time_budget_reserved_for_g06_count"]
-                except Exception as exc:
-                    out["g04_capture_state"]="G04_EXCEPTION_SOURCE_OR_PARSE_BLOCKED"
-                    out["g04_error_class"]=type(exc).__name__
-            # G05 uses exactly the saved same-day racecards, no new network.
-            # Missing or unpublished weather, body weight, workout remain null,
-            # never zero/imputed and never a betting authorization.
-            out["g05_source_contract_saved"]=False
-            if partial_verified:
-                try:
-                    from diagnostics.kyoto_g05_conditions import compile_saved
-                    g05=compile_saved(root / "pc_originals",day=day,
-                        allow_partial=(not bool(g03.get("complete")) or len(partial_verified)<12))
-                    out["g05_source_contract_saved"]=True
-                    out["g05_observed_field_values"]=g05["observed_field_values"]
-                    out["g05_workout_source_verified"]=False
-                except Exception as exc:
-                    out["g05_capture_state"]="G05_INCOMPLETE_OR_SOURCE_REJECTED"
-                    out["g05_error_class"]=type(exc).__name__
-            # The official published Kyoto track page is a separate JRA source.
-            # At 09:15 it may still show an earlier meeting; preserve bytes,
-            # never promote stale data. Existing shared pacer/no-redirect remains.
-            out["g05_kyoto_track_source_saved"]=False
-            # The official Kyoto conditions page has an independently fixed
-            # observed URL. It must not depend on any G03 racecard succeeding.
-            if (root / "pc_originals").is_dir():
-                try:
-                    from diagnostics.kyoto_g05_official_track import capture_kyoto_track
-                    from diagnostics.kyoto_nov15_two_original_observer import _read
-                    track=capture_kyoto_track(
-                        root / "pc_originals",day=day,
-                        fetch=lambda url: (pc_pacer.before_request(),_read(pc_client,url))[1],
-                        clock=lambda:datetime.now(timezone.utc).isoformat(),allowed=True)
-                    out["g05_kyoto_track_source_saved"]=True
-                    out["g05_same_day_track_heading_verified"]=track[
-                        "same_day_official_meeting_heading_verified"]
-                except Exception as exc:
-                    out["g05_track_capture_state"]="G05_TRACK_SOURCE_UNAVAILABLE_OR_REJECTED"
-                    out["g05_track_error_class"]=type(exc).__name__
-            # C10: record which *saved*, independently bound supplementary
-            # evidence is available and which workout fields remain unknown.
-            # This starts no extra HTTP and cannot block G06 market collection.
-            try:
-                from diagnostics.kyoto_impl25_c10_auxiliary_coverage import save as save_auxiliary_coverage
-                aux=save_auxiliary_coverage(root/"pc_originals",day)
-                out["c10_auxiliary_coverage_saved"]=True
-                out["c10_workout_source_independently_verified"]=aux["workout_source_independently_verified"]
-                out["c10_independent_kyoto_track_sha_verified"]=aux["g05_kyoto_track_independent_source_original_sha_verified"]
-            except Exception as exc:
-                out["c10_auxiliary_coverage_saved"]=False
-                out["c10_auxiliary_coverage_error_class"]=type(exc).__name__
             # G06 starts from exact G03 saved official URLs, named rosters
             # and verified race times. Partial G03 does not cancel the rest.
             # Existing PC opener and pacer are reused; no synthetic SP link.
@@ -260,6 +183,96 @@ def capture(day: str, channel: str, output: str, *, live: bool,
             except Exception as exc:
                 out["g06_source_state"]="G03_TO_G06_INTEGRATION_NOT_VERIFIED"
                 out["g06_error_class"]=type(exc).__name__
+            # G05 uses exactly the saved same-day racecards, no new network.
+            # Missing or unpublished weather, body weight, workout remain null,
+            # never zero/imputed and never a betting authorization.
+            out["g05_source_contract_saved"]=False
+            if partial_verified:
+                try:
+                    from diagnostics.kyoto_g05_conditions import compile_saved
+                    g05=compile_saved(root / "pc_originals",day=day,
+                        allow_partial=(not bool(g03.get("complete")) or len(partial_verified)<12))
+                    out["g05_source_contract_saved"]=True
+                    out["g05_observed_field_values"]=g05["observed_field_values"]
+                    out["g05_workout_source_verified"]=False
+                except Exception as exc:
+                    out["g05_capture_state"]="G05_INCOMPLETE_OR_SOURCE_REJECTED"
+                    out["g05_error_class"]=type(exc).__name__
+            # The official published Kyoto track page is a separate JRA source.
+            # At 09:15 it may still show an earlier meeting; preserve bytes,
+            # never promote stale data. Existing shared pacer/no-redirect remains.
+            out["g05_kyoto_track_source_saved"]=False
+            # The official Kyoto conditions page has an independently fixed
+            # observed URL. It must not depend on any G03 racecard succeeding.
+            if (root / "pc_originals").is_dir():
+                try:
+                    from diagnostics.kyoto_g05_official_track import capture_kyoto_track
+                    from diagnostics.kyoto_nov15_two_original_observer import _read
+                    track=capture_kyoto_track(
+                        root / "pc_originals",day=day,
+                        fetch=lambda url: (pc_pacer.before_request(),_read(pc_client,url))[1],
+                        clock=lambda:datetime.now(timezone.utc).isoformat(),allowed=True)
+                    out["g05_kyoto_track_source_saved"]=True
+                    out["g05_same_day_track_heading_verified"]=track[
+                        "same_day_official_meeting_heading_verified"]
+                except Exception as exc:
+                    out["g05_track_capture_state"]="G05_TRACK_SOURCE_UNAVAILABLE_OR_REJECTED"
+                    out["g05_track_error_class"]=type(exc).__name__
+            # C10: record which *saved*, independently bound supplementary
+            # evidence is available and which workout fields remain unknown.
+            # This starts no extra HTTP and cannot block G06 market collection.
+            try:
+                from diagnostics.kyoto_impl25_c10_auxiliary_coverage import save as save_auxiliary_coverage
+                aux=save_auxiliary_coverage(root/"pc_originals",day)
+                out["c10_auxiliary_coverage_saved"]=True
+                out["c10_workout_source_independently_verified"]=aux["workout_source_independently_verified"]
+                out["c10_independent_kyoto_track_sha_verified"]=aux["g05_kyoto_track_independent_source_original_sha_verified"]
+            except Exception as exc:
+                out["c10_auxiliary_coverage_saved"]=False
+                out["c10_auxiliary_coverage_error_class"]=type(exc).__name__
+            # G04 follows only independently revalidated G03 originals.
+            # Reuse the same official-only, no-redirect and paced GET client.
+            # A G04 failure must not discard the successful G03 originals.
+            out["g04_all_horse_profiles_parsed"]=False
+            if partial_verified:
+                try:
+                    from diagnostics.kyoto_g04_all_horse_profiles import capture as g04_capture
+                    from diagnostics.kyoto_nov15_two_original_observer import _read
+                    prior_profiles={}
+                    # First planned slot has no earlier scheduled capture.
+                    # In later slots, bounded GitHub-only recovery runs AFTER
+                    # expiring market requests; a failed lookup is not a veto.
+                    if live:
+                        from diagnostics.kyoto_weekend_retry_guard import EARLY
+                        if os.getenv("GITHUB_EVENT_SCHEDULE")!=EARLY[day][0]:
+                            try:
+                                from diagnostics.kyoto_impl30_profile_resume import recover
+                                resume_deadline=min(time.monotonic()+45.0,g04_market_reserve_deadline-60.0)
+                                if resume_deadline>time.monotonic():
+                                    prior_profiles,resume= recover(day,os.environ["GITHUB_REPOSITORY"],
+                                        os.environ["ARCHIVE_KEY"],os.environ["GITHUB_RUN_ID"],
+                                        deadline=resume_deadline)
+                                    out["g04_prior_slot_recovery"]=resume
+                            except Exception as exc:
+                                out["g04_prior_slot_recovery"]={"error_class":type(exc).__name__}
+                    g04=g04_capture(
+                        root=root / "pc_originals",day=day,
+                        fetch=lambda url: (pc_pacer.before_request(),_read(pc_client,url))[1],
+                        clock=lambda:datetime.now(timezone.utc).isoformat(),allowed=True,
+                        allow_partial=(not bool(g03.get("complete")) or len(partial_verified)<12),
+                        isolate_invalid_links=True,
+                        deadline_monotonic=g04_market_reserve_deadline,
+                        monotonic=time.monotonic,prior_profiles=prior_profiles)
+                    out["g04_all_horse_profiles_parsed"]=bool(g04["all_profiles_parsed"])
+                    out["g04_profiles_verified"]=g04["profile_verified_count"]
+                    out["g04_profiles_expected"]=g04["expected_horses"]
+                    out["g04_profiles_reused"]=g04.get("profiles_reused_count",0)
+                    out["g04_prior_profiles_rejected"]=g04.get("prior_profile_rejected_count",0)
+                    out["g04_profiles_invalid_navigation"]=g04["invalid_profile_navigation_count"]
+                    out["g04_profiles_deferred_for_g06_budget"]=g04["time_budget_reserved_for_g06_count"]
+                except Exception as exc:
+                    out["g04_capture_state"]="G04_EXCEPTION_SOURCE_OR_PARSE_BLOCKED"
+                    out["g04_error_class"]=type(exc).__name__
             for original in (root / "pc_originals").iterdir():
                 if original.is_file():
                     original.rename(root / original.name)

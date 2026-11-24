@@ -532,7 +532,8 @@ def capture(out,*,channel,verified_start_utc,active_runners,now_utc=None,opener=
           race_key=spec.race_id,race_day=spec.race_day,venue=spec.venue,race_number=spec.race_number,
           channel=channel,captured_at_utc=menu["captured_at_utc"],
           verified_start_utc=start.isoformat(),active_runners=active_runners,
-          market_captured_at_utc=times,
+          market_captured_at_utc=times, racecard_raw=racecard["raw"],
+          racecard_captured_at_utc=racecard["captured_at_utc"],
           archive_directory=folder/"frozen_source")
         result["market_receipt"]=chain
         result["pre_race_prices_accepted"]=chain["classification"]=="VALIDATED_LIVE_MARKETS_NOT_PREDICTION_RELEASED"

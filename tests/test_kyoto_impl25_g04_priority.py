@@ -9,15 +9,15 @@ class G04PriorityTests(unittest.TestCase):
         source=inspect.getsource(kyoto_weekend_capture.capture)
         self.assertLess(source.index("verify_partial("),source.index("g04=g04_capture("))
 
-    def test_profile_and_conditions_precede_long_market_batch(self):
+    def test_expiring_market_batch_precedes_profile_and_conditions(self):
         source=inspect.getsource(kyoto_weekend_capture.capture)
         places=[source.index(token) for token in (
             "g03=collect_after_observer(",
             "verify_partial(",
-            "g04=g04_capture(",
+            "markets=run_twelve(",
             "g05=compile_saved(",
             "track=capture_kyoto_track(",
-            "markets=run_twelve(")]
+            "g04=g04_capture(")]
         self.assertEqual(places,sorted(places))
 
     def test_unchanged_market_turso_and_seal_boundaries(self):
@@ -104,7 +104,7 @@ class G04PriorityTests(unittest.TestCase):
             result = kyoto_weekend_capture.capture(
                 "20261121", "PC", str(Path(temp) / "source"), live=False,
                 opener=object())
-        self.assertEqual(calls, ["G04", "G05", "TRACK", "G06"])
+        self.assertEqual(calls, ["G06", "G05", "TRACK", "G04"])
         self.assertEqual(result["g04_error_class"], "ValueError")
         self.assertTrue(result["g06_twelve_race_market_attempted"])
         self.assertFalse(result["prediction_ready"])

@@ -67,13 +67,16 @@ def prepare_intake(root,*,records):
                 data=json.loads(receipt.read_text(encoding="utf-8"))
                 steps={x["step"]:x for x in data.get("request_receipts",[])}
                 if market in steps and steps[market].get("sha256")==proof["sha256"]:
-                    matched=(directory,steps[market]);break
+                    matched=(directory,steps[market],steps.get("racecard"));break
             if matched is None:
                 raise SourceChainError("selected_market_original_not_locatable")
-            directory,step=matched
+            directory,step,roster_step=matched
             raw=_read_verified(directory,file_name,step)
-            parsed=(parse_matrix(raw,market,expected_runners=len(item["active_runners"]))
-                    if market=="quinella" else parse_bracket_with_roster(raw,item["active_runners"]))
+            from diagnostics.kyoto_impl30_cancelled_market import parse_current_market
+            roster_raw=_read_verified(directory,"official_racecard.html",roster_step)
+            parsed,_=parse_current_market(raw,market,item["active_runners"],racecard=roster_raw,
+                racecard_utc=roster_step["captured_at_utc"],market_utc=step["captured_at_utc"],
+                start_utc=item["verified_start_utc"],day=spec.race_day,race=spec.race_number)
             if parsed.get("historical_final_detected"):
                 raise SourceChainError("final_prices_cannot_enter_p4")
             row["P4"]["markets"][market]={
@@ -81,10 +84,13 @@ def prepare_intake(root,*,records):
                 "captured_at_utc":proof["captured_at_utc"],
                 "original_relative_path":str((directory/file_name).relative_to(root)),
                 "pairs":[{"numbers":list(x["pair"]),"odds":x["odds"]} for x in parsed["pairs"]],
-                "source_url":proof["source_url"]}
-        if len(row["P4"]["markets"])==2:
+                "source_url":proof["source_url"],"cancelled_horses":parsed.get("cancelled_horses",[])}
+        if len(row["P4"]["markets"])==2 and verified["both_markets_verified"]:
             row["P4"]["state"]="SOURCE_MARKETS_STAGED_AWAIT_MODEL_AND_TEMPORAL_RECHECK"
             row["state"]="G07_P4_INPUTS_AVAILABLE"
+        elif verified.get("cancellation_conflict"):
+            row["P4"]["state"]="CANCELLATION_CONFLICT_SOURCE_ONLY"
+            row["state"]="PARTIAL_MARKET_INPUT_RETAINED"
         elif row["P4"]["markets"]:
             row["state"]="PARTIAL_MARKET_INPUT_RETAINED"
         output.append(row)
