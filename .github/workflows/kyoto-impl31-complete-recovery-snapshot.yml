@@ -1,0 +1,132 @@
+name: Kyoto Impl31 complete recovery source snapshot
+on:
+  pull_request:
+    types: [opened]
+    branches: ['fix/impl30-nextday-rehearsal-20261124']
+    paths: ['.github/workflows/kyoto-impl31-complete-recovery-snapshot.yml']
+permissions:
+  contents: read
+  actions: read
+jobs:
+  recovery:
+    if: github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.head.ref == 'backup/impl31-delivery-snapshot-20261124'
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+          persist-credentials: true
+      - name: Pin and export complete source trees and history
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p snapshot/source snapshot/history evidence
+          git fetch --no-tags origin '+refs/heads/*:refs/remotes/origin/*'
+          python - <<'PY'
+          import json,subprocess,pathlib,hashlib,tarfile,io
+          root=pathlib.Path('snapshot')
+          specs={
+            'main':('main','5d6c369c33b7e2d8e731e2ab56ba110235bb48b0'),
+            'development':('jra-html-diagnostic-20261105','71863f2aa20b6cba459ec365ebfb9035c06e548a'),
+            'collector':('fix/impl30-nextday-rehearsal-20261124','121afc9bba4890520fddf52605a4ecb57b58fa37'),
+            'production_candidate':('fix/impl30-nov28-29-production-integration-20261124','abb6de3d901618517a8b85f0766c7dce6b0ac458'),
+            'previous_recovery':('backup/impl29-to-impl30-20261124','3cbeb3280362dab5cbe01525b5f10e3e21c7a6a0'),
+            'collector_backup':('backup/impl30-to-impl31-20261124','121afc9bba4890520fddf52605a4ecb57b58fa37'),
+            'production_backup':('backup/impl30-production-to-impl31-20261124','abb6de3d901618517a8b85f0766c7dce6b0ac458')}
+          result={}
+          for label,(branch,sha) in specs.items():
+              actual=subprocess.check_output(['git','rev-parse','refs/remotes/origin/'+branch],text=True).strip()
+              assert actual==sha,(branch,actual,sha)
+              if label.endswith('_backup'):continue
+              dest=root/'source'/label;dest.mkdir()
+              raw=subprocess.check_output(['git','archive','--format=tar',sha])
+              with tarfile.open(fileobj=io.BytesIO(raw)) as t:
+                  for m in t.getmembers():
+                      assert not m.name.startswith('/') and '..' not in pathlib.PurePosixPath(m.name).parts and (m.isfile() or m.isdir()),m.name
+                  t.extractall(dest)
+              records={}
+              for rec in subprocess.check_output(['git','ls-tree','-r','-z',sha]).split(b'\0'):
+                  if not rec:continue
+                  meta,name=rec.split(b'\t',1);mode,typ,blob=meta.decode().split()
+                  assert typ=='blob' and mode in ('100644','100755'),(label,name,mode)
+                  p=dest/name.decode();data=p.read_bytes()
+                  assert hashlib.sha1(b'blob '+str(len(data)).encode()+b'\0'+data).hexdigest()==blob,(label,name)
+                  records[name.decode()]={'git_blob':blob,'bytes':len(data),'sha256':hashlib.sha256(data).hexdigest(),'mode':mode}
+              assert set(records)=={str(p.relative_to(dest)) for p in dest.rglob('*') if p.is_file()}
+              result[label]={'branch':branch,'sha':sha,'tree':subprocess.check_output(['git','rev-parse',sha+'^{tree}'],text=True).strip(),'files':records}
+              print('SOURCE_TREE_VERIFIED',label,len(records),sha)
+          (root/'source_inventory.json').write_text(json.dumps(result,sort_keys=True,ensure_ascii=False),encoding='utf8')
+          (root/'fixed_refs.json').write_text(json.dumps(specs,sort_keys=True),encoding='utf8')
+          PY
+          git bundle create snapshot/history/repository-all-refs.bundle --all
+          git bundle verify snapshot/history/repository-all-refs.bundle > snapshot/history/bundle-verification.txt 2>&1
+          git bundle list-heads snapshot/history/repository-all-refs.bundle > snapshot/history/bundle-heads.txt
+          git clone --mirror snapshot/history/repository-all-refs.bundle /tmp/impl31-bundle-verify.git
+          git --git-dir=/tmp/impl31-bundle-verify.git fsck --no-reflogs --connectivity-only
+          python - <<'PY'
+          import json,subprocess,pathlib
+          specs=json.loads(pathlib.Path('snapshot/fixed_refs.json').read_text())
+          for label,(branch,sha) in specs.items():
+              actual=subprocess.check_output(['git','--git-dir=/tmp/impl31-bundle-verify.git','rev-parse','refs/remotes/origin/'+branch],text=True).strip()
+              assert actual==sha,(label,actual)
+          print('BUNDLE_RESTORED_ALL_PINNED_REFS')
+          PY
+          python - <<'PY'
+          import zipfile,pathlib
+          with zipfile.ZipFile('CURRENT_SOURCE_HISTORY.zip','w',zipfile.ZIP_DEFLATED,compresslevel=6) as z:
+              for p in sorted(pathlib.Path('snapshot').rglob('*')):
+                  if p.is_file():z.write(p,str(p))
+          PY
+      - name: Preserve actual acquisition and CI artifacts from exact runs
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json,subprocess,pathlib,hashlib,zipfile
+          runs=[44862012044,44966013490,44966654858,44983969532,44984067104,44988118961,45327578098,45330981126,45332340273,45332508600,45334414812,45334550000,45335008231,45335498453,45335752481,45336620972,45337834823,45338040161,45338541132,45339231499,45339319602,45339319613,45339526930,45340100362,45340249964,45340811742,45340811501,45340992082,45340992298,45340991994]
+          root=pathlib.Path('evidence')
+          index=[]
+          def api(path):return json.loads(subprocess.check_output(['gh','api',path],text=True,timeout=30))
+          import os
+          repo=os.environ['GITHUB_REPOSITORY']
+          for run in runs:
+              base=f'repos/{repo}/actions/runs/{run}'
+              r=api(base);j=api(base+'/jobs?per_page=100');a=api(base+'/artifacts?per_page=100')
+              assert j['total_count']==len(j['jobs']) and a['total_count']==len(a['artifacts'])
+              item={'run_id':run,'head_sha':r['head_sha'],'status':r['status'],'conclusion':r['conclusion'],'event':r['event'],'workflow':r['name'],'artifacts':[]}
+              # Keep metadata, not environment or logs containing credentials.
+              (root/f'run-{run}.json').write_text(json.dumps({'run':r,'jobs':j,'artifacts':a},ensure_ascii=False,sort_keys=True))
+              for art in a['artifacts']:
+                  entry={'id':art['id'],'name':art['name'],'expired':art['expired']}
+                  if not art['expired']:
+                      p=root/f'artifact-{art["id"]}.zip'
+                      with p.open('wb') as out:
+                          subprocess.run(['gh','api',f'repos/{repo}/actions/artifacts/{art["id"]}/zip'],stdout=out,check=True,timeout=60)
+                      with zipfile.ZipFile(p) as z:
+                          assert z.testzip() is None,p
+                      entry.update(bytes=p.stat().st_size,sha256=hashlib.sha256(p.read_bytes()).hexdigest(),file=p.name)
+                  item['artifacts'].append(entry)
+              index.append(item)
+              print('EVIDENCE_RUN',run,r['conclusion'],len(a['artifacts']))
+          (root/'index.json').write_text(json.dumps(index,ensure_ascii=False,sort_keys=True))
+          with zipfile.ZipFile('CURRENT_ACTIONS_EVIDENCE.zip','w',zipfile.ZIP_STORED) as z:
+              for p in sorted(root.iterdir()):z.write(p,'evidence/'+p.name)
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: impl31-complete-source-snapshot-${{ github.run_id }}
+          path: CURRENT_SOURCE_HISTORY.zip
+          retention-days: 90
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: impl31-actions-evidence-${{ github.run_id }}
+          path: CURRENT_ACTIONS_EVIDENCE.zip
+          retention-days: 90
+          if-no-files-found: error
