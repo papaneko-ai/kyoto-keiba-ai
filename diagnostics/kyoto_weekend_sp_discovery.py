@@ -104,7 +104,7 @@ def discover(root, *, day, opener=None, pacer=None):
     root=Path(root)
     if root.exists() or root.is_symlink() or not root.parent.is_dir():
         raise SPDiscoveryError("discovery_root_not_fresh")
-    if day not in ("20261121","20261122"):
+    if day not in ("20261121","20261122","20261128","20261129"):
         raise SPDiscoveryError("discovery_day_invalid")
     root.mkdir()
     client=opener or build_opener(NoRedirect())
@@ -173,7 +173,7 @@ def discover(root, *, day, opener=None, pacer=None):
         for target,label,token in anchors:
             if day in token and f"12{day}" in token and bool(re.search(r"(?<![0-9])12\s*(R|レース)",label,re.I)) and "京都" in label:
                 matched.add(target)
-        if matched:
+        if matched and (day in ("20261121","20261122") or all(len(v)==1 for v in race_candidates.values())):
             break
         # Enqueue only on-page SP official selections; no URL synthesis.
         # An ambiguous candidate is not automatically visited.
