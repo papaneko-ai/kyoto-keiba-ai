@@ -34,16 +34,41 @@ def derive(report):
     """
     if report.get("day")!=SOURCE_DAY or report.get("next_day")!=TARGET_DAY:
         raise ValueError("wrong_source_day")
+    # A confirmed execution failure is evidence for a bounded recovery
+    # strategy even when no original was acquired. It is NOT source coverage.
+    # Nov21's P0 incident had precisely this shape.
+    runs=report.get("scheduled_runs",[])
+    known_failures=[]
+    seen=set()
+    for item in runs if isinstance(runs,list) else []:
+        run=item.get("run",{}) if isinstance(item,dict) else {}
+        rid=run.get("id")
+        if (type(rid) is not int or rid<=0 or rid in seen or
+            run.get("event")!="schedule" or run.get("created_at","")[:10]!="2026-11-28" or
+            run.get("status")!="completed" or item.get("state")!="ALL_LANES_CLASSIFIED"):
+            continue
+        seen.add(rid)
+        for lane in ("PC","SP"):
+            row=item.get("lanes",{}).get(lane,{})
+            if (row.get("artifact_evidence_state")=="PRE_HTTP_SAFE_STOP_NO_SOURCE" or
+                (row.get("job_conclusion")=="failure" and row.get("job_state") in ("NO_ARTIFACT","FAILED_WITH_ARTIFACT"))):
+                known_failures.append({"run_id":rid,"lane":lane,"stage":row.get("failure_stage","UNKNOWN")})
+    def incomplete(reason):
+        if known_failures:
+            return {"mode":"MARKET_OR_ROSTER_RECOVERY","reason":"SATURDAY_EXECUTION_FAILURE_WITH_INCOMPLETE_SOURCE_EVIDENCE",
+                    "known_failures":sorted(known_failures,key=lambda r:(r["run_id"],r["lane"])),
+                    "source_coverage_proved":False}
+        return {"mode":"BASELINE","reason":reason}
     c=report.get("day_source_coverage",{})
     if (report.get("all_run_metadata_screened") is not True or
         report.get("github_run_listing_complete") is not True or
         c.get("schema")!="kyoto_impl30_day_source_coverage.v1" or
         c.get("day")!=SOURCE_DAY or c.get("race_denominator")!=12 or
         type(c.get("authenticated_pc_slots")) is not int or c["authenticated_pc_slots"]<1):
-        return {"mode":"BASELINE","reason":"SOURCE_INDEX_INCOMPLETE"}
+        return incomplete("SOURCE_INDEX_INCOMPLETE")
     races=c.get("races",{})
     if set(races)!=set(map(str,range(1,13))):
-        return {"mode":"BASELINE","reason":"RACE_DENOMINATOR_UNVERIFIED"}
+        return incomplete("RACE_DENOMINATOR_UNVERIFIED")
     t=c.get("totals",{})
     roster=paired=horses=profiles=history=0
     for r in races.values():
@@ -57,7 +82,7 @@ def derive(report):
     observed={"racecards":roster,"paired_same_slot_races":paired,
               "registered_horses_known":horses,"profile":profiles,"prior_form":history}
     if any(type(t.get(k)) is not int or t[k]!=v for k,v in observed.items()):
-        return {"mode":"BASELINE","reason":"COVERAGE_COUNTS_DISAGREE"}
+        return incomplete("COVERAGE_COUNTS_DISAGREE")
     if roster<12 or paired<12:
         mode="MARKET_OR_ROSTER_RECOVERY";reason="SATURDAY_MARKET_OR_ROSTER_GAP"
     elif horses and (profiles<horses or history<horses):
