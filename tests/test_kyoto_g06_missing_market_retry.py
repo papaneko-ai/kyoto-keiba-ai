@@ -42,6 +42,23 @@ class RecoveryHttpTests(unittest.TestCase):
             self.assertFalse(verified["mixed_channel"])
             self.assertFalse(verified["simultaneous_snapshot_asserted"])
             self.assertEqual(verified["markets"]["bracket_quinella"]["selected"]["channel"],"PC")
+    def test_invalid_recovered_market_retains_original_without_approval(self):
+        with tempfile.TemporaryDirectory() as td:
+            setup(td,"PC",["quinella"])
+            raw=html("枠連オッズ",B.replace("4.0","取消"))
+            def malformed(*a,**kw):
+                response=self.response(*a,**kw)
+                return {**response,"raw":raw,"sha256":sha256(raw).hexdigest(),"bytes":len(raw)}
+            with patch("diagnostics.kyoto_g06_missing_market_retry.http_fetch",side_effect=malformed):
+                result=recover_one(root=td,channel="PC",market="bracket_quinella",race_spec=SPEC,
+                  active_runners=RUNNERS,verified_start_utc=START,opener=object(),now_utc=TIME)
+            self.assertEqual((Path(td)/"pc_recovery"/"bracket_quinella_original.html").read_bytes(),raw)
+            self.assertEqual(result["state"],"MARKET_RAW_CAPTURED_VALIDATION_REJECTED")
+            self.assertFalse(result["prediction_ready"])
+            self.assertEqual(len(self.calls),1)
+            verified=recover_saved_markets(td,race_spec=SPEC,active_runners=RUNNERS,verified_start_utc=START)
+            self.assertFalse(verified["both_markets_verified"])
+            self.assertEqual(verified["markets"]["quinella"]["state"],"VERIFIED")
     def test_existing_market_is_not_requested(self):
         with tempfile.TemporaryDirectory() as td:
             setup(td,"PC",["quinella"])
