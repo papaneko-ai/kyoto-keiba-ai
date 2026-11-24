@@ -133,6 +133,27 @@ class C12AllRuns(unittest.TestCase):
         self.assertEqual(result["scheduled_runs"][0]["lanes"]["SP"]["artifact_evidence_state"],
                          "EXACT_ARTIFACT_NOT_FOUND_OR_AMBIGUOUS")
 
+    def test_one_metadata_api_failure_preserves_three_other_run_reports(self):
+        entries=[make(i) for i in range(1,5)]
+        def api(path):
+            if "/runs?" in path:
+                return {"total_count":4,"workflow_runs":[x["run"] for x in entries]}
+            rid=int(path.split("/runs/")[1].split("/")[0])
+            if rid==2:raise OSError("simulated GitHub API outage")
+            field="jobs" if "/jobs?" in path else "artifacts"
+            values=entries[rid-1][field]
+            return {"total_count":len(values),field:values}
+        with patch("diagnostics.kyoto_impl25_c12_all_runs_handoff._gh",side_effect=api),patch(
+            "diagnostics.kyoto_impl25_c12_all_runs_handoff._download"),patch(
+            "diagnostics.kyoto_impl25_c12_all_runs_handoff.assess_lane",return_value={"state":"SOURCE_ONLY"}):
+            result=gather(DAY,"papaneko-ai/kyoto-keiba-ai")
+        self.assertFalse(result["all_run_metadata_screened"])
+        self.assertEqual(result["observed_schedule_count"],4)
+        self.assertEqual([x["state"] for x in result["scheduled_runs"]],
+            ["ALL_LANES_CLASSIFIED","RUN_METADATA_UNAVAILABLE","ALL_LANES_CLASSIFIED","ALL_LANES_CLASSIFIED"])
+        self.assertIn("RUN_METADATA_UNAVAILABLE",result["detected_review_reasons"])
+        self.assertFalse(result["full_live_jra_coverage_proved"])
+
     def test_no_automated_repair_or_prediction_authority(self):
         r=summarize(DAY,[make(i) for i in range(1,5)])
         self.assertEqual(r["next_day"],"20261122")
