@@ -18,7 +18,7 @@ def _utc(value):
 
 def check_originals(root, *, day, channel):
     root=Path(root)
-    if day not in ("20261121","20261122") or channel not in ("PC","SP"):
+    if day not in ("20261121","20261122","20261128","20261129") or channel not in ("PC","SP"):
         raise ValueError("invalid_identity")
     if not root.is_dir() or root.is_symlink():
         return {"schema":"kyoto_weekend_postflight.v1","day":day,
@@ -138,7 +138,7 @@ def check_originals(root, *, day, channel):
 
 def main(argv=None):
     p=argparse.ArgumentParser()
-    p.add_argument("--day",choices=("20261121","20261122"),required=True)
+    p.add_argument("--day",choices=("20261121","20261122","20261128","20261129"),required=True)
     p.add_argument("--channel",choices=("PC","SP"),required=True)
     p.add_argument("--root",type=Path,required=True)
     args=p.parse_args(argv)
