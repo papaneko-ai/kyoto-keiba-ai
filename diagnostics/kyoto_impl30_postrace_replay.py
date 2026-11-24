@@ -71,13 +71,14 @@ def prior_archives(day,repo,key,current_run):
 
 def replay_history(current,*,day,repo,key,current_run,roster,starts):
     """Reconstruct version sequence from authenticated bytes per race, never overwrite previous source."""
-    reports=[];complete=True;observations={i:[] for i in range(1,13)}
+    reports=[];complete=True;observations={i:[] for i in range(1,13)};published={i:[] for i in range(1,13)}
     def add(rid,raw):
         nonlocal complete
         try:
             verified=saved_observations(raw,day,roster,starts)
             for race,obs in verified.items():
                 if obs.get('state')=='DUAL_PAGE_EXPLICIT_FINAL':observations[race].append((rid,obs))
+                if obs.get('official_payout_publication_verified') is True:published[race].append({'run_id':rid,'observation':obs})
             reports.append({'run_id':rid,'recomputed_races':len(verified),'explicit_final_matches':sum(o.get('state')=='DUAL_PAGE_EXPLICIT_FINAL' for o in verified.values())})
         except Exception as exc:
             complete=False;reports.append({'run_id':rid,'error_class':type(exc).__name__})
@@ -98,4 +99,4 @@ def replay_history(current,*,day,repo,key,current_run,roster,starts):
                 except (ValueError,KeyError,OSError) as exc:
                     conflict=True;changes.append({'run_id':rid,'state':'REVISION_CONFLICT','reason':type(exc).__name__})
             races[str(race)]={'revisions':changes,'state':'CONFLICT' if conflict else 'SOURCE_REVISION_CHAIN' if changes else 'NO_EXPLICIT_FINAL_OBSERVATION'}
-    return {'schema':'kyoto_impl30_postrace_replay.v1','day':day,'prior_artifact_index_complete':complete,'run_evidence':reports,'races':races,'settlement_authorized':False}
+    return {'schema':'kyoto_impl30_postrace_replay.v1','day':day,'prior_artifact_index_complete':complete,'run_evidence':reports,'races':races,'published_source_observations':{str(k):v for k,v in published.items()},'settlement_authorized':False}
