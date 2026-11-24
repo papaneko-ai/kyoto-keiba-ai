@@ -28,9 +28,10 @@ def _identity(text,day,race=None):
     if not re.search(fr'{y}年\s*{m}月\s*{d}日.{{0,50}}京都',text):raise FinalEvidenceRejected('wrong_meeting')
     if race is not None and not re.search(fr'京都.{{0,50}}(?<!\d){race}\s*(?:R|レース)(?!\d)',text):raise FinalEvidenceRejected('wrong_race')
 
-def _pairs(text,market):
+def _pairs(text,market,*,official=False):
     label,end,limit=MARKETS[market]
-    blocks=re.findall(r'(?<!\S)'+label+r'\s+(.+?)\s+'+end+r'(?=\s|$)',text)
+    boundary=r'(?:単勝|複勝|枠連|馬連|ワイド|馬単|3連複|3連単|３連複|３連単)' if official else end
+    blocks=re.findall(r'(?<!\S)'+label+r'\s+(.+?)\s+'+boundary+r'(?=\s|$)',text)
     if len(blocks)!=1:raise FinalEvidenceRejected('market_section_not_unique:'+market)
     rest=blocks[0].strip();result={}
     pattern=re.compile(r'(\d{1,2})\s*[-－]\s*(\d{1,2})\s+((?:\d{1,3}(?:,\d{3})+|\d+))\s*円(?:\s+\d+\s+番人気)?(?:\s+|$)')
@@ -59,6 +60,53 @@ def _refunds(text):
             out[market].add((a,b))
     return out
 
+def _official_sections(result_raw,payout_raw,day,race):
+    def soup(raw):
+        try:text=raw.decode('cp932','strict')
+        except UnicodeDecodeError:text=raw.decode('utf8','strict')
+        return BeautifulSoup(text,'html.parser')
+    ar,br=soup(result_raw),soup(payout_raw)
+    ra=ar.select('div.race_result_unit div.refund_area')
+    units=br.select('ul.hrai_unit_list > li[id^="harai_"]')
+    if not ra and not units:return None
+    if len(ra)!=1 or len(units)!=12 or {x.get('id') for x in units}!={f'harai_{i}R' for i in range(1,13)}:raise FinalEvidenceRejected('official_layout_ambiguous')
+    heads=[x for x in ar.select('h1') if x.get_text(' ',strip=True).startswith('レース結果')];pheads=[x for x in br.select('h1') if x.get_text(' ',strip=True).startswith('払戻金一覧')]
+    if len(heads)!=1 or len(pheads)!=1:raise FinalEvidenceRejected('official_heading_ambiguous')
+    h=heads[0].get_text(' ',strip=True);ph=pheads[0].get_text(' ',strip=True)
+    _identity(h,day,race);_identity(ph,day)
+    if not h.startswith('レース結果') or not ph.startswith('払戻金一覧'):raise FinalEvidenceRejected('official_heading_invalid')
+    unit=next(x for x in units if x.get('id')==f'harai_{race}R')
+    _identity(unit.get_text(' ',strip=True),day)
+    if len(unit.select(f'img[alt="{race}レース"]'))!=1:raise FinalEvidenceRejected('official_race_badge_missing')
+    if [x.get_text(' ',strip=True) for x in ra[0].select('h2')]!=['払戻金']:raise FinalEvidenceRejected('official_payout_heading_missing')
+    return ra[0],unit
+
+def _official_refunds(node,rows,cancelled):
+    # Only the race-local explicit refund definition list is admissible.
+    matches=[]
+    for dl in node.select('dl'):
+        if any(dt.get_text(' ',strip=True)=='返還' for dt in dl.select('dt')):
+            matches.append(dl)
+    if len(matches)>1:raise FinalEvidenceRejected('official_refund_ambiguous')
+    horses,frames=set(),set()
+    if matches:
+        dd=matches[0].select('dd')
+        if len(dd)!=1:raise FinalEvidenceRejected('official_refund_value_ambiguous')
+        t=dd[0].get_text(' ',strip=True)
+        m=re.fullmatch(r'返還馬番\s*((?:\d{1,2}番[\s、,]*)+)(?:返還枠番\s*((?:[1-8]枠[\s、,]*)+))?',t)
+        if not m:raise FinalEvidenceRejected('official_refund_layout_unverified')
+        horses={int(x) for x in re.findall(r'(\d+)番',m[1])}
+        frames={int(x) for x in re.findall(r'(\d+)枠',m[2] or '')}
+    if horses!=cancelled:raise FinalEvidenceRejected('official_refund_horse_mismatch')
+    all_pairs=list(combinations(rows,2))
+    initial={tuple(sorted((x['frame_number'],y['frame_number']))) for x,y in all_pairs}
+    available={tuple(sorted((x['frame_number'],y['frame_number']))) for x,y in all_pairs if x['horse_number'] not in horses and y['horse_number'] not in horses}
+    lost=initial-available
+    affected={r['frame_number'] for r in rows if r['horse_number'] in horses}
+    required={f for f in affected if (f,f) in lost or not any(r['frame_number']==f and r['horse_number'] not in horses for r in rows)}
+    if frames!=required:raise FinalEvidenceRejected('official_refund_frame_mismatch')
+    return {'quinella':{tuple(sorted((x['horse_number'],y['horse_number']))) for x,y in all_pairs if {x['horse_number'],y['horse_number']}&horses},'bracket_quinella':lost}
+
 def reconcile(*,result_raw,payout_raw,day,race,registered,result_url,result_utc,payout_utc,start_utc):
     """Compare independently acquired result and payout originals; explicit finality still required."""
     if type(race) is not int or not 1<=race<=12:raise FinalEvidenceRejected('invalid_race')
@@ -68,10 +116,14 @@ def reconcile(*,result_raw,payout_raw,day,race,registered,result_url,result_utc,
     _identity(a,day,race);_identity(b,day)
     # Meeting payout page must identify each race separately. Reject duplicate
     # sections instead of borrowing the closest or first race's prices.
-    sections=list(re.finditer(r'(?<!\d)(1[0-2]|[1-9])\s*(?:R|レース)(?!\d)',b))
-    chosen=[i for i,m in enumerate(sections) if int(m[1])==race]
-    if len(chosen)!=1:raise FinalEvidenceRejected('payout_race_section_ambiguous')
-    i=chosen[0];section=b[sections[i].end():sections[i+1].start() if i+1<len(sections) else len(b)]
+    official=_official_sections(result_raw,payout_raw,day,race)
+    if official:
+        a,section=(x.get_text(' ',strip=True) for x in official)
+    else:
+        sections=list(re.finditer(r'(?<!\d)(1[0-2]|[1-9])\s*(?:R|レース)(?!\d)',b))
+        chosen=[i for i,m in enumerate(sections) if int(m[1])==race]
+        if len(chosen)!=1:raise FinalEvidenceRejected('payout_race_section_ambiguous')
+        i=chosen[0];section=b[sections[i].end():sections[i+1].start() if i+1<len(sections) else len(b)]
     roster=extract_result_roster(result_raw,result_url)
     if roster['parse_errors'] or roster['race_count']!=1:raise FinalEvidenceRejected('result_roster_invalid')
     rows=roster['races'][0]['rows'];actual=sorted((r['horse_number'],r['frame_number'],r['horse_name']) for r in rows)
@@ -84,9 +136,11 @@ def reconcile(*,result_raw,payout_raw,day,race,registered,result_url,result_utc,
     elif len(first)==1 and second:winning=list(product(first,second))
     else:raise FinalEvidenceRejected('unresolved_placing')
     expected={'quinella':{tuple(sorted((x['horse_number'],y['horse_number']))) for x,y in winning},'bracket_quinella':{tuple(sorted((x['frame_number'],y['frame_number']))) for x,y in winning}}
-    refund_a,refund_b=_refunds(a),_refunds(section)
-    if refund_a!=refund_b:raise FinalEvidenceRejected('independent_refunds_disagree')
     cancelled={r['horse_number'] for r in rows if r['placing'] in ('取消','除外','出走取消','競走除外')}
+    if official:
+        refund_a,refund_b=(_official_refunds(x,rows,cancelled) for x in official)
+    else:refund_a,refund_b=_refunds(a),_refunds(section)
+    if refund_a!=refund_b:raise FinalEvidenceRejected('independent_refunds_disagree')
     registered_numbers={r['horse_number'] for r in rows}
     expected_cancel_refunds={p for p in combinations(sorted(registered_numbers),2) if set(p)&cancelled}
     if not expected_cancel_refunds<=refund_a['quinella']:raise FinalEvidenceRejected('cancelled_refunds_unproved')
@@ -95,7 +149,7 @@ def reconcile(*,result_raw,payout_raw,day,race,registered,result_url,result_utc,
         if any(not set(p)<=allowed for p in refund_a[m]):raise FinalEvidenceRejected('refund_outside_roster')
     markets={}
     for market in MARKETS:
-        pa,pb=_pairs(a,market),_pairs(section,market)
+        pa,pb=_pairs(a,market,official=bool(official)),_pairs(section,market,official=bool(official))
         if pa!=pb or set(pa)!=expected[market] or set(pa)&refund_a[market]:raise FinalEvidenceRejected('payout_or_placing_conflict:'+market)
         markets[market]={'payout_per_100':{'-'.join(map(str,p)):v for p,v in sorted(pa.items())},'refunded_pairs':[list(p) for p in sorted(refund_a[market])]}
     # Explicit finality of BOTH sections, never infer from evening time.
@@ -103,7 +157,7 @@ def reconcile(*,result_raw,payout_raw,day,race,registered,result_url,result_utc,
               and not re.search(r'未確定|確定前|確定待ち|速報|審議中',s) for s in (a,section))
     correction=any('訂正' in s for s in (a,section))
     if correction and not all('訂正' in s for s in (a,section)):raise FinalEvidenceRejected('correction_not_independently_confirmed')
-    return {'schema':'kyoto_impl30_reconciled_postrace.v1','day':day,'race':race,'markets':markets,'result_sha256':sha256(result_raw).hexdigest(),'payout_sha256':sha256(payout_raw).hexdigest(),'result_utc':result_utc,'payout_utc':payout_utc,'state':'DUAL_PAGE_EXPLICIT_FINAL' if final else 'DUAL_PAGE_MATCH_FINALITY_UNPROVEN','correction':correction,'settlement_authorized':False}
+    return {'schema':'kyoto_impl30_reconciled_postrace.v1','day':day,'race':race,'markets':markets,'result_sha256':sha256(result_raw).hexdigest(),'payout_sha256':sha256(payout_raw).hexdigest(),'result_utc':result_utc,'payout_utc':payout_utc,'state':'DUAL_PAGE_EXPLICIT_FINAL' if final else 'DUAL_PAGE_MATCH_FINALITY_UNPROVEN','correction':correction,'official_payout_publication_verified':bool(official and not any(re.search(r'未確定|確定前|確定待ち|速報|審議中',t) for t in (a,section))),'settlement_authorized':False}
 
 def append_revision(directory,observation):
     """Immutable per-race sequence. Repeat identical payload is idempotent; change requires later explicit correction."""
