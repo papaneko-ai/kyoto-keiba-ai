@@ -70,6 +70,22 @@ def assess_lane(root,*,day,channel,key,repo,run_id):
                     result["state"]="SOURCE_SHA_UTC_MISMATCH"
                     return result
             result["source_original_sha_utc_checked"]=True
+            if channel=="PC":
+                c11_file=source/"c11_per_family_source_proof.json"
+                result["c11_family_evidence_state"]="MISSING_C11_RECEIPT"
+                result["c11_verified_counts"]={}
+                if c11_file.is_file() and not c11_file.is_symlink():
+                    from diagnostics.kyoto_impl25_c11_per_family_proof import assess as reassess_c11
+                    recomputed=reassess_c11(source,day)
+                    stored=json.loads(c11_file.read_text(encoding="utf8"))
+                    if stored==recomputed:
+                        result["c11_family_evidence_state"]="RECOMPUTED_SOURCE_SHA_UTC_MATCH"
+                        result["c11_verified_counts"]={
+                            key:recomputed[key] for key in (
+                                "g03_verified_races","g04_verified_profiles",
+                                "g05_bound_races","g06_paired_market_races_locally_verified")}
+                    else:
+                        result["c11_family_evidence_state"]="SAVED_C11_CANNOT_BE_REVALIDATED"
             markets=(("official_quinella_odds.html","official_bracket_quinella_odds.html") if channel=="PC"
                 else ("official_sp_quinella_odds.html","official_sp_bracket_quinella_odds.html"))
             result["both_raw_market_originals_present"]=all((source/name).is_file() for name in markets)
