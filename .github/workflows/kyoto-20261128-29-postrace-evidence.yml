@@ -50,6 +50,8 @@ jobs:
           test "$(git rev-parse HEAD)" = 'eea35dc8673ff272d71e188bcffed495aa5ff10b'
           python -m diagnostics.kyoto_impl30_postrace_runtime --day "$KYOTO_TARGET_DAY" --out postrace_sealed
       - name: Upload encrypted original sources and revision history only
+        id: upload_postrace_primary
+        continue-on-error: true
         if: always()
         uses: actions/upload-artifact@v4
         with:
@@ -57,3 +59,12 @@ jobs:
           path: postrace_sealed/
           retention-days: 90
           if-no-files-found: error
+      - name: Retry same encrypted postrace artifact after first upload failure
+        if: ${{ always() && steps.upload_postrace_primary.outcome == 'failure' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: kyoto-postrace-${{ github.run_id }}-${{ env.KYOTO_TARGET_DAY }}
+          path: postrace_sealed/
+          retention-days: 90
+          if-no-files-found: error
+          overwrite: true
