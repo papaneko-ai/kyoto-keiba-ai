@@ -11,13 +11,13 @@ class OpportunityFirstRetryTests(unittest.TestCase):
     return evaluate(day,101,event,cron if cron is not None else BACKUP[day],
                     [] if runs is None else runs,{})
  def test_all_eight_scheduled_windows_are_permitted(self):
-    for day in ("20261121","20261122"):
+    for day in ("20261121","20261122","20261128","20261129"):
         for cron in (*EARLY[day],PRIMARY[day],BACKUP[day]):
             with self.subTest(day=day,cron=cron):
                 status=self.check(day=day,cron=cron)
                 self.assertIn("ALLOWED",status)
  def test_prior_run_never_blocks_early_slots(self):
-    for day in ("20261121","20261122"):
+    for day in ("20261121","20261122","20261128","20261129"):
         for cron in EARLY[day]:
             with self.subTest(day=day,cron=cron):
                 self.assertEqual(self.check([prior(conclusion="success")],day=day,cron=cron),
