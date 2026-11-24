@@ -32,7 +32,7 @@ def _sha_saved(root,name,digest):
             hashlib.sha256(p.read_bytes()).hexdigest()==digest)
 
 def assess(root,day):
-    if day not in ("20261121","20261122"):
+    if day not in ("20261121","20261122","20261128","20261129"):
         raise ValueError("invalid_day")
     root=Path(root)
     if root.is_symlink() or not root.is_dir():

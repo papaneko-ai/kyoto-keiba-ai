@@ -21,12 +21,12 @@ def _html_race_identity(raw,day,venue,race):
     text=soup.get_text(" ",strip=True)
     if not re.fullmatch(r"20\d{6}",day):return False
     year,month,date=int(day[:4]),int(day[4:6]),int(day[6:])
-    return re.search(fr"{year}年\s*{month}月\s*{date}日.{{0,30}}?{re.escape(venue)}.{{0,30}}?{race}\s*レース",text) is not None
+    return re.search(fr"{year}年\s*{month}月\s*{date}日.{{0,30}}?{re.escape(venue)}.{{0,30}}?(?<!\d){race}\s*レース",text) is not None
 
 def audit_source_originals(menu_raw,market_raw,market_urls,*,race_key,
         race_day,venue,race_number,channel,captured_at_utc,
         verified_start_utc,active_runners,historical=False,
-        archive_directory=None, market_captured_at_utc=None):
+        archive_directory=None, market_captured_at_utc=None, racecard_raw=None, racecard_captured_at_utc=None):
     """Only a validated live 2-market source can be archived; never auto-predict."""
     if channel not in ("PC","SP"):raise SourceChainError("invalid_channel")
     if not _html_race_identity(menu_raw,race_day,venue,race_number):
@@ -58,17 +58,23 @@ def audit_source_originals(menu_raw,market_raw,market_urls,*,race_key,
             raise SourceChainError("both_market_originals_required")
         if not _html_race_identity(raw,race_day,venue,race_number):
             raise SourceChainError("market_race_identity_not_proven")
-        data=parse_matrix(raw,market,expected_runners=len(active_runners) if market=="quinella" else None)
+        # Use the same roster-aware bracket parser as individual market recovery.
+        # Ineligible same-frame placeholders are not missing eligible quotes.
+        from diagnostics.kyoto_impl30_cancelled_market import parse_current_market
+        data,effective=parse_current_market(raw,market,active_runners,racecard=racecard_raw,
+            racecard_utc=racecard_captured_at_utc,market_utc=market_captured_at_utc[market],
+            start_utc=verified_start_utc,day=race_day,race=race_number)
         if data["historical_final_detected"]!=phase_final:
             raise SourceChainError("conflicting_market_phases")
         phase="HISTORICAL_FINAL" if historical or phase_final else "LIVE_PRE_RACE"
         quotes=tuple((q["pair"][0],q["pair"][1],q["odds"]) for q in data["pairs"])
         evidence=MarketEvidence(race_key,market,phase,url,market_captured_at_utc[market],
-                data["source_sha256"],len(raw),tuple(active_runners),quotes,True,True)
+                data["source_sha256"],len(raw),tuple(effective),quotes,True,True)
         verdict=check(evidence,race_start_utc=verified_start_utc,source_bytes=raw)
         output["markets"][market]={
             "source_sha256":data["source_sha256"],"source_bytes":len(raw),
             "pair_count":len(quotes),"phase":phase,
+            "cancelled_horses":data.get("cancelled_horses",[]),"roster_sha256":data.get("roster_sha256"),
             "captured_at_utc":market_captured_at_utc[market],
             "integrity_state":verdict["state"],"reason":verdict.get("reason"),
             "pre_race_usable":verdict["usable"]}

@@ -113,17 +113,21 @@ def recover_one(*, root,channel,market,race_spec,active_runners,
         response=http_fetch(client,channel,link["official_post_url"],cname=link["cname"],
                             referer="https://"+host+"/JRADB/accessO.html",pacer=pacer)
         raw=response["raw"]
+        # Preserve verified transport bytes before semantic validation, even on rejection.
+        persist_original_once(target,market+"_original.html",raw,response)
+        recovery["request_receipts"].append({"step":market,
+           **{k:v for k,v in response.items() if k!="raw"}})
+        recovery["state"]="MARKET_RAW_CAPTURED_VALIDATION_REJECTED"
         if not _html_race_identity(raw,race_spec.race_day,race_spec.venue,race_spec.race_number):
             raise SourceChainError("recovered_market_identity_mismatch")
-        parsed=(parse_matrix(raw,market,expected_runners=len(active_runners))
-                if market=="quinella" else parse_bracket_with_roster(raw,active_runners))
+        from diagnostics.kyoto_impl30_cancelled_market import parse_current_market
+        parsed,_=parse_current_market(raw,market,active_runners,racecard=racecard,
+            racecard_utc=steps["racecard"]["captured_at_utc"],market_utc=response["captured_at_utc"],
+            start_utc=verified_start_utc,day=race_spec.race_day,race=race_spec.race_number)
         if parsed.get("historical_final_detected"):
             raise SourceChainError("recovered_final_odds_rejected")
         if _date(response["captured_at_utc"])>=_date(verified_start_utc):
             raise SourceChainError("recovery_after_start")
-        persist_original_once(target,market+"_original.html",raw,response)
-        recovery["request_receipts"].append({"step":market,
-           **{k:v for k,v in response.items() if k!="raw"}})
         recovery["state"]="MARKET_RAW_CAPTURED_REQUIRES_INDEPENDENT_GATE"
     except Exception as exc:
         recovery["reason"]=type(exc).__name__+":"+str(exc)[:160]

@@ -67,7 +67,7 @@ class ProductionWorkflowContract(unittest.TestCase):
 
     def test_backup_same_day_concurrency_and_failure_only_policy(self):
         from diagnostics.kyoto_weekend_retry_guard import PRIMARY,BACKUP
-        self.assertEqual(set(PRIMARY),{"20261121","20261122"})
+        self.assertEqual(set(PRIMARY),{"20261121","20261122","20261128","20261129"})
         self.assertEqual(set(BACKUP),set(PRIMARY))
         group=self.s.split("concurrency:",1)[1].split("jobs:",1)[0]
         self.assertIn("20261121",group)
