@@ -75,10 +75,10 @@ def capture_all(root, *, day, opener, pacer, deadline_monotonic=None, monotonic=
     for number in range(1, 13):
         urls = candidates[str(number)]
         if deadline_monotonic is not None and monotonic() >= deadline_monotonic:
-            outcomes[str(number)] = {"state": "DEFERRED_FOR_AES_SEALING_BUDGET", "candidate_count": len(urls)}
+            outcomes[str(number)] = {"state": "DEFERRED_FOR_AES_SEALING_BUDGET", "candidate_count": len(urls), "racecard_fetched": False}
             continue
         if len(urls) != 1:
-            outcomes[str(number)] = {"state": "NO_UNIQUE_SAVED_OFFICIAL_SP_ANCHOR", "candidate_count": len(urls)}
+            outcomes[str(number)] = {"state": "NO_UNIQUE_SAVED_OFFICIAL_SP_ANCHOR", "candidate_count": len(urls), "racecard_fetched": False}
             continue
         staging = root / f"sp_stage_{number:02d}"
         staging.mkdir(exist_ok=False)
@@ -101,7 +101,7 @@ def capture_all(root, *, day, opener, pacer, deadline_monotonic=None, monotonic=
                     "real_racecard_verified":False
                 }
                 (staging/"sp_receipt.json").write_text(
-                    json.dumps(metadata,ensure_ascii=False,sort_keys=True)+"\\n",
+                    json.dumps(metadata,ensure_ascii=False,sort_keys=True)+"\n",
                     encoding="utf8")
                 result=metadata
             else:
@@ -112,7 +112,7 @@ def capture_all(root, *, day, opener, pacer, deadline_monotonic=None, monotonic=
                                      "racecard_fetched": result.get("racecard_fetched", False),
                                      "sp_market_state": result.get("sp_market_state", "NOT_ATTEMPTED")}
         except Exception as exc:
-            outcomes[str(number)] = {"state": "SP_RACE_EXCEPTION", "error_class": type(exc).__name__}
+            outcomes[str(number)] = {"state": "SP_RACE_EXCEPTION", "error_class": type(exc).__name__, "racecard_fetched": False}
         finally:
             for item in sorted(staging.iterdir()):
                 if not item.is_file() or item.is_symlink():
