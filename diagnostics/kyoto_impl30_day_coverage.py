@@ -187,7 +187,7 @@ def include_postrace(coverage,revisions,*,roster,starts):
     if revisions.get("day")!=day or revisions.get("schema")!="kyoto_impl30_postrace_replay.v1":
         raise ValueError("postrace_day_or_schema")
     report["postrace_history_index_complete"]=revisions.get("prior_artifact_index_complete") is True
-    report["totals"].update(official_result=0,official_payout=0)
+    report["totals"].update(official_result=0,official_payout=0,dual_page_published_source=0)
     for race in range(1,13):
         row=report["races"][str(race)]
         post=revisions["races"].get(str(race),{})
@@ -197,6 +197,20 @@ def include_postrace(coverage,revisions,*,roster,starts):
         if row["named_roster_digest"]!=digest(roster[race]) or _utc(row["start_utc"])!=_utc(starts[race]):
             row["postrace"]["state"]="ROSTER_OR_START_CONFLICT"
             continue
+        # Actual published source match is recorded separately; explicit finality gate unchanged.
+        observations=revisions.get("published_source_observations",{}).get(str(race),[])
+        valid=[]
+        for entry in observations:
+            obs=entry.get("observation",{})
+            try:
+                if obs.get("official_payout_publication_verified") is not True or obs.get("day")!=day or obs.get("race")!=race:continue
+                if any(_utc(obs[k])<=_utc(starts[race]) for k in ("result_utc","payout_utc")) or set(obs["markets"])!=set(MARKETS):continue
+                valid.append({"run_id":entry["run_id"],"result":proof(obs["result_sha256"],obs["result_utc"],obs["markets"]),"payout":proof(obs["payout_sha256"],obs["payout_utc"],obs["markets"])})
+            except (ValueError,KeyError,TypeError):continue
+        if valid:
+            row["postrace"]["published_source_observations"]=valid
+            row["postrace"]["state"]="DUAL_PAGE_PUBLISHED_SOURCE_MATCH_FINALITY_UNPROVEN"
+            report["totals"]["dual_page_published_source"]+=1
         if post.get("state")!="SOURCE_REVISION_CHAIN":continue
         if not report["postrace_history_index_complete"]:
             row["postrace"]["state"]="REVISION_HISTORY_INCOMPLETE"
