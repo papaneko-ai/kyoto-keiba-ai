@@ -21,7 +21,7 @@ STAGES={"Race date, immutable commit, secret, first attempt and non-replay guard
         "Offline regression mandatory before any live HTTP":"OFFLINE_REGRESSION"}
 
 def classify(day, run, jobs, artifacts):
-    if day not in ("20261121","20261122"):
+    if day not in ("20261121","20261122","20261128","20261129"):
         raise ValueError("triage_day_invalid")
     if not isinstance(run,dict) or not isinstance(jobs,list) or not isinstance(artifacts,list):
         raise ValueError("triage_evidence_invalid")
@@ -37,8 +37,13 @@ def classify(day, run, jobs, artifacts):
             continue
         job=matches[0]
         failed=[step.get("name","") for step in job.get("steps",[]) if step.get("conclusion")=="failure"]
-        artifact=[a for a in artifacts if a.get("name","").startswith("kyoto-"+lane.lower()+"-") and not a.get("expired",False)]
-        if job.get("conclusion")=="success" and artifact:
+        run_id=run.get("id")
+        expected_name=f"kyoto-{lane.lower()}-{run_id}-{day}"
+        artifact=[a for a in artifacts if str(run_id).isdigit() and a.get("name")==expected_name and not a.get("expired",False)]
+        if len(artifact)>1:
+            status="DUPLICATE_ARTIFACT"
+            stage="ARTIFACT"
+        elif job.get("conclusion")=="success" and artifact:
             status="ARTIFACT_RETAINED_CONTENT_UNVERIFIED"
             stage="POSTFLIGHT_INSPECTION_REQUIRED"
         elif not artifact:
@@ -73,7 +78,7 @@ def classify(day, run, jobs, artifacts):
             "lanes":findings,
             "observed_workflow_run_exists":run.get("actual_run_observed",True) is not False,
             "day22_strategy":day22_strategy,
-            "next_day":"20261122" if day=="20261121" else None,
+            "next_day":{"20261121":"20261122","20261128":"20261129"}.get(day),
             "candidate_promotion_permitted_without_independent_tests":False,
             "requires_actual_original_decrypt_and_hash_check":True,
             "automatic_code_patch_approved":False,

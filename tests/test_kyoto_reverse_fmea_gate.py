@@ -16,7 +16,7 @@ class SourceFirstCoverageTests(unittest.TestCase):
         self.assertEqual(r["critical_modules"],29)
         self.assertEqual(r["top_level_functions_discovered"],103)
         self.assertEqual(r["top_level_functions_unregistered"],0)
-        self.assertEqual(r["top_level_functions_not_yet_independently_reviewed"],74)
+        self.assertEqual(r["top_level_functions_not_yet_independently_reviewed"],99)
         self.assertGreater(r["class_methods_discovered_but_not_yet_independently_reviewed"],0)
         self.assertEqual(r["additional_predictable_failure_families"],25)
         self.assertGreater(r["high_severity_unresolved"],0)
@@ -35,8 +35,18 @@ class SourceFirstCoverageTests(unittest.TestCase):
             len(seen-seed))
         self.assertGreater(result["additional_reachable_modules_not_yet_reviewed"],0)
         self.assertEqual(set(result["additional_reachable_module_paths"]),seen-seed)
-        self.assertEqual(result["top_level_functions_not_yet_independently_reviewed"],74)
+        self.assertEqual(result["top_level_functions_not_yet_independently_reviewed"],99)
         self.assertIs(result["completeness_demonstrated"],False)
+
+    def test_impl30_changed_source_reviews_reopened(self):
+        self.assertEqual(len(self.doc["impl30_source_reopen"]),10)
+        for record in self.doc["impl30_source_reopen"]:
+            self.assertNotEqual(record["old_blob"],record["new_blob"])
+            self.assertEqual(self.doc["source_git_blob_sha1"][record["source"]],record["new_blob"])
+            rows=[x for x in self.doc["surfaces"] if x["source"]==record["source"]]
+            self.assertEqual({x["function"] for x in rows},set(record["reopened_functions"]))
+            self.assertTrue(all(x["review_status"]=="UNREVIEWED_INDEPENDENT_FMEA" for x in rows))
+        self.assertTrue(all(x["remediated"] is False and x["test_proven"] is False for x in self.doc["risks"]))
 
     def test_function_omission_rejected(self):
         d=copy.deepcopy(self.doc)
