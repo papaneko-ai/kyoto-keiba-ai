@@ -28,7 +28,7 @@ def check(day, *, environ=None, transport=None, now_epoch=None):
 
 def main():
     parser=argparse.ArgumentParser()
-    parser.add_argument('--day',required=True,choices=('20261121','20261122'))
+    parser.add_argument('--day',required=True,choices=('20261121','20261122','20261128','20261129'))
     args=parser.parse_args()
     result=check(args.day)
     print(json.dumps(result,sort_keys=True))
