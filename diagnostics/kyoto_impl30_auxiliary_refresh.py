@@ -5,7 +5,7 @@ Only observed current-day official links. Previously authenticated schedule
 evidence prioritizes races approaching start; missing schedule is not a veto.
 No profile or historical-result re-fetch. Encrypted originals, not model inputs.
 """
-import argparse,json,os,re,tempfile,time
+import argparse,json,os,re,tempfile,time,subprocess
 from datetime import datetime,timedelta,timezone
 from pathlib import Path
 from urllib.error import HTTPError
@@ -29,17 +29,26 @@ NAME="Kyoto Nov28-29 afternoon auxiliary refresh"
 def prior_starts(day,repo,key):
     workflow,file,_=WEEKENDS[day]
     found={};conflicts=set()
+    deadline=time.monotonic()+45
+    def remaining(cap):
+        budget=deadline-time.monotonic()
+        if budget<=0:raise TimeoutError("prior_archive_budget")
+        return min(cap,budget)
+    def api(endpoint):
+        return json.loads(subprocess.check_output(["gh","api",endpoint],text=True,stderr=subprocess.DEVNULL,timeout=remaining(8)))
     try:
-        index=_gh(f"repos/{repo}/actions/workflows/{file}/runs?created={_date(day)}&per_page=100")
+        index=api(f"repos/{repo}/actions/workflows/{file}/runs?created={_date(day)}&per_page=100")
         runs=index["workflow_runs"]
         if index["total_count"]!=len(runs) or len(runs)>100:return {}
         for run in sorted(runs,key=lambda x:x["id"],reverse=True):
+            if time.monotonic()>=deadline:break
             if run["name"]!=workflow or run["created_at"][:10]!=_date(day) or run["status"]!="completed" or run["event"] not in ("schedule","workflow_dispatch"):continue
             rid=run["id"]
             try:
                 with tempfile.TemporaryDirectory(prefix="kyoto_aux_prior_") as tmp:
                     base=Path(tmp);cipher=base/"cipher";cipher.mkdir();raw=base/"raw"
-                    _download(rid,f"kyoto-pc-{rid}-{day}",cipher,repo)
+                    subprocess.run(["gh","run","download",str(rid),"--repo",repo,"--name",f"kyoto-pc-{rid}-{day}","--dir",str(cipher)],
+                        stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL,check=True,timeout=remaining(20))
                     decrypt_evidence(cipher,raw,key_hex=key,repo=repo,run_id=str(rid))
                     verified=verify_partial(raw,expected_day=day)["verified_race_numbers"]
                     records=records_from_g03(raw,day=day,skip_invalid_races=True)
