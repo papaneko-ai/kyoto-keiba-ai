@@ -45,6 +45,11 @@ class Chain(unittest.TestCase):
   self.assertFalse(x["markets"]["quinella"]["pre_race_usable"])
  def test_post_start_blocks(self):
   self.assertEqual(run(late=True)["classification"],"BLOCKED_SOURCE_INTEGRITY")
+ def test_race_number_suffix_is_not_identity(self):
+  from diagnostics.jra_market_source_chain import _html_race_identity
+  raw=html("馬連オッズ",Q)
+  self.assertFalse(_html_race_identity(raw,"20261107","京都",1))
+  self.assertTrue(_html_race_identity(raw,"20261107","京都",11))
  def test_wrong_race_date_blocks(self):
   with self.assertRaises(SourceChainError):run(wrong_date=True)
  def test_determinism(self):
