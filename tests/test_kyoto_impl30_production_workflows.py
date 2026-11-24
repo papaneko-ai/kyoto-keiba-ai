@@ -48,6 +48,9 @@ class ProductionWorkflowContract(unittest.TestCase):
                 self.assertIn(token,commands)
             uploads=[x for x in job["steps"] if x.get("uses","").startswith("actions/upload-artifact@")]
             self.assertEqual(len(uploads),2)
+            self.assertEqual(uploads[0]["continue-on-error"],"true")
+            self.assertNotIn("continue-on-error",uploads[1])
+            self.assertIn("outcome == \'failure\'",uploads[1]["if"])
             self.assertTrue(all(x["with"]["path"]==folder+"_sealed/" for x in uploads))
             self.assertEqual(uploads[1]["with"]["overwrite"],"true")
         self.assertNotIn("KYOTO_NOV22_VERIFIED_COLLECTOR_SHA",self.raw)
@@ -77,7 +80,14 @@ class ProductionWorkflowContract(unittest.TestCase):
         self.assertEqual(job["env"]["KYOTO_POSTRACE_HTTP_APPROVED"],"YES")
         self.assertIn("kyoto_impl30_postrace_runtime",raw)
         self.assertIn("postrace_sealed/",raw)
-        self.assertEqual(job["steps"][-1]["with"]["retention-days"],"90")
+        uploads=[x for x in job["steps"] if x.get("uses","").startswith("actions/upload-artifact@")]
+        self.assertEqual(len(uploads),2)
+        self.assertEqual(uploads[0]["continue-on-error"],"true")
+        self.assertNotIn("continue-on-error",uploads[1])
+        self.assertEqual(uploads[1]["with"]["overwrite"],"true")
+        self.assertIn("outcome == \'failure\'",uploads[1]["if"])
+        self.assertEqual(uploads[0]["with"]["name"],uploads[1]["with"]["name"])
+        self.assertTrue(all(x["with"]["retention-days"]=="90" for x in uploads))
         self.assertNotIn("TURSO",raw)
 
     def test_exact_python_and_dependency_versions_across_all_new_source_jobs(self):
