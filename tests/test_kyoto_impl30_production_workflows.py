@@ -100,4 +100,19 @@ class ProductionWorkflowContract(unittest.TestCase):
                         self.assertEqual(step["with"]["python-version"],"3.11.18")
                     if "pip install" in step.get("run",""):
                         self.assertEqual(step["run"],pin_line)
+    def test_live_slots_do_not_reexecute_historical_regressions(self):
+        # Nov21 failure mode: test clock blocked real source capture.
+        # Every old suite is in the exact candidate CI before activation.
+        pre=(ROOT/PREF).read_text()
+        for module in ("test_kyoto_g03_weekend_bridge","test_kyoto_g05_weekend_bridge",
+                       "test_kyoto_g04_all_horse_profiles","test_kyoto_predictable_failure_gate",
+                       "test_kyoto_impl23_claim_preflight","test_kyoto_sp_observed_source"):
+            self.assertIn(module,pre)
+        for lane in ("pc-originals-independent","sp-originals-independent"):
+            commands="\n".join(x.get("run","") for x in self.jobs[lane]["steps"])
+            self.assertNotIn("python -m unittest",commands)
+            self.assertLess(commands.index("SOURCE_REVISION_MISMATCH_NO_HTTP"),
+                            commands.index("python -m diagnostics.kyoto_weekend_capture"))
+            self.assertLess(commands.index("python -m diagnostics.kyoto_weekend_postflight"),
+                            commands.index("--seal-only"))
 if __name__=="__main__":unittest.main()
