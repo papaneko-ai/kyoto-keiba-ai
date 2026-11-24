@@ -19,6 +19,17 @@ class MatrixTests(unittest.TestCase):
   with self.assertRaises(OddsMatrixError):parse_matrix(html("quinella",["1 2 3.5","2 3 4.5"]),"quinella")
  def test_missing_price(self):
   with self.assertRaises(OddsMatrixError):parse_matrix(html("quinella",["1 2 3.5","2 3 --"]),"quinella")
+ def test_both_markets_reject_malformed_commas_and_classify_cancellation(self):
+  for market in ("quinella","bracket_quinella"):
+   for raw,reason in (("1,2","invalid"),("取消","cancelled"),("未発売","unavailable"),("締切","unavailable")):
+    rows=["1 2 "+raw] if market=="quinella" else ["1 "+raw+" 2 3.0","2 4.0"]
+    with self.subTest(market=market,raw=raw),self.assertRaisesRegex(OddsMatrixError,"market_cell_"+reason):
+     parse_matrix(html(market,rows),market)
+ def test_roster_bracket_rejects_malformed_commas_and_unproved_cancel(self):
+  from diagnostics.kyoto_g06_roster_aware_bracket import parse_bracket_with_roster
+  for raw,reason in (("1,2","invalid"),("取消","cancelled"),("締切","unavailable")):
+   with self.subTest(raw=raw),self.assertRaisesRegex(OddsMatrixError,"market_cell_"+reason):
+    parse_bracket_with_roster(html("bracket_quinella",["1 --- 2 "+raw,"2 ---"]),((1,1),(2,2)))
  def test_wrong_expected_runner_count(self):
   with self.assertRaises(OddsMatrixError):parse_matrix(html("quinella",["1 2 3.5"]),"quinella",expected_runners=4)
  def test_1_0_is_valid_market_value(self):
