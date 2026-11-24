@@ -234,7 +234,23 @@ def gather(day,repo):
                 # Existing assess_lane decrypts only into its own ephemeral dir.
         entries.append({"run":run,"jobs":jobs,"artifacts":artifacts,
                         "source_assessment":source})
-    return summarize(day,entries,total_count=total,pagination_complete=pagination_complete)
+    report=summarize(day,entries,total_count=total,pagination_complete=pagination_complete)
+    if day in ("20261128","20261129"):
+        from diagnostics.kyoto_impl30_day_coverage import combine
+        slots=[]
+        for entry in entries:
+            source=entry.get("source_assessment",{}).get("PC",{})
+            slot=source.get("day_coverage_slot")
+            if (source.get("ciphertext_authenticated") is True and
+                source.get("source_original_sha_utc_checked") is True and
+                isinstance(slot,dict) and slot.get("run_id")==str(entry["run"]["id"])):
+                slots.append(slot)
+        coverage=combine(day,slots)
+        coverage["all_scheduled_run_metadata_screened"]=report["all_run_metadata_screened"]
+        coverage["expected_scheduled_slots"]=EXPECTED_SCHEDULED_RUNS
+        coverage["unassessed_pc_slots"]=max(0,report["observed_schedule_count"]-len(slots))
+        report["day_source_coverage"]=coverage
+    return report
 
 def main(argv=None):
     p=argparse.ArgumentParser()
