@@ -82,20 +82,22 @@ def recover_saved_markets(folder, *, race_spec,active_runners,verified_start_utc
                     if (step.get("requested_url")!=link["official_post_url"] or
                         step.get("observed_action_token")!=link["cname"] or step.get("method")!="POST"):
                         raise ValueError("unobserved_market_action")
-                    parsed=(parse_matrix(raw,market,expected_runners=len(active_runners))
-                        if market=="quinella" else parse_bracket_with_roster(raw,active_runners))
+                    from diagnostics.kyoto_impl30_cancelled_market import parse_current_market
+                    parsed,effective=parse_current_market(raw,market,active_runners,racecard=racecard,
+                        racecard_utc=steps["racecard"]["captured_at_utc"],market_utc=step["captured_at_utc"],
+                        start_utc=verified_start_utc,day=race_spec.race_day,race=race_spec.race_number)
                     if parsed["historical_final_detected"]:
                         raise ValueError("final_odds_original")
                     quotes=tuple((p["pair"][0],p["pair"][1],p["odds"]) for p in parsed["pairs"])
                     validation=check(MarketEvidence(race_spec.race_id,market,"LIVE_PRE_RACE",
                         step["requested_url"],step["captured_at_utc"],step["sha256"],len(raw),
-                        tuple(active_runners),quotes,True,True),
+                        tuple(effective),quotes,True,True),
                         race_start_utc=verified_start_utc,source_bytes=raw)
                     if not validation["usable"]:
                         raise ValueError("market_gate:"+validation["reason"])
                     row={"channel":channel,"source_url":step["requested_url"],
                         "sha256":step["sha256"],"captured_at_utc":step["captured_at_utc"],
-                        "pair_count":len(quotes),"source_menu_sha256":steps[menu_step]["sha256"]}
+                        "pair_count":len(quotes),"cancelled_horses":parsed.get("cancelled_horses",[]),"source_menu_sha256":steps[menu_step]["sha256"]}
                     verified.setdefault(market,[]).append(row)
                 except (ValueError,KeyError,TypeError,IndexError) as exc:
                     blocked.append({"channel":channel,"market":market,"reason":str(exc)[:150]})
@@ -110,8 +112,15 @@ def recover_saved_markets(folder, *, race_spec,active_runners,verified_start_utc
             attempts[market]={"state":"PENDING_RECOVERY","selected":None,"candidates":[]}
     good=all(attempts[m]["state"]=="VERIFIED" for m in MARKETS)
     selected=[attempts[m]["selected"] for m in MARKETS if attempts[m]["selected"]]
+    # Never merge incompatible active rosters. Preserve verified individual
+    # observations for diagnosis, but block combined market certification.
+    conflict=len({tuple(x.get("cancelled_horses",[])) for x in selected})>1
+    if conflict:
+        good=False
+        blocked.append({"channel":None,"market":None,"reason":"cross_market_cancellation_conflict"})
     return {"schema":"kyoto_g06_item_level_recovery.v1","race_id":race_spec.race_id,
         "markets":attempts,"blocked_evidence":blocked,"both_markets_verified":good,
+        "cancellation_conflict":conflict,
         "mixed_channel":good and len({x["channel"] for x in selected})>1,
         "simultaneous_snapshot_asserted":False,"prediction_ready":False,
         "g06_certified":False,"network_requests":0}

@@ -32,11 +32,24 @@ class Chain(unittest.TestCase):
  def test_live_source_validated_but_not_prediction(self):
   x=run();self.assertEqual(x["classification"],"VALIDATED_LIVE_MARKETS_NOT_PREDICTION_RELEASED")
   self.assertFalse(x["prediction_ready"])
+ def test_ineligible_same_frame_placeholder_does_not_block_live_market(self):
+  from unittest.mock import patch
+  from tests import test_jra_market_source_chain as fixtures
+  # Frame 1 has one runner, frame 2 has three, frame 3 has two.
+  with patch.object(fixtures,"RUNNERS",((1,1),(2,2),(3,2),(4,2),(5,3),(6,3))), patch.object(fixtures,"B",B.replace("1 2.0","1 ---")):
+   result=fixtures.run()
+  self.assertEqual(result["classification"],"VALIDATED_LIVE_MARKETS_NOT_PREDICTION_RELEASED")
+  self.assertEqual(result["markets"]["bracket_quinella"]["pair_count"],5)
  def test_historical_quarantine(self):
   x=run(final=True);self.assertEqual(x["classification"],"QUARANTINED_HISTORICAL_FINAL")
   self.assertFalse(x["markets"]["quinella"]["pre_race_usable"])
  def test_post_start_blocks(self):
   self.assertEqual(run(late=True)["classification"],"BLOCKED_SOURCE_INTEGRITY")
+ def test_race_number_suffix_is_not_identity(self):
+  from diagnostics.jra_market_source_chain import _html_race_identity
+  raw=html("馬連オッズ",Q)
+  self.assertFalse(_html_race_identity(raw,"20261107","京都",1))
+  self.assertTrue(_html_race_identity(raw,"20261107","京都",11))
  def test_wrong_race_date_blocks(self):
   with self.assertRaises(SourceChainError):run(wrong_date=True)
  def test_determinism(self):
