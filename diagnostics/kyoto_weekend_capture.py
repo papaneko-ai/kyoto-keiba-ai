@@ -129,6 +129,22 @@ def capture(day: str, channel: str, output: str, *, live: bool,
             # Reuse the same official-only, no-redirect and paced GET client.
             # A G04 failure must not discard the successful G03 originals.
             out["g04_all_horse_profiles_parsed"]=False
+            # Tighten (never extend) the legacy profile budget using independent
+            # G03 start-time and original-SHA verification. An unavailable
+            # budget calculation does not prevent unrelated sources or G06.
+            if live and partial_verified:
+                try:
+                    from diagnostics.kyoto_g03_to_g06_input_adapter import records_from_g03
+                    from diagnostics.kyoto_impl30_profile_priority import profile_deadline
+                    budget_inputs=records_from_g03(root/"pc_originals",day=day,
+                        skip_invalid_races=True)
+                    budget=profile_deadline(budget_inputs,wall_utc=datetime.now(timezone.utc),
+                        mono_now=time.monotonic(),original_deadline=g04_market_reserve_deadline)
+                    g04_market_reserve_deadline=budget["deadline_monotonic"]
+                    out["g04_market_priority_budget"]=budget
+                except Exception as exc:
+                    out["g04_market_priority_budget"]={"reason":"UNVERIFIED_BUDGET_KEEP_EXISTING_CAP",
+                        "error_class":type(exc).__name__}
             if partial_verified:
                 try:
                     from diagnostics.kyoto_g04_all_horse_profiles import capture as g04_capture
