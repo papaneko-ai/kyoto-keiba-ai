@@ -41,6 +41,12 @@ class RuntimeTests(unittest.TestCase):
                     self.assertEqual(len(starts),12);self.assertEqual(len(roster[1]),3)
                     self.assertEqual(proof['sources']['1']['run_id'],101)
                     self.assertIn(b'doAction',seed)
+                    roster2,starts2,seed2,proof2=recover_inputs(DAY,REPO,KEY,include_coverage=True)
+                    self.assertEqual((roster,starts,seed),(roster2,starts2,seed2))
+                    self.assertEqual(proof2["day_source_coverage"]["totals"]["racecards"],12)
+                    self.assertEqual(proof2["day_source_coverage"]["totals"]["registered_horses_known"],36)
+                    self.assertEqual(proof2["day_source_coverage"]["authenticated_pc_slots"],1)
+                    self.assertFalse(proof2["day_source_coverage"]["full_data_acquisition_certified"])
                     with self.assertRaisesRegex(ValueError,'no_verified'):recover_inputs(DAY,REPO,'b'*64)
     def test_transport_refusal_stops_next_request_and_bad_targets_never_called(self):
         opener=Mock();pacer=Mock()
