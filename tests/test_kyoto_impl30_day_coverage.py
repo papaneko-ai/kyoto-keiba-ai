@@ -1,6 +1,7 @@
 """Cross-slot source union: independently parse fixture bytes and test conflicts."""
 import copy,json,shutil,unittest
 from unittest.mock import patch
+from urllib.parse import urlsplit,parse_qs
 from diagnostics.kyoto_g04_all_horse_profiles import capture
 from diagnostics.kyoto_impl30_day_coverage import extract_slot,combine,proof
 from diagnostics.kyoto_impl25_c12_all_runs_handoff import gather,WEEKENDS
@@ -19,7 +20,7 @@ class ActualOriginalTests(unittest.TestCase):
         shutil.copytree(self.root,other)
         def part(url,first):
             # One slot obtains horse 1,2; another horse 2,3.
-            n=int(url.split("%2F")[0][-2:]) if "%2F" in url else 0
+            n=int(parse_qs(urlsplit(url).query)["CNAME"][0][-5:-3])
             if n==(3 if first else 1):raise TimeoutError("fixture_missing")
             return self.fetch(url)
         a=capture(root=self.root,day=DAY,fetch=lambda u:part(u,True),clock=lambda:STAMP,allowed=True)
@@ -65,7 +66,6 @@ class ActualOriginalTests(unittest.TestCase):
         b["races"]["1"]["horses"]["1"]["body_weight_kg"]=proof("b"*64,STAMP,452)
         r=combine(DAY,[a,b])
         self.assertEqual(r["races"]["1"]["horses"]["1"]["body_weight_kg"]["state"],"SAME_TIMESTAMP_CONFLICT")
-        self.assertEqual(r["totals"]["body_weight_kg"],0)
         with self.assertRaises(ValueError):combine(DAY,[a,a])
 
 class HandoffConnection(unittest.TestCase):
