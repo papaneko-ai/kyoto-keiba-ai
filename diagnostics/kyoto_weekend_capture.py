@@ -238,6 +238,23 @@ def capture(day: str, channel: str, output: str, *, live: bool,
                 try:
                     from diagnostics.kyoto_g04_all_horse_profiles import capture as g04_capture
                     from diagnostics.kyoto_nov15_two_original_observer import _read
+                    prior_profiles={}
+                    # First planned slot has no earlier scheduled capture.
+                    # In later slots, bounded GitHub-only recovery runs AFTER
+                    # expiring market requests; a failed lookup is not a veto.
+                    if live:
+                        from diagnostics.kyoto_weekend_retry_guard import EARLY
+                        if os.getenv("GITHUB_EVENT_SCHEDULE")!=EARLY[day][0]:
+                            try:
+                                from diagnostics.kyoto_impl30_profile_resume import recover
+                                resume_deadline=min(time.monotonic()+45.0,g04_market_reserve_deadline-60.0)
+                                if resume_deadline>time.monotonic():
+                                    prior_profiles,resume= recover(day,os.environ["GITHUB_REPOSITORY"],
+                                        os.environ["ARCHIVE_KEY"],os.environ["GITHUB_RUN_ID"],
+                                        deadline=resume_deadline)
+                                    out["g04_prior_slot_recovery"]=resume
+                            except Exception as exc:
+                                out["g04_prior_slot_recovery"]={"error_class":type(exc).__name__}
                     g04=g04_capture(
                         root=root / "pc_originals",day=day,
                         fetch=lambda url: (pc_pacer.before_request(),_read(pc_client,url))[1],
@@ -245,10 +262,12 @@ def capture(day: str, channel: str, output: str, *, live: bool,
                         allow_partial=(not bool(g03.get("complete")) or len(partial_verified)<12),
                         isolate_invalid_links=True,
                         deadline_monotonic=g04_market_reserve_deadline,
-                        monotonic=time.monotonic)
+                        monotonic=time.monotonic,prior_profiles=prior_profiles)
                     out["g04_all_horse_profiles_parsed"]=bool(g04["all_profiles_parsed"])
                     out["g04_profiles_verified"]=g04["profile_verified_count"]
                     out["g04_profiles_expected"]=g04["expected_horses"]
+                    out["g04_profiles_reused"]=g04.get("profiles_reused_count",0)
+                    out["g04_prior_profiles_rejected"]=g04.get("prior_profile_rejected_count",0)
                     out["g04_profiles_invalid_navigation"]=g04["invalid_profile_navigation_count"]
                     out["g04_profiles_deferred_for_g06_budget"]=g04["time_budget_reserved_for_g06_count"]
                 except Exception as exc:
