@@ -1,7 +1,7 @@
 name: Impl30 Nov22 actual historical result payout evidence
 on:
   pull_request:
-    types: [opened]
+    types: [synchronize]
     branches: ['fix/impl29-weekend-20261128-29']
     paths:
       - 'diagnostics/kyoto_impl30_actual_postrace_replay.py'
