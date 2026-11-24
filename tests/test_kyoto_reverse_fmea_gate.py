@@ -16,7 +16,7 @@ class SourceFirstCoverageTests(unittest.TestCase):
         self.assertEqual(r["critical_modules"],29)
         self.assertEqual(r["top_level_functions_discovered"],103)
         self.assertEqual(r["top_level_functions_unregistered"],0)
-        self.assertEqual(r["top_level_functions_not_yet_independently_reviewed"],94)
+        self.assertEqual(r["top_level_functions_not_yet_independently_reviewed"],99)
         self.assertGreater(r["class_methods_discovered_but_not_yet_independently_reviewed"],0)
         self.assertEqual(r["additional_predictable_failure_families"],25)
         self.assertGreater(r["high_severity_unresolved"],0)
@@ -35,11 +35,11 @@ class SourceFirstCoverageTests(unittest.TestCase):
             len(seen-seed))
         self.assertGreater(result["additional_reachable_modules_not_yet_reviewed"],0)
         self.assertEqual(set(result["additional_reachable_module_paths"]),seen-seed)
-        self.assertEqual(result["top_level_functions_not_yet_independently_reviewed"],94)
+        self.assertEqual(result["top_level_functions_not_yet_independently_reviewed"],99)
         self.assertIs(result["completeness_demonstrated"],False)
 
     def test_impl30_changed_source_reviews_reopened(self):
-        self.assertEqual(len(self.doc["impl30_source_reopen"]),9)
+        self.assertEqual(len(self.doc["impl30_source_reopen"]),10)
         for record in self.doc["impl30_source_reopen"]:
             self.assertNotEqual(record["old_blob"],record["new_blob"])
             self.assertEqual(self.doc["source_git_blob_sha1"][record["source"]],record["new_blob"])
