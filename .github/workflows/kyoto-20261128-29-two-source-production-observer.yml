@@ -1,0 +1,349 @@
+name: Kyoto Nov28-29 independent encrypted original collection
+on:
+  schedule:
+    - cron: '15 0 28 11 *' # 09:15 JST pre-race first capture
+    - cron: '15 1 28 11 *' # 10:15 JST official moisture/cushion publication hedge
+    - cron: '5 2 28 11 *'
+    - cron: '50 2 28 11 *' # pre-HTTP-failure-only backup
+    - cron: '15 0 29 11 *' # 09:15 JST pre-race first capture
+    - cron: '15 1 29 11 *' # 10:15 JST official moisture/cushion publication hedge
+    - cron: '10 2 29 11 *'
+    - cron: '55 2 29 11 *' # pre-HTTP-failure-only backup
+  workflow_dispatch:
+    inputs:
+      race_day:
+        description: Race day, must match actual UTC date
+        type: choice
+        required: true
+        options:
+          - '20261128'
+          - '20261129'
+      confirmation:
+        description: Enter NOV28-29-OBSERVE-READ-ONLY
+        required: true
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: kyoto-20261128-29-source-${{ (github.event.schedule == '15 0 28 11 *' || github.event.schedule == '15 1 28 11 *' || github.event.schedule == '5 2 28 11 *' || github.event.schedule == '50 2 28 11 *' || inputs.race_day == '20261128') && '20261128' || '20261129' }}
+  cancel-in-progress: false
+  queue: max # preserve pending recovery attempts instead of replacing them
+
+jobs:
+  select-collector:
+    if: ${{ github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.confirmation == 'NOV28-29-OBSERVE-READ-ONLY') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    outputs:
+      collector_sha: ${{ steps.select.outputs.collector_sha }}
+      selection_reason: ${{ steps.select.outputs.selection_reason }}
+    env:
+      KYOTO_TARGET_DAY: ${{ ((github.event.schedule == '15 0 28 11 *' || github.event.schedule == '15 1 28 11 *' || github.event.schedule == '5 2 28 11 *' || github.event.schedule == '50 2 28 11 *' || inputs.race_day == '20261128')) && '20261128' || '20261129' }}
+      DEFAULT_COLLECTOR_SHA: '0279d4cb7664ce59bf0065b755975f542e94ac1d'
+      SUNDAY_OVERRIDE_SHA: ${{ vars.KYOTO_NOV29_VERIFIED_COLLECTOR_SHA }}
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Select one immutable release for both source lanes
+        id: select
+        run: python -m diagnostics.kyoto_impl30_collector_selection
+
+  pc-originals-independent:
+    needs: select-collector
+    if: ${{ github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.confirmation == 'NOV28-29-OBSERVE-READ-ONLY') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      PYTHONPATH: .
+      KYOTO_TARGET_DAY: ${{ ((github.event.schedule == '15 0 28 11 *' || github.event.schedule == '15 1 28 11 *' || github.event.schedule == '5 2 28 11 *' || github.event.schedule == '50 2 28 11 *' || inputs.race_day == '20261128')) && '20261128' || '20261129' }}
+      KYOTO_WEEKEND_HTTP_APPROVED: 'YES'
+      ARCHIVE_KEY: ${{ secrets.KYOTO_JRA_ARCHIVE_AES256_HEX }}
+      GH_TOKEN: ${{ github.token }}
+      GITHUB_EVENT_SCHEDULE: ${{ github.event.schedule }}
+      # Disabled unless the operator provides separate production-only credentials.
+      KYOTO_SHARED_CLAIM_ACTIVATE: ${{ vars.KYOTO_SHARED_CLAIM_ACTIVATE || 'NO' }}
+      KYOTO_SHARED_CLAIM_TARGET: 'PRODUCTION'
+      KYOTO_SHARED_CLAIM_PRODUCTION_APPROVED: ${{ vars.KYOTO_SHARED_CLAIM_PRODUCTION_APPROVED || 'NO' }}
+      KYOTO_SHARED_CLAIM_APPROVED_PRODUCTION_HOST: ${{ vars.KYOTO_SHARED_CLAIM_APPROVED_PRODUCTION_HOST }}
+      KYOTO_SHARED_CLAIM_TURSO_URL: ${{ vars.KYOTO_SHARED_CLAIM_TURSO_URL }}
+      KYOTO_SHARED_CLAIM_TURSO_TOKEN: ${{ secrets.KYOTO_SHARED_CLAIM_TURSO_TOKEN }}
+      COLLECTOR_SHA: ${{ needs.select-collector.outputs.collector_sha }}
+    steps:
+      - name: Checkout pinned verified development collector, not default branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ env.COLLECTOR_SHA }}
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install parser and authenticated encryption
+        run: python -m pip install 'beautifulsoup4>=4.12,<5' 'cryptography>=43,<47'
+      - name: Offline regression mandatory before any live HTTP
+        # Diagnose and record synthetic test problems without discarding real source capture.
+        # Immutable approved source, UTC/window, AES key and on-disk SHA guards remain hard gates.
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -euo pipefail
+          KYOTO_TARGET_DAY=20261121 python -m unittest -q tests.test_kyoto_g04_all_horse_profiles
+          KYOTO_TARGET_DAY=20261121 python -m unittest -q tests.test_kyoto_g05_conditions tests.test_kyoto_g05_official_track
+          KYOTO_TARGET_DAY=20261121 python -m unittest -q tests.test_kyoto_weekend_retry_guard tests.test_kyoto_weekend_race_parity tests.test_kyoto_weekend_capture tests.test_kyoto_safe_stop_artifact tests.test_kyoto_weekend_end_to_end tests.test_kyoto_weekend_postflight tests.test_kyoto_weekend_interruption_and_pacing
+          KYOTO_TARGET_DAY=20261115 python -m unittest -q tests.test_kyoto_nov15_two_original_observer tests.test_kyoto_nov15_offline_race_links tests.test_kyoto_nov15_encrypted_evidence
+      - name: Impl23 G06 shared-claim production handoff offline regression
+        # Diagnose and record synthetic test problems without discarding real source capture.
+        # Immutable approved source, UTC/window, AES key and on-disk SHA guards remain hard gates.
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -euo pipefail
+          PYTHONPATH=. python -m unittest -q \
+            tests.test_kyoto_impl23_claim_preflight \
+            tests.test_kyoto_impl23_lease_window \
+            tests.test_kyoto_impl23_lease_clock \
+            tests.test_kyoto_impl23_claim_evidence \
+            tests.test_kyoto_impl23_pc_to_g06_real_lease \
+            tests.test_kyoto_impl23_weekend_entrypoint_claim \
+            tests.test_kyoto_impl23_production_claim_activation \
+            tests.test_kyoto_impl23_claim_continuation \
+            tests.test_kyoto_g06_claim_execution
+      - name: Enumerate and execute all predictable-failure regression scenarios before any JRA HTTP
+        # Diagnose and record synthetic test problems without discarding real source capture.
+        # Immutable approved source, UTC/window, AES key and on-disk SHA guards remain hard gates.
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m unittest -q tests.test_kyoto_predictable_failure_gate
+          python -m diagnostics.kyoto_predictable_failure_gate --report predictable_failure_execution.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          report=json.loads(Path("predictable_failure_execution.json").read_text())
+          if (report.get("passing")!=30 or report.get("count")!=30
+              or report.get("live_jra_proven") is not False
+              or report.get("prediction_ready") is not False):
+              raise SystemExit("PREDICTABLE_FAILURE_COVERAGE_NOT_COMPLETE_NO_JRA_HTTP")
+          print("PREDICTABLE_FAILURE_PREFLIGHT_30_OF_30_EXECUTED")
+          PY
+      - name: Race date, immutable commit, secret, first attempt and non-replay guard
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import os,re,subprocess
+          from datetime import datetime,timezone
+          day=os.environ['KYOTO_TARGET_DAY']
+          now=datetime.now(timezone.utc)
+          assert day in ('20261128','20261129'),'INVALID_DAY_NO_HTTP'
+          assert now.strftime('%Y%m%d')==day and 0<=now.hour<4,'OUTSIDE_DAY_WINDOW_NO_HTTP'
+          assert int(os.environ.get('GITHUB_RUN_ATTEMPT','0'))>=1,'RUN_ATTEMPT_INVALID_NO_HTTP'
+          assert re.fullmatch(r'[0-9a-fA-F]{64}',os.environ.get('ARCHIVE_KEY','')),'ENCRYPTION_KEY_REQUIRED_NO_HTTP'
+          assert subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip()==os.environ['COLLECTOR_SHA'],'SOURCE_REVISION_MISMATCH_NO_HTTP'
+          assert re.fullmatch(r'[0-9a-f]{40}',os.environ['COLLECTOR_SHA']),'COLLECTOR_SHA_INVALID_NO_HTTP'
+          if day=='20261128':
+              assert os.environ['COLLECTOR_SHA']=='0279d4cb7664ce59bf0065b755975f542e94ac1d','SATURDAY_SOURCE_UNEXPECTED_NO_HTTP'
+          assert os.environ.get('GITHUB_EVENT_NAME') in ('schedule','workflow_dispatch'),'INVALID_EVENT_NO_HTTP'
+          assert os.environ.get('KYOTO_WEEKEND_HTTP_APPROVED')=='YES','LIVE_HTTP_NOT_APPROVED'
+          # The shared day-locked backup gate separately verifies GitHub
+          # run/job metadata and capture-step execution.
+          print('PC_STATIC_PRE_HTTP_GUARDS_ACCEPTED')
+          PY
+          python -m diagnostics.kyoto_weekend_retry_guard --day "$KYOTO_TARGET_DAY"
+      - name: Verify opt-in remote Turso table before any PC market requests
+        # G06 remote claims fail closed inside the collector if the optional
+        # coordinator is unavailable. A failed optional schema probe must not
+        # discard PC/G03/G04/G05 originals or block independent SP collection.
+        # Only this preflight step is non-blocking; live data and race gates remain.
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m diagnostics.kyoto_impl23_claim_preflight --day "$KYOTO_TARGET_DAY"
+      - name: Capture official PC observed originals (bounded no guessed URLs)
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m diagnostics.kyoto_weekend_capture --day "$KYOTO_TARGET_DAY" --channel PC --source pc_raw --destination pc_sealed
+      - name: Offline postflight verify saved original SHA and UTC before evidence sealing
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m diagnostics.kyoto_weekend_postflight --day "$KYOTO_TARGET_DAY" --channel PC --root pc_raw
+      - name: Archive Saturday synthetic bridge regression results without cancelling Sunday JRA opportunity
+        # The legacy Nov21 synthetic bridge fixture reads the real current UTC
+        # clock. It failed on Nov21 in tests that assert all 12 pre-start
+        # original fixtures and a fixed nested-bundle file count. It must
+        # remain visible as an independent regression, but cannot block
+        # the actual Nov22 observed-source capture and AES sealing.
+        if: always()
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -euo pipefail
+          KYOTO_TARGET_DAY=20261121 python -m unittest -v tests.test_kyoto_g05_weekend_bridge
+      - name: Always encrypt any source originals or save factual pre-HTTP stop
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m diagnostics.kyoto_weekend_capture --day "$KYOTO_TARGET_DAY" --channel PC --source pc_raw --destination pc_sealed --seal-only
+      - name: Upload only AES-GCM ciphertext or safe-stop receipt
+        id: upload_pc_primary
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: kyoto-pc-${{ github.run_id }}-${{ env.KYOTO_TARGET_DAY }}
+          path: pc_sealed/
+          retention-days: 30
+          if-no-files-found: error
+      - name: Retry same encrypted artifact if the first upload fails
+        if: ${{ always() && steps.upload_pc_primary.outcome == 'failure' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: kyoto-pc-${{ github.run_id }}-${{ env.KYOTO_TARGET_DAY }}
+          path: pc_sealed/
+          retention-days: 30
+          if-no-files-found: error
+          overwrite: true
+
+  sp-originals-independent:
+    # Source lanes remain independent, but network execution is serialized.
+    # PC failure must NOT prevent SP fallback.
+    needs: [select-collector, pc-originals-independent]
+    if: ${{ always() && needs.select-collector.result == 'success' && (github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.confirmation == 'NOV28-29-OBSERVE-READ-ONLY')) }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    env:
+      PYTHONPATH: .
+      KYOTO_TARGET_DAY: ${{ ((github.event.schedule == '15 0 28 11 *' || github.event.schedule == '15 1 28 11 *' || github.event.schedule == '5 2 28 11 *' || github.event.schedule == '50 2 28 11 *' || inputs.race_day == '20261128')) && '20261128' || '20261129' }}
+      KYOTO_WEEKEND_HTTP_APPROVED: 'YES'
+      ARCHIVE_KEY: ${{ secrets.KYOTO_JRA_ARCHIVE_AES256_HEX }}
+      # SP navigation is independently observed from official pages; never use a guessed URL.
+      GH_TOKEN: ${{ github.token }}
+      GITHUB_EVENT_SCHEDULE: ${{ github.event.schedule }}
+      COLLECTOR_SHA: ${{ needs.select-collector.outputs.collector_sha }}
+    steps:
+      - name: Checkout pinned verified development collector
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ env.COLLECTOR_SHA }}
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install parser and authenticated encryption
+        run: python -m pip install 'beautifulsoup4>=4.12,<5' 'cryptography>=43,<47'
+      - name: Independent SP offline regression
+        # Diagnose and record synthetic test problems without discarding real source capture.
+        # Immutable approved source, UTC/window, AES key and on-disk SHA guards remain hard gates.
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -euo pipefail
+          KYOTO_TARGET_DAY=20261121 python -m unittest -q tests.test_kyoto_weekend_retry_guard tests.test_kyoto_weekend_race_parity tests.test_kyoto_weekend_capture tests.test_kyoto_safe_stop_artifact tests.test_kyoto_weekend_end_to_end tests.test_kyoto_weekend_postflight tests.test_kyoto_weekend_interruption_and_pacing tests.test_kyoto_sp_all12_observed_capture
+          KYOTO_TARGET_DAY=20261115 python -m unittest -q tests.test_kyoto_sp_observed_source
+      - name: Impl23 G06 shared-claim production handoff offline regression
+        # Diagnose and record synthetic test problems without discarding real source capture.
+        # Immutable approved source, UTC/window, AES key and on-disk SHA guards remain hard gates.
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -euo pipefail
+          PYTHONPATH=. python -m unittest -q \
+            tests.test_kyoto_impl23_claim_preflight \
+            tests.test_kyoto_impl23_lease_window \
+            tests.test_kyoto_impl23_lease_clock \
+            tests.test_kyoto_impl23_claim_evidence \
+            tests.test_kyoto_impl23_pc_to_g06_real_lease \
+            tests.test_kyoto_impl23_weekend_entrypoint_claim \
+            tests.test_kyoto_impl23_production_claim_activation \
+            tests.test_kyoto_impl23_claim_continuation \
+            tests.test_kyoto_g06_claim_execution
+      - name: Enumerate and execute all predictable-failure regression scenarios before any JRA HTTP
+        # Diagnose and record synthetic test problems without discarding real source capture.
+        # Immutable approved source, UTC/window, AES key and on-disk SHA guards remain hard gates.
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m unittest -q tests.test_kyoto_predictable_failure_gate
+          python -m diagnostics.kyoto_predictable_failure_gate --report predictable_failure_execution.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          report=json.loads(Path("predictable_failure_execution.json").read_text())
+          if (report.get("passing")!=30 or report.get("count")!=30
+              or report.get("live_jra_proven") is not False
+              or report.get("prediction_ready") is not False):
+              raise SystemExit("PREDICTABLE_FAILURE_COVERAGE_NOT_COMPLETE_NO_JRA_HTTP")
+          print("PREDICTABLE_FAILURE_PREFLIGHT_30_OF_30_EXECUTED")
+          PY
+      - name: Race date, immutable commit, secret, first attempt and non-replay guard
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import os,re,subprocess
+          from datetime import datetime,timezone
+          day=os.environ['KYOTO_TARGET_DAY']
+          now=datetime.now(timezone.utc)
+          assert day in ('20261128','20261129'),'INVALID_DAY_NO_HTTP'
+          assert now.strftime('%Y%m%d')==day and 0<=now.hour<4,'OUTSIDE_DAY_WINDOW_NO_HTTP'
+          assert int(os.environ.get('GITHUB_RUN_ATTEMPT','0'))>=1,'RUN_ATTEMPT_INVALID_NO_HTTP'
+          assert re.fullmatch(r'[0-9a-fA-F]{64}',os.environ.get('ARCHIVE_KEY','')),'ENCRYPTION_KEY_REQUIRED_NO_HTTP'
+          assert subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip()==os.environ['COLLECTOR_SHA'],'SOURCE_REVISION_MISMATCH_NO_HTTP'
+          assert re.fullmatch(r'[0-9a-f]{40}',os.environ['COLLECTOR_SHA']),'COLLECTOR_SHA_INVALID_NO_HTTP'
+          if day=='20261128':
+              assert os.environ['COLLECTOR_SHA']=='0279d4cb7664ce59bf0065b755975f542e94ac1d','SATURDAY_SOURCE_UNEXPECTED_NO_HTTP'
+          assert os.environ.get('GITHUB_EVENT_NAME') in ('schedule','workflow_dispatch'),'INVALID_EVENT_NO_HTTP'
+          # The shared day-locked backup gate separately verifies GitHub
+          # run/job metadata and capture-step execution.
+          print('SP_STATIC_PRE_HTTP_GUARDS_ACCEPTED')
+          PY
+          python -m diagnostics.kyoto_weekend_retry_guard --day "$KYOTO_TARGET_DAY"
+      - name: Cross-job HTTP separation before any official SP request
+        shell: bash
+        run: sleep 3
+      - name: Independently verified SP link, otherwise record zero-request stop
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m diagnostics.kyoto_weekend_capture --day "$KYOTO_TARGET_DAY" --channel SP --source sp_raw --destination sp_sealed
+      - name: Offline postflight verify saved original SHA and UTC before evidence sealing
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m diagnostics.kyoto_weekend_postflight --day "$KYOTO_TARGET_DAY" --channel SP --root sp_raw
+      - name: Always encrypt SP originals or save factual pre-HTTP stop
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m diagnostics.kyoto_weekend_capture --day "$KYOTO_TARGET_DAY" --channel SP --source sp_raw --destination sp_sealed --seal-only
+      - name: Upload only AES-GCM ciphertext or safe-stop receipt
+        id: upload_sp_primary
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: kyoto-sp-${{ github.run_id }}-${{ env.KYOTO_TARGET_DAY }}
+          path: sp_sealed/
+          retention-days: 30
+          if-no-files-found: error
+      - name: Retry same encrypted artifact if the first upload fails
+        if: ${{ always() && steps.upload_sp_primary.outcome == 'failure' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: kyoto-sp-${{ github.run_id }}-${{ env.KYOTO_TARGET_DAY }}
+          path: sp_sealed/
+          retention-days: 30
+          if-no-files-found: error
+          overwrite: true
