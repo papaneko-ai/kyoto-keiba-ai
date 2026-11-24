@@ -49,6 +49,12 @@ jobs:
           set -euo pipefail
           python -m unittest -v tests.test_kyoto_weekend_capture tests.test_kyoto_weekend_sp_discovery tests.test_kyoto_sp_all12_observed_capture tests.test_kyoto_weekend_race_parity tests.test_kyoto_weekend_postflight tests.test_kyoto_weekend_interruption_and_pacing tests.test_kyoto_weekend_end_to_end tests.test_kyoto_impl25_g04_market_time_reserve tests.test_kyoto_impl25_g06_market_sealing_reserve tests.test_kyoto_impl25_g04_priority tests.test_kyoto_impl25_partial_source_continuation tests.test_kyoto_g06_all12_capture tests.test_kyoto_g06_claim_execution tests.test_kyoto_impl25_g06_racewise_isolation tests.test_kyoto_impl25_g04_horsewise_quarantine 2>&1 | tee impl30_preflight/integration_tests.log
           KYOTO_TARGET_DAY=20261115 python -m unittest -v tests.test_kyoto_nov15_encrypted_evidence tests.test_kyoto_nov15_offline_race_links tests.test_kyoto_sp_observed_source 2>&1 | tee impl30_preflight/legacy_tests.log
+      - name: Move remaining live-slot regression checks to verified release before race day
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m unittest -v tests.test_kyoto_g04_all_horse_profiles tests.test_kyoto_g05_conditions tests.test_kyoto_g05_official_track tests.test_kyoto_safe_stop_artifact tests.test_kyoto_impl23_claim_preflight tests.test_kyoto_impl23_lease_window tests.test_kyoto_impl23_lease_clock tests.test_kyoto_impl23_claim_evidence tests.test_kyoto_impl23_pc_to_g06_real_lease tests.test_kyoto_impl23_weekend_entrypoint_claim tests.test_kyoto_impl23_production_claim_activation tests.test_kyoto_impl23_claim_continuation 2>&1 | tee impl30_preflight/former_live_slot_checks.log
+          KYOTO_TARGET_DAY=20261115 python -m unittest -v tests.test_kyoto_nov15_two_original_observer 2>&1 | tee impl30_preflight/former_live_legacy.log
       - name: Existing foreseeable failure and reverse FMEA gates
         shell: bash
         run: |
