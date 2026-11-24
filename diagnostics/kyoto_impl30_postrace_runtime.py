@@ -18,13 +18,14 @@ from diagnostics.kyoto_impl30_postrace_day import collect_day,observed_actions,M
 from diagnostics.jra_one_shot_market_capture import RequestPacer,NoRedirect
 
 DAYS=('20261128','20261129')
-def recover_inputs(day,repo,key):
+def recover_inputs(day,repo,key,*,include_coverage=False):
     if day not in DAYS or not re.fullmatch(r'[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+',repo):raise ValueError('bad_day_or_repository')
     workflow,file,_=WEEKENDS[day]
     index=_gh(f'repos/{repo}/actions/workflows/{file}/runs?created={_date(day)}&per_page=100')
     runs=index['workflow_runs']
     if index['total_count']!=len(runs) or len(runs)>100 or len({r['id'] for r in runs})!=len(runs):raise ValueError('run_listing_incomplete')
     roster={r:None for r in range(1,13)};starts={};seed=None;sources={};rejected=[];conflicts=set()
+    coverage_slots=[];coverage_errors=[]
     for run in sorted(runs,key=lambda r:r['id'],reverse=True):
         rid=run['id']
         if run['name']!=workflow or run['created_at'][:10]!=_date(day):raise ValueError('wrong_run_identity')
@@ -39,6 +40,12 @@ def recover_inputs(day,repo,key):
                 base=Path(tmp);cipher=base/'cipher';cipher.mkdir();raw=base/'raw'
                 _download(rid,name,cipher,repo)
                 decrypt_evidence(cipher,raw,key_hex=key,repo=repo,run_id=str(rid))
+                if include_coverage:
+                    try:
+                        from diagnostics.kyoto_impl30_day_coverage import extract_slot
+                        coverage_slots.append(extract_slot(raw,day,rid))
+                    except (ValueError,TypeError,KeyError,OSError) as exc:
+                        coverage_errors.append({"run_id":rid,"error_class":type(exc).__name__})
                 verified=verify_partial(raw,expected_day=day)['verified_race_numbers']
                 records=records_from_g03(raw,day=day,skip_invalid_races=True)
                 for race in verified:
@@ -56,7 +63,12 @@ def recover_inputs(day,repo,key):
                         seed=original
         except Exception as exc:rejected.append({'run_id':rid,'error_class':type(exc).__name__})
     if seed is None:raise ValueError('no_verified_observed_postrace_menu_seed')
-    return roster,starts,seed,{'sources':sources,'rejected_runs':rejected,'conflicting_races':sorted(conflicts)}
+    proof={'sources':sources,'rejected_runs':rejected,'conflicting_races':sorted(conflicts)}
+    if include_coverage:
+        from diagnostics.kyoto_impl30_day_coverage import combine
+        proof["day_source_coverage"]=combine(day,coverage_slots)
+        proof["day_source_coverage"]["slot_errors"]=coverage_errors
+    return roster,starts,seed,proof
 
 def official_fetcher(day,*,clock=None,opener=None,pacer=None):
     """Separate evening window. Global access refusal stops further HTTP."""
@@ -102,7 +114,7 @@ def main():
     with tempfile.TemporaryDirectory(prefix='kyoto_postrace_runtime_') as tmp:
         raw=Path(tmp)/'raw'
         try:
-            roster,starts,seed,proof=recover_inputs(day,repo,key)
+            roster,starts,seed,proof=recover_inputs(day,repo,key,include_coverage=True)
             cutoff=datetime.fromisoformat(_date(day)+'T10:00:00+00:00')
             report=collect_day(raw,day=day,seed_raw=seed,seed_sha256=sha256(seed).hexdigest(),
                 registered=roster,verified_starts=starts,fetch=official_fetcher(day),
@@ -114,6 +126,10 @@ def main():
             from diagnostics.kyoto_impl30_postrace_replay import replay_history
             revisions=replay_history(raw,day=day,repo=repo,key=key,current_run=rid,roster=roster,starts=starts)
             (raw/'postrace_revision_history.json').write_text(json.dumps(revisions,sort_keys=True,ensure_ascii=False),encoding='utf8')
+            if "day_source_coverage" in proof:
+                from diagnostics.kyoto_impl30_day_coverage import include_postrace
+                proof["day_source_coverage"]=include_postrace(proof["day_source_coverage"],revisions,roster=roster,starts=starts)
+                (raw/'postrace_input_proof.json').write_text(json.dumps(proof,sort_keys=True,ensure_ascii=False),encoding='utf8')
         except Exception as exc:
             raw.mkdir(exist_ok=True)
             if not (raw/'receipt.json').exists():
