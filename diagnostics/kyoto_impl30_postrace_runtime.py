@@ -79,9 +79,15 @@ def official_fetcher(day,*,clock=None,opener=None,pacer=None):
         try:
             with client.open(req,timeout=20) as response:
                 raw=response.read(1_500_001)
-                if response.geturl()!=url or response.status!=200 or 'html' not in response.headers.get('Content-Type','').lower() or not 0<len(raw)<=1_500_000:raise ValueError('response_rejected')
+                if response.geturl()!=url:
+                    refused=True
+                    raise ValueError('response_url_mismatch')
+                if response.status!=200 or 'html' not in response.headers.get('Content-Type','').lower() or not 0<len(raw)<=1_500_000:raise ValueError('response_rejected')
         except HTTPError as exc:
             if exc.code in (401,403,429):refused=True
+            raise
+        except ValueError as exc:
+            if 'redirect_forbidden' in str(exc):refused=True
             raise
         return {'raw':raw,'captured_at_utc':clock().isoformat(),'requested_url':url,'method':method,'observed_action_token':token}
     return fetch
@@ -103,6 +109,11 @@ def main():
                 clock=lambda:datetime.now(timezone.utc).isoformat(),not_before_utc=cutoff.isoformat())
             (raw/'postrace_input_proof.json').write_text(json.dumps(proof,sort_keys=True,ensure_ascii=False),encoding='utf8')
             (raw/'postrace_seed.html').write_bytes(seed)
+            # Re-open current and previous authenticated pages; only the
+            # independently reconstructed chain, not earlier PASS flags, is retained.
+            from diagnostics.kyoto_impl30_postrace_replay import replay_history
+            revisions=replay_history(raw,day=day,repo=repo,key=key,current_run=rid,roster=roster,starts=starts)
+            (raw/'postrace_revision_history.json').write_text(json.dumps(revisions,sort_keys=True,ensure_ascii=False),encoding='utf8')
         except Exception as exc:
             raw.mkdir(exist_ok=True)
             if not (raw/'receipt.json').exists():
