@@ -39,7 +39,7 @@ class SourceFirstCoverageTests(unittest.TestCase):
         self.assertIs(result["completeness_demonstrated"],False)
 
     def test_impl30_changed_source_reviews_reopened(self):
-        self.assertEqual(len(self.doc["impl30_source_reopen"]),8)
+        self.assertEqual(len(self.doc["impl30_source_reopen"]),9)
         for record in self.doc["impl30_source_reopen"]:
             self.assertNotEqual(record["old_blob"],record["new_blob"])
             self.assertEqual(self.doc["source_git_blob_sha1"][record["source"]],record["new_blob"])
