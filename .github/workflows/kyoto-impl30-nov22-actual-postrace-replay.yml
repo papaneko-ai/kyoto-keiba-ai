@@ -62,6 +62,21 @@ jobs:
                       text=tag.get_text(' ',strip=True)
                       if re.search(r'(?:レース|[0-9]R|払戻|返還|確定)',text):
                           print('HEADING',tag.name,tag.get('class'),text[:120])
+                  if name=='payout_meeting.html':
+                      for cap in soup.select('caption.simple'):
+                          if cap.get_text(' ',strip=True)!='レース結果':continue
+                          print('CAPTION_ANCESTORS')
+                          for x in list(cap.parents)[:6]:
+                              t=x.get_text(' ',strip=True)
+                              print('ANC',x.name,x.get('id'),x.get('class'),len(t),t.count('馬連'),t.count('枠連'),'imgs',[i.get('alt') for i in x.select('img[alt]')][:10],'head',t[:160])
+                  else:
+                      for h in soup.find_all('h2'):
+                          if h.get_text(' ',strip=True)=='払戻金':
+                              for x in list(h.parents)[:4]:
+                                  t=x.get_text(' ',strip=True)
+                                  print('RESULT_ANC',x.name,x.get('id'),x.get('class'),len(t),t.count('馬連'),t.count('枠連'),t[:180])
+                  for el in soup.find_all(string=re.compile('返還馬番')):
+                      print('REFUND_ANCESTORS',[(x.name,x.get('id'),x.get('class'),x.get_text(' ',strip=True)[:120]) for x in list(el.parents)[:4]])
                   t=_text(raw)
                   print('REFUND_CONTEXTS',[t[max(0,m.start()-35):m.start()+100] for m in re.finditer('返還',t)][:18])
                   print('FINAL_MARKERS',[t[max(0,m.start()-20):m.start()+25] for m in re.finditer('確定|審議中|速報',t)][:12])
