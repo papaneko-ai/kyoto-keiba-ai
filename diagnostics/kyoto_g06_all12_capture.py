@@ -247,6 +247,8 @@ def run_twelve(root, *, records, authorized_live_http=False, runner=None,
                 official_links={ch:proof["observed"] for ch,proof in market_link_proof.items()},
                 attempt_history=[],now_utc=datetime.now(timezone.utc).isoformat(),
                 cutoff_utc=item["verified_start_utc"])
+            if recovered.get("cancellation_conflict"):
+                entry["both_markets_verified"]=False
             if recovered["both_markets_verified"]:
                 entry["both_markets_verified"]=True
                 entry["item_level_completed"]=True

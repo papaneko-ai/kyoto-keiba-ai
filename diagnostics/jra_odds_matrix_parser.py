@@ -2,7 +2,7 @@
 Output contains explicit non-live tag and must pass a separate as-of source gate.
 """
 from bs4 import BeautifulSoup
-from decimal import Decimal,InvalidOperation
+from diagnostics.kyoto_cancel_odds_classifier import classify_odds_cell
 from hashlib import sha256
 
 class OddsMatrixError(ValueError):pass
@@ -34,9 +34,13 @@ def parse_matrix(raw,market,*,expected_runners=None):
         last=i-1 if market=="bracket_quinella" else i
         for index in range(0,len(rest),2):
             try:
-                second=int(rest[index]);odds=Decimal(rest[index+1].replace(",",""))
-            except (ValueError,InvalidOperation) as e:
-                raise OddsMatrixError("unpriced_pair") from e
+                second=int(rest[index])
+            except ValueError as e:
+                raise OddsMatrixError("bad_pair_number") from e
+            cell=classify_odds_cell(rest[index+1])
+            if cell.state!="VALID":
+                raise OddsMatrixError("market_cell_"+cell.state.lower())
+            odds=cell.odds
             if second<=last or second>n or not odds.is_finite() or odds<1:
                 raise OddsMatrixError("bad_pair_or_odds")
             last=second

@@ -6,7 +6,7 @@ must not be confused with missing legitimate quoted pairs.
 """
 from __future__ import annotations
 from collections import Counter
-from decimal import Decimal,InvalidOperation
+from diagnostics.kyoto_cancel_odds_classifier import classify_odds_cell
 from hashlib import sha256
 from bs4 import BeautifulSoup
 from diagnostics.jra_odds_matrix_parser import OddsMatrixError
@@ -58,8 +58,10 @@ def parse_bracket_with_roster(raw,active_runners):
                 continue
             if raw_value in ("-","--","---","発売なし","対象外"):
                 raise OddsMatrixError("eligible_pair_missing_quote")
-            try:price=Decimal(raw_value.replace(",",""))
-            except InvalidOperation as e:raise OddsMatrixError("invalid_market_odds") from e
+            cell=classify_odds_cell(raw_value)
+            if cell.state!="VALID":
+                raise OddsMatrixError("market_cell_"+cell.state.lower())
+            price=cell.odds
             if not price.is_finite() or price<1:
                 raise OddsMatrixError("bad_decimal_price")
             if (i,j) in seen:raise OddsMatrixError("duplicate_pair")

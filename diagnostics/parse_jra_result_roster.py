@@ -8,7 +8,7 @@ from pathlib import Path
 ROOT="https://www.jra.go.jp"
 def extract_result_roster(raw:bytes,source_url:str):
     url=urlsplit(source_url)
-    if url.scheme!="https" or url.hostname not in ("www.jra.go.jp","jra.go.jp"):
+    if url.scheme!="https" or url.hostname not in ("www.jra.go.jp","jra.go.jp","jra.jp"):
         raise ValueError("official_source_required")
     if not raw or len(raw)>2000000:raise ValueError("invalid_source_size")
     soup=BeautifulSoup(raw.decode("cp932",errors="replace"),"html.parser")
@@ -25,13 +25,13 @@ def extract_result_roster(raw:bytes,source_url:str):
             place=tr.select_one("td.place")
             if not all((a,num,waku,place)):
                 errors.append(f"race_{idx}:missing_fields");continue
-            profile=urljoin(ROOT,a.get("href",""))
+            profile=urljoin(source_url,a.get("href",""))
             u=urlsplit(profile)
             token=parse_qs(u.query).get("CNAME",[None])[0]
             image=waku.select_one("img[alt]")
             frame=re.search(r"枠([1-8])",image.get("alt","")) if image else None
             n=num.get_text(" ",strip=True)
-            if u.hostname not in ("www.jra.go.jp","jra.go.jp") or u.path!="/JRADB/accessU.html" or not token or not frame or not n.isdigit():
+            if u.hostname not in ("www.jra.go.jp","jra.go.jp","jra.jp") or u.path!="/JRADB/accessU.html" or not token or not frame or not n.isdigit():
                 errors.append(f"race_{idx}:invalid_profile_or_number");continue
             rows.append({"race_number":idx,"horse_number":int(n),
                          "frame_number":int(frame.group(1)),

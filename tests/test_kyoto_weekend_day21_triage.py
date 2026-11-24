@@ -49,6 +49,19 @@ class TriageTests(unittest.TestCase):
         self.assertEqual(r["day22_strategy"]["human_review_reason"],
                          "PRE_HTTP_OR_EVIDENCE_FAILURE")
 
+    def test_nov28_nov29_handoff_and_exact_artifact_identity(self):
+        jobs=[job("pc-originals-independent","success"),job("sp-originals-independent","success")]
+        run={**RUN,"created_at":"2026-11-28T02:05:01Z"}
+        good={"name":"kyoto-pc-111-20261128","expired":False}
+        result=classify("20261128",run,jobs,[good,{"name":"kyoto-sp-999-20261128"},{"name":"kyoto-sp-111-20261121"}])
+        self.assertEqual(result["next_day"],"20261129")
+        self.assertEqual(result["lanes"]["PC"]["state"],"ARTIFACT_RETAINED_CONTENT_UNVERIFIED")
+        self.assertEqual(result["lanes"]["SP"]["state"],"NO_ARTIFACT")
+        self.assertTrue(result["day22_strategy"]["requires_manual_intervention"])
+        self.assertEqual(classify("20261128",run,jobs,[good,good])["lanes"]["PC"]["state"],"DUPLICATE_ARTIFACT")
+        sunday=classify("20261129",{**run,"created_at":"2026-11-29T02:10:01Z"},jobs,[])
+        self.assertIsNone(sunday["next_day"])
+        self.assertFalse(sunday["automatic_code_patch_approved"])
     def test_fails_closed_if_day_mismatch(self):
         with self.assertRaisesRegex(ValueError,"wrong_day_run"):
             classify("20261122",RUN,[],[])
