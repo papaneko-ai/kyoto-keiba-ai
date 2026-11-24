@@ -1,0 +1,108 @@
+name: Impl30 exact candidate published payout acceptance
+on:
+  pull_request:
+    branches: ['fix/impl30-day-coverage-20261124']
+    types: [opened, synchronize, reopened]
+    paths:
+      - 'diagnostics/kyoto_impl30_*'
+      - 'tests/test_kyoto_impl30_*'
+      - '.github/workflows/kyoto-impl30-published-payout-acceptance.yml'
+permissions:
+  contents: read
+  actions: read
+jobs:
+  actual-payout-and-regression:
+    if: github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.head.ref == 'fix/impl30-auxiliary-refresh-20261124'
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    env:
+      PYTHONPATH: .
+      KYOTO_TARGET_DAY: '20261122'
+      KYOTO_WEEKEND_HTTP_APPROVED: 'NO'
+      KYOTO_HISTORICAL_READ_APPROVED: 'NO'
+      GH_TOKEN: ${{ github.token }}
+      ARCHIVE_KEY: ${{ secrets.KYOTO_JRA_ARCHIVE_AES256_HEX }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11.18'
+      - run: python -m pip install --no-deps beautifulsoup4==4.15.0 soupsieve==4.1.3 typing-extensions==4.16.0 cryptography==46.0.7 cffi==2.1.1 pycparser==3.12
+      - name: Exact candidate changed-surface tests
+        run: |
+          set -euo pipefail
+          mkdir -p acceptance
+          git rev-parse HEAD | tee acceptance/head.txt
+          python -m unittest -v tests.test_kyoto_impl30_published_history tests.test_kyoto_impl30_final_reconcile tests.test_kyoto_impl30_postrace_day tests.test_kyoto_impl30_postrace_replay tests.test_kyoto_impl30_day_coverage tests.test_kyoto_impl30_postrace_runtime 2>&1 | tee acceptance/regression.log
+      - uses: actions/checkout@v4
+        with:
+          ref: 'e45e9c334e61fcc1090c26ba53623467d49e94fd'
+          path: historical_helpers
+          persist-credentials: false
+      - name: Restore only already authenticated Nov22 originals and historical input helpers
+        run: |
+          set -euo pipefail
+          gh run download 44966013490 --repo "$GITHUB_REPOSITORY" --name kyoto-nov22-real-observed-all12-encrypted-44966013490 --dir nov22_cards
+          gh run download 45338040161 --repo "$GITHUB_REPOSITORY" --name nov22-historical-result-encrypted-45338040161 --dir prior_sealed
+          cp historical_helpers/diagnostics/kyoto_impl30_actual_profile_replay.py diagnostics/
+          cp historical_helpers/diagnostics/kyoto_impl30_actual_postrace_replay.py diagnostics/
+      - name: Re-open actual source chain using exact candidate and historical timestamps
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json,os,re,tempfile,subprocess
+          from hashlib import sha256
+          from pathlib import Path
+          from diagnostics.kyoto_impl30_actual_postrace_replay import actual_inputs
+          from diagnostics.kyoto_nov15_encrypted_evidence import decrypt_evidence
+          from diagnostics.kyoto_impl30_postrace_day import observed_actions,MENU
+          from diagnostics.kyoto_impl30_final_reconcile import reconcile
+          from diagnostics.kyoto_impl30_postrace_replay import published_history
+          day='20261122'
+          key=os.environ['ARCHIVE_KEY']
+          cards,roster,starts=actual_inputs(bytes.fromhex(key))
+          with tempfile.TemporaryDirectory() as d:
+              root=Path(d)/'raw'
+              decrypt_evidence('prior_sealed',root,key_hex=key,repo=os.environ['GITHUB_REPOSITORY'],run_id='45338040161')
+              receipt=json.loads((root/'receipt.json').read_text())
+              assert receipt['day']==day and receipt['failures']=={}
+              assert (root/'postrace_seed.html').read_bytes()==cards[1]
+              def bound(name,parent,path,label=None,pattern=None):
+                  row=receipt['requests'][name];raw=(root/name).read_bytes()
+                  assert len(raw)==row['bytes'] and sha256(raw).hexdigest()==row['sha256']
+                  matches=[a for a in observed_actions(parent,path) if (a[1],a[2],a[3])==(row['token'],row['method'],row['url']) and (label is None or a[0]==label)]
+                  assert len(matches)==1, name
+                  if pattern:assert re.fullmatch(pattern,row['token']),name
+                  assert row['captured_at_utc'][:10]=='2026-11-24'
+                  return raw,row
+              sources={}
+              for family,(path,label) in MENU.items():
+                  menu,_=bound(family+'_menu.html',cards[1],path,label)
+                  kind='srl' if family=='results' else 'hde'
+                  sources[family]=bound(family+'_meeting.html',menu,path,pattern=r'pw01'+kind+r'[01]0082026\d{4}'+day+r'/[A-Za-z0-9]+')
+              payout,pm=sources['payout'];results,_=sources['results']
+              chains={}
+              for race in range(1,13):
+                  raw,meta=bound(f'r{race:02d}_result.html',results,MENU['results'][0],pattern=r'pw01sde[01]0082026\d{4}'+f'{race:02d}'+day+r'/[A-Za-z0-9]+')
+                  obs=reconcile(result_raw=raw,payout_raw=payout,day=day,race=race,registered=roster[race],result_url=meta['url'],result_utc=meta['captured_at_utc'],payout_utc=pm['captured_at_utc'],start_utc=starts[race])
+                  assert obs['official_payout_publication_verified'] is True,race
+                  assert obs['settlement_authorized'] is False
+                  chain=published_history([{'run_id':'45338040161','observation':obs}],day=day,race=race)
+                  assert chain['state']=='OFFICIAL_PUBLISHED_PAYOUT_CHAIN',race
+                  chains[str(race)]={'state':chain['state'],'head':chain['revisions'][-1]['sha256'],'refund_counts':{k:len(v['refunded_pairs']) for k,v in obs['markets'].items()},'explicit_marker':obs['state']=='DUAL_PAGE_EXPLICIT_FINAL'}
+              assert len(chains)==12 and sum(map(len,roster.values()))==159
+              assert chains['5']['refund_counts']['quinella']>0
+              report={'source_day':day,'actual_capture_day':'20261124','historical_only':True,'registered_horses':159,'published_payout_races':12,'explicit_marker_races':sum(v['explicit_marker'] for v in chains.values()),'settlement_authorized':False,'new_jra_http':0,'source_run_id':45338040161,'candidate_sha':subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip(),'races':chains}
+              Path('acceptance/actual.json').write_text(json.dumps(report,ensure_ascii=False,sort_keys=True,indent=2))
+              print('ACTUAL_SOURCE_CHAIN=12/12; REGISTERED_HORSES=159; REFUND_R5=VERIFIED; NO_JRA_HTTP')
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: impl30-published-payout-acceptance-${{ github.run_id }}
+          path: acceptance/
+          retention-days: 90
+          if-no-files-found: error
