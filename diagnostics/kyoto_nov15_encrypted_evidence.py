@@ -35,6 +35,10 @@ FILES.add("c10_auxiliary_coverage_receipt.json")
 # C11 fixed-name per-race/horse/market source digest/UTC evidence receipt.
 FILES.add("c11_per_family_source_proof.json")
 FILES.add("g06_source_bundle.tar.gz")
+# Exact postrace source-only collection members; never permit arbitrary filenames.
+FILES |= {"results_menu.html","results_meeting.html","payout_menu.html","payout_meeting.html",
+          "postrace_input_proof.json","postrace_seed.html"}
+FILES |= {f"r{race:02d}_result.html" for race in range(1,13)}
 FILES |= {"g05_official_kyoto_track.html","g05_track_receipt.json"}
 FILES |= {f"g04_profile_r{race:02d}_h{horse:02d}.html"
           for race in range(1,13) for horse in range(1,19)}
