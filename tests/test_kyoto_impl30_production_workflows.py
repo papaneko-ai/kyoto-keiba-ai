@@ -60,4 +60,34 @@ class ProductionWorkflowContract(unittest.TestCase):
         pre=yaml.load((ROOT/PREF).read_text(),Loader=yaml.BaseLoader)
         self.assertEqual(pre["jobs"]["offline-next-week"]["env"]["KYOTO_WEEKEND_HTTP_APPROVED"],"NO")
 
+    def test_postrace_two_slots_per_day_share_verified_pin_and_source_lock(self):
+        path=ROOT/"kyoto-20261128-29-postrace-evidence.yml"
+        raw=path.read_text()
+        doc=yaml.load(raw,Loader=yaml.BaseLoader)
+        self.assertEqual([x["cron"] for x in doc["on"]["schedule"]],
+            ["0 10 28 11 *","0 13 28 11 *","0 10 29 11 *","0 13 29 11 *"])
+        self.assertEqual(set(doc["on"]),{"schedule","workflow_dispatch"})
+        self.assertEqual(doc["concurrency"]["cancel-in-progress"],"false")
+        self.assertEqual(doc["concurrency"]["queue"],"max")
+        self.assertTrue(doc["concurrency"]["group"].startswith("kyoto-20261128-29-source-"))
+        job=doc["jobs"]["postrace-source-evidence"]
+        pin=self.jobs["select-collector"]["env"]["DEFAULT_COLLECTOR_SHA"]
+        self.assertEqual(job["steps"][0]["with"]["ref"],pin)
+        self.assertEqual(job["env"]["KYOTO_WEEKEND_HTTP_APPROVED"],"NO")
+        self.assertEqual(job["env"]["KYOTO_POSTRACE_HTTP_APPROVED"],"YES")
+        self.assertIn("kyoto_impl30_postrace_runtime",raw)
+        self.assertIn("postrace_sealed/",raw)
+        self.assertEqual(job["steps"][-1]["with"]["retention-days"],"90")
+        self.assertNotIn("TURSO",raw)
+
+    def test_exact_python_and_dependency_versions_across_all_new_source_jobs(self):
+        pin_line="python -m pip install --no-deps beautifulsoup4==4.15.0 soupsieve==4.1.3 typing-extensions==4.16.0 cryptography==46.0.7 cffi==2.1.1 pycparser==3.12"
+        for path in (OBS,HAND,PREF,"kyoto-20261128-29-postrace-evidence.yml"):
+            doc=yaml.load((ROOT/path).read_text(),Loader=yaml.BaseLoader)
+            for job in doc["jobs"].values():
+                for step in job["steps"]:
+                    if step.get("uses","").startswith("actions/setup-python@"):
+                        self.assertEqual(step["with"]["python-version"],"3.11.18")
+                    if "pip install" in step.get("run",""):
+                        self.assertEqual(step["run"],pin_line)
 if __name__=="__main__":unittest.main()
