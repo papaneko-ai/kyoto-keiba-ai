@@ -77,7 +77,7 @@ def assess_lane(root,*,day,channel,key,repo,run_id):
                     try:
                         from diagnostics.kyoto_impl30_day_coverage import extract_slot
                         result["day_coverage_slot"]=extract_slot(source,day,run_id)
-                    except (ValueError,TypeError,KeyError,OSError) as exc:
+                    except Exception as exc:
                         result["day_coverage_error"]=type(exc).__name__
                 c11_file=source/"c11_per_family_source_proof.json"
                 result["c11_family_evidence_state"]="MISSING_C11_RECEIPT"
