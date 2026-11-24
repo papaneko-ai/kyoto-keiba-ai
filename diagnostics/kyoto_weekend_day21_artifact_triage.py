@@ -70,6 +70,30 @@ def assess_lane(root,*,day,channel,key,repo,run_id):
                     result["state"]="SOURCE_SHA_UTC_MISMATCH"
                     return result
             result["source_original_sha_utc_checked"]=True
+            if channel=="PC":
+                # Use decrypted source bytes directly; no summary flag is
+                # promoted to a day-wide source proof.
+                if day in ("20261128","20261129"):
+                    try:
+                        from diagnostics.kyoto_impl30_day_coverage import extract_slot
+                        result["day_coverage_slot"]=extract_slot(source,day,run_id)
+                    except Exception as exc:
+                        result["day_coverage_error"]=type(exc).__name__
+                c11_file=source/"c11_per_family_source_proof.json"
+                result["c11_family_evidence_state"]="MISSING_C11_RECEIPT"
+                result["c11_verified_counts"]={}
+                if c11_file.is_file() and not c11_file.is_symlink():
+                    from diagnostics.kyoto_impl25_c11_per_family_proof import assess as reassess_c11
+                    recomputed=reassess_c11(source,day)
+                    stored=json.loads(c11_file.read_text(encoding="utf8"))
+                    if stored==recomputed:
+                        result["c11_family_evidence_state"]="RECOMPUTED_SOURCE_SHA_UTC_MATCH"
+                        result["c11_verified_counts"]={
+                            key:recomputed[key] for key in (
+                                "g03_verified_races","g04_verified_profiles",
+                                "g05_bound_races","g06_paired_market_races_locally_verified")}
+                    else:
+                        result["c11_family_evidence_state"]="SAVED_C11_CANNOT_BE_REVALIDATED"
             markets=(("official_quinella_odds.html","official_bracket_quinella_odds.html") if channel=="PC"
                 else ("official_sp_quinella_odds.html","official_sp_bracket_quinella_odds.html"))
             result["both_raw_market_originals_present"]=all((source/name).is_file() for name in markets)
@@ -94,7 +118,7 @@ def assess_lane(root,*,day,channel,key,repo,run_id):
 
 def main():
     p=argparse.ArgumentParser()
-    p.add_argument("--day",required=True,choices=("20261121","20261122"))
+    p.add_argument("--day",required=True,choices=("20261121","20261122","20261128","20261129"))
     p.add_argument("--run-id",required=True)
     p.add_argument("--pc",type=Path,required=True)
     p.add_argument("--sp",type=Path,required=True)

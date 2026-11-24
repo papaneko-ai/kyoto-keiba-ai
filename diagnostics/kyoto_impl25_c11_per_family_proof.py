@@ -12,7 +12,7 @@ from diagnostics.kyoto_g03_independent_partial import verify_partial
 from diagnostics.kyoto_g06_nested_bundle import verify_bundle
 from diagnostics.kyoto_g06_all12_capture import _verify_saved_channel
 
-DAYS=("20261121","20261122")
+DAYS=("20261121","20261122","20261128","20261129")
 JST=timezone(timedelta(hours=9))
 DATA_FIELDS=("weather","turf_going","dirt_going","body_weight_kg",
              "body_weight_change_kg","workout")

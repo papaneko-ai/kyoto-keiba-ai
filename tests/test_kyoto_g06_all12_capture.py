@@ -48,6 +48,20 @@ class Tests(unittest.TestCase):
             self.assertFalse(got["g06_certified"])
             self.assertFalse(got["prediction_ready"])
             self.assertTrue((Path(tmp)/"proof"/"g06_batch_receipt.json").is_file())
+    def test_verified_start_order_not_race_number_order(self):
+        records=samples()
+        records[12]["verified_start_utc"]="2026-11-21T02:00:00Z"
+        records[5]["verified_start_utc"]="2026-11-21T03:00:00Z"
+        calls=[]
+        def collect(out,**kwargs):
+            calls.append(kwargs["race_spec"].race_number)
+            return mock_collector(out,**kwargs)
+        with tempfile.TemporaryDirectory() as tmp:
+            got=run_twelve(Path(tmp)/"proof",records=records,runner=collect)
+            self.assertEqual(calls[:2],[12,5])
+            self.assertEqual(got["capture_order"],calls)
+            self.assertEqual([r["race"] for r in got["records"]],list(range(1,13)))
+            self.assertEqual(got["verified_dual_market_races"],12)
     def test_missing_observed_link_does_not_abort_other_races(self):
         records=samples();records[4]=None
         with tempfile.TemporaryDirectory() as tmp:

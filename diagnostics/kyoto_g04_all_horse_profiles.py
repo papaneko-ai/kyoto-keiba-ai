@@ -67,7 +67,7 @@ def _metadata(raw,expected_name):
             "jra_horse_id":None,"jra_horse_id_verified":False}
 
 def capture(*,root,day,fetch,clock,allowed=False,allow_partial=False,
-            isolate_invalid_links=False,deadline_monotonic=None,monotonic=None):
+            isolate_invalid_links=False,deadline_monotonic=None,monotonic=None,prior_profiles=None):
     """G03 must already be saved/verified; fetch must use existing paced _read.
 
     Caller is responsible for pacing, no-redirect, bounded GET, and replacing
@@ -138,7 +138,10 @@ def capture(*,root,day,fetch,clock,allowed=False,allow_partial=False,
     if len(urls)!=len(set(urls)):raise G04Rejected("duplicate_profile_url_identity")
     if (root/"g04_receipt.json").exists():
         raise G04Rejected("g04_receipt_already_exists")
+    if prior_profiles is not None and not isinstance(prior_profiles,dict):
+        raise G04Rejected("invalid_prior_profile_index")
     results=[]
+    pending.sort(key=lambda x:(x[4],x[0],x[1]))
     for race,number,name,url,cutoff,current_jockey,assigned_weight in pending:
         original_name=f"g04_profile_r{race:02d}_h{number:02d}.html"
         item={"race":race,"horse_number":number,"horse_name":name,
@@ -153,14 +156,37 @@ def capture(*,root,day,fetch,clock,allowed=False,allow_partial=False,
               "current_jockey_verified":bool(current_jockey and isinstance(current_jockey,str)),
               "prediction_ready":False,"training_ready":False}
         try:
-            # Preserve part of the PC 20-minute job for G06 market originals.
-            # Once exhausted, record every skipped horse, but start no more GETs.
-            if deadline_monotonic is not None and budget_clock()>=deadline_monotonic:
-                raise G04Rejected("g04_market_reserve_deadline_reached")
-            before=_utc(clock())
-            if before>=cutoff:raise G04Rejected("already_after_race_start")
-            raw=fetch(url)
-            after=_utc(clock())
+            # Authenticated earlier slots supply bytes, not a previous PASS.
+            # Revalidate against the current independently confirmed horse,
+            # exact URL, current cutoff, and original timestamp.
+            cached=(prior_profiles or {}).get((race,number))
+            parsed=None
+            features=None
+            if cached is not None:
+                try:
+                    raw=cached["raw"];after=_utc(cached["captured_at_utc"])
+                    if (cached["day"]!=day or cached["name"]!=name or cached["url"]!=url
+                        or not str(cached["run_id"]).isdigit() or type(raw) is not bytes
+                        or not 0<len(raw)<=MAX_PROFILE or hashlib.sha256(raw).hexdigest()!=cached["sha256"]
+                        or after.strftime("%Y%m%d")!=day or after>=cutoff or after>_utc(clock())):
+                        raise G04Rejected("prior_profile_identity_or_time_mismatch")
+                    parsed=parse_horse_history(raw,source_url=url,fetched_at_utc=after,
+                        prediction_cutoff_utc=cutoff,target_date=date.fromisoformat(
+                            f"{day[:4]}-{day[4:6]}-{day[6:]}"),
+                        expected_horse_name=name,allow_verified_no_history=True)
+                    if parsed["invalid_rows"]:raise G04Rejected("prior_profile_history_invalid")
+                    features=_metadata(raw,name)
+                    item["reused_from_run_id"]=str(cached["run_id"])
+                except (ValueError,TypeError,KeyError,OSError):
+                    parsed=None;features=None
+                    item["prior_profile_rejected"]=True
+            if parsed is None:
+                if deadline_monotonic is not None and budget_clock()>=deadline_monotonic:
+                    raise G04Rejected("g04_market_reserve_deadline_reached")
+                before=_utc(clock())
+                if before>=cutoff:raise G04Rejected("already_after_race_start")
+                raw=fetch(url)
+                after=_utc(clock())
             if type(raw) is not bytes or not 0<len(raw)<=MAX_PROFILE:
                 raise G04Rejected("profile_http_original_invalid")
             destination=root/original_name
@@ -171,13 +197,14 @@ def capture(*,root,day,fetch,clock,allowed=False,allow_partial=False,
             item["source_bytes"]=len(raw)
             item["captured_at_utc"]=after.isoformat()
             if after>=cutoff:raise G04Rejected("response_after_race_start")
-            parsed=parse_horse_history(raw,source_url=url,fetched_at_utc=after,
-                prediction_cutoff_utc=cutoff,target_date=date.fromisoformat(
-                    f"{day[:4]}-{day[4:6]}-{day[6:]}"),
-                expected_horse_name=name,allow_verified_no_history=True)
-            if parsed["invalid_rows"]:
-                raise G04Rejected("history_rows_unresolved")
-            features=_metadata(raw,name)
+            if parsed is None:
+                parsed=parse_horse_history(raw,source_url=url,fetched_at_utc=after,
+                    prediction_cutoff_utc=cutoff,target_date=date.fromisoformat(
+                        f"{day[:4]}-{day[4:6]}-{day[6:]}"),
+                    expected_horse_name=name,allow_verified_no_history=True)
+                if parsed["invalid_rows"]:
+                    raise G04Rejected("history_rows_unresolved")
+                features=_metadata(raw,name)
             parsed_file=f"g04_profile_r{race:02d}_h{number:02d}_parsed.json"
             detail={"schema":"kyoto_g04_individual_prior_form.v1",
                     "race":race,"horse_number":number,"horse_name":name,
@@ -189,7 +216,7 @@ def capture(*,root,day,fetch,clock,allowed=False,allow_partial=False,
                     "excluded_rows":parsed["excluded_rows"],"history_status":parsed["history_status"],
                     "prediction_ready":False,"training_ready":False}
             (root/parsed_file).write_text(
-                json.dumps(detail,ensure_ascii=False,sort_keys=True,indent=2)+"\\n",encoding="utf8")
+                json.dumps(detail,ensure_ascii=False,sort_keys=True,indent=2)+"\n",encoding="utf8")
             item.update(state="PROFILE_AND_PRIOR_FORM_VERIFIED_OFFLINE",
                 profile_verified=True,
                 demographics=features,
@@ -215,6 +242,8 @@ def capture(*,root,day,fetch,clock,allowed=False,allow_partial=False,
             "partial_g03_source":len(selected)!=12,"expected_horses":len(pending)+len(rejected),
             "profile_verified_count":sum(bool(p["profile_verified"]) for p in results),
             "invalid_profile_navigation_count":len(rejected),
+            "profiles_reused_count":sum(bool(p.get("reused_from_run_id")) and p["profile_verified"] for p in results),
+            "prior_profile_rejected_count":sum(bool(p.get("prior_profile_rejected")) for p in results),
             "time_budget_reserved_for_g06_count":sum(p["state"]=="G04_TIME_BUDGET_RESERVED_FOR_G06" for p in results),
             "time_budget_deadline_enabled":deadline_monotonic is not None,
             "missing_profiles":missing,
