@@ -245,11 +245,14 @@ def gather(day,repo):
                 source.get("source_original_sha_utc_checked") is True and
                 isinstance(slot,dict) and slot.get("run_id")==str(entry["run"]["id"])):
                 slots.append(slot)
-        coverage=combine(day,slots)
-        coverage["all_scheduled_run_metadata_screened"]=report["all_run_metadata_screened"]
-        coverage["expected_scheduled_slots"]=EXPECTED_SCHEDULED_RUNS
-        coverage["unassessed_pc_slots"]=max(0,report["observed_schedule_count"]-len(slots))
-        report["day_source_coverage"]=coverage
+        try:
+            coverage=combine(day,slots)
+            coverage["all_scheduled_run_metadata_screened"]=report["all_run_metadata_screened"]
+            coverage["expected_scheduled_slots"]=EXPECTED_SCHEDULED_RUNS
+            coverage["unassessed_pc_slots"]=max(0,report["observed_schedule_count"]-len(slots))
+            report["day_source_coverage"]=coverage
+        except Exception as exc:
+            report["day_source_coverage_error"]=type(exc).__name__
     return report
 
 def main(argv=None):
