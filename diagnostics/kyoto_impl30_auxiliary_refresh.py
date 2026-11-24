@@ -139,4 +139,32 @@ def main():
         root=Path(d)/"raw";report=collect(root,day=day,starts=starts,fetch=fetch,clock=lambda:now().isoformat())
         encrypt_evidence(root,a.out,key_hex=key,repo=repo,run_id=rid)
     print(json.dumps({"verified_races":report["verified_races"],"observed_field_values":report.get("observed_field_values",0),"http_requests":count,"source_only":True},sort_keys=True))
+
+def saved_slots(day,repo,key):
+    """Re-open encrypted afternoon artifacts; preserve errors and morning data."""
+    from diagnostics.kyoto_impl30_day_coverage import extract_slot
+    slots=[];errors=[]
+    try:
+        index=_gh(f"repos/{repo}/actions/workflows/{WORKFLOW}/runs?created={_date(day)}&per_page=100")
+        runs=index["workflow_runs"]
+        if index["total_count"]!=len(runs) or len(runs)>100:raise ValueError("auxiliary_run_index_incomplete")
+        seen=set()
+        for run in sorted(runs,key=lambda r:r["id"]):
+            rid=run["id"]
+            if rid in seen:raise ValueError("duplicate_auxiliary_run")
+            seen.add(rid)
+            if run["name"]!=NAME or run["created_at"][:10]!=_date(day) or run["status"]!="completed" or run["event"] not in ("schedule","workflow_dispatch"):continue
+            try:
+                with tempfile.TemporaryDirectory(prefix="kyoto_aux_read_") as d:
+                    base=Path(d);cipher=base/"cipher";cipher.mkdir();raw=base/"raw"
+                    _download(rid,f"kyoto-auxiliary-{rid}-{day}",cipher,repo)
+                    decrypt_evidence(cipher,raw,key_hex=key,repo=repo,run_id=str(rid))
+                    receipt=json.loads((raw/"receipt.json").read_text())
+                    if receipt.get("day")!=day or receipt.get("schema")!="kyoto_impl30_auxiliary_refresh.v1":raise ValueError("auxiliary_identity")
+                    slots.append(extract_slot(raw,day,rid))
+            except Exception as exc:errors.append({"run_id":rid,"error_class":type(exc).__name__})
+    except Exception as exc:errors.append({"error_class":type(exc).__name__})
+    return slots,errors
+
 if __name__=="__main__":main()
+
