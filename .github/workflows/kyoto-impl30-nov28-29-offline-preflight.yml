@@ -7,6 +7,7 @@ on:
       - 'fix/impl30-cancellation-postrace-20261124'
       - 'fix/impl30-final-reconcile-20261124'
       - 'fix/impl30-nov28-acquisition-priority-20261124'
+      - 'fix/impl30-profile-resume-20261124'
   pull_request:
     branches: ['fix/impl29-weekend-20261128-29']
   workflow_dispatch:
@@ -53,7 +54,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          python -m unittest -v tests.test_kyoto_g04_all_horse_profiles tests.test_kyoto_g05_conditions tests.test_kyoto_g05_official_track tests.test_kyoto_safe_stop_artifact tests.test_kyoto_impl23_claim_preflight tests.test_kyoto_impl23_lease_window tests.test_kyoto_impl23_lease_clock tests.test_kyoto_impl23_claim_evidence tests.test_kyoto_impl23_pc_to_g06_real_lease tests.test_kyoto_impl23_weekend_entrypoint_claim tests.test_kyoto_impl23_production_claim_activation tests.test_kyoto_impl23_claim_continuation 2>&1 | tee impl30_preflight/former_live_slot_checks.log
+          python -m unittest -v tests.test_kyoto_impl30_profile_resume tests.test_kyoto_g04_all_horse_profiles tests.test_kyoto_g05_conditions tests.test_kyoto_g05_official_track tests.test_kyoto_safe_stop_artifact tests.test_kyoto_impl23_claim_preflight tests.test_kyoto_impl23_lease_window tests.test_kyoto_impl23_lease_clock tests.test_kyoto_impl23_claim_evidence tests.test_kyoto_impl23_pc_to_g06_real_lease tests.test_kyoto_impl23_weekend_entrypoint_claim tests.test_kyoto_impl23_production_claim_activation tests.test_kyoto_impl23_claim_continuation 2>&1 | tee impl30_preflight/former_live_slot_checks.log
           KYOTO_TARGET_DAY=20261115 python -m unittest -v tests.test_kyoto_nov15_two_original_observer 2>&1 | tee impl30_preflight/former_live_legacy.log
       - name: Existing foreseeable failure and reverse FMEA gates
         shell: bash
