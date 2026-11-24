@@ -28,9 +28,10 @@ def _identity(text,day,race=None):
     if not re.search(fr'{y}年\s*{m}月\s*{d}日.{{0,50}}京都',text):raise FinalEvidenceRejected('wrong_meeting')
     if race is not None and not re.search(fr'京都.{{0,50}}(?<!\d){race}\s*(?:R|レース)(?!\d)',text):raise FinalEvidenceRejected('wrong_race')
 
-def _pairs(text,market):
+def _pairs(text,market,*,official=False):
     label,end,limit=MARKETS[market]
-    blocks=re.findall(r'(?<!\S)'+label+r'\s+(.+?)\s+'+end+r'(?=\s|$)',text)
+    boundary=r'(?:単勝|複勝|枠連|馬連|ワイド|馬単|3連複|3連単|３連複|３連単)' if official else end
+    blocks=re.findall(r'(?<!\S)'+label+r'\s+(.+?)\s+'+boundary+r'(?=\s|$)',text)
     if len(blocks)!=1:raise FinalEvidenceRejected('market_section_not_unique:'+market)
     rest=blocks[0].strip();result={}
     pattern=re.compile(r'(\d{1,2})\s*[-－]\s*(\d{1,2})\s+((?:\d{1,3}(?:,\d{3})+|\d+))\s*円(?:\s+\d+\s+番人気)?(?:\s+|$)')
@@ -69,7 +70,7 @@ def _official_sections(result_raw,payout_raw,day,race):
     units=br.select('ul.hrai_unit_list > li[id^="harai_"]')
     if not ra and not units:return None
     if len(ra)!=1 or len(units)!=12 or {x.get('id') for x in units}!={f'harai_{i}R' for i in range(1,13)}:raise FinalEvidenceRejected('official_layout_ambiguous')
-    heads=ar.select('h1');pheads=br.select('h1')
+    heads=[x for x in ar.select('h1') if x.get_text(' ',strip=True).startswith('レース結果')];pheads=[x for x in br.select('h1') if x.get_text(' ',strip=True).startswith('払戻金一覧')]
     if len(heads)!=1 or len(pheads)!=1:raise FinalEvidenceRejected('official_heading_ambiguous')
     h=heads[0].get_text(' ',strip=True);ph=pheads[0].get_text(' ',strip=True)
     _identity(h,day,race);_identity(ph,day)
@@ -148,7 +149,7 @@ def reconcile(*,result_raw,payout_raw,day,race,registered,result_url,result_utc,
         if any(not set(p)<=allowed for p in refund_a[m]):raise FinalEvidenceRejected('refund_outside_roster')
     markets={}
     for market in MARKETS:
-        pa,pb=_pairs(a,market),_pairs(section,market)
+        pa,pb=_pairs(a,market,official=bool(official)),_pairs(section,market,official=bool(official))
         if pa!=pb or set(pa)!=expected[market] or set(pa)&refund_a[market]:raise FinalEvidenceRejected('payout_or_placing_conflict:'+market)
         markets[market]={'payout_per_100':{'-'.join(map(str,p)):v for p,v in sorted(pa.items())},'refunded_pairs':[list(p) for p in sorted(refund_a[market])]}
     # Explicit finality of BOTH sections, never infer from evening time.
