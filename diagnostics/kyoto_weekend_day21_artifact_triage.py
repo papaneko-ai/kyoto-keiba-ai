@@ -94,7 +94,7 @@ def assess_lane(root,*,day,channel,key,repo,run_id):
 
 def main():
     p=argparse.ArgumentParser()
-    p.add_argument("--day",required=True,choices=("20261121","20261122"))
+    p.add_argument("--day",required=True,choices=("20261121","20261122","20261128","20261129"))
     p.add_argument("--run-id",required=True)
     p.add_argument("--pc",type=Path,required=True)
     p.add_argument("--sp",type=Path,required=True)
