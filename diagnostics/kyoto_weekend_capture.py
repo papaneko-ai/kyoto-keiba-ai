@@ -18,7 +18,7 @@ from urllib.request import HTTPCookieProcessor, build_opener
 
 from diagnostics.kyoto_safe_stop_artifact import record_pre_http_stop
 
-DAYS = {"20261121", "20261122"}
+DAYS = {"20261121", "20261122", "20261128", "20261129"}
 CHANNELS = {"PC", "SP"}
 SUCCESS_PC = {
     "NOV15_MEETING_ORIGINALS_OBSERVED_NOT_RACECARD",
