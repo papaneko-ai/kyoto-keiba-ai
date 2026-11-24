@@ -21,7 +21,7 @@ def _html_race_identity(raw,day,venue,race):
     text=soup.get_text(" ",strip=True)
     if not re.fullmatch(r"20\d{6}",day):return False
     year,month,date=int(day[:4]),int(day[4:6]),int(day[6:])
-    return re.search(fr"{year}年\s*{month}月\s*{date}日.{{0,30}}?{re.escape(venue)}.{{0,30}}?{race}\s*レース",text) is not None
+    return re.search(fr"{year}年\s*{month}月\s*{date}日.{{0,30}}?{re.escape(venue)}.{{0,30}}?(?<!\d){race}\s*レース",text) is not None
 
 def audit_source_originals(menu_raw,market_raw,market_urls,*,race_key,
         race_day,venue,race_number,channel,captured_at_utc,
