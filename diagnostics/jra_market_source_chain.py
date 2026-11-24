@@ -26,7 +26,7 @@ def _html_race_identity(raw,day,venue,race):
 def audit_source_originals(menu_raw,market_raw,market_urls,*,race_key,
         race_day,venue,race_number,channel,captured_at_utc,
         verified_start_utc,active_runners,historical=False,
-        archive_directory=None, market_captured_at_utc=None):
+        archive_directory=None, market_captured_at_utc=None, racecard_raw=None, racecard_captured_at_utc=None):
     """Only a validated live 2-market source can be archived; never auto-predict."""
     if channel not in ("PC","SP"):raise SourceChainError("invalid_channel")
     if not _html_race_identity(menu_raw,race_day,venue,race_number):
@@ -60,19 +60,21 @@ def audit_source_originals(menu_raw,market_raw,market_urls,*,race_key,
             raise SourceChainError("market_race_identity_not_proven")
         # Use the same roster-aware bracket parser as individual market recovery.
         # Ineligible same-frame placeholders are not missing eligible quotes.
-        from diagnostics.kyoto_g06_roster_aware_bracket import parse_bracket_with_roster
-        data=(parse_matrix(raw,market,expected_runners=len(active_runners))
-              if market=="quinella" else parse_bracket_with_roster(raw,active_runners))
+        from diagnostics.kyoto_impl30_cancelled_market import parse_current_market
+        data,effective=parse_current_market(raw,market,active_runners,racecard=racecard_raw,
+            racecard_utc=racecard_captured_at_utc,market_utc=market_captured_at_utc[market],
+            start_utc=verified_start_utc,day=race_day,race=race_number)
         if data["historical_final_detected"]!=phase_final:
             raise SourceChainError("conflicting_market_phases")
         phase="HISTORICAL_FINAL" if historical or phase_final else "LIVE_PRE_RACE"
         quotes=tuple((q["pair"][0],q["pair"][1],q["odds"]) for q in data["pairs"])
         evidence=MarketEvidence(race_key,market,phase,url,market_captured_at_utc[market],
-                data["source_sha256"],len(raw),tuple(active_runners),quotes,True,True)
+                data["source_sha256"],len(raw),tuple(effective),quotes,True,True)
         verdict=check(evidence,race_start_utc=verified_start_utc,source_bytes=raw)
         output["markets"][market]={
             "source_sha256":data["source_sha256"],"source_bytes":len(raw),
             "pair_count":len(quotes),"phase":phase,
+            "cancelled_horses":data.get("cancelled_horses",[]),"roster_sha256":data.get("roster_sha256"),
             "captured_at_utc":market_captured_at_utc[market],
             "integrity_state":verdict["state"],"reason":verdict.get("reason"),
             "pre_race_usable":verdict["usable"]}
