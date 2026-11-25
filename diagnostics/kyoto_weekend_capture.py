@@ -75,11 +75,35 @@ def capture(day: str, channel: str, output: str, *, live: bool,
     root.mkdir()
     # Only the preverified policy table can alter budgets. An unavailable
     # Saturday artifact never stops Sunday acquisition.
-    from diagnostics.kyoto_impl30_nextday_adaptation import recover,budgets
+    from diagnostics.kyoto_impl30_nextday_adaptation import recover,budgets,POLICY
     policy,policy_reason="BASELINE","NOT_LIVE_SUNDAY"
     if live and day=="20261129":
-        policy,policy_reason=recover(day,repo=os.getenv("GITHUB_REPOSITORY",""),
-            collector_sha=os.getenv("COLLECTOR_SHA",""),key=os.getenv("ARCHIVE_KEY",""))
+        try:
+            policy,policy_reason=recover(day,repo=os.getenv("GITHUB_REPOSITORY",""),
+                collector_sha=os.getenv("COLLECTOR_SHA",""),key=os.getenv("ARCHIVE_KEY",""))
+            if policy not in POLICY or not isinstance(policy_reason,str) or not re.fullmatch(r"[A-Za-z0-9_]{1,200}",policy_reason):
+                policy,policy_reason="BASELINE","ADAPTATION_DECISION_INVALID"
+        except Exception:
+            policy,policy_reason="BASELINE","ADAPTATION_RUNTIME_EXCEPTION"
+        # Do not expose exception contents, keys, or source URLs. Preserve only
+        # the selected policy and its bounded reason in the encrypted archive.
+        # An unrecordable changed policy is not applied; baseline acquisition
+        # remains available even if this optional diagnostic cannot be written.
+        policy_path=root/"nextday_applied_policy.json"
+        try:
+            selected_pc,selected_sp=budgets(policy)
+            with policy_path.open("x",encoding="utf8") as f:
+                json.dump({"schema":"kyoto_nextday_applied_policy.v1","day":day,
+                    "channel":channel,"selected_policy":policy,"reason":policy_reason,
+                    "pc_market_seconds":selected_pc,"sp_seconds":selected_sp,
+                    "observed_at_utc":datetime.now(timezone.utc).isoformat(),
+                    "source_coverage_proved":False,"improvement_proved":False},f,sort_keys=True)
+        except (OSError,ValueError):
+            policy,policy_reason="BASELINE","ADAPTATION_RECEIPT_WRITE_FAILED"
+            try:
+                policy_path.unlink(missing_ok=True)
+            except OSError:
+                pass
     market_seconds,sp_seconds=budgets(policy)
     print("NEXTDAY_APPLIED_POLICY="+policy+";REASON="+policy_reason+
           ";PC_MARKET_SECONDS="+str(market_seconds)+";SP_SECONDS="+str(sp_seconds))

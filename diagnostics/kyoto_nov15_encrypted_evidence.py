@@ -34,6 +34,8 @@ FILES.add("g05_receipt.json")
 FILES.add("c10_auxiliary_coverage_receipt.json")
 # C11 fixed-name per-race/horse/market source digest/UTC evidence receipt.
 FILES.add("c11_per_family_source_proof.json")
+# Exact applied Sunday policy evidence; never store key or raw exception.
+FILES.add("nextday_applied_policy.json")
 FILES.add("g06_source_bundle.tar.gz")
 # Exact postrace source-only collection members; never permit arbitrary filenames.
 FILES |= {"results_menu.html","results_meeting.html","payout_menu.html","payout_meeting.html",
