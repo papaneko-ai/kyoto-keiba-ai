@@ -22,8 +22,8 @@ def aggregate(day,entries):
         if type(rid) is not int or rid<=0 or rid in seen:raise ValueError('duplicate_or_invalid_run')
         seen.add(rid)
         a=e.get('source_assessment',{}).get('SP',{})
-        d=a.get('sp_saved_roster_audit',{})
-        if (a.get('ciphertext_authenticated') is not True or a.get('source_original_sha_utc_checked') is not True
+        d=a.get('sp_saved_roster_audit',{}) if isinstance(a,dict) else {}
+        if (not isinstance(a,dict) or not isinstance(d,dict) or a.get('ciphertext_authenticated') is not True or a.get('source_original_sha_utc_checked') is not True
             or a.get('channel')!='SP' or a.get('day')!=day or d.get('schema')!='kyoto_impl31_sp_saved_roster_audit.v1'
             or d.get('day')!=day or d.get('live_acquisition_certified') is not False
             or d.get('market_verified') is not False or d.get('prestart_certified') is not False

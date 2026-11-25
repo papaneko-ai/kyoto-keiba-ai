@@ -42,6 +42,18 @@ class SPHandoff(unittest.TestCase):
         self.assertEqual(a['independent_sp_source_coverage']['manual']['structural_roster_races'],1)
         self.assertEqual(a['day_source_coverage']['totals']['racecards'],0)
         self.assertFalse(a['full_live_jra_coverage_proved'])
+    def test_bad_sp_audit_does_not_drop_other_rosters(self):
+        bad=entry(1,[1]);bad['source_assessment']['SP']['sp_saved_roster_audit']=None
+        r=aggregate(DAY,[bad,entry(2,[2])])
+        self.assertEqual(r['scheduled']['structural_roster_races'],1)
+        self.assertEqual(r['unavailable'][0]['run_id'],1)
+    def test_sp_reporting_error_does_not_veto_pc_handoff(self):
+        from unittest.mock import patch
+        with patch('diagnostics.kyoto_impl32_sp_handoff.aggregate',side_effect=ValueError('invalid_sp_summary')):
+            r=gather_bounded(DAY,REPO,invoke=fixture)
+        self.assertEqual(r['independent_sp_source_coverage_error'],'ValueError')
+        self.assertEqual(r['day_source_coverage']['authenticated_pc_slots'],5)
+        self.assertEqual(r['observed_schedule_count'],4)
     def test_utf8_cp932_same_roster_names(self):
         b=raw(1);self.assertEqual(inspect_heading(b,DAY,1),inspect_heading(b.decode('cp932').encode('utf8'),DAY,1))
         self.assertEqual(inspect_heading(b,DAY,1)[0][2],'馬A')
