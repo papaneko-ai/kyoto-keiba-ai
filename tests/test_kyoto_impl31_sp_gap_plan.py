@@ -56,4 +56,45 @@ class GapPlan(unittest.TestCase):
             with patch("diagnostics.kyoto_sp_all12_observed_capture.capture_verified_sp_seed",side_effect=fetch):
                 capture_all(root,day=DAY,opener=object(),pacer=Mock(),race_order=order)
             self.assertEqual(called,order)
+    def test_next_slot_reads_authenticated_prior_archive_and_switches(self):
+        import hashlib,json,tempfile
+        from pathlib import Path
+        from unittest.mock import patch
+        from diagnostics.kyoto_nov15_encrypted_evidence import encrypt_evidence
+        from diagnostics.kyoto_weekend_day21_artifact_triage import assess_lane
+        from diagnostics.kyoto_weekend_postflight import check_originals
+        from diagnostics.kyoto_impl31_sp_gap_plan import get_plan
+        from diagnostics.kyoto_impl25_c12_all_runs_handoff import WEEKENDS
+        repo="papaneko-ai/kyoto-keiba-ai";key="ab"*32
+        with tempfile.TemporaryDirectory() as tmp:
+            root=Path(tmp)/"raw";root.mkdir()
+            raw=b"discovery";name="official_sp_discovery_1.html";(root/name).write_bytes(raw)
+            stamp="2026-11-29T01:01:00Z"
+            (root/"sp_discovery_receipt.json").write_text(json.dumps({"day":DAY,"not_pc_derived":True,"attempts":[{"file":name,"sha256":hashlib.sha256(raw).hexdigest(),"captured_at_utc":stamp}]}))
+            raw=b"observed racecard";(root/"r04_official_sp_racecard.html").write_bytes(raw)
+            (root/"r04_sp_receipt.json").write_text(json.dumps({"day":DAY,"channel":"SP","race_number":4,"local_target_race_key":"KYOTO:"+DAY+":04","racecard_fetched":True,"racecard_sha256":hashlib.sha256(raw).hexdigest(),"racecard_captured_at_utc":stamp}))
+            first=plan_from_pc(pc(),DAY,42,NOW)
+            (root/"receipt.json").write_text(json.dumps({"day":DAY,"channel":"SP","sp_gap_plan":first,"observed_http_requests_started":3}))
+            (root/"source_verification.json").write_text(json.dumps(check_originals(root,day=DAY,channel="SP")))
+            sealed=Path(tmp)/"sealed"
+            with patch("diagnostics.kyoto_nov15_encrypted_evidence.DAY",DAY):
+                encrypt_evidence(root,sealed,key_hex=key,repo=repo,run_id="42")
+                previous=assess_lane(sealed,day=DAY,channel="SP",key=key,repo=repo,run_id="42")
+            self.assertTrue(previous["ciphertext_authenticated"]);self.assertEqual(previous["sp_gap_feedback"]["comparable_failed_races"],[4])
+            current=pc();current["day_coverage_slot"]["run_id"]="43"
+            workflow,filename,_=WEEKENDS[DAY]
+            def run(i,when,status):
+                return {"id":i,"name":workflow,"path":".github/workflows/"+filename,"head_repository":{"full_name":repo},"created_at":when,"status":status,"event":"schedule"}
+            calls=[]
+            def invoke(task,end):
+                calls.append((task,end))
+                if task[0]=="index":return {"total_count":2,"workflow_runs":[run(42,"2026-11-29T00:45:00Z","completed"),run(43,"2026-11-29T01:05:00Z","in_progress")]}
+                return current if task[3]==43 else previous
+            later=datetime(2026,11,29,1,10,tzinfo=timezone.utc)
+            selected=get_plan(DAY,repo,43,deadline=340,clock=lambda:100,wall=lambda:later,invoke=invoke)
+            self.assertEqual(selected["mode"],"START_FIRST")
+            self.assertEqual(selected["previous_same_day_failed_targets"],[4])
+            self.assertEqual(len(calls),3);self.assertTrue(all(end==112 for _,end in calls))
+            # No prior lookup or artifact absence can prevent baseline SP work.
+            self.assertIsNone(get_plan(DAY,repo,43,deadline=340,clock=lambda:100,wall=lambda:later,invoke=lambda t,e:{"error_class":"TIMEOUT"}))
 if __name__=="__main__":unittest.main()
