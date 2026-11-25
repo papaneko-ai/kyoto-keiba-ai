@@ -67,7 +67,9 @@ class NextDay(unittest.TestCase):
         self.assertIn('if live and day=="20261129":',src)
         self.assertIn("market_seconds,sp_seconds=budgets(policy)",src)
         self.assertIn("g06_sealing_reserve_deadline=pc_capture_start_monotonic+market_seconds",src)
-        self.assertIn("deadline_monotonic=time.monotonic()+sp_seconds",src)
+        self.assertIn("deadline=time.monotonic()+sp_seconds",src)
+        self.assertIn("deadline_monotonic=deadline,**opts",src)
+        self.assertIn("deadline=deadline)",src)
         self.assertIn("g04_market_reserve_deadline=pc_capture_start_monotonic+1020.0",src)
     def test_actual_sunday_sp_entrypoint_uses_recovered_budget(self):
         import os

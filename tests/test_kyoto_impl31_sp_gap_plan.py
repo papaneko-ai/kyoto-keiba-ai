@@ -11,9 +11,10 @@ class GapPlan(unittest.TestCase):
         self.assertEqual(p["mode"],"GAP_FIRST");self.assertEqual(p["race_order"][:2],[4,3])
         self.assertEqual(p["race_order"][-2:],[2,1]);self.assertEqual(sorted(p["race_order"]),list(range(1,13)))
     def test_same_day_previous_failed_target_uses_start_order(self):
-        prior={"day":DAY,"mode":"GAP_FIRST","comparable_failed_races":[3]}
+        prior={"day":DAY,"mode":"GAP_FIRST","window_seconds":180,"measured_targets":{"3":{"cutoff_utc":"2026-11-29T01:50:00+00:00","outcome":"NO_PAIR_WITHIN_WINDOW"}}}
         p=plan_from_pc(pc(),DAY,42,NOW,prior)
         self.assertEqual(p["mode"],"START_FIRST");self.assertEqual(p["race_order"][:3],[2,4,3])
+        prior["mode"]="START_FIRST";self.assertEqual(plan_from_pc(pc(),DAY,42,NOW,prior)["mode"],"BASELINE")
         prior["day"]="20261128";self.assertEqual(plan_from_pc(pc(),DAY,42,NOW,prior)["mode"],"GAP_FIRST")
     def test_wrong_identity_not_applied(self):
         x=pc();x["ciphertext_authenticated"]=False
@@ -23,13 +24,21 @@ class GapPlan(unittest.TestCase):
         p=plan_from_pc(pc(),DAY,42,NOW)
         rows=[]
         for n,names in [(3,["racecard","quinella_odds","bracket_quinella_odds"]),(4,["racecard"])]:
-            for name in names:rows.append({"filename":f"r{n:02d}_official_sp_{name}.html","captured_at_utc":"2026-11-29T01:10:00Z"})
+            for name in names:rows.append({"filename":f"r{n:02d}_official_sp_{name}.html","captured_at_utc":"2026-11-29T01:01:00Z"})
         post={"source_rows":rows,"sp_race_integrity":{"3":{"state":"DIGEST_UTC_CHECKED_ONLY","both_market_originals_verified_bytes":True},"4":{"state":"DIGEST_UTC_CHECKED_ONLY","both_market_originals_verified_bytes":False}}}
         result=feedback(p,{"observed_http_requests_started":7},post,DAY,42)
         self.assertEqual(result["raw_pair_recovered_races"],[3]);self.assertEqual(result["comparable_failed_races"],[4])
         self.assertFalse(result["official_market_success_claimed"])
         rows[-1]["captured_at_utc"]="2026-11-29T02:10:00Z"
         result=feedback(p,{},post,DAY,42);self.assertEqual(result["unknown_races"],[4]);self.assertEqual(result["comparable_failed_races"],[])
+    def test_compare_same_targets_and_window_only(self):
+        p=plan_from_pc(pc(),DAY,42,NOW,{"day":DAY,"mode":"GAP_FIRST","window_seconds":180,"measured_targets":{"3":{"cutoff_utc":"2026-11-29T01:50:00+00:00","outcome":"NO_PAIR_WITHIN_WINDOW"},"4":{"cutoff_utc":"2026-11-29T01:20:00+00:00","outcome":"PAIR_WITHIN_WINDOW"}}})
+        post={"source_rows":[{"filename":f"r03_official_sp_{name}.html","captured_at_utc":"2026-11-29T01:01:00Z"} for name in ("racecard","quinella_odds","bracket_quinella_odds")],"sp_race_integrity":{"3":{"state":"DIGEST_UTC_CHECKED_ONLY","both_market_originals_verified_bytes":True}}}
+        r=feedback(p,{"observed_http_requests_started":9},post,DAY,42)
+        self.assertEqual(r["compared_races"],[3]);self.assertEqual(r["comparison"],"OBSERVED_IMPROVEMENT")
+        self.assertEqual((r["before_pairs"],r["after_pairs"]),(0,1))
+        self.assertEqual(r["request_count"],9)
+        self.assertFalse(r["causal_effect_proved"])
     def test_actual_sp_batch_respects_order_without_changing_links(self):
         import tempfile,hashlib,json
         from pathlib import Path
