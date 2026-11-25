@@ -12,6 +12,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from urllib.parse import parse_qs, urljoin, urlsplit
 from urllib.request import Request, build_opener
+from urllib.error import HTTPError, URLError
 
 from bs4 import BeautifulSoup
 from diagnostics.jra_one_shot_market_capture import RequestPacer
@@ -149,6 +150,14 @@ def discover(root, *, day, opener=None, pacer=None):
                         "error_class":type(exc).__name__})
             # A broken SP homepage must not veto the separate, independently
             # observed official Kyoto R1 seed. Only that exact URL is eligible.
+            if day in ("20261128","20261129"):
+                # Only a different, already observed official branch may be
+                # attempted on transient errors. Never retry the failed URL
+                # or bypass a refusal, redirect, TLS error, or rate limit.
+                transient=(isinstance(exc,HTTPError) and exc.code in (404,408,500,502,503,504)) or (isinstance(exc,(TimeoutError,ConnectionError))) or (isinstance(exc,URLError) and not isinstance(exc,HTTPError) and isinstance(exc.reason,(TimeoutError,ConnectionError)))
+                if transient and queue:
+                    continue
+                break
             if day=="20261122" and url==SEED:
                 queue=[OFFICIAL_OBSERVED_NOV22_R1]
                 continue
@@ -156,6 +165,8 @@ def discover(root, *, day, opener=None, pacer=None):
         if status!=200 or actual!=url or "html" not in ctype.lower() or not 0<len(raw)<=LIMIT:
             log.append({"url":url,"request_started_at_utc":stamp,
                         "state":"HTTP_RESPONSE_REJECTED"})
+            if day in ("20261128","20261129") and status in (404,408,500,502,503,504) and actual==url and queue:
+                continue
             if day=="20261122" and url==SEED:
                 queue=[OFFICIAL_OBSERVED_NOV22_R1]
                 continue
@@ -186,7 +197,12 @@ def discover(root, *, day, opener=None, pacer=None):
         else:
             # The Sunday fallback explores bounded *observed* alternatives,
             # retaining loop protection and never constructing a CNAME.
-            for target in sorted(set(nav)):
+            if day in ("20261128","20261129"):
+                observed_race_urls={u for urls in race_candidates.values() for u in urls}
+                order=sorted(set(nav),key=lambda u:(u in observed_race_urls,u))
+            else:
+                order=sorted(set(nav))
+            for target in order:
                 if target not in visited and target not in queue and len(queue)<5:
                     queue.append(target)
     result={"schema":"kyoto_weekend_sp_independent_discovery.v1",

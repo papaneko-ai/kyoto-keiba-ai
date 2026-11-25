@@ -42,7 +42,7 @@ class SourceFirstCoverageTests(unittest.TestCase):
         self.assertEqual(len(self.doc["impl30_source_reopen"]),11)
         for record in self.doc["impl30_source_reopen"]:
             self.assertNotEqual(record["old_blob"],record["new_blob"])
-            successor=next((x for x in [*self.doc["impl31_source_reopen"]["sources"],self.doc["impl31_final_sp_reopen"]] if x["source"]==record["source"]),None)
+            successor=next((x for x in [*self.doc["impl31_source_reopen"]["sources"],self.doc["impl31_final_sp_reopen"],self.doc["impl31_sp_route_reopen"]] if x["source"]==record["source"]),None)
             if successor is not None:
                 self.assertEqual(successor["old_blob"],record["new_blob"])
                 self.assertEqual(self.doc["source_git_blob_sha1"][record["source"]],successor["new_blob"])

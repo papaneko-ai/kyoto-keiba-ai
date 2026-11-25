@@ -91,6 +91,46 @@ class DiscoveryTests(unittest.TestCase):
         self.assertTrue((self.root/"official_sp_discovery_4.html").exists())
         # Sunday evidence sealing is verified independently in crypto tests.
 
+    def test_weekend_transient_branch_failure_keeps_observed_alternative(self):
+        from urllib.error import HTTPError, URLError
+        day="20261128"
+        a="https://sp.jra.jp/JRADB/accessD.html?CNAME=sw01meet20261128%2FA1"
+        b="https://sp.jra.jp/JRADB/accessD.html?CNAME=sw01meet20261128%2FB1"
+        race="https://sp.jra.jp/JRADB/accessD.html?CNAME=sw01dde0108202605061220261128%2FA1"
+        home=html(f'<a href="{a}">京都 開催</a><a href="{b}">京都 出馬表</a>')
+        target=html(f'<a href="{race}">京都 12R</a>')
+        for error in (TimeoutError(),URLError(TimeoutError()),HTTPError(a,503,"temporary",{},None),HTTPError(a,404,"not found",{},None)):
+            with self.subTest(error=type(error).__name__), tempfile.TemporaryDirectory() as tmp:
+                class Failing(Stub):
+                    def open(self,request,timeout=12):
+                        if request.full_url==a:
+                            self.calls.append(a);raise error
+                        return super().open(request,timeout)
+                stub=Failing({SEED:home,b:target})
+                r=discover(Path(tmp)/"raw",day=day,opener=stub,pacer=Mock())
+                self.assertEqual(stub.calls[:3],[SEED,a,b])
+                self.assertEqual(stub.calls.count(a),1)
+                self.assertEqual(r["per_race_observed_navigation_candidates"]["12"]["candidate_count"],1)
+                self.assertFalse(r["prediction_ready"])
+
+    def test_weekend_refusal_never_uses_alternative_to_bypass(self):
+        from urllib.error import HTTPError, URLError
+        import ssl
+        day="20261129"
+        a="https://sp.jra.jp/JRADB/accessD.html?CNAME=sw01meet20261129%2FA1"
+        b="https://sp.jra.jp/JRADB/accessD.html?CNAME=sw01meet20261129%2FB1"
+        home=html(f'<a href="{a}">京都 開催</a><a href="{b}">京都 出馬表</a>')
+        for error in (HTTPError(a,401,"refused",{},None),HTTPError(a,403,"refused",{},None),HTTPError(a,429,"limited",{},None),URLError(ssl.SSLError("TLS"))):
+            with self.subTest(error=str(error)), tempfile.TemporaryDirectory() as tmp:
+                class Failing(Stub):
+                    def open(self,request,timeout=12):
+                        if request.full_url==a:
+                            self.calls.append(a);raise error
+                        return super().open(request,timeout)
+                stub=Failing({SEED:home})
+                r=discover(Path(tmp)/"raw",day=day,opener=stub,pacer=Mock())
+                self.assertEqual(stub.calls,[SEED,a]);self.assertFalse(r["prediction_ready"])
+
     def test_unrelated_page_kyoto_text_does_not_authenticate_other_race(self):
         race="https://sp.jra.jp/JRADB/accessD.html?CNAME=sw01race1220261121%2FBB"
         page=html('<h2>京都</h2><p>東京</p><a href="'+race+'">東京 12R</a>')

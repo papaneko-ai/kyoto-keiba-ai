@@ -1223,7 +1223,7 @@
   "notes": "Reverse FMEA explicitly finds risk modes not enumerated by the original 30 cases. Counting passing tests is not an independent proof of completeness.",
   "source_git_blob_sha1": {
     "diagnostics/kyoto_weekend_capture.py": "26a4f4bf7268bf93802994892010910b9d183821",
-    "diagnostics/kyoto_weekend_sp_discovery.py": "c5d768e4f420f2cb91db290492bded1d5cd80ef5",
+    "diagnostics/kyoto_weekend_sp_discovery.py": "2e8813c639f7c9ae287b23769699a8d264aebd42",
     "diagnostics/kyoto_weekend_postflight.py": "b1b52eee94c486058d8cbb009e3c89fd6257a584",
     "diagnostics/kyoto_weekend_day21_triage.py": "a6639d5cab211d37d1eddefaa9bfc5b23901368d",
     "diagnostics/kyoto_nov15_two_original_observer.py": "0858ed767e61f9669301b4ed46c039e5cdb621a1",
@@ -1503,5 +1503,13 @@
     "review_status": "UNREVIEWED_INDEPENDENT_FMEA",
     "closed_risks": 0,
     "reason": "Race-prefixed live SP originals were absent from postflight; add racewise exact-byte and UTC checks, retain unresolved source coverage and prediction claims."
+  },
+  "impl31_sp_route_reopen": {
+    "source": "diagnostics/kyoto_weekend_sp_discovery.py",
+    "old_blob": "c5d768e4f420f2cb91db290492bded1d5cd80ef5",
+    "new_blob": "2e8813c639f7c9ae287b23769699a8d264aebd42",
+    "review_status": "UNREVIEWED_INDEPENDENT_FMEA",
+    "closed_risks": 0,
+    "reason": "Preserve independently observed alternative route after transient failure; do not continue on refusal, throttling, invalid redirects or unverified links."
   }
 }
