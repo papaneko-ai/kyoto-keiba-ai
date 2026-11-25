@@ -49,4 +49,7 @@ class Tests(unittest.TestCase):
         e.pop("KYOTO_SHARED_CLAIM_TURSO_TOKEN")
         with self.assertRaisesRegex(ReservationError,"token_missing"):
             active_claims_for_weekend(day,environ=e,transport=Dummy())
+from tests.test_kyoto_impl31_launch_monitor import Monitor
+from tests.test_kyoto_impl31_launch_slot_contract import Contract
+
 if __name__=="__main__":unittest.main()
