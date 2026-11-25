@@ -163,6 +163,9 @@ def _download(run_id, name, location, repo):
 def gather(day,repo):
     if day not in WEEKENDS or not re.fullmatch(r"[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+",repo):
         raise HandoffRejected("unexpected_day_or_repo")
+    if day in ("20261128","20261129"):
+        from diagnostics.kyoto_impl31_handoff_budget import gather_bounded
+        return gather_bounded(day,repo)
     workflow,workflow_file,_=WEEKENDS[day]
     result=[]
     pagination_complete=True
