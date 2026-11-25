@@ -271,6 +271,13 @@ def main(argv=None):
     p.add_argument("--out",type=Path,required=True)
     args=p.parse_args(argv)
     report=gather(args.day,args.repo)
+    if args.day in ("20261128","20261129"):
+        # Diagnostics must never block the evidence handoff or Saturday policy.
+        try:
+            from diagnostics.kyoto_impl31_incident_triage import diagnose
+            report["incident_triage"]=diagnose(report)
+        except Exception as exc:
+            report["incident_triage_error_class"]=type(exc).__name__
     if args.out.exists() or args.out.is_symlink():
         raise HandoffRejected("cannot_overwrite_existing_handoff")
     args.out.parent.mkdir(parents=True,exist_ok=True)

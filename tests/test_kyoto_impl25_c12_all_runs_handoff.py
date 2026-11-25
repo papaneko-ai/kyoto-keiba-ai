@@ -161,5 +161,7 @@ class C12AllRuns(unittest.TestCase):
         self.assertFalse(r["automatic_patch_or_secret_edit_authorized"])
         self.assertFalse(r["independent_sp_full12_fallback_proved"])
 
+from tests.test_kyoto_impl31_incident_triage import IncidentTriage
+
 if __name__=="__main__":
     unittest.main()
