@@ -9,6 +9,7 @@ import time
 import re
 from hashlib import sha256
 from datetime import datetime, timezone
+from urllib.error import HTTPError, URLError
 from bs4 import BeautifulSoup
 from pathlib import Path
 from diagnostics.kyoto_weekend_sp_discovery import observed_kyoto_race_candidates, OFFICIAL_OBSERVED_NOV22_R1
@@ -46,6 +47,48 @@ def _verified_archived_sunday_r1(raw, source, item, day):
     )
 
 
+class _SPTransportBoundary:
+    """One shared transport boundary per weekend SP batch.
+
+    A terminal network response stops subsequent requests across races.
+    Parser failures remain isolated. The existing monotonic budget is checked
+    again after pacing, directly before actual network I/O.
+    """
+    def __init__(self, opener, deadline, clock):
+        self.opener=opener
+        self.deadline=deadline
+        self.clock=clock
+        self.stop_reason=None
+        self.requests_started=0
+
+    def open(self, request, timeout):
+        if self.stop_reason is not None:
+            raise RuntimeError("sp_batch_transport_stopped")
+        if self.deadline is not None:
+            remaining=self.deadline-self.clock()
+            if remaining<=0:
+                self.stop_reason="DEADLINE"
+                raise RuntimeError("sp_batch_deadline")
+            timeout=min(timeout,remaining)
+        self.requests_started+=1
+        try:
+            response=self.opener.open(request,timeout=timeout)
+        except Exception as exc:
+            transient=(isinstance(exc,HTTPError) and exc.code in (404,408,500,502,503,504)) or isinstance(exc,(TimeoutError,ConnectionError)) or (isinstance(exc,URLError) and not isinstance(exc,HTTPError) and isinstance(exc.reason,(TimeoutError,ConnectionError)))
+            if not transient:
+                self.stop_reason="TERMINAL_HTTP_OR_TRANSPORT"
+            raise
+        status=getattr(response,"status",None)
+        if status!=200 and status not in (404,408,500,502,503,504):
+            self.stop_reason="TERMINAL_HTTP_OR_TRANSPORT"
+        try:
+            if response.geturl()!=request.full_url:
+                self.stop_reason="TERMINAL_HTTP_OR_TRANSPORT"
+        except Exception:
+            self.stop_reason="TERMINAL_HTTP_OR_TRANSPORT"
+        return response
+
+
 def capture_all(root, *, day, opener, pacer, deadline_monotonic=None, monotonic=time.monotonic, race_order=None):
     root = Path(root)
     receipt_path = root / "sp_discovery_receipt.json"
@@ -74,17 +117,22 @@ def capture_all(root, *, day, opener, pacer, deadline_monotonic=None, monotonic=
     order=list(range(1,13)) if race_order is None else list(race_order)
     if any(type(n) is not int for n in order) or sorted(order)!=list(range(1,13)):
         raise ValueError("invalid_sp_race_order")
+    transport=_SPTransportBoundary(opener,deadline_monotonic,monotonic) if day in ("20261128","20261129") else None
     outcomes = {}
     for number in order:
         urls = candidates[str(number)]
+        if transport is not None and transport.stop_reason is not None:
+            outcomes[str(number)]={"state":"DEFERRED_FOR_AES_SEALING_BUDGET" if transport.stop_reason=="DEADLINE" else "SP_BATCH_TERMINAL_HTTP_STOP", "candidate_count":len(urls),"racecard_fetched":False,"network_requests_started":0}
+            continue
         if deadline_monotonic is not None and monotonic() >= deadline_monotonic:
-            outcomes[str(number)] = {"state": "DEFERRED_FOR_AES_SEALING_BUDGET", "candidate_count": len(urls), "racecard_fetched": False}
+            outcomes[str(number)] = {"state": "DEFERRED_FOR_AES_SEALING_BUDGET", "candidate_count": len(urls), "racecard_fetched": False, "network_requests_started": 0}
             continue
         if len(urls) != 1:
-            outcomes[str(number)] = {"state": "NO_UNIQUE_SAVED_OFFICIAL_SP_ANCHOR", "candidate_count": len(urls), "racecard_fetched": False}
+            outcomes[str(number)] = {"state": "NO_UNIQUE_SAVED_OFFICIAL_SP_ANCHOR", "candidate_count": len(urls), "racecard_fetched": False, "network_requests_started": 0}
             continue
         staging = root / f"sp_stage_{number:02d}"
         staging.mkdir(exist_ok=False)
+        before=transport.requests_started if transport is not None else None
         try:
             exact_url=next(iter(urls))
             if number==1 and exact_url in verified_reusable:
@@ -109,7 +157,7 @@ def capture_all(root, *, day, opener, pacer, deadline_monotonic=None, monotonic=
                 result=metadata
             else:
                 result = capture_verified_sp_seed(staging, race_day=day, race_number=number,
-                                                  source_url=exact_url, opener=opener,
+                                                  source_url=exact_url, opener=transport if transport is not None else opener,
                                                   pacer=pacer, include_odds=True)
             outcomes[str(number)] = {"state": result["state"], "network_requests_started": result.get("network_requests_started", 0),
                                      "racecard_fetched": result.get("racecard_fetched", False),
@@ -125,6 +173,12 @@ def capture_all(root, *, day, opener, pacer, deadline_monotonic=None, monotonic=
                     raise ValueError("sp_race_archive_collision")
                 item.rename(target)
             staging.rmdir()
+            if transport is not None:
+                # Receipt counters may include attempts blocked by the shared
+                # boundary. The batch total counts actual opener calls only.
+                outcomes[str(number)]["network_requests_started"]=transport.requests_started-before
+                if transport.stop_reason is not None:
+                    outcomes[str(number)]["transport_stop_reason"]=transport.stop_reason
     report = {"schema": "kyoto_sp_saved_anchor_all12.v1", "day": day, "races": outcomes,
               "source_only": True, "both_markets_verified": False,
               "prediction_ready": False, "all_twelve_races_verified": False}

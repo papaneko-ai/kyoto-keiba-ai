@@ -101,5 +101,66 @@ class SPAll12(unittest.TestCase):
         self.assertEqual(result["races"]["1"]["candidate_count"],2)
         self.assertEqual(fetch.call_count,1)
 
+class WeekendSPTransport(unittest.TestCase):
+    def setUp(self):
+        self.tmp=tempfile.TemporaryDirectory();self.addCleanup(self.tmp.cleanup)
+        self.root=Path(self.tmp.name)
+        self.day="20261128"
+        self.urls=[f"https://sp.jra.jp/JRADB/accessD.html?CNAME=sw01race{n:02d}{self.day}%2FAA" for n in range(1,4)]
+        raw=("<html>"+"".join(f'<a href="{url}">京都 {n}R</a>' for n,url in enumerate(self.urls,1))+"</html>").encode("cp932")
+        (self.root/"official_sp_discovery_1.html").write_bytes(raw)
+        (self.root/"sp_discovery_receipt.json").write_text(json.dumps({"day":self.day,"attempts":[{"url":SEED,"file":"official_sp_discovery_1.html","sha256":hashlib.sha256(raw).hexdigest()}]}))
+
+    def test_terminal_market_response_stops_next_races_and_preserves_card(self):
+        from urllib.error import HTTPError
+        from urllib.parse import parse_qs
+        day=self.day
+        raw=(f'<html><a onclick="doAction(\'/JRADB/accessO.html\',\'sw01oddsmenu{day}/AA\')">オッズ</a></html>').encode("cp932")
+        menu=(f'<html><title>オッズ</title><a onclick="doAction(\'/JRADB/accessO.html\',\'sw01market01{day}/AA\')">馬連</a><a onclick="doAction(\'/JRADB/accessO.html\',\'sw01bracket01{day}/BB\')">枠連</a></html>').encode("cp932")
+        calls=[]
+        class Reply:
+            status=200;headers={"Content-Type":"text/html"}
+            def __init__(self,url,body):self.url=url;self.body=body
+            def __enter__(self):return self
+            def __exit__(self,*args):return False
+            def geturl(self):return self.url
+            def read(self,n):return self.body
+        class Opener:
+            def open(self,request,timeout):
+                token=parse_qs((request.data or b"").decode()).get("cname",[None])[0];calls.append((request.full_url,token))
+                if token and "market01" in token:raise HTTPError(request.full_url,429,"limited",{},None)
+                return Reply(request.full_url,menu if token else raw)
+        r=capture_all(self.root,day=day,opener=Opener(),pacer=Mock())
+        self.assertEqual(len(calls),3)
+        self.assertEqual(r["races"]["1"]["network_requests_started"],3)
+        self.assertEqual(r["races"]["2"]["state"],"SP_BATCH_TERMINAL_HTTP_STOP")
+        self.assertEqual(r["races"]["3"]["network_requests_started"],0)
+        self.assertEqual((self.root/"r01_official_sp_racecard.html").read_bytes(),raw)
+        self.assertEqual((self.root/"r01_official_sp_odds_menu.html").read_bytes(),menu)
+        self.assertFalse((self.root/"r02_official_sp_racecard.html").exists())
+
+    def test_deadline_rechecked_after_pacing(self):
+        from urllib.request import Request
+        from diagnostics.kyoto_sp_all12_observed_capture import _SPTransportBoundary
+        client=Mock();tick=[100.0]
+        guard=_SPTransportBoundary(client,105.0,lambda:tick[0])
+        tick[0]=105.0
+        with self.assertRaisesRegex(RuntimeError,"deadline"):
+            guard.open(Request(self.urls[0]),timeout=20)
+        client.open.assert_not_called();self.assertEqual(guard.requests_started,0)
+        self.assertEqual(guard.stop_reason,"DEADLINE")
+
+    def test_transient_error_does_not_stop_other_races(self):
+        from urllib.error import HTTPError
+        calls=[]
+        class Opener:
+            def open(self,request,timeout):
+                calls.append(request.full_url)
+                raise HTTPError(request.full_url,503,"temporary",{},None)
+        r=capture_all(self.root,day=self.day,opener=Opener(),pacer=Mock())
+        self.assertEqual(calls,self.urls)
+        self.assertEqual(sum(x["network_requests_started"] for x in r["races"].values()),3)
+        self.assertTrue(all(r["races"][str(n)]["state"]=="SP_HTTP_FAILED" for n in range(1,4)))
+
 if __name__=="__main__":
     unittest.main()
