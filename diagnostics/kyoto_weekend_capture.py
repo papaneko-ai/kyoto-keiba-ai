@@ -427,19 +427,61 @@ def _preserve_interrupted_originals(src: Path, day: str) -> None:
     Nested observer receipt is retained separately when a wrapper failure
     receipt already exists. All provenance claims remain explicitly unverified.
     """
-    nested=src / "pc_originals"
-    if nested.exists() or nested.is_symlink():
-        if nested.is_symlink() or not nested.is_dir():
-            raise ValueError("unsafe_interrupted_pc_source")
-        for item in sorted(nested.iterdir()):
-            if item.is_symlink() or not item.is_file():
-                raise ValueError("unsafe_interrupted_pc_entry")
-            target=src / ("observer_partial_receipt.json" if item.name=="receipt.json"
-                          else item.name)
-            if target.exists() or target.is_symlink():
+    # Preflight every known staging member before moving any source.
+    # Unknown files, symlinks, oversized payloads and collisions still
+    # fail closed; never upload them or silently discard the only original.
+    from diagnostics.kyoto_nov15_encrypted_evidence import FILES,_file_cap
+    from diagnostics.kyoto_g06_nested_bundle import bundle_g06,bundle_interrupted_g06,BundleError
+    if src.is_symlink():raise ValueError("unsafe_interrupted_source")
+    moves=[];dirs=[];targets=set()
+    g06=src/"g06_unsealed"
+    for child in sorted(src.iterdir()):
+        if child.is_symlink():raise ValueError("unsafe_interrupted_source_entry")
+        if child==g06:
+            if not child.is_dir():raise ValueError("unsafe_interrupted_g06_source")
+            continue
+        if child.is_file():
+            if child.name not in FILES or child.stat().st_size>_file_cap(child.name):
+                raise ValueError("unexpected_interrupted_original")
+            continue
+        stage=re.fullmatch(r"sp_stage_(0[1-9]|1[0-2])",child.name)
+        if not child.is_dir() or (child.name not in ("pc_originals","sp_discovery") and stage is None):
+            raise ValueError("unknown_interrupted_stage")
+        dirs.append(child)
+        for item in sorted(child.iterdir()):
+            if item.is_symlink() or not item.is_file():raise ValueError("unsafe_interrupted_stage_entry")
+            if child.name=="pc_originals":
+                name="observer_partial_receipt.json" if item.name=="receipt.json" else item.name
+            elif child.name=="sp_discovery":
+                name=item.name
+                if not (re.fullmatch(r"official_sp_discovery_[1-6]\.html",name) or name=="sp_discovery_receipt.json"):
+                    raise ValueError("unexpected_sp_discovery_member")
+            else:
+                name=f"r{stage.group(1)}_{item.name}"
+            if name not in FILES or item.stat().st_size>_file_cap(name):
+                raise ValueError("unexpected_interrupted_original")
+            target=src/name
+            if target.exists() or target.is_symlink() or target in targets:
                 raise ValueError("interrupted_original_collision")
-            item.rename(target)
-        nested.rmdir()
+            targets.add(target);moves.append((item,target))
+    # Recover market originals when the normal finally block was interrupted.
+    # The existing G06 bundler independently validates its nested paths and
+    # digests. Missing batch receipt gets a failure receipt, never success.
+    if g06.is_dir():
+        target=src/"g06_source_bundle.tar.gz"
+        if target.exists() or target.is_symlink() or target in targets:
+            raise ValueError("interrupted_g06_bundle_collision")
+        entries=list(g06.rglob("*"))
+        if any(p.is_symlink() or (not p.is_file() and not p.is_dir()) for p in entries):
+            raise ValueError("unsafe_interrupted_g06_entry")
+        if any(p.is_file() for p in entries):
+            if (g06/"g06_batch_receipt.json").is_file():bundle_g06(g06,target)
+            else:bundle_interrupted_g06(g06,target)
+        else:
+            # Empty known G06 staging contains no evidence bytes.
+            shutil.rmtree(g06)
+    for item,target in moves:item.rename(target)
+    for child in dirs:child.rmdir()
     if not (src / "receipt.json").exists():
         from hashlib import sha256
         files={}

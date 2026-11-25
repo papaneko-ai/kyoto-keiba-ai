@@ -1222,7 +1222,7 @@
   },
   "notes": "Reverse FMEA explicitly finds risk modes not enumerated by the original 30 cases. Counting passing tests is not an independent proof of completeness.",
   "source_git_blob_sha1": {
-    "diagnostics/kyoto_weekend_capture.py": "bfac6bc839da3bc4bc937616a27a1bf597149d04",
+    "diagnostics/kyoto_weekend_capture.py": "52963f4b92cb980679904bce5abd760dae1bcd28",
     "diagnostics/kyoto_weekend_sp_discovery.py": "caf81848545fd48796527064d3d359db0683798a",
     "diagnostics/kyoto_weekend_postflight.py": "b1b52eee94c486058d8cbb009e3c89fd6257a584",
     "diagnostics/kyoto_weekend_day21_triage.py": "a6639d5cab211d37d1eddefaa9bfc5b23901368d",
@@ -1584,5 +1584,13 @@
     "review_status": "UNREVIEWED_INDEPENDENT_FMEA",
     "closed_risks": 0,
     "reason": "Actual historical SP archive 45558381201 and PC parity 45558580736 prove both observed 01/10 URL variants. Preserve exact date, Kyoto venue, race, host, label and unique anchor; no guessed URL."
+  },
+  "impl32_nested_salvage_reopen": {
+    "source": "diagnostics/kyoto_weekend_capture.py",
+    "old_blob": "bfac6bc839da3bc4bc937616a27a1bf597149d04",
+    "new_blob": "52963f4b92cb980679904bce5abd760dae1bcd28",
+    "review_status": "UNREVIEWED_INDEPENDENT_FMEA",
+    "closed_risks": 0,
+    "reason": "Recover known interrupted PC/SP discovery/SP race/G06 staging; validate allowlist and collisions before moves; no success promotion or unknown file upload. Runner loss remains unproved."
   }
 }
