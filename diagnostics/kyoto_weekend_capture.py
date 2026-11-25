@@ -359,6 +359,12 @@ def capture(day: str, channel: str, output: str, *, live: bool,
                     if item.is_file() and not item.is_symlink():
                         item.rename(root / item.name)
                 discovery_root.rmdir()
+        if day in ("20261128","20261129") and found.get("stop_followup_http") is True:
+            out=_no_claim(day,channel,"SP_DISCOVERY_TERMINAL_HTTP_STOP",
+                          observed_http_requests_started=discovery_requests,
+                          captured_originals=any(root.glob("official_sp_discovery_*.html")))
+            _write_receipt(root,out)
+            return out
         # R12 may be absent while other independently observed SP race links
         # are available. Keep those races eligible for isolated collection.
         if not sp_source_url and not (root / "sp_discovery_receipt.json").is_file():

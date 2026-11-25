@@ -130,6 +130,7 @@ class DiscoveryTests(unittest.TestCase):
                 stub=Failing({SEED:home})
                 r=discover(Path(tmp)/"raw",day=day,opener=stub,pacer=Mock())
                 self.assertEqual(stub.calls,[SEED,a]);self.assertFalse(r["prediction_ready"])
+                self.assertTrue(r["stop_followup_http"])
 
     def test_unrelated_page_kyoto_text_does_not_authenticate_other_race(self):
         race="https://sp.jra.jp/JRADB/accessD.html?CNAME=sw01race1220261121%2FBB"

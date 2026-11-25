@@ -93,6 +93,22 @@ class WeekendCaptureTests(unittest.TestCase):
             seal("20261121",str(source),str(dest),key="ab"*32,
                  repo="papaneko-ai/kyoto-keiba-ai",run_id="1")
 
+    def test_weekend_sp_terminal_discovery_preserves_original_without_more_http(self):
+        def refused(folder,**kwargs):
+            p=Path(folder);p.mkdir()
+            (p/"official_sp_discovery_1.html").write_bytes(b"saved before refusal")
+            (p/"sp_discovery_receipt.json").write_text('{"stop_followup_http":true}')
+            return {"state":"OFFICIAL_R12_LINK_NOT_OBSERVED","network_requests_started":2,
+                    "racecard_url":"observed-fixture","stop_followup_http":True}
+        with patch.dict(os.environ,{"KYOTO_TARGET_DAY":"20261128","GITHUB_EVENT_NAME":"schedule","KYOTO_WEEKEND_HTTP_APPROVED":"YES","ARCHIVE_KEY":"ab"*32}),patch("diagnostics.kyoto_weekend_capture.validate_day"),patch("diagnostics.kyoto_weekend_sp_discovery.discover",side_effect=refused),patch("diagnostics.kyoto_sp_all12_observed_capture.capture_all") as acquire:
+            root=self.root/"sp"
+            result=capture("20261128","SP",str(root),live=True,opener=object())
+        acquire.assert_not_called()
+        self.assertEqual(result["state"],"SP_DISCOVERY_TERMINAL_HTTP_STOP")
+        self.assertEqual(result["observed_http_requests_started"],2)
+        self.assertEqual((root/"official_sp_discovery_1.html").read_bytes(),b"saved before refusal")
+        self.assertFalse(result["prediction_ready"])
+
     def test_explicit_recovery_rerun_is_not_rejected_before_source_discovery(self):
         class NoNetwork:
             def open(self,*args,**kwargs):

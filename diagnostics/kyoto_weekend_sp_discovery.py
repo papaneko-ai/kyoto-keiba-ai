@@ -117,6 +117,7 @@ def discover(root, *, day, opener=None, pacer=None):
     visited=set()
     log=[]
     matched=set()
+    stop_followup=False
     race_candidates={str(i):set() for i in range(1,13)}
     # Sunday is a predeclared, separately testable route fallback.
     # All requests still follow genuine saved official SP anchors; never
@@ -157,6 +158,7 @@ def discover(root, *, day, opener=None, pacer=None):
                 transient=(isinstance(exc,HTTPError) and exc.code in (404,408,500,502,503,504)) or (isinstance(exc,(TimeoutError,ConnectionError))) or (isinstance(exc,URLError) and not isinstance(exc,HTTPError) and isinstance(exc.reason,(TimeoutError,ConnectionError)))
                 if transient and queue:
                     continue
+                stop_followup=not transient
                 break
             if day=="20261122" and url==SEED:
                 queue=[OFFICIAL_OBSERVED_NOV22_R1]
@@ -165,8 +167,12 @@ def discover(root, *, day, opener=None, pacer=None):
         if status!=200 or actual!=url or "html" not in ctype.lower() or not 0<len(raw)<=LIMIT:
             log.append({"url":url,"request_started_at_utc":stamp,
                         "state":"HTTP_RESPONSE_REJECTED"})
-            if day in ("20261128","20261129") and status in (404,408,500,502,503,504) and actual==url and queue:
-                continue
+            if day in ("20261128","20261129"):
+                transient=status in (404,408,500,502,503,504) and actual==url
+                if transient and queue:
+                    continue
+                stop_followup=not transient
+                break
             if day=="20261122" and url==SEED:
                 queue=[OFFICIAL_OBSERVED_NOV22_R1]
                 continue
@@ -221,6 +227,7 @@ def discover(root, *, day, opener=None, pacer=None):
             "full_twelve_race_sp_fallback_verified":False,
             "observed_link_is_not_authenticated_racecard":True,
             "network_requests_started":len(log),
+            "stop_followup_http":stop_followup,
             "state":"OBSERVED_UNIQUE_R12_SOURCE" if len(matched)==1
                     else "OFFICIAL_R12_LINK_NOT_OBSERVED",
             "source_only":True,"not_pc_derived":True,

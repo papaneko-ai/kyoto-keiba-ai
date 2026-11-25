@@ -45,7 +45,12 @@ class SourceFirstCoverageTests(unittest.TestCase):
             successor=next((x for x in [*self.doc["impl31_source_reopen"]["sources"],self.doc["impl31_final_sp_reopen"],self.doc["impl31_sp_route_reopen"]] if x["source"]==record["source"]),None)
             if successor is not None:
                 self.assertEqual(successor["old_blob"],record["new_blob"])
-                self.assertEqual(self.doc["source_git_blob_sha1"][record["source"]],successor["new_blob"])
+                final=next((x for x in self.doc["impl31_sp_stop_boundary_reopen"]["sources"] if x["source"]==record["source"]),None)
+                if final is not None:
+                    self.assertEqual(final["old_blob"],successor["new_blob"])
+                    self.assertEqual(self.doc["source_git_blob_sha1"][record["source"]],final["new_blob"])
+                else:
+                    self.assertEqual(self.doc["source_git_blob_sha1"][record["source"]],successor["new_blob"])
             else:
                 self.assertEqual(self.doc["source_git_blob_sha1"][record["source"]],record["new_blob"])
             rows=[x for x in self.doc["surfaces"] if x["source"]==record["source"]]
@@ -62,7 +67,12 @@ class SourceFirstCoverageTests(unittest.TestCase):
         for x in sources:
             source=x["source"]
             self.assertNotEqual(x["old_blob"],x["new_blob"])
-            self.assertEqual(self.doc["source_git_blob_sha1"][source],x["new_blob"])
+            final=next((y for y in self.doc["impl31_sp_stop_boundary_reopen"]["sources"] if y["source"]==source),None)
+            if final is not None:
+                self.assertEqual(final["old_blob"],x["new_blob"])
+                self.assertEqual(self.doc["source_git_blob_sha1"][source],final["new_blob"])
+            else:
+                self.assertEqual(self.doc["source_git_blob_sha1"][source],x["new_blob"])
             self.assertEqual(x["review_status"],"UNREVIEWED_INDEPENDENT_FMEA")
             self.assertEqual(x["closed_risks"],0)
             surfaces=[s for s in self.doc["surfaces"] if s["source"]==source]

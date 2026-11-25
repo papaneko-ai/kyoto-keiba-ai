@@ -1222,8 +1222,8 @@
   },
   "notes": "Reverse FMEA explicitly finds risk modes not enumerated by the original 30 cases. Counting passing tests is not an independent proof of completeness.",
   "source_git_blob_sha1": {
-    "diagnostics/kyoto_weekend_capture.py": "26a4f4bf7268bf93802994892010910b9d183821",
-    "diagnostics/kyoto_weekend_sp_discovery.py": "2e8813c639f7c9ae287b23769699a8d264aebd42",
+    "diagnostics/kyoto_weekend_capture.py": "654ea3b61c36fd1e514c4ac6e467be5afc4b81b5",
+    "diagnostics/kyoto_weekend_sp_discovery.py": "b81a128f90eb23a5ad693187f409fc26346ed9c0",
     "diagnostics/kyoto_weekend_postflight.py": "b1b52eee94c486058d8cbb009e3c89fd6257a584",
     "diagnostics/kyoto_weekend_day21_triage.py": "a6639d5cab211d37d1eddefaa9bfc5b23901368d",
     "diagnostics/kyoto_nov15_two_original_observer.py": "0858ed767e61f9669301b4ed46c039e5cdb621a1",
@@ -1511,5 +1511,24 @@
     "review_status": "UNREVIEWED_INDEPENDENT_FMEA",
     "closed_risks": 0,
     "reason": "Preserve independently observed alternative route after transient failure; do not continue on refusal, throttling, invalid redirects or unverified links."
+  },
+  "impl31_sp_stop_boundary_reopen": {
+    "reason": "Terminal discovery refusal must also stop subsequent live SP capture while preserving originals.",
+    "sources": [
+      {
+        "source": "diagnostics/kyoto_weekend_sp_discovery.py",
+        "old_blob": "2e8813c639f7c9ae287b23769699a8d264aebd42",
+        "new_blob": "b81a128f90eb23a5ad693187f409fc26346ed9c0",
+        "review_status": "UNREVIEWED_INDEPENDENT_FMEA",
+        "closed_risks": 0
+      },
+      {
+        "source": "diagnostics/kyoto_weekend_capture.py",
+        "old_blob": "26a4f4bf7268bf93802994892010910b9d183821",
+        "new_blob": "654ea3b61c36fd1e514c4ac6e467be5afc4b81b5",
+        "review_status": "UNREVIEWED_INDEPENDENT_FMEA",
+        "closed_risks": 0
+      }
+    ]
   }
 }
