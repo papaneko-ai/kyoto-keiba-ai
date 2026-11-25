@@ -13,6 +13,7 @@ on:
       - 'fix/impl30-nextday-adaptation-20261124'
       - 'fix/impl30-nextday-rehearsal-20261124'
       - 'fix/impl31-independent-nextday-fallback-20261125'
+      - 'fix/impl32-p05-track-reserve-20261125'
   pull_request:
     branches: ['fix/impl29-weekend-20261128-29', 'fix/impl30-day-coverage-20261124', 'fix/impl30-auxiliary-refresh-20261124', 'fix/impl30-nextday-adaptation-20261124']
   workflow_dispatch:
@@ -61,6 +62,11 @@ jobs:
           set -euo pipefail
           python -m unittest -v tests.test_kyoto_impl30_day_coverage tests.test_kyoto_impl30_profile_resume tests.test_kyoto_g04_all_horse_profiles tests.test_kyoto_g05_conditions tests.test_kyoto_g05_official_track tests.test_kyoto_safe_stop_artifact tests.test_kyoto_impl23_claim_preflight tests.test_kyoto_impl23_lease_window tests.test_kyoto_impl23_lease_clock tests.test_kyoto_impl23_claim_evidence tests.test_kyoto_impl23_pc_to_g06_real_lease tests.test_kyoto_impl23_weekend_entrypoint_claim tests.test_kyoto_impl23_production_claim_activation tests.test_kyoto_impl23_claim_continuation 2>&1 | tee impl30_preflight/former_live_slot_checks.log
           KYOTO_TARGET_DAY=20261115 python -m unittest -v tests.test_kyoto_nov15_two_original_observer 2>&1 | tee impl30_preflight/former_live_legacy.log
+      - name: Impl31 and Impl32 changed source regression
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m unittest -v tests.test_kyoto_impl32_auxiliary_track_reserve tests.test_kyoto_impl31_auxiliary_priority tests.test_kyoto_impl31_independent_track_union tests.test_kyoto_impl31_incident_triage tests.test_kyoto_impl31_launch_monitor tests.test_kyoto_impl31_launch_slot_contract tests.test_kyoto_impl31_sp_saved_roster_audit 2>&1 | tee impl30_preflight/impl31_32_delta.log
       - name: Existing foreseeable failure and reverse FMEA gates
         shell: bash
         run: |
