@@ -18,7 +18,7 @@ from diagnostics.kyoto_g03_all_races import links,acquire_all
 from diagnostics.kyoto_g03_independent_partial import verify_partial
 from diagnostics.kyoto_g03_to_g06_input_adapter import records_from_g03
 from diagnostics.kyoto_g05_conditions import compile_saved
-from diagnostics.kyoto_g05_official_track import capture_kyoto_track
+from diagnostics.kyoto_g05_official_track import capture_kyoto_track,KYOTO_TRACK_PAGE
 from diagnostics.kyoto_nov15_encrypted_evidence import encrypt_evidence,decrypt_evidence
 from diagnostics.kyoto_impl25_c12_all_runs_handoff import WEEKENDS,_date,_gh,_download
 from diagnostics.kyoto_g04_all_horse_profiles import _utc
@@ -112,6 +112,34 @@ def collect(root,*,day,starts,fetch,clock):
     (root/"receipt.json").write_text(json.dumps(report,ensure_ascii=False,sort_keys=True,indent=2)+"\n",encoding="utf8")
     return report
 
+def bounded_auxiliary_fetch(client,within,*,monotonic=time.monotonic,pacer=None,read=_read):
+    """Reserve one request and a start-time margin for independent track data.
+    Refusal and the existing overall budget still apply to both sources.
+    The margin is not a guarantee of HTTP completion (socket timeout is separate).
+    """
+    pacer=pacer if pacer is not None else RequestPacer(min_gap_seconds=2.0)
+    state={"requests":0,"refused":False}
+    end=monotonic()+180
+    def check(url):
+        track=url==KYOTO_TRACK_PAGE
+        if state["refused"] or not within() or state["requests"]>=15 or monotonic()>=end:
+            raise ValueError("auxiliary_request_budget_or_refusal")
+        if not track and (state["requests"]>=14 or monotonic()>=end-16):
+            raise ValueError("auxiliary_track_reserve")
+    def fetch(url):
+        check(url)
+        pacer.before_request()
+        check(url)  # pacing can cross either deadline or the live window
+        state["requests"]+=1
+        try:return read(client,url)
+        except HTTPError as exc:
+            if exc.code in (401,403,429):state["refused"]=True
+            raise
+        except ValueError:
+            state["refused"]=True
+            raise
+    return fetch,state
+
 def main():
     p=argparse.ArgumentParser();p.add_argument("--day",required=True,choices=DAYS);p.add_argument("--out",required=True,type=Path);a=p.parse_args()
     day=a.day;repo=os.environ["GITHUB_REPOSITORY"];rid=os.environ["GITHUB_RUN_ID"];key=os.environ["ARCHIVE_KEY"]
@@ -125,22 +153,11 @@ def main():
     # merely because it was not available. All HTTP still follows fresh links.
     starts=prior_starts(day,repo,key)
     client=build_opener(NoRedirect(),HTTPCookieProcessor(CookieJar()))
-    pacer=RequestPacer(min_gap_seconds=2.0);count=0;refused=False;end=time.monotonic()+180
-    def fetch(url):
-        nonlocal count,refused
-        if refused or not within() or count>=15 or time.monotonic()>=end:raise ValueError("auxiliary_request_budget_or_refusal")
-        pacer.before_request();count+=1
-        try:return _read(client,url)
-        except HTTPError as exc:
-            if exc.code in (401,403,429):refused=True
-            raise
-        except ValueError:
-            refused=True
-            raise
+    fetch,state=bounded_auxiliary_fetch(client,within)
     with tempfile.TemporaryDirectory(prefix="kyoto_aux_refresh_") as d:
         root=Path(d)/"raw";report=collect(root,day=day,starts=starts,fetch=fetch,clock=lambda:now().isoformat())
         encrypt_evidence(root,a.out,key_hex=key,repo=repo,run_id=rid)
-    print(json.dumps({"verified_races":report["verified_races"],"observed_field_values":report.get("observed_field_values",0),"http_requests":count,"source_only":True},sort_keys=True))
+    print(json.dumps({"verified_races":report["verified_races"],"observed_field_values":report.get("observed_field_values",0),"http_requests":state["requests"],"source_only":True},sort_keys=True))
 
 def saved_slots(day,repo,key):
     """Re-open encrypted afternoon artifacts; preserve errors and morning data."""
