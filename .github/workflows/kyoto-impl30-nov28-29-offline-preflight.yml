@@ -14,6 +14,7 @@ on:
       - 'fix/impl30-nextday-rehearsal-20261124'
       - 'fix/impl31-independent-nextday-fallback-20261125'
       - 'fix/impl32-p05-track-reserve-20261125'
+      - 'fix/impl32-sp-handoff-preservation-20261125'
   pull_request:
     branches: ['fix/impl29-weekend-20261128-29', 'fix/impl30-day-coverage-20261124', 'fix/impl30-auxiliary-refresh-20261124', 'fix/impl30-nextday-adaptation-20261124']
   workflow_dispatch:
@@ -66,7 +67,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          python -m unittest -v tests.test_kyoto_impl32_auxiliary_track_reserve tests.test_kyoto_impl31_auxiliary_priority tests.test_kyoto_impl31_independent_track_union tests.test_kyoto_impl31_incident_triage tests.test_kyoto_impl31_launch_monitor tests.test_kyoto_impl31_launch_slot_contract tests.test_kyoto_impl31_sp_saved_roster_audit 2>&1 | tee impl30_preflight/impl31_32_delta.log
+          python -m unittest -v tests.test_kyoto_impl32_auxiliary_track_reserve tests.test_kyoto_impl31_auxiliary_priority tests.test_kyoto_impl31_independent_track_union tests.test_kyoto_impl31_incident_triage tests.test_kyoto_impl31_launch_monitor tests.test_kyoto_impl31_launch_slot_contract tests.test_kyoto_impl31_sp_saved_roster_audit tests.test_kyoto_impl32_sp_handoff 2>&1 | tee impl30_preflight/impl31_32_delta.log
       - name: Existing foreseeable failure and reverse FMEA gates
         shell: bash
         run: |
