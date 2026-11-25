@@ -10,6 +10,14 @@ on:
       - 'diagnostics/kyoto_impl31_a2_schedule_proof.py'
       - '.github/workflows/kyoto-impl31-a2-no-jra-schedule.yml'
   workflow_dispatch:
+  workflow_call:
+    inputs:
+      external_probe:
+        type: boolean
+        default: false
+      external_sent_unix:
+        type: string
+        default: ''
 permissions:
   contents: read
 jobs:
@@ -18,6 +26,8 @@ jobs:
     timeout-minutes: 5
     env:
       GITHUB_EVENT_SCHEDULE: ${{ github.event.schedule }}
+      EXTERNAL_PROBE: ${{ inputs.external_probe || false }}
+      EXTERNAL_SENT_UNIX: ${{ inputs.external_sent_unix || '' }}
       REHEARSAL_COLLECTOR_SHA: 9e31ee7a50551eac480e31de7dd5c475a921e674
     steps:
       - uses: actions/checkout@v4
@@ -31,6 +41,11 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11.18'
+      - uses: actions/download-artifact@v4
+        if: ${{ inputs.external_probe == true }}
+        with:
+          name: kyoto18-external-timer-probe-${{ github.run_id }}
+          path: external_probe_receipt
       - run: |
           test "$(git -C collector rev-parse HEAD)" = "$REHEARSAL_COLLECTOR_SHA"
           python -m pip install --no-deps beautifulsoup4==4.15.0 soupsieve==4.1.3 typing-extensions==4.16.0 cryptography==46.0.7 cffi==2.1.1 pycparser==3.12
@@ -47,6 +62,8 @@ jobs:
     timeout-minutes: 5
     env:
       GITHUB_EVENT_SCHEDULE: ${{ github.event.schedule }}
+      EXTERNAL_PROBE: ${{ inputs.external_probe || false }}
+      EXTERNAL_SENT_UNIX: ${{ inputs.external_sent_unix || '' }}
       REHEARSAL_COLLECTOR_SHA: 9e31ee7a50551eac480e31de7dd5c475a921e674
     steps:
       - uses: actions/checkout@v4
@@ -64,6 +81,11 @@ jobs:
         with:
           name: a2-handoff-${{ github.run_id }}
           path: rehearsal_handoff
+      - uses: actions/download-artifact@v4
+        if: ${{ inputs.external_probe == true }}
+        with:
+          name: kyoto18-external-timer-probe-${{ github.run_id }}
+          path: external_probe_receipt
       - run: |
           test "$(git -C collector rev-parse HEAD)" = "$REHEARSAL_COLLECTOR_SHA"
           python -m pip install --no-deps beautifulsoup4==4.15.0 soupsieve==4.1.3 typing-extensions==4.16.0 cryptography==46.0.7 cffi==2.1.1 pycparser==3.12
