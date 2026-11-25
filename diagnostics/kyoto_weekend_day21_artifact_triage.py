@@ -79,6 +79,14 @@ def assess_lane(root,*,day,channel,key,repo,run_id):
                     result["sp_race_integrity"]=fresh["sp_race_integrity"]
                     result["sp_racewise_partial_integrity"]=fresh["source_verified"] is not True
             result["source_original_sha_utc_checked"]=True
+            if day=="20261129":
+                try:
+                    from diagnostics.kyoto_impl31_improvement_evaluation import receipt as validate_policy
+                    policy=source/"nextday_applied_policy.json"
+                    if policy.is_file() and not policy.is_symlink() and policy.stat().st_size<=8192:
+                        result["applied_policy"]=validate_policy(json.loads(policy.read_text()),channel)
+                except (OSError,ValueError,KeyError,TypeError,AttributeError):
+                    result["applied_policy_error"]="INVALID_OR_MISSING_POLICY_RECEIPT"
             if channel=="PC":
                 # Use decrypted source bytes directly; no summary flag is
                 # promoted to a day-wide source proof.

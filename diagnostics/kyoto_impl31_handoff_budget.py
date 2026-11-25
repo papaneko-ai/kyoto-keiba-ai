@@ -146,6 +146,7 @@ def gather_bounded(day, repo, *, invoke=_invoke, clock=time.monotonic, budget=BU
         if e['run'].get('event')=='workflow_dispatch':
             manual.append({'run_id':e['run']['id'],'authenticated_pc_slot':verified,'state':e.get('metadata_error',source.get('state','NO_SOURCE_ASSESSMENT'))})
     report['manual_source_assessment']=manual
+    report['authenticated_applied_policies']=[{'run_id':e['run']['id'],'event':e['run']['event'],'channel':lane,'policy':v['applied_policy']} for e in entries for lane,v in e.get('source_assessment',{}).items() if v.get('ciphertext_authenticated') is True and v.get('source_original_sha_utc_checked') is True and isinstance(v.get('applied_policy'),dict)]
     report['handoff_budget']={'limit_seconds':budget,'worker_limit':WORKERS,'source_tasks':len(work),'main_index_complete':complete,'auxiliary_index_complete':aux_complete,'deadline_exhausted':clock()>=end}
     try:
         coverage=combine(day,slots+aux_slots)
