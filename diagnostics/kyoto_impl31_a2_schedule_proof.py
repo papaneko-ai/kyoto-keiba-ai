@@ -13,6 +13,43 @@ KEY='ab'*32 # public test key, never production key
 def write(p,v):
     p.write_text(json.dumps(v,sort_keys=True,indent=2)+'\n',encoding='utf8')
 def sha(p): return hashlib.sha256(p.read_bytes()).hexdigest()
+def external_context(event,run):
+    """Bind probe and A2 artifacts to the same real run, not the same clock claim.
+    A workflow_dispatch event never proves Cloudflare itself or native schedule.
+    PR path is a rehearsal with the real GitHub artifact transport only.
+    """
+    p=Path('external_probe_receipt/receipt.json')
+    if p.is_symlink() or not p.is_file() or not 0<p.stat().st_size<=8192:
+        raise ValueError('missing_external_probe_receipt')
+    d=json.loads(p.read_text(encoding='utf8'))
+    if (d.get('event')!=event or d.get('run_id')!=run or d.get('head_sha')!=os.getenv('GITHUB_SHA')
+        or d.get('result')!='PASS_NO_JRA_DIAGNOSTIC' or type(d.get('jra_http_requests')) is not int
+        or d['jra_http_requests']!=0 or d.get('data_collection_performed') is not False
+        or d.get('external_provider_proven') is not False or d.get('scheduled_provider_log_verified') is not False):
+        raise ValueError('external_probe_identity')
+    sent=os.getenv('EXTERNAL_SENT_UNIX','')
+    slot=None
+    if event=='pull_request':
+        if sent or d.get('external_timer_send_unix') is not None or d.get('post_to_job_seconds') is not None:
+            raise ValueError('invalid_pr_fixture')
+    elif event=='workflow_dispatch':
+        if os.getenv('GITHUB_REF')!='refs/heads/main' or not re.fullmatch('[0-9]{10}',sent) or d.get('external_timer_send_unix')!=int(sent):
+            raise ValueError('external_dispatch_input_mismatch')
+        stamp=datetime.fromisoformat(d['started_observed_utc'])
+        if stamp.utcoffset()!=timezone.utc.utcoffset(None):raise ValueError('external_probe_not_utc')
+        latency=stamp.timestamp()-int(sent)
+        if not -30<latency<86400 or abs(float(d['post_to_job_seconds'])-round(latency,2))>0.02:
+            raise ValueError('external_probe_latency_mismatch')
+        for expected in (1795652520,1795654320):
+            if -30<=int(sent)-expected<=300:slot=expected
+    else:raise ValueError('unsupported_external_event')
+    return dict(external_probe_artifact_sha256=sha(p),external_probe_artifact_verified=True,
+        external_dispatch_observed=event=='workflow_dispatch',external_expected_slot_unix=slot,
+        external_timer_send_unix=d.get('external_timer_send_unix'),
+        external_post_to_job_seconds=d.get('post_to_job_seconds'),
+        external_provider_proven=False,scheduled_provider_log_verified=False,
+        external_pr_fixture=event=='pull_request')
+
 def context():
     event=os.getenv('GITHUB_EVENT_NAME','local')
     cron=os.getenv('GITHUB_EVENT_SCHEDULE','')
@@ -23,7 +60,9 @@ def context():
     allowed_cron={'0 3 25 11 *':'20261125','30 3 25 11 *':'20261125','15 0 26 11 *':'20261126','45 0 26 11 *':'20261126'}
     actual=event=='schedule' and cron in allowed_cron and os.getenv('GITHUB_REF')=='refs/heads/main' and run!='0' and datetime.now(timezone.utc).strftime('%Y%m%d')==allowed_cron[cron]
     if event=='schedule' and not actual:raise ValueError('not_exact_rehearsal_date_or_ref')
-    return dict(event=event,cron=cron,run_id=run,collector_sha=collector,repo=repo,actual_schedule_event=actual)
+    c=dict(event=event,cron=cron,run_id=run,collector_sha=collector,repo=repo,actual_schedule_event=actual)
+    if os.getenv('EXTERNAL_PROBE','false')=='true':c.update(external_context(event,run))
+    return c
 def prepare(out):
     c=context();out.mkdir(parents=True)
     report={'day':'20261128','next_day':'20261129','all_run_metadata_screened':False,'github_run_listing_complete':False,'scheduled_runs':[{'run':{'id':44854931835,'event':'schedule','created_at':'2026-11-28T01:00:00Z','status':'completed'},'state':'ALL_LANES_CLASSIFIED','lanes':{'PC':{'job_conclusion':'failure','job_state':'FAILED_WITH_ARTIFACT','failure_stage':'OFFLINE_REGRESSION','artifact_evidence_state':'PRE_HTTP_SAFE_STOP_NO_SOURCE'}}}], 'rehearsal_only':True}

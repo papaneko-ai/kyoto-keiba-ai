@@ -4,6 +4,11 @@ on:
     branches: [main]
     paths:
       - '.github/workflows/kyoto-implementation18-external-timer-probe.yml'
+  pull_request:
+    paths:
+      - '.github/workflows/kyoto-implementation18-external-timer-probe.yml'
+      - '.github/workflows/kyoto-impl31-a2-no-jra-schedule.yml'
+      - 'diagnostics/kyoto_impl31_a2_schedule_proof.py'
   workflow_dispatch:
     inputs:
       sent_unix:
@@ -70,3 +75,10 @@ jobs:
           path: external_timer_probe_receipt/
           if-no-files-found: error
           retention-days: 30
+  external-a2-evidence-chain:
+    needs: timestamp-and-evidence
+    if: ${{ github.event_name == 'pull_request' || (github.event_name == 'workflow_dispatch' && inputs.sent_unix != '') }}
+    uses: ./.github/workflows/kyoto-impl31-a2-no-jra-schedule.yml
+    with:
+      external_probe: true
+      external_sent_unix: ${{ inputs.sent_unix || '' }}
