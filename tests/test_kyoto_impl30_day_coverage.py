@@ -99,16 +99,22 @@ class ActualOriginalTests(unittest.TestCase):
 
 class HandoffConnection(unittest.TestCase):
     def test_only_authenticated_slot_is_aggregated_in_next_week_handoff(self):
-        day="20261128";workflow=WEEKENDS[day][0]
+        from diagnostics.kyoto_impl31_handoff_budget import gather_bounded,_worker
+        day="20261128";workflow,filename,_=WEEKENDS[day];repo="papaneko-ai/kyoto-keiba-ai"
         def api(path):
-            if "/runs?" in path:return {"total_count":1,"workflow_runs":[{"id":101,"event":"schedule","name":workflow,"created_at":"2026-11-28T00:15:00Z","status":"completed","conclusion":"success"}]}
+            if "auxiliary-refresh.yml/runs?" in path:return {"total_count":0,"workflow_runs":[]}
+            if "/runs?" in path:return {"total_count":1,"workflow_runs":[{"id":101,"event":"schedule","name":workflow,"created_at":"2026-11-28T00:15:00Z","status":"completed","conclusion":"success","head_repository":{"full_name":repo},"path":".github/workflows/"+filename}]}
             if "/jobs?" in path:return {"total_count":2,"jobs":[{"name":"pc-originals-independent","conclusion":"success","steps":[]},{"name":"sp-originals-independent","conclusion":"success","steps":[]}]}
             return {"total_count":1,"artifacts":[{"name":"kyoto-pc-101-20261128","expired":False}]}
         result={"state":"SOURCE_ONLY","ciphertext_authenticated":True,"source_original_sha_utc_checked":True,"day_coverage_slot":{"day":day,"run_id":"101","races":{}}}
-        with patch("diagnostics.kyoto_impl25_c12_all_runs_handoff._gh",side_effect=api),patch("diagnostics.kyoto_impl25_c12_all_runs_handoff._download"),patch("diagnostics.kyoto_impl25_c12_all_runs_handoff.assess_lane",return_value=result):
-            report=gather(day,"papaneko-ai/kyoto-keiba-ai")
+        with patch("diagnostics.kyoto_impl25_c12_all_runs_handoff._gh",side_effect=api),patch("diagnostics.kyoto_impl25_c12_all_runs_handoff._download"),patch("diagnostics.kyoto_weekend_day21_artifact_triage.assess_lane",return_value=result),patch("diagnostics.kyoto_impl31_handoff_budget.gather_bounded",side_effect=lambda d,r:gather_bounded(d,r,invoke=lambda task,end:_worker(*task))):
+            report=gather(day,repo)
         self.assertEqual(report["day_source_coverage"]["authenticated_pc_slots"],1)
         self.assertEqual(report["day_source_coverage"]["race_denominator"],12)
         self.assertFalse(report["day_source_coverage"]["full_data_acquisition_certified"])
+        result["ciphertext_authenticated"]=False
+        with patch("diagnostics.kyoto_impl25_c12_all_runs_handoff._gh",side_effect=api),patch("diagnostics.kyoto_impl25_c12_all_runs_handoff._download"),patch("diagnostics.kyoto_weekend_day21_artifact_triage.assess_lane",return_value=result),patch("diagnostics.kyoto_impl31_handoff_budget.gather_bounded",side_effect=lambda d,r:gather_bounded(d,r,invoke=lambda task,end:_worker(*task))):
+            rejected=gather(day,repo)
+        self.assertEqual(rejected["day_source_coverage"]["authenticated_pc_slots"],0)
 
 if __name__=="__main__":unittest.main()
