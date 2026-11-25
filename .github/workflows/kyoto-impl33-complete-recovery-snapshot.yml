@@ -1,0 +1,127 @@
+name: Kyoto Impl33 complete recovery source snapshot
+on:
+  push:
+    branches: ['backup/impl32-to-impl33-20261125']
+permissions:
+  contents: read
+  actions: read
+jobs:
+  recovery:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+          persist-credentials: true
+      - name: Pin and export complete source trees and history
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p snapshot/source snapshot/history evidence
+          git fetch --no-tags origin '+refs/heads/*:refs/remotes/origin/*'
+          python - <<'PY'
+          import json,subprocess,pathlib,hashlib,tarfile,io
+          root=pathlib.Path('snapshot')
+          specs=json.loads("{\"main\":[\"main\",\"da0ec3f3606135b4cc0e187b67b62a8718a3fbf9\"],\"development\":[\"jra-html-diagnostic-20261105\",\"71863f2aa20b6cba459ec365ebfb9035c06e548a\"],\"collector\":[\"fix/impl32-truthful-no-source-20261125\",\"88ae67220260fe511e0f7743c44a2955e3206662\"],\"production_candidate\":[\"fix/impl31-weekend-production-integration-20261125\",\"218924f1fc40545630852861f6a953c420e9f78a\"],\"fmea\":[\"fix/impl32-fmea-evidence-closure-20261125\",\"ee8f8d308ac1c5c130ce94b1c40908b06363dfaf\"],\"workout\":[\"fix/impl32-p05-preserved-workout-intake-20261125\",\"82e2df457c96970ec5ea0e648edc9fbc26528a85\"],\"historical_sp\":[\"fix/impl32-historical-sp12-proof-20261125\",\"84fe7b8d7026ab71bf067efc7ff687a626a0fd1f\"],\"historical_parity\":[\"fix/impl32-sp12-historical-parity-20261125\",\"3582601dca6720e03a271228f621fbb4c4105659\"],\"a2\":[\"fix/impl32-a2-external-rehearsal-link-20261125\",\"0f0228dfdb01001809d8cf2020324611babdf1ed\"],\"previous_recovery\":[\"backup/impl31-to-impl32-20261125\",\"e2067c5bd6277b10f71b92a756a2ddd48cabf562\"],\"prior_snapshot\":[\"backup/impl32-delivery-snapshot-20261125\",\"e1b73173e160dcd0d3b6ac323ae88f62a16ad0d8\"]}")
+          result={}
+          for label,(branch,sha) in specs.items():
+              actual=subprocess.check_output(['git','rev-parse','refs/remotes/origin/'+branch],text=True).strip()
+              assert actual==sha,(branch,actual,sha)
+              if label.endswith('_backup'):continue
+              dest=root/'source'/label;dest.mkdir()
+              raw=subprocess.check_output(['git','archive','--format=tar',sha])
+              with tarfile.open(fileobj=io.BytesIO(raw)) as t:
+                  for m in t.getmembers():
+                      assert not m.name.startswith('/') and '..' not in pathlib.PurePosixPath(m.name).parts and (m.isfile() or m.isdir()),m.name
+                  t.extractall(dest)
+              records={}
+              for rec in subprocess.check_output(['git','ls-tree','-r','-z',sha]).split(b'\0'):
+                  if not rec:continue
+                  meta,name=rec.split(b'\t',1);mode,typ,blob=meta.decode().split()
+                  assert typ=='blob' and mode in ('100644','100755'),(label,name,mode)
+                  p=dest/name.decode();data=p.read_bytes()
+                  assert hashlib.sha1(b'blob '+str(len(data)).encode()+b'\0'+data).hexdigest()==blob,(label,name)
+                  records[name.decode()]={'git_blob':blob,'bytes':len(data),'sha256':hashlib.sha256(data).hexdigest(),'mode':mode}
+              assert set(records)=={str(p.relative_to(dest)) for p in dest.rglob('*') if p.is_file()}
+              result[label]={'branch':branch,'sha':sha,'tree':subprocess.check_output(['git','rev-parse',sha+'^{tree}'],text=True).strip(),'files':records}
+              print('SOURCE_TREE_VERIFIED',label,len(records),sha)
+          (root/'handoff.md').write_bytes(pathlib.Path('docs/KYOTO_IMPL33_START_HERE_20261125.md').read_bytes())
+          (root/'source_inventory.json').write_text(json.dumps(result,sort_keys=True,ensure_ascii=False),encoding='utf8')
+          (root/'fixed_refs.json').write_text(json.dumps(specs,sort_keys=True),encoding='utf8')
+          PY
+          git bundle create snapshot/history/repository-all-refs.bundle --all
+          git bundle verify snapshot/history/repository-all-refs.bundle > snapshot/history/bundle-verification.txt 2>&1
+          git bundle list-heads snapshot/history/repository-all-refs.bundle > snapshot/history/bundle-heads.txt
+          git clone --mirror snapshot/history/repository-all-refs.bundle /tmp/impl32-bundle-verify.git
+          git --git-dir=/tmp/impl32-bundle-verify.git fsck --no-reflogs --connectivity-only
+          python - <<'PY'
+          import json,subprocess,pathlib
+          specs=json.loads(pathlib.Path('snapshot/fixed_refs.json').read_text())
+          for label,(branch,sha) in specs.items():
+              actual=subprocess.check_output(['git','--git-dir=/tmp/impl32-bundle-verify.git','rev-parse','refs/remotes/origin/'+branch],text=True).strip()
+              assert actual==sha,(label,actual)
+          print('BUNDLE_RESTORED_ALL_PINNED_REFS')
+          PY
+          python - <<'PY'
+          import zipfile,pathlib
+          with zipfile.ZipFile('CURRENT_SOURCE_HISTORY.zip','w',zipfile.ZIP_DEFLATED,compresslevel=6) as z:
+              for p in sorted(pathlib.Path('snapshot').rglob('*')):
+                  if p.is_file():z.write(p,str(p))
+          PY
+      - name: Preserve actual acquisition and CI artifacts from exact runs
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json,subprocess,pathlib,hashlib,zipfile
+          runs=[45556529032,45556690028,45557327884,45557572742,45557579776,45557579764,45557579836,45557786901,45557786851,45557786949,45557717165,45557717245,45557717128,45557838867,45558381201,45558580736,44966013490,44966654858,44984067104,45559403903,45559403947,45559572433,45559572446,45559572592,45559930862,45560960867,45560960866,45561089864,45561089979,45561089987,45561532491,45561696180,45561696207,45561696324,45562376183]
+          root=pathlib.Path('evidence')
+          index=[]
+          def api(path):return json.loads(subprocess.check_output(['gh','api',path],text=True,timeout=30))
+          import os
+          repo=os.environ['GITHUB_REPOSITORY']
+          for run in runs:
+              base=f'repos/{repo}/actions/runs/{run}'
+              r=api(base);j=api(base+'/jobs?per_page=100');a=api(base+'/artifacts?per_page=100')
+              assert j['total_count']==len(j['jobs']) and a['total_count']==len(a['artifacts'])
+              item={'run_id':run,'head_sha':r['head_sha'],'status':r['status'],'conclusion':r['conclusion'],'event':r['event'],'workflow':r['name'],'artifacts':[]}
+              # Keep metadata, not environment or logs containing credentials.
+              (root/f'run-{run}.json').write_text(json.dumps({'run':r,'jobs':j,'artifacts':a},ensure_ascii=False,sort_keys=True))
+              for art in a['artifacts']:
+                  entry={'id':art['id'],'name':art['name'],'expired':art['expired']}
+                  if not art['expired']:
+                      p=root/f'artifact-{art["id"]}.zip'
+                      with p.open('wb') as out:
+                          subprocess.run(['gh','api',f'repos/{repo}/actions/artifacts/{art["id"]}/zip'],stdout=out,check=True,timeout=60)
+                      with zipfile.ZipFile(p) as z:
+                          assert z.testzip() is None,p
+                      entry.update(bytes=p.stat().st_size,sha256=hashlib.sha256(p.read_bytes()).hexdigest(),file=p.name)
+                      if art.get('digest'):assert art['digest']=='sha256:'+entry['sha256'],p
+                  item['artifacts'].append(entry)
+              index.append(item)
+              print('EVIDENCE_RUN',run,r['conclusion'],len(a['artifacts']))
+          for n in (113,116,119,121):
+              p=f'repos/{repo}/issues/{n}'
+              (root/f'issue-{n}.json').write_text(json.dumps({'issue':api(p),'comments':api(p+'/comments?per_page=100')},ensure_ascii=False,sort_keys=True))
+          (root/'index.json').write_text(json.dumps(index,ensure_ascii=False,sort_keys=True))
+          with zipfile.ZipFile('CURRENT_ACTIONS_EVIDENCE.zip','w',zipfile.ZIP_STORED) as z:
+              for p in sorted(root.iterdir()):z.write(p,'evidence/'+p.name)
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: impl33-complete-source-snapshot-${{ github.run_id }}
+          path: CURRENT_SOURCE_HISTORY.zip
+          retention-days: 90
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: impl33-actions-evidence-${{ github.run_id }}
+          path: CURRENT_ACTIONS_EVIDENCE.zip
+          retention-days: 90
+          if-no-files-found: error
