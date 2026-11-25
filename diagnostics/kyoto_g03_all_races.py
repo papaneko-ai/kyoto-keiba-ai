@@ -152,7 +152,7 @@ def audit(day, meeting_original, meeting_url, fetch, utc, output):
 
 
 # Stable production adapter used by the pinned development capture workflow.
-def acquire_all(*,day,root,meeting_raw,meeting_url,fetch,captured_at_utc,allowed=False):
+def acquire_all(*,day,root,meeting_raw,meeting_url,fetch,captured_at_utc,allowed=False,race_order=None):
     if allowed is not True: raise CoverageRejected("explicit_capture_authorization_required")
     root=Path(root)
     if root.exists() or root.is_symlink() or not root.parent.is_dir():
@@ -160,10 +160,13 @@ def acquire_all(*,day,root,meeting_raw,meeting_url,fetch,captured_at_utc,allowed
     root.mkdir()
     (root/"official_meeting.html").write_bytes(meeting_raw)
     found=links(meeting_raw,meeting_url,day)
+    order=list(range(1,13)) if race_order is None else list(race_order)
+    if any(type(n) is not int for n in order) or sorted(order)!=list(range(1,13)):
+        raise CoverageRejected("invalid_race_order")
     report={"schema":"kyoto_g03_all_races.v1","day":day,"meeting_url":meeting_url,
             "meeting_sha256":hashlib.sha256(meeting_raw).hexdigest(),
             "observed_races":sorted(found),"races":{},"complete":False,"prediction_ready":False}
-    for race in range(1,13):
+    for race in order:
         if race not in found:
             report["races"][str(race)]={"state":"OFFICIAL_LINK_NOT_OBSERVED"};continue
         try:

@@ -20,6 +20,7 @@ from diagnostics.kyoto_g06_item_level_recovery import recover_saved_markets
 
 MARKETS=("quinella","bracket_quinella")
 TRACK=("weather","turf_going","dirt_going")
+TRACK_EXTRA=("turf_moisture_finish_pct","turf_moisture_turn4_pct","dirt_moisture_finish_pct","dirt_moisture_turn4_pct")
 HORSE=("profile","prior_form","body_weight_kg","body_weight_change_kg","workout")
 DAYS=("20261121","20261122","20261128","20261129")
 
@@ -30,13 +31,39 @@ def proof(sha,utc,value=None):
     if not isinstance(sha,str) or not re.fullmatch(r"[0-9a-f]{64}",sha):raise ValueError("invalid_original_digest")
     return {"sha256":sha,"utc":_utc(utc).isoformat(),"value_digest":digest(value)}
 
+def independent_track(root,day):
+    """Replay the independent official track original, not its summary flags."""
+    from diagnostics.kyoto_g05_official_track import parse_kyoto_track,KYOTO_TRACK_PAGE,MAX_HTML
+    original=root/"g05_official_kyoto_track.html"
+    receipt=root/"g05_track_receipt.json"
+    if any(p.is_symlink() or not p.is_file() or not 0<p.stat().st_size<=MAX_HTML for p in (original,receipt)):
+        return {}
+    try:
+        stored=json.loads(receipt.read_text(encoding="utf8"))
+        stamp=_utc(stored["captured_at_utc"])
+        requested=_utc(stored["requested_at_utc"])
+        if stamp.strftime("%Y%m%d")!=day or requested.strftime("%Y%m%d")!=day or requested>stamp:return {}
+        replay=parse_kyoto_track(original.read_bytes(),day,KYOTO_TRACK_PAGE,stamp.isoformat())
+        if stored!={**replay,"requested_at_utc":requested.isoformat()} or replay["same_day_official_meeting_heading_verified"] is not True:return {}
+        return {k:{**proof(replay["source_sha256"],stamp.isoformat(),replay[k]),
+                   "source_kind":"OFFICIAL_INDEPENDENT_TRACK_PAGE","publication_time_independently_verified":False}
+                for k in TRACK+TRACK_EXTRA if replay.get(k) is not None}
+    except (OSError,ValueError,KeyError,TypeError,AttributeError):return {}
+
 def extract_slot(root,day,run_id):
     """Called inside authenticated decryption scope, no extra downloads/HTTP."""
     if day not in DAYS or not str(run_id).isdigit():raise ValueError("slot_identity")
     root=Path(root)
-    verified=verify_partial(root,expected_day=day)["verified_race_numbers"]
-    records=records_from_g03(root,day=day,skip_invalid_races=True)
-    g03=json.loads((root/"g03_receipt.json").read_text(encoding="utf8"))
+    track=independent_track(root,day) if day in ("20261128","20261129") else {}
+    try:
+        verified=verify_partial(root,expected_day=day)["verified_race_numbers"]
+        records=records_from_g03(root,day=day,skip_invalid_races=True)
+        g03=json.loads((root/"g03_receipt.json").read_text(encoding="utf8"))
+    except (OSError,ValueError,KeyError,TypeError):
+        if not track:raise
+        # Track evidence survives an unrelated racecard failure. No roster
+        # or race coverage is inferred from the course-level page.
+        return {"day":day,"run_id":str(run_id),"races":{},"independent_track":track}
     try:profiles=candidates(root,day,run_id)
     except (ValueError,TypeError,KeyError,OSError):profiles={}
     output={}
@@ -108,7 +135,7 @@ def extract_slot(root,day,run_id):
                         row["paired_same_slot"]=verified["both_markets_verified"]
                     except (ValueError,TypeError,KeyError,OSError):continue
         except (ValueError,TypeError,KeyError,OSError,tarfile.TarError):pass
-    return {"day":day,"run_id":str(run_id),"races":output}
+    return {"day":day,"run_id":str(run_id),"races":output,**({"independent_track":track} if track else {})}
 
 def combine(day,slots):
     """Union by exact roster, never sum slot totals; latest bound observations."""
@@ -163,6 +190,11 @@ def combine(day,slots):
         for section,fields in (("track",TRACK),("markets",MARKETS)):
             for f in fields:
                 result=choose([(r,x[section].get(f)) for r,x in rows])
+                if section=="track" and result["state"]=="MISSING" and day in ("20261128","20261129"):
+                    # Fill only a missing field; never override a racecard
+                    # observation or suppress a same-timestamp conflict.
+                    # The existing choose() enforces the race start cutoff.
+                    result=choose([(s["run_id"],s.get("independent_track",{}).get(f)) for s in accepted])
                 row[section][f]=result
                 totals[f]+=int(result["state"]=="SOURCE_VERIFIED")
                 if result["state"]!="SOURCE_VERIFIED":row["missing"].append(f"{f}:{result['state']}")
@@ -172,6 +204,27 @@ def combine(day,slots):
         totals["paired_same_slot_races"]+=int(row["paired_same_slot"])
         if not row["paired_same_slot"]:row["missing"].append("paired_market_same_slot")
         row["missing"]+=["official_result","official_payout"]
+    # Supplementary moisture observations remain separate from the fixed
+    # coverage counters and are never treated as measured publication times.
+    if day in ("20261128","20261129"):
+        for row in races.values():
+            if row.get("state")!="ROSTER_VERIFIED":continue
+            cutoff=_utc(row["start_utc"])
+            observations={}
+            for field in TRACK_EXTRA:
+                eligible=[]
+                for slot in accepted:
+                    p=slot.get("independent_track",{}).get(field)
+                    if not p:continue
+                    try:
+                        stamp=_utc(p["utc"])
+                        if stamp.strftime("%Y%m%d")==day and stamp<cutoff and re.fullmatch(r"[0-9a-f]{64}",p["sha256"]):eligible.append((stamp,slot["run_id"],p))
+                    except (ValueError,TypeError,KeyError,AttributeError):continue
+                if not eligible:continue
+                latest=max(x[0] for x in eligible);same=[x for x in eligible if x[0]==latest]
+                if len({x[2]["value_digest"] for x in same})!=1:continue
+                _,rid,p=max(same,key=lambda x:str(x[1]));observations[field]={"state":"SOURCE_VERIFIED", "run_id":rid,**p}
+            row["supplementary_track_observations"]=observations
     return {"schema":"kyoto_impl30_day_source_coverage.v1","day":day,"authenticated_pc_slots":len(accepted),
             "totals":totals,"race_denominator":12,"horse_denominator_complete":totals["racecards"]==12,
             "races":races,"full_data_acquisition_certified":False,"prediction_ready":False}

@@ -1242,14 +1242,14 @@
     "diagnostics/jra_source_router.py": "d7eae104adecd60374ac0b6cc9ee622f9e47df95",
     "diagnostics/kyoto_p1_nov14_official_one_shot_nav.py": "0aa2e6e53cb78f317d77c001ce55e101f45b8c50",
     "diagnostics/kyoto_safe_stop_artifact.py": "72201d3149cf8f33e7c7cff5fe18118363ac0890",
-    "diagnostics/kyoto_g03_all_races.py": "f4eb6b579f14b6ce0fb741f96be74a269581fdb6",
+    "diagnostics/kyoto_g03_all_races.py": "299fccd184cd65212cc9c393413f2947fe15c41c",
     "diagnostics/kyoto_g03_weekend_bridge.py": "5f3e4011f84738a057520434ad83351a7d3e0d27",
     "diagnostics/kyoto_g04_all_horse_profiles.py": "540344bcad1cafd723bd474ddf580a56bc3b9931",
     "diagnostics/jra_pending_profile_plan.py": "799e3f11b7a96e6c5fec9796954a2b5ca6e07d1d",
     "diagnostics/jra_prior_form_offline.py": "bd986d15d642dd8388643825941893d3a8c69045",
     "diagnostics/kyoto_g03_proof_verify.py": "9eb905f489b050c842b2793bd43e1c5385d77df0",
     "diagnostics/kyoto_g05_conditions.py": "e582c7dd548394d035559444293165d29e6dcd72",
-    "diagnostics/kyoto_g05_official_track.py": "a7aafb5503f2af57940188613186f810165b36ab",
+    "diagnostics/kyoto_g05_official_track.py": "9d377df996b91b87baf453324840792563a62940",
     "diagnostics/kyoto_g06_missing_market_retry.py": "dc0c2ce19b36600293f76bc30179b525f450f2d3"
   },
   "revision_note": "Impl30 exact source re-enumeration, 29 registered modules compared; changed source functions reopened, not certified. Historical ledger preserved in parent; all 25 risk records unchanged.",
@@ -1553,6 +1553,25 @@
         "source": "diagnostics/jra_official_market_navigation.py",
         "old_blob": "f452e6e0778fb9d86af7fa232092892c6ff11f34",
         "new_blob": "b3b003e0594f01965482769c8aa86734834fdfe8",
+        "review_status": "UNREVIEWED_INDEPENDENT_FMEA",
+        "closed_risks": 0
+      }
+    ]
+  },
+  "impl31_auxiliary_track_reopen": {
+    "reason": "Preserve independent official track observations across slots, extract bounded moisture table and prioritize verified approaching start times; all-horse workout source not certified.",
+    "sources": [
+      {
+        "source": "diagnostics/kyoto_g03_all_races.py",
+        "old_blob": "f4eb6b579f14b6ce0fb741f96be74a269581fdb6",
+        "new_blob": "299fccd184cd65212cc9c393413f2947fe15c41c",
+        "review_status": "UNREVIEWED_INDEPENDENT_FMEA",
+        "closed_risks": 0
+      },
+      {
+        "source": "diagnostics/kyoto_g05_official_track.py",
+        "old_blob": "a7aafb5503f2af57940188613186f810165b36ab",
+        "new_blob": "9d377df996b91b87baf453324840792563a62940",
         "review_status": "UNREVIEWED_INDEPENDENT_FMEA",
         "closed_risks": 0
       }

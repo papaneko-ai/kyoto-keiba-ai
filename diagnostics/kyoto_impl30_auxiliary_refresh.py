@@ -11,7 +11,8 @@ from pathlib import Path
 from urllib.error import HTTPError
 from urllib.request import build_opener,HTTPCookieProcessor
 from http.cookiejar import CookieJar
-from diagnostics.kyoto_nov15_two_original_observer import SOURCE,_parse_kyoto,_read,NoRedirect
+from diagnostics.kyoto_nov15_two_original_observer import SOURCE,_read,NoRedirect
+from diagnostics.jra_official_link_repair import unique_observed
 from diagnostics.jra_one_shot_market_capture import RequestPacer
 from diagnostics.kyoto_g03_all_races import links,acquire_all
 from diagnostics.kyoto_g03_independent_partial import verify_partial
@@ -76,7 +77,7 @@ def collect(root,*,day,starts,fetch,clock):
     try:
         selection=fetch(SOURCE)
         (root/"official_selection.html").write_bytes(selection)
-        meeting_url,label=_parse_kyoto(selection,SOURCE)
+        meeting_url=unique_observed(selection,SOURCE,lambda label,token: "京都" in label and day in token)
         meeting=fetch(meeting_url)
         observed=links(meeting,meeting_url,day)
         chosen=targets(observed,starts,_utc(clock()))
@@ -90,7 +91,8 @@ def collect(root,*,day,starts,fetch,clock):
         stage=root/"g03_tmp"
         try:
             acquire_all(day=day,root=stage,meeting_raw=meeting,meeting_url=meeting_url,
-                        fetch=selected_fetch,captured_at_utc=clock,allowed=True)
+                        fetch=selected_fetch,captured_at_utc=clock,allowed=True,
+                        race_order=chosen+[n for n in range(1,13) if n not in chosen])
         finally:
             if stage.is_dir():
                 for p in stage.iterdir():

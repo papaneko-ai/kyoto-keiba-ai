@@ -62,6 +62,27 @@ def parse_kyoto_track(raw,day,source_url,captured_at_utc):
     for surf,key in (("芝","turf_going"),("ダート","dirt_going")):
         m=re.findall(rf"(?:^|\s){surf}\s*(良|稍重|重|不良)(?=\s|$)",status)
         out[key]=m[0] if len(set(m))==1 and m else None
+    # The official table is separate from explanatory condition tables.
+    # Accept only the unique exact heading/column/row combination. Values
+    # describe the saved observation; the measurement time is not inferred.
+    moisture=[]
+    for table in soup.select("table"):
+        caption=table.find("caption")
+        if caption is None or "".join(caption.stripped_strings)!="ゴール前と4コーナーの含水率":continue
+        rows=[[c.get_text(" ",strip=True) for c in tr.find_all(["th","td"],recursive=False)] for tr in table.select("tr")]
+        rows=[r for r in rows if r]
+        if len(rows)!=3 or rows[0][-2:]!=["ゴール前","4コーナー"]:continue
+        values={}
+        for cells in rows[1:]:
+            if len(cells)!=3 or cells[0] not in ("芝","ダート") or cells[0] in values:break
+            if any(not re.fullmatch(r"(?:[0-9]{1,2}(?:\.[0-9]+)?|100(?:\.0+)?)\s*%?",v) for v in cells[1:]):break
+            nums=[float(v.rstrip(" %")) for v in cells[1:]]
+            if any(not 0<=v<=100 for v in nums):break
+            values[cells[0]]=nums
+        if set(values)=={"芝","ダート"}:moisture.append(values)
+    if len(moisture)==1:
+        for surface,prefix in (("芝","turf"),("ダート","dirt")):
+            out[prefix+"_moisture_finish_pct"],out[prefix+"_moisture_turn4_pct"]=moisture[0][surface]
     out["state"]="SAME_DAY_KYOTO_SOURCE_SAVED_FIELDS_UNVERIFIED" if not any(
         out[key] is not None for key in ("weather","turf_going","dirt_going")
     ) else "SAME_DAY_KYOTO_SOURCE_PARTIALLY_PARSED"

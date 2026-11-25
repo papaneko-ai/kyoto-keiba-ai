@@ -117,4 +117,7 @@ class HandoffConnection(unittest.TestCase):
             rejected=gather(day,repo)
         self.assertEqual(rejected["day_source_coverage"]["authenticated_pc_slots"],0)
 
+from tests.test_kyoto_impl31_auxiliary_priority import Aux
+from tests.test_kyoto_impl31_independent_track_union import TrackUnion
+
 if __name__=="__main__":unittest.main()
