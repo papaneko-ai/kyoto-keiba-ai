@@ -3,7 +3,7 @@ import hashlib,json,os,tempfile,re
 from pathlib import Path
 from bs4 import BeautifulSoup
 from diagnostics.kyoto_nov15_encrypted_evidence import decrypt_evidence
-from diagnostics.kyoto_impl31_sp_saved_roster_audit import exact_mobile_race,inspect_heading
+from diagnostics.kyoto_impl31_sp_saved_roster_audit import exact_mobile_race,inspect_heading,inspect_observed_layout
 from diagnostics.kyoto_weekend_sp_discovery import observed_kyoto_race_candidates
 from urllib.parse import parse_qs,urlsplit
 def main():
@@ -39,6 +39,8 @@ def main():
             row={'race':n,'prefix':token[7:9],'source_sha256':x['sha256'],'exact_url_accepted':True,'observed_anchor_counts':{k:len(v) for k,v in found.items()},'number_cells':nums,'headings':headings}
             try:row['strict_roster_count']=len(inspect_heading(raw,day,n))
             except (ValueError,UnicodeError) as exc:row['strict_roster_error']=type(exc).__name__+':'+str(exc)[:80]
+            try:row['split_layout']=inspect_observed_layout(raw,day,n)
+            except (ValueError,UnicodeError) as exc:row['split_layout_error']=type(exc).__name__+':'+str(exc)[:80]
             rows.append(row)
         report={'day':day,'scope':'HISTORICAL_ONLY','exact_urls_accepted':len(rows),'source_archive_run_id':'45558381201','jra_http_requests':0,'live_acquisition_certified':False,'rows':rows}
         (out/'summary.json').write_text(json.dumps(report,sort_keys=True,indent=2));print('SP_REAL_VARIANTS='+json.dumps(report,sort_keys=True))

@@ -29,4 +29,30 @@ class ActualVariants(unittest.TestCase):
         self.assertEqual(r['1'],[a,b])
     def test_label_mismatch_and_missing(self):
         u=url('10');self.assertEqual(candidates(u,'2R')['1'],[]);self.assertEqual(candidates(u,'')['1'],[])
+class SplitLayout(unittest.TestCase):
+    def raw(self,cancel=False,day='28',race=1):
+        h=f'<h1>出馬表</h1><h2 class="subTitle">2026年11月{day}日 京都</h2><h3 class="titleBox">{race}R</h3>'
+        a='取消' if cancel else '1'
+        return (h+f'<table><tr><td class="wban">1</td><td class="uban">{a}</td><td><a href="/JRADB/accessU.html">馬A</a></td></tr><tr><td class="wban">2</td><td class="uban">2</td><td><a href="/JRADB/accessU.html">馬B</a></td></tr></table>').encode('cp932')
+    def test_layout_no_declared_count(self):
+        from diagnostics.kyoto_impl31_sp_saved_roster_audit import inspect_observed_layout,inspect_heading
+        a=inspect_observed_layout(self.raw(),DAY,1)
+        self.assertEqual(a['numeric_row_count'],2);self.assertFalse(a['declared_runner_count_verified'])
+        with self.assertRaises(ValueError):inspect_heading(self.raw(),DAY,1)
+    def test_cancel_is_not_number_guess(self):
+        from diagnostics.kyoto_impl31_sp_saved_roster_audit import inspect_observed_layout
+        a=inspect_observed_layout(self.raw(True),DAY,1)
+        self.assertEqual(a['state'],'SP_SPLIT_LAYOUT_PARTIAL');self.assertEqual(a['cancelled_number_unknown_count'],1);self.assertEqual(a['numeric_row_count'],1)
+    def test_wrong_identity(self):
+        from diagnostics.kyoto_impl31_sp_saved_roster_audit import inspect_observed_layout
+        for b in (self.raw(day='29'),self.raw(race=2)):
+            with self.assertRaises(ValueError):inspect_observed_layout(b,DAY,1)
+    def test_partial_handoff_does_not_promote(self):
+        from diagnostics.kyoto_impl31_sp_saved_roster_audit import inspect_observed_layout
+        from diagnostics.kyoto_impl32_sp_handoff import aggregate
+        from tests.test_kyoto_impl32_sp_handoff import entry
+        e=entry(1,[1]);v=inspect_observed_layout(self.raw(True),DAY,1);v.update(source_sha256='a'*64,captured_at_utc='2026-11-28T01:00:00Z')
+        e['source_assessment']['SP']['sp_saved_roster_audit']['races']['1']=v
+        r=aggregate(DAY,[e])
+        self.assertEqual(r['scheduled']['structural_roster_races'],0);self.assertEqual(r['scheduled']['split_layout_races'],1);self.assertFalse(r['live_acquisition_certified'])
 if __name__=='__main__':unittest.main()
