@@ -1,6 +1,8 @@
 name: Kyoto Impl31 A2 no-JRA schedule proof
 on:
   schedule:
+    - cron: '0 3 25 11 *'
+    - cron: '30 3 25 11 *'
     - cron: '15 0 26 11 *'
     - cron: '45 0 26 11 *'
   pull_request:

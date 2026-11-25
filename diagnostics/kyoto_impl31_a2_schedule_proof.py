@@ -20,7 +20,8 @@ def context():
     collector=os.getenv('REHEARSAL_COLLECTOR_SHA','0'*40)
     repo=os.getenv('GITHUB_REPOSITORY','local/test')
     if not re.fullmatch('[0-9a-f]{40}',collector) or not run.isdigit():raise ValueError('identity')
-    actual=event=='schedule' and cron in ('15 0 26 11 *','45 0 26 11 *') and os.getenv('GITHUB_REF')=='refs/heads/main' and run!='0' and datetime.now(timezone.utc).strftime('%Y%m%d')=='20261126'
+    allowed_cron={'0 3 25 11 *':'20261125','30 3 25 11 *':'20261125','15 0 26 11 *':'20261126','45 0 26 11 *':'20261126'}
+    actual=event=='schedule' and cron in allowed_cron and os.getenv('GITHUB_REF')=='refs/heads/main' and run!='0' and datetime.now(timezone.utc).strftime('%Y%m%d')==allowed_cron[cron]
     if event=='schedule' and not actual:raise ValueError('not_exact_rehearsal_date_or_ref')
     return dict(event=event,cron=cron,run_id=run,collector_sha=collector,repo=repo,actual_schedule_event=actual)
 def prepare(out):
