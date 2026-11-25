@@ -39,7 +39,7 @@ jobs:
       selection_reason: ${{ steps.select.outputs.selection_reason }}
     env:
       KYOTO_TARGET_DAY: ${{ ((github.event.schedule == '15 0 28 11 *' || github.event.schedule == '15 1 28 11 *' || github.event.schedule == '5 2 28 11 *' || github.event.schedule == '50 2 28 11 *' || inputs.race_day == '20261128')) && '20261128' || '20261129' }}
-      DEFAULT_COLLECTOR_SHA: 'cd6e421fd22cee2bdb5f0d55bab4027fb0109d45'
+      DEFAULT_COLLECTOR_SHA: '9a80bb476b4b6d5afadcd778357e870f208eb6cb'
       SUNDAY_OVERRIDE_SHA: ${{ vars.KYOTO_NOV29_VERIFIED_COLLECTOR_SHA }}
       GH_TOKEN: ${{ github.token }}
     steps:
@@ -103,7 +103,7 @@ jobs:
           assert subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip()==os.environ['COLLECTOR_SHA'],'SOURCE_REVISION_MISMATCH_NO_HTTP'
           assert re.fullmatch(r'[0-9a-f]{40}',os.environ['COLLECTOR_SHA']),'COLLECTOR_SHA_INVALID_NO_HTTP'
           if day=='20261128':
-              assert os.environ['COLLECTOR_SHA']=='cd6e421fd22cee2bdb5f0d55bab4027fb0109d45','SATURDAY_SOURCE_UNEXPECTED_NO_HTTP'
+              assert os.environ['COLLECTOR_SHA']=='9a80bb476b4b6d5afadcd778357e870f208eb6cb','SATURDAY_SOURCE_UNEXPECTED_NO_HTTP'
           assert os.environ.get('GITHUB_EVENT_NAME') in ('schedule','workflow_dispatch'),'INVALID_EVENT_NO_HTTP'
           assert os.environ.get('KYOTO_WEEKEND_HTTP_APPROVED')=='YES','LIVE_HTTP_NOT_APPROVED'
           # The shared day-locked backup gate separately verifies GitHub
@@ -202,7 +202,7 @@ jobs:
           assert subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip()==os.environ['COLLECTOR_SHA'],'SOURCE_REVISION_MISMATCH_NO_HTTP'
           assert re.fullmatch(r'[0-9a-f]{40}',os.environ['COLLECTOR_SHA']),'COLLECTOR_SHA_INVALID_NO_HTTP'
           if day=='20261128':
-              assert os.environ['COLLECTOR_SHA']=='cd6e421fd22cee2bdb5f0d55bab4027fb0109d45','SATURDAY_SOURCE_UNEXPECTED_NO_HTTP'
+              assert os.environ['COLLECTOR_SHA']=='9a80bb476b4b6d5afadcd778357e870f208eb6cb','SATURDAY_SOURCE_UNEXPECTED_NO_HTTP'
           assert os.environ.get('GITHUB_EVENT_NAME') in ('schedule','workflow_dispatch'),'INVALID_EVENT_NO_HTTP'
           # The shared day-locked backup gate separately verifies GitHub
           # run/job metadata and capture-step execution.
