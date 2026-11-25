@@ -42,11 +42,35 @@ class SourceFirstCoverageTests(unittest.TestCase):
         self.assertEqual(len(self.doc["impl30_source_reopen"]),11)
         for record in self.doc["impl30_source_reopen"]:
             self.assertNotEqual(record["old_blob"],record["new_blob"])
-            self.assertEqual(self.doc["source_git_blob_sha1"][record["source"]],record["new_blob"])
+            successor=next((x for x in self.doc["impl31_source_reopen"]["sources"] if x["source"]==record["source"]),None)
+            if successor is not None:
+                self.assertEqual(successor["old_blob"],record["new_blob"])
+                self.assertEqual(self.doc["source_git_blob_sha1"][record["source"]],successor["new_blob"])
+            else:
+                self.assertEqual(self.doc["source_git_blob_sha1"][record["source"]],record["new_blob"])
             rows=[x for x in self.doc["surfaces"] if x["source"]==record["source"]]
             self.assertEqual({x["function"] for x in rows},set(record["reopened_functions"]))
             self.assertTrue(all(x["review_status"]=="UNREVIEWED_INDEPENDENT_FMEA" for x in rows))
         self.assertTrue(all(x["remediated"] is False and x["test_proven"] is False for x in self.doc["risks"]))
+
+    def test_impl31_changed_sources_reopen_without_risk_closure(self):
+        receipt=self.doc["impl31_source_reopen"]
+        self.assertEqual(receipt["prior_ledger_blob"],"ab47a06010411221db769a78537f1ceeef68b3ce")
+        sources=receipt["sources"]
+        self.assertEqual({x["source"] for x in sources},{"diagnostics/kyoto_weekend_capture.py","diagnostics/kyoto_nov15_encrypted_evidence.py"})
+        self.assertEqual(len(sources),2)
+        for x in sources:
+            source=x["source"]
+            self.assertNotEqual(x["old_blob"],x["new_blob"])
+            self.assertEqual(self.doc["source_git_blob_sha1"][source],x["new_blob"])
+            self.assertEqual(x["review_status"],"UNREVIEWED_INDEPENDENT_FMEA")
+            self.assertEqual(x["closed_risks"],0)
+            surfaces=[s for s in self.doc["surfaces"] if s["source"]==source]
+            self.assertEqual(set(x["reopened_functions"]),{s["function"] for s in surfaces})
+            self.assertTrue(all(s["review_status"]=="UNREVIEWED_INDEPENDENT_FMEA" for s in surfaces))
+            self.assertEqual(set(x["affected_risk_ids"]),{r["id"] for r in self.doc["risks"] if any(source.split("/")[-1]+":" in a for a in r["affected_surfaces"])})
+        self.assertEqual(len(self.doc["risks"]),25)
+        self.assertTrue(all(r["remediated"] is False and r["test_proven"] is False for r in self.doc["risks"]))
 
     def test_function_omission_rejected(self):
         d=copy.deepcopy(self.doc)

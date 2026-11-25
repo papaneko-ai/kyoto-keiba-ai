@@ -1222,13 +1222,13 @@
   },
   "notes": "Reverse FMEA explicitly finds risk modes not enumerated by the original 30 cases. Counting passing tests is not an independent proof of completeness.",
   "source_git_blob_sha1": {
-    "diagnostics/kyoto_weekend_capture.py": "004dc8f8f38160d22940b3d48046133d63b18ce5",
+    "diagnostics/kyoto_weekend_capture.py": "26a4f4bf7268bf93802994892010910b9d183821",
     "diagnostics/kyoto_weekend_sp_discovery.py": "c5d768e4f420f2cb91db290492bded1d5cd80ef5",
     "diagnostics/kyoto_weekend_postflight.py": "54ef7cb26b1b94d6d7891ba74a2faab1a619523a",
     "diagnostics/kyoto_weekend_day21_triage.py": "a6639d5cab211d37d1eddefaa9bfc5b23901368d",
     "diagnostics/kyoto_nov15_two_original_observer.py": "0858ed767e61f9669301b4ed46c039e5cdb621a1",
     "diagnostics/kyoto_sp_observed_source.py": "c2f07a1752216016b851307eba29d84491cdefac",
-    "diagnostics/kyoto_nov15_encrypted_evidence.py": "79ec12fcae78096ff783efb7f0845f94d24d3760",
+    "diagnostics/kyoto_nov15_encrypted_evidence.py": "c0168f85d8dd6d211acac369e67c2365259aa26b",
     "diagnostics/jra_benchmark_acceptance.py": "edbd6b5b9479fdbf3fc88c7450c0c7ae3260a76f",
     "diagnostics/jra_market_integrity_gate.py": "6f20257575d7c5aeb232512bb64700dee21c3e06",
     "diagnostics/jra_market_source_chain.py": "aecc0619fe087c316f9db1814da748bc1c855a57",
@@ -1432,5 +1432,68 @@
     "new_dependency": "diagnostics/kyoto_impl30_nextday_adaptation.py",
     "review_status": "UNREVIEWED_INDEPENDENT_FMEA",
     "closed_risks": 0
+  },
+  "impl31_source_reopen": {
+    "source_candidate": "58d5d3733d454c55108e8f3c67b3cd8a2da38ac9",
+    "prior_ledger_blob": "ab47a06010411221db769a78537f1ceeef68b3ce",
+    "failed_preflight_run": 45521388745,
+    "reason": "A5 adaptation runtime isolation and exact encrypted policy receipt; reopen both source modules without closing any registered risk.",
+    "sources": [
+      {
+        "source": "diagnostics/kyoto_weekend_capture.py",
+        "old_blob": "004dc8f8f38160d22940b3d48046133d63b18ce5",
+        "new_blob": "26a4f4bf7268bf93802994892010910b9d183821",
+        "reopened_functions": [
+          "validate_day",
+          "_write_receipt",
+          "_no_claim",
+          "capture",
+          "_preserve_interrupted_originals",
+          "seal",
+          "main"
+        ],
+        "affected_risk_ids": [
+          "GAP-01",
+          "GAP-03",
+          "GAP-06",
+          "GAP-07",
+          "GAP-08",
+          "GAP-09",
+          "GAP-10",
+          "GAP-13",
+          "GAP-16",
+          "GAP-17",
+          "GAP-18",
+          "GAP-19",
+          "GAP-20",
+          "GAP-23",
+          "GAP-24"
+        ],
+        "review_status": "UNREVIEWED_INDEPENDENT_FMEA",
+        "closed_risks": 0
+      },
+      {
+        "source": "diagnostics/kyoto_nov15_encrypted_evidence.py",
+        "old_blob": "79ec12fcae78096ff783efb7f0845f94d24d3760",
+        "new_blob": "c0168f85d8dd6d211acac369e67c2365259aa26b",
+        "reopened_functions": [
+          "_key",
+          "_aad",
+          "encrypt_evidence",
+          "decrypt_evidence",
+          "main",
+          "_file_cap"
+        ],
+        "affected_risk_ids": [
+          "GAP-07",
+          "GAP-08",
+          "GAP-11",
+          "GAP-17",
+          "GAP-22"
+        ],
+        "review_status": "UNREVIEWED_INDEPENDENT_FMEA",
+        "closed_risks": 0
+      }
+    ]
   }
 }
