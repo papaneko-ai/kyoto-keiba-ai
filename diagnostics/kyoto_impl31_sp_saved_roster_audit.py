@@ -29,7 +29,7 @@ def exact_mobile_race(url,day,number):
     u=urlsplit(url)
     if u.scheme!='https' or u.netloc not in ('sp.jra.jp','app.jra.jp') or u.path!='/JRADB/accessD.html' or u.fragment:return False
     q=parse_qs(u.query,strict_parsing=True)
-    return set(q)=={'CNAME'} and len(q['CNAME'])==1 and bool(re.fullmatch(r'sw01dde0108[0-9]{8}'+f'{number:02d}'+day+r'/[A-Za-z0-9]+',q['CNAME'][0],re.I))
+    return set(q)=={'CNAME'} and len(q['CNAME'])==1 and bool(re.fullmatch(r'sw01dde(?:01|10)08[0-9]{8}'+f'{number:02d}'+day+r'/[A-Za-z0-9]+',q['CNAME'][0],re.I))
 
 def inspect_heading(raw,day,number):
     # Only a heading before the first table may establish the event identity.

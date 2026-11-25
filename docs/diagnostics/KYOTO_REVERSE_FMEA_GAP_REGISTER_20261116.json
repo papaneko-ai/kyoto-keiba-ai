@@ -1223,7 +1223,7 @@
   "notes": "Reverse FMEA explicitly finds risk modes not enumerated by the original 30 cases. Counting passing tests is not an independent proof of completeness.",
   "source_git_blob_sha1": {
     "diagnostics/kyoto_weekend_capture.py": "bfac6bc839da3bc4bc937616a27a1bf597149d04",
-    "diagnostics/kyoto_weekend_sp_discovery.py": "b81a128f90eb23a5ad693187f409fc26346ed9c0",
+    "diagnostics/kyoto_weekend_sp_discovery.py": "caf81848545fd48796527064d3d359db0683798a",
     "diagnostics/kyoto_weekend_postflight.py": "b1b52eee94c486058d8cbb009e3c89fd6257a584",
     "diagnostics/kyoto_weekend_day21_triage.py": "a6639d5cab211d37d1eddefaa9bfc5b23901368d",
     "diagnostics/kyoto_nov15_two_original_observer.py": "0858ed767e61f9669301b4ed46c039e5cdb621a1",
@@ -1576,5 +1576,13 @@
         "closed_risks": 0
       }
     ]
+  },
+  "impl32_sp_actual_variant_reopen": {
+    "source": "diagnostics/kyoto_weekend_sp_discovery.py",
+    "old_blob": "b81a128f90eb23a5ad693187f409fc26346ed9c0",
+    "new_blob": "caf81848545fd48796527064d3d359db0683798a",
+    "review_status": "UNREVIEWED_INDEPENDENT_FMEA",
+    "closed_risks": 0,
+    "reason": "Actual historical SP archive 45558381201 and PC parity 45558580736 prove both observed 01/10 URL variants. Preserve exact date, Kyoto venue, race, host, label and unique anchor; no guessed URL."
   }
 }
