@@ -1,0 +1,98 @@
+name: Kyoto Impl31 A2 no-JRA schedule proof
+on:
+  schedule:
+    - cron: '0 3 25 11 *'
+    - cron: '30 3 25 11 *'
+    - cron: '15 0 26 11 *'
+    - cron: '45 0 26 11 *'
+  pull_request:
+    paths:
+      - 'diagnostics/kyoto_impl31_a2_schedule_proof.py'
+      - '.github/workflows/kyoto-impl31-a2-no-jra-schedule.yml'
+  workflow_dispatch:
+  workflow_call:
+    inputs:
+      external_probe:
+        type: boolean
+        default: false
+      external_sent_unix:
+        type: string
+        default: ''
+permissions:
+  contents: read
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      GITHUB_EVENT_SCHEDULE: ${{ github.event.schedule }}
+      EXTERNAL_PROBE: ${{ inputs.external_probe || false }}
+      EXTERNAL_SENT_UNIX: ${{ inputs.external_sent_unix || '' }}
+      REHEARSAL_COLLECTOR_SHA: 9e31ee7a50551eac480e31de7dd5c475a921e674
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          ref: 9e31ee7a50551eac480e31de7dd5c475a921e674
+          path: collector
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11.18'
+      - uses: actions/download-artifact@v4
+        if: ${{ inputs.external_probe == true }}
+        with:
+          name: kyoto18-external-timer-probe-${{ github.run_id }}
+          path: external_probe_receipt
+      - run: |
+          test "$(git -C collector rev-parse HEAD)" = "$REHEARSAL_COLLECTOR_SHA"
+          python -m pip install --no-deps beautifulsoup4==4.15.0 soupsieve==4.1.3 typing-extensions==4.16.0 cryptography==46.0.7 cffi==2.1.1 pycparser==3.12
+          PYTHONPATH=collector python diagnostics/kyoto_impl31_a2_schedule_proof.py prepare --out rehearsal_handoff
+      - uses: actions/upload-artifact@v4
+        with:
+          name: a2-handoff-${{ github.run_id }}
+          path: rehearsal_handoff/
+          if-no-files-found: error
+          retention-days: 30
+  consume:
+    needs: prepare
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      GITHUB_EVENT_SCHEDULE: ${{ github.event.schedule }}
+      EXTERNAL_PROBE: ${{ inputs.external_probe || false }}
+      EXTERNAL_SENT_UNIX: ${{ inputs.external_sent_unix || '' }}
+      REHEARSAL_COLLECTOR_SHA: 9e31ee7a50551eac480e31de7dd5c475a921e674
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          ref: 9e31ee7a50551eac480e31de7dd5c475a921e674
+          path: collector
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11.18'
+      - uses: actions/download-artifact@v4
+        with:
+          name: a2-handoff-${{ github.run_id }}
+          path: rehearsal_handoff
+      - uses: actions/download-artifact@v4
+        if: ${{ inputs.external_probe == true }}
+        with:
+          name: kyoto18-external-timer-probe-${{ github.run_id }}
+          path: external_probe_receipt
+      - run: |
+          test "$(git -C collector rev-parse HEAD)" = "$REHEARSAL_COLLECTOR_SHA"
+          python -m pip install --no-deps beautifulsoup4==4.15.0 soupsieve==4.1.3 typing-extensions==4.16.0 cryptography==46.0.7 cffi==2.1.1 pycparser==3.12
+          PYTHONPATH=collector python diagnostics/kyoto_impl31_a2_schedule_proof.py consume --input rehearsal_handoff --out rehearsal_result
+      - uses: actions/upload-artifact@v4
+        with:
+          name: a2-result-${{ github.run_id }}
+          path: rehearsal_result/
+          if-no-files-found: error
+          retention-days: 30
