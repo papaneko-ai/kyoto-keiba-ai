@@ -9,7 +9,9 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 
-def record_pre_http_stop(destination, *, race_day, reason):
+def record_pre_http_stop(destination, *, race_day, reason, http_count_known=True):
+    if type(http_count_known) is not bool:
+        raise ValueError("invalid_http_count_certainty")
     root = Path(destination)
     if root.is_symlink():
         raise ValueError("safe_stop_destination_symlink")
@@ -23,9 +25,9 @@ def record_pre_http_stop(destination, *, race_day, reason):
         "schema": "kyoto_safe_stop.v1",
         "race_day": race_day,
         "reason": reason,
-        "state": "NO_CAPTURE_OR_PRE_HTTP_STOP",
+        "state": "NO_CAPTURE_OR_PRE_HTTP_STOP" if http_count_known else "NO_SOURCE_HTTP_UNVERIFIED",
         "JRA_success": False,
-        "actual_jra_http_requests": 0,
+        "actual_jra_http_requests": 0 if http_count_known else "UNKNOWN",
         "official_originals_authenticated": False,
         "operational_credit": 0,
         "saved_at_utc": datetime.now(timezone.utc).isoformat(),

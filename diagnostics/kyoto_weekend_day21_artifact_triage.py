@@ -30,10 +30,20 @@ def assess_lane(root,*,day,channel,key,repo,run_id):
     if safe.is_file() and not safe.is_symlink():
         try:
             doc=json.loads(safe.read_text(encoding="utf8"))
-            if doc.get("race_day")==day and doc.get("JRA_success") is False:
-                result["state"]="PRE_HTTP_SAFE_STOP_NO_SOURCE"
-            else:
+            if not isinstance(doc,dict) or doc.get("race_day")!=day or doc.get("JRA_success") is not False:
                 result["state"]="MALFORMED_SAFE_STOP"
+            elif day in ("20261128","20261129"):
+                # A safe-stop JSON is not authenticated proof of a skipped job.
+                # Even a legacy zero claim needs independent step evidence.
+                if (doc.get("state") in ("NO_SOURCE_HTTP_UNVERIFIED","NO_CAPTURE_OR_PRE_HTTP_STOP")
+                    and doc.get("official_originals_authenticated") is False and type(doc.get("operational_credit")) is int
+                    and doc["operational_credit"]==0 and not any((root/n).exists() for n in ("manifest.json","originals.tar.gz.aesgcm"))):
+                    result["state"]="NO_SOURCE_HTTP_UNVERIFIED"
+                    result["actual_jra_http_requests"]="UNKNOWN"
+                else:
+                    result["state"]="MALFORMED_SAFE_STOP"
+            else:
+                result["state"]="PRE_HTTP_SAFE_STOP_NO_SOURCE"
         except (ValueError,TypeError,OSError):
             result["state"]="MALFORMED_SAFE_STOP"
         return result

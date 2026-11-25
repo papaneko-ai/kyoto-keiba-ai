@@ -513,6 +513,11 @@ def seal(day: str, source: str, destination: str, *, key: str, repo: str,
     if dst.exists() or dst.is_symlink() or not dst.parent.is_dir():
         raise ValueError("seal_destination_must_not_exist")
     if not src.is_dir():
+        # A missing directory is not evidence that the collector never ran.
+        # Preserve the historical receipt schema for past frozen rehearsals;
+        # for the upcoming weekend record an unknown request count.
+        if day in ("20261128","20261129"):
+            return record_pre_http_stop(dst,race_day=day,reason="SOURCE_DIRECTORY_ABSENT",http_count_known=False)
         return record_pre_http_stop(dst,race_day=day,reason="CAPTURE_NOT_STARTED")
     # The existing crypto's day binding derives from target-day environment.
     if os.getenv("KYOTO_TARGET_DAY") != day:

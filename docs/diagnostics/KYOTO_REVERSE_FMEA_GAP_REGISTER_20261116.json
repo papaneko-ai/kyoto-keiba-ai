@@ -1222,7 +1222,7 @@
   },
   "notes": "Reverse FMEA explicitly finds risk modes not enumerated by the original 30 cases. Counting passing tests is not an independent proof of completeness.",
   "source_git_blob_sha1": {
-    "diagnostics/kyoto_weekend_capture.py": "52963f4b92cb980679904bce5abd760dae1bcd28",
+    "diagnostics/kyoto_weekend_capture.py": "81576727a84ed4f84f900b389892ef9dac023ee3",
     "diagnostics/kyoto_weekend_sp_discovery.py": "caf81848545fd48796527064d3d359db0683798a",
     "diagnostics/kyoto_weekend_postflight.py": "b1b52eee94c486058d8cbb009e3c89fd6257a584",
     "diagnostics/kyoto_weekend_day21_triage.py": "a6639d5cab211d37d1eddefaa9bfc5b23901368d",
@@ -1241,7 +1241,7 @@
     "diagnostics/jra_pc_sp_benchmark.py": "a6c952bbaa128275efb010100f3c5e789c68451e",
     "diagnostics/jra_source_router.py": "d7eae104adecd60374ac0b6cc9ee622f9e47df95",
     "diagnostics/kyoto_p1_nov14_official_one_shot_nav.py": "0aa2e6e53cb78f317d77c001ce55e101f45b8c50",
-    "diagnostics/kyoto_safe_stop_artifact.py": "72201d3149cf8f33e7c7cff5fe18118363ac0890",
+    "diagnostics/kyoto_safe_stop_artifact.py": "01532bc0c3386039988f1430713fdf833544490b",
     "diagnostics/kyoto_g03_all_races.py": "299fccd184cd65212cc9c393413f2947fe15c41c",
     "diagnostics/kyoto_g03_weekend_bridge.py": "5f3e4011f84738a057520434ad83351a7d3e0d27",
     "diagnostics/kyoto_g04_all_horse_profiles.py": "540344bcad1cafd723bd474ddf580a56bc3b9931",
@@ -1592,5 +1592,24 @@
     "review_status": "UNREVIEWED_INDEPENDENT_FMEA",
     "closed_risks": 0,
     "reason": "Recover known interrupted PC/SP discovery/SP race/G06 staging; validate allowlist and collisions before moves; no success promotion or unknown file upload. Runner loss remains unproved."
+  },
+  "impl32_no_source_certainty_reopen": {
+    "sources": [
+      {
+        "source": "diagnostics/kyoto_weekend_capture.py",
+        "old_blob": "52963f4b92cb980679904bce5abd760dae1bcd28",
+        "new_blob": "81576727a84ed4f84f900b389892ef9dac023ee3",
+        "review_status": "UNREVIEWED_INDEPENDENT_FMEA",
+        "closed_risks": 0
+      },
+      {
+        "source": "diagnostics/kyoto_safe_stop_artifact.py",
+        "old_blob": "72201d3149cf8f33e7c7cff5fe18118363ac0890",
+        "new_blob": "01532bc0c3386039988f1430713fdf833544490b",
+        "review_status": "UNREVIEWED_INDEPENDENT_FMEA",
+        "closed_risks": 0
+      }
+    ],
+    "reason": "GAP-16: absent local originals cannot establish zero requests; new weekend receipt and downstream triage preserve UNKNOWN. Historical frozen replay unaffected."
   }
 }
