@@ -78,6 +78,12 @@ def assess_lane(root,*,day,channel,key,repo,run_id):
                         return result
                     result["sp_race_integrity"]=fresh["sp_race_integrity"]
                     result["sp_racewise_partial_integrity"]=fresh["source_verified"] is not True
+                    if isinstance(receipt.get("sp_gap_plan"),dict):
+                        try:
+                            from diagnostics.kyoto_impl31_sp_gap_plan import feedback
+                            result["sp_gap_feedback"]=feedback(receipt["sp_gap_plan"],receipt,fresh,day,run_id)
+                        except (ValueError,KeyError,TypeError,AttributeError):
+                            result["sp_gap_feedback_error"]="INVALID_PLAN_OR_EVIDENCE"
             result["source_original_sha_utc_checked"]=True
             if day=="20261129":
                 try:

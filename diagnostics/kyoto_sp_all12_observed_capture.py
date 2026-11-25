@@ -46,7 +46,7 @@ def _verified_archived_sunday_r1(raw, source, item, day):
     )
 
 
-def capture_all(root, *, day, opener, pacer, deadline_monotonic=None, monotonic=time.monotonic):
+def capture_all(root, *, day, opener, pacer, deadline_monotonic=None, monotonic=time.monotonic, race_order=None):
     root = Path(root)
     receipt_path = root / "sp_discovery_receipt.json"
     discovery = json.loads(receipt_path.read_text(encoding="utf8"))
@@ -71,8 +71,11 @@ def capture_all(root, *, day, opener, pacer, deadline_monotonic=None, monotonic=
             candidates["1"].add(item["url"])
         for number, urls in observed_kyoto_race_candidates(raw, item["url"], day).items():
             candidates[number].update(urls)
+    order=list(range(1,13)) if race_order is None else list(race_order)
+    if any(type(n) is not int for n in order) or sorted(order)!=list(range(1,13)):
+        raise ValueError("invalid_sp_race_order")
     outcomes = {}
-    for number in range(1, 13):
+    for number in order:
         urls = candidates[str(number)]
         if deadline_monotonic is not None and monotonic() >= deadline_monotonic:
             outcomes[str(number)] = {"state": "DEFERRED_FOR_AES_SEALING_BUDGET", "candidate_count": len(urls), "racecard_fetched": False}

@@ -383,9 +383,15 @@ def capture(day: str, channel: str, output: str, *, live: bool,
         try:
             # Conserve time for AES sealing and evidence upload before the
             # 12-minute SP job hard limit. Never start another race past 4 min.
+            deadline=time.monotonic()+sp_seconds
+            plan=None
+            if day in ("20261128","20261129"):
+                from diagnostics.kyoto_impl31_sp_gap_plan import get_plan
+                plan=get_plan(day,os.getenv("GITHUB_REPOSITORY",""),os.getenv("GITHUB_RUN_ID",""),deadline=deadline)
+            opts={"race_order":plan["race_order"]} if plan else {}
             multi = capture_all(root, day=day, opener=shared_sp_client,
                                 pacer=shared_sp_pacer,
-                                deadline_monotonic=time.monotonic()+sp_seconds)
+                                deadline_monotonic=deadline,**opts)
             out = _no_claim(day, channel, "SP_ALL12_OBSERVED_ANCHORS_ATTEMPTED",
                             observed_http_requests_started=discovery_requests + sum(
                                 x.get("network_requests_started", 0) for x in multi["races"].values()),
@@ -393,7 +399,8 @@ def capture(day: str, channel: str, output: str, *, live: bool,
                                                    for x in multi["races"].values()),
                             sp_races_with_racecard=sum(x.get("racecard_fetched", False)
                                                        for x in multi["races"].values()),
-                            sp_all12_source_proof="PER_RACE_EVIDENCE_NOT_FULL_CERTIFICATION")
+                            sp_all12_source_proof="PER_RACE_EVIDENCE_NOT_FULL_CERTIFICATION",
+                            sp_gap_plan=plan)
         except Exception as exc:
             out = _no_claim(day, channel, "SP_ALL12_CAPTURE_EXCEPTION",
                             error_class=type(exc).__name__)

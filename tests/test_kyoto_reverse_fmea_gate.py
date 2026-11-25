@@ -48,7 +48,12 @@ class SourceFirstCoverageTests(unittest.TestCase):
                 final=next((x for x in self.doc["impl31_sp_stop_boundary_reopen"]["sources"] if x["source"]==record["source"]),None)
                 if final is not None:
                     self.assertEqual(final["old_blob"],successor["new_blob"])
-                    self.assertEqual(self.doc["source_git_blob_sha1"][record["source"]],final["new_blob"])
+                    later=self.doc["impl31_gap_priority_reopen"]
+                    if later["source"]==record["source"]:
+                        self.assertEqual(later["old_blob"],final["new_blob"])
+                        self.assertEqual(self.doc["source_git_blob_sha1"][record["source"]],later["new_blob"])
+                    else:
+                        self.assertEqual(self.doc["source_git_blob_sha1"][record["source"]],final["new_blob"])
                 else:
                     self.assertEqual(self.doc["source_git_blob_sha1"][record["source"]],successor["new_blob"])
             else:
@@ -70,7 +75,12 @@ class SourceFirstCoverageTests(unittest.TestCase):
             final=next((y for y in self.doc["impl31_sp_stop_boundary_reopen"]["sources"] if y["source"]==source),None)
             if final is not None:
                 self.assertEqual(final["old_blob"],x["new_blob"])
-                self.assertEqual(self.doc["source_git_blob_sha1"][source],final["new_blob"])
+                later=self.doc["impl31_gap_priority_reopen"]
+                if later["source"]==source:
+                    self.assertEqual(later["old_blob"],final["new_blob"])
+                    self.assertEqual(self.doc["source_git_blob_sha1"][source],later["new_blob"])
+                else:
+                    self.assertEqual(self.doc["source_git_blob_sha1"][source],final["new_blob"])
             else:
                 self.assertEqual(self.doc["source_git_blob_sha1"][source],x["new_blob"])
             self.assertEqual(x["review_status"],"UNREVIEWED_INDEPENDENT_FMEA")
