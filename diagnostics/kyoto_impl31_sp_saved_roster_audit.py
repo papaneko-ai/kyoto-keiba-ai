@@ -51,7 +51,11 @@ def inspect_heading(raw,day,number):
         counts={int(x) for x in re.findall(r'(?<![0-9])([0-9]{1,2})\s*頭(?![0-9])',heading)}
         if races=={number} and len(counts)==1:candidates.append(next(iter(counts)))
     if len(candidates)!=1 or not 2<=candidates[0]<=18:raise ValueError('heading_or_count_unverified')
-    rows=sp_rows(raw)
+    # The legacy SP parser consumes CP932. A UTF-8 original must be decoded
+    # strictly before parsing; never let replacement characters certify a name.
+    canonical=text.encode('cp932',errors='strict')
+    if canonical.decode('cp932',errors='strict')!=text:raise ValueError('lossy_sp_encoding')
+    rows=sp_rows(canonical)
     if len(rows)!=candidates[0]:raise ValueError('roster_count_mismatch')
     return rows
 
