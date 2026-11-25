@@ -69,6 +69,15 @@ def assess_lane(root,*,day,channel,key,repo,run_id):
                     not _utc(row.get("captured_at_utc"))):
                     result["state"]="SOURCE_SHA_UTC_MISMATCH"
                     return result
+            if channel=="SP" and day in ("20261128","20261129"):
+                from diagnostics.kyoto_weekend_postflight import check_originals
+                fresh=check_originals(source,day=day,channel=channel)
+                if "sp_race_integrity" in fresh:
+                    if fresh!=post:
+                        result["state"]="SP_RACEWISE_POSTFLIGHT_MISMATCH"
+                        return result
+                    result["sp_race_integrity"]=fresh["sp_race_integrity"]
+                    result["sp_racewise_partial_integrity"]=fresh["source_verified"] is not True
             result["source_original_sha_utc_checked"]=True
             if channel=="PC":
                 # Use decrypted source bytes directly; no summary flag is

@@ -1224,7 +1224,7 @@
   "source_git_blob_sha1": {
     "diagnostics/kyoto_weekend_capture.py": "26a4f4bf7268bf93802994892010910b9d183821",
     "diagnostics/kyoto_weekend_sp_discovery.py": "c5d768e4f420f2cb91db290492bded1d5cd80ef5",
-    "diagnostics/kyoto_weekend_postflight.py": "54ef7cb26b1b94d6d7891ba74a2faab1a619523a",
+    "diagnostics/kyoto_weekend_postflight.py": "b1b52eee94c486058d8cbb009e3c89fd6257a584",
     "diagnostics/kyoto_weekend_day21_triage.py": "a6639d5cab211d37d1eddefaa9bfc5b23901368d",
     "diagnostics/kyoto_nov15_two_original_observer.py": "0858ed767e61f9669301b4ed46c039e5cdb621a1",
     "diagnostics/kyoto_sp_observed_source.py": "c2f07a1752216016b851307eba29d84491cdefac",
@@ -1495,5 +1495,13 @@
         "closed_risks": 0
       }
     ]
+  },
+  "impl31_final_sp_reopen": {
+    "source": "diagnostics/kyoto_weekend_postflight.py",
+    "old_blob": "54ef7cb26b1b94d6d7891ba74a2faab1a619523a",
+    "new_blob": "b1b52eee94c486058d8cbb009e3c89fd6257a584",
+    "review_status": "UNREVIEWED_INDEPENDENT_FMEA",
+    "closed_risks": 0,
+    "reason": "Race-prefixed live SP originals were absent from postflight; add racewise exact-byte and UTC checks, retain unresolved source coverage and prediction claims."
   }
 }

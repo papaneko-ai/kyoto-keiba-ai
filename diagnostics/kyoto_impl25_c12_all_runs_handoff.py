@@ -87,6 +87,7 @@ def summarize(day, entries, *, total_count=None, pagination_complete=True):
             if not isinstance(state,dict):
                 raise HandoffRejected("source_lane_invalid")
             lanes[lane]={
+                **({"sp_race_integrity":state["sp_race_integrity"],"sp_racewise_partial_integrity":state.get("sp_racewise_partial_integrity",True)} if lane=="SP" and isinstance(state.get("sp_race_integrity"),dict) else {}),
                 "job_state":meta.get("state"),
                 "failure_stage":meta.get("stage"),
                 "job_conclusion":meta.get("job_conclusion"),

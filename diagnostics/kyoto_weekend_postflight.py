@@ -74,7 +74,8 @@ def check_originals(root, *, day, channel):
         return report
     saved_path=root/"sp_receipt.json"
     discovery_path=root/"sp_discovery_receipt.json"
-    if not saved_path.is_file() and not discovery_path.is_file():
+    racewise=day in ("20261128","20261129") and any(re.fullmatch(r"r(?:0[1-9]|1[0-2])_(?:official_sp_.*\.html|sp_receipt\.json)|sp_all12_receipt\.json",p.name) for p in root.iterdir())
+    if not saved_path.is_file() and not discovery_path.is_file() and not racewise:
         report["state"]="SP_RECEIPT_MISSING"
         return report
     try:
@@ -128,8 +129,64 @@ def check_originals(root, *, day, channel):
                 report["source_rows"].append({"filename":name,
                     "sha256":item["sha256"],
                     "captured_at_utc":item["captured_at_utc"]})
-        report["state"]="SP_RAW_ORIGINALS_DIGEST_UTC_CONSISTENT_ONLY"
-        report["source_verified"]=bool(report["source_rows"])
+        if racewise:
+            # The live all-12 adapter prefixes each original and its receipt.
+            # Do not confuse a verified discovery page with verified race bytes.
+            fields=(("official_sp_racecard.html","racecard"),
+                    ("official_sp_odds_menu.html","sp_odds_menu"),
+                    ("official_sp_odds_navigation_1.html","sp_odds_navigation_1"),
+                    ("official_sp_odds_navigation_2.html","sp_odds_navigation_2"),
+                    ("official_sp_quinella_odds.html","sp_quinella"),
+                    ("official_sp_bracket_quinella_odds.html","sp_bracket_quinella"))
+            checks={}
+            report["sp_race_integrity"]=checks
+            for number in range(1,13):
+                prefix=f"r{number:02d}_"
+                rp=root/(prefix+"sp_receipt.json")
+                originals=[p for p in root.iterdir() if p.name.startswith(prefix+"official_sp_")]
+                if not originals and not rp.exists() and not rp.is_symlink():
+                    checks[str(number)]={"state":"NO_RACE_ORIGINAL","verified_files":0}
+                    continue
+                try:
+                    if not discovery_path.is_file() or discovery_path.is_symlink():
+                        raise ValueError("sp_discovery_receipt_missing")
+                    if rp.is_symlink() or not rp.is_file() or rp.stat().st_size>1_500_000:
+                        raise ValueError("sp_race_receipt_missing")
+                    saved=json.loads(rp.read_text(encoding="utf8"))
+                    if (saved.get("day")!=day or saved.get("channel")!="SP" or
+                        type(saved.get("race_number")) is not int or saved["race_number"]!=number or
+                        saved.get("local_target_race_key")!=f"KYOTO:{day}:{number:02d}"):
+                        raise ValueError("sp_race_receipt_identity")
+                    if any(p.name not in {prefix+name for name,_ in fields} for p in originals):
+                        raise ValueError("sp_unknown_race_original")
+                    race_rows=[]
+                    for name,key in fields:
+                        path=root/(prefix+name)
+                        claimed=(key+"_sha256" in saved or key+"_captured_at_utc" in saved or
+                                 (key=="racecard" and saved.get("racecard_fetched") is True))
+                        if not claimed and not path.exists() and not path.is_symlink():continue
+                        if path.is_symlink() or not path.is_file() or not 0<path.stat().st_size<=1_500_000:
+                            raise ValueError("sp_race_original_missing_or_unsafe")
+                        digest=hashlib.sha256(path.read_bytes()).hexdigest()
+                        stamp=saved.get(key+"_captured_at_utc")
+                        if digest!=saved.get(key+"_sha256") or not _utc(stamp) or datetime.fromisoformat(stamp.replace("Z","+00:00")).strftime("%Y%m%d")!=day:
+                            raise ValueError("sp_race_original_sha_or_day_utc_mismatch")
+                        race_rows.append({"filename":path.name,"sha256":digest,"captured_at_utc":stamp})
+                    report["source_rows"].extend(race_rows)
+                    names={r["filename"] for r in race_rows}
+                    checks[str(number)]={"state":"DIGEST_UTC_CHECKED_ONLY" if names else "NO_RACE_ORIGINAL",
+                        "verified_files":len(names),"racecard_verified_bytes":prefix+"official_sp_racecard.html" in names,
+                        "both_market_originals_verified_bytes":all(prefix+name in names for name in ("official_sp_quinella_odds.html","official_sp_bracket_quinella_odds.html"))}
+                except (OSError,ValueError,TypeError,KeyError,AttributeError) as exc:
+                    checks[str(number)]={"state":"RACE_ORIGINAL_REJECTED","verified_files":0,"error_class":type(exc).__name__}
+            # Keep independently verified bytes from unaffected races. A bad
+            # race prevents a lane-wide integrity claim, not the AES archive.
+            rejected=any(v["state"]=="RACE_ORIGINAL_REJECTED" for v in checks.values())
+            report["state"]="SP_RACEWISE_PARTIAL_INTEGRITY" if rejected else "SP_RAW_ORIGINALS_DIGEST_UTC_CONSISTENT_ONLY"
+            report["source_verified"]=bool(report["source_rows"]) and not rejected
+        else:
+            report["state"]="SP_RAW_ORIGINALS_DIGEST_UTC_CONSISTENT_ONLY"
+            report["source_verified"]=bool(report["source_rows"])
     except (ValueError,TypeError,KeyError,OSError) as exc:
         report["state"]="SP_PROVENANCE_REJECTED"
         report["source_verified"]=False
