@@ -90,9 +90,36 @@ class ProductionWorkflowContract(unittest.TestCase):
         self.assertTrue(all(x["with"]["retention-days"]=="90" for x in uploads))
         self.assertNotIn("TURSO",raw)
 
+    def test_auxiliary_refresh_preserves_morning_slots_and_shared_source_lock(self):
+        path=ROOT/"kyoto-20261128-29-auxiliary-refresh.yml"
+        raw=path.read_text()
+        doc=yaml.load(raw,Loader=yaml.BaseLoader)
+        self.assertEqual(doc["name"],"Kyoto Nov28-29 afternoon auxiliary refresh")
+        self.assertEqual([x["cron"] for x in doc["on"]["schedule"]],
+            [f"30 {hour} {day} 11 *" for day in (28,29) for hour in (3,4,5,6)])
+        self.assertEqual([x["cron"] for x in self.obs["on"]["schedule"]],EXPECTED)
+        self.assertEqual(set(doc["on"]),{"schedule","workflow_dispatch"})
+        self.assertEqual(doc["concurrency"]["cancel-in-progress"],"false")
+        self.assertEqual(doc["concurrency"]["queue"],"max")
+        self.assertTrue(doc["concurrency"]["group"].startswith("kyoto-20261128-29-source-"))
+        job=doc["jobs"]["afternoon-auxiliary-source"]
+        pin=self.jobs["select-collector"]["env"]["DEFAULT_COLLECTOR_SHA"]
+        self.assertEqual(job["steps"][0]["with"]["ref"],pin)
+        self.assertEqual(job["env"]["KYOTO_WEEKEND_HTTP_APPROVED"],"NO")
+        self.assertEqual(job["env"]["KYOTO_AUX_HTTP_APPROVED"],"YES")
+        self.assertIn("kyoto_impl30_auxiliary_refresh --day",raw)
+        self.assertIn("NOV28-29-AUXILIARY-SOURCE-ONLY",job["if"])
+        self.assertNotIn("TURSO",raw)
+        uploads=[x for x in job["steps"] if x.get("uses","").startswith("actions/upload-artifact@")]
+        self.assertEqual(len(uploads),2)
+        self.assertTrue(all(x["with"]["path"]=="auxiliary_sealed/" for x in uploads))
+        self.assertTrue(all(x["with"]["name"].startswith("kyoto-auxiliary-") for x in uploads))
+        self.assertIn("outcome == 'failure'",uploads[1]["if"])
+        self.assertEqual(uploads[1]["with"]["overwrite"],"true")
+
     def test_exact_python_and_dependency_versions_across_all_new_source_jobs(self):
         pin_line="python -m pip install --no-deps beautifulsoup4==4.15.0 soupsieve==4.1.3 typing-extensions==4.16.0 cryptography==46.0.7 cffi==2.1.1 pycparser==3.12"
-        for path in (OBS,HAND,PREF,"kyoto-20261128-29-postrace-evidence.yml"):
+        for path in (OBS,HAND,PREF,"kyoto-20261128-29-postrace-evidence.yml","kyoto-20261128-29-auxiliary-refresh.yml"):
             doc=yaml.load((ROOT/path).read_text(),Loader=yaml.BaseLoader)
             for job in doc["jobs"].values():
                 for step in job["steps"]:
