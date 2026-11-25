@@ -86,16 +86,22 @@ class NewWeekendContract(unittest.TestCase):
         with self.assertRaises(HandoffRejected):summarize(DAYS[0],[e])
     def test_new_day_gather_uses_new_workflow_and_exact_artifacts(self):
         day=DAYS[0];e=entry(day,99);e["artifacts"]=[{"name":"kyoto-pc-98-20261128","expired":False}]
+        from diagnostics.kyoto_impl31_handoff_budget import gather_bounded,_worker
+        repo="papaneko-ai/kyoto-keiba-ai"
+        e["run"].update(head_repository={"full_name":repo},path=".github/workflows/"+WEEKENDS[day][1])
         calls=[]
         def api(path):
             calls.append(path)
+            if "auxiliary-refresh.yml/runs?" in path:return {"total_count":0,"workflow_runs":[]}
             if "/runs?" in path:return {"total_count":1,"workflow_runs":[e["run"]]}
             if "/jobs?" in path:return {"total_count":2,"jobs":e["jobs"]}
             return {"total_count":1,"artifacts":e["artifacts"]}
-        with patch("diagnostics.kyoto_impl25_c12_all_runs_handoff._gh",side_effect=api),patch("diagnostics.kyoto_impl25_c12_all_runs_handoff._download") as download:
-            r=gather(day,"papaneko-ai/kyoto-keiba-ai")
+        # Route the isolated worker through the same mocked API, retaining
+        # the actual request construction and artifact-name gate.
+        with patch("diagnostics.kyoto_impl25_c12_all_runs_handoff._gh",side_effect=api),patch("diagnostics.kyoto_impl25_c12_all_runs_handoff._download") as download,patch("diagnostics.kyoto_impl31_handoff_budget.gather_bounded",side_effect=lambda d,r:gather_bounded(d,r,invoke=lambda task,end:_worker(*task))):
+            r=gather(day,repo)
         download.assert_not_called()
-        self.assertIn("kyoto-20261128-29-two-source-production-observer.yml/runs?created=2026-11-28",calls[0])
+        self.assertTrue(any("kyoto-20261128-29-two-source-production-observer.yml/runs?created=2026-11-28" in call for call in calls))
         self.assertFalse(r["all_run_metadata_screened"])
         self.assertEqual(r["scheduled_runs"][0]["lanes"]["PC"]["artifact_evidence_state"],"EXACT_ARTIFACT_NOT_FOUND_OR_AMBIGUOUS")
 

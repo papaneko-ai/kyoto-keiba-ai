@@ -11,7 +11,7 @@ from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
 BUDGET_SECONDS = 600
-WORKERS = 4
+WORKERS = 6
 METADATA_CAP = 65
 ARTIFACT_CAP = 180
 
@@ -28,7 +28,7 @@ def _worker(kind, day, repo, rid, lane):
         j = _gh(f'repos/{repo}/actions/runs/{rid}/jobs?per_page=100')
         a = _gh(f'repos/{repo}/actions/runs/{rid}/artifacts?per_page=100')
         for doc, field in ((j, 'jobs'), (a, 'artifacts')):
-            if not isinstance(doc[field], list) or doc['total_count'] != len(doc[field]):
+            if not isinstance(doc[field], list) or doc['total_count'] != len(doc[field]) or any(not isinstance(x,dict) for x in doc[field]):
                 raise ValueError('incomplete_metadata')
         return {'jobs': j['jobs'], 'artifacts': a['artifacts']}
     with tempfile.TemporaryDirectory(prefix='kyoto_bounded_handoff_') as tmp:
@@ -78,6 +78,7 @@ def _invoke(task, end, clock=time.monotonic):
 
 def _index(response, day, repo, name, filename):
     from diagnostics.kyoto_impl25_c12_all_runs_handoff import _date
+    if not isinstance(response,dict): return [],False,None
     rows=response.get('workflow_runs',[])
     if not isinstance(rows,list): return [],False,None
     total=response.get('total_count')
@@ -88,7 +89,7 @@ def _index(response, day, repo, name, filename):
         rid=r.get('id')
         if (type(rid) is not int or rid<=0 or rid in seen or r.get('name')!=name
             or str(r.get('created_at',''))[:10]!=_date(day)
-            or r.get('head_repository',{}).get('full_name')!=repo
+            or not isinstance(r.get('head_repository'),dict) or r['head_repository'].get('full_name')!=repo
             or str(r.get('path','')).split('@',1)[0]!='.github/workflows/'+filename):
             complete=False; continue
         seen.add(rid); verified.append(r)
