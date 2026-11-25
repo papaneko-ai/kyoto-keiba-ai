@@ -13,6 +13,46 @@ WORKFLOW="kyoto-20261128-29-result-handoff.yml"
 NAME="Kyoto Nov28-29 authenticated all-run handoff"
 POLICY={"BASELINE":(720,240),"MARKET_OR_ROSTER_RECOVERY":(720,360),"PROFILE_RECOVERY":(600,360)}
 SCHEMA="kyoto_nextday_adaptation.v1"
+OBSERVER="kyoto-20261128-29-two-source-production-observer.yml"
+OBSERVER_NAME="Kyoto Nov28-29 independent encrypted original collection"
+
+def recover_from_metadata(api, repo):
+    """Independent, read-only fallback: positive failure evidence only.
+
+    GitHub API provenance is supplied by the authenticated runtime gh client.
+    No source coverage, raw data, or successful acquisition is inferred.
+    """
+    from diagnostics.kyoto_weekend_day21_triage import STAGES
+    index=api(f"repos/{repo}/actions/workflows/{OBSERVER}/runs?created=2026-11-28&per_page=100")
+    runs=index["workflow_runs"]
+    if not isinstance(runs,list) or index["total_count"]!=len(runs) or len(runs)>100:
+        raise ValueError("incomplete_observer_index")
+    ids=[r["id"] for r in runs]
+    if any(type(i) is not int or i<=0 for i in ids) or len(set(ids))!=len(ids):
+        raise ValueError("invalid_observer_run_identity")
+    eligible=[r for r in runs if r.get("name")==OBSERVER_NAME
+              and r.get("created_at","")[:10]=="2026-11-28"
+              and r.get("event")=="schedule" and r.get("status")=="completed"
+              and r.get("head_repository",{}).get("full_name")==repo
+              and r.get("path","").split("@",1)[0]==".github/workflows/"+OBSERVER]
+    # Most recent completed failure first. A positive failure observation
+    # does not require every other run to have been inspected.
+    for r in sorted(eligible,key=lambda r:(r["created_at"],r["id"]),reverse=True)[:4]:
+        rid=r["id"]
+        jobs_doc=api(f"repos/{repo}/actions/runs/{rid}/jobs?per_page=100")
+        jobs=jobs_doc["jobs"]
+        if not isinstance(jobs,list) or jobs_doc["total_count"]!=len(jobs) or len(jobs)>100:
+            continue
+        for lane,name in (("PC","pc-originals-independent"),("SP","sp-originals-independent")):
+            matches=[j for j in jobs if j.get("name")==name]
+            if len(matches)!=1:continue
+            job=matches[0]
+            if job.get("run_id")!=rid or job.get("status")!="completed" or job.get("conclusion")!="failure":continue
+            stages={STAGES.get(step.get("name")) for step in job.get("steps",[]) if step.get("conclusion")=="failure"}
+            if stages & {"PRE_HTTP_GUARD","PC_CAPTURE","SP_CAPTURE","OFFLINE_REGRESSION","ENCRYPTION_OR_STOP","ARTIFACT"}:
+                return "MARKET_OR_ROSTER_RECOVERY",f"OBSERVER_FAILURE_METADATA_ONLY_{rid}_{lane}"
+    return "BASELINE","NO_CONFIRMED_OBSERVER_FAILURE"
+
 
 def canonical(x):
     return json.dumps(x,sort_keys=True,separators=(",",":"),ensure_ascii=False,allow_nan=False).encode()
@@ -109,7 +149,12 @@ def accept(doc,report,*,repo,run_id,collector_sha,key):
     return body["decision"]["mode"]
 
 def recover(day,*,repo,collector_sha,key,monotonic=time.monotonic):
-    """Bound GitHub lookup to 18 seconds; failure retains source opportunity."""
+    """Both read-only paths share the original 18 second deadline.
+
+    The authenticated primary path has priority. The independent metadata
+    path starts concurrently, so a primary timeout cannot consume its window.
+    """
+    from concurrent.futures import ThreadPoolExecutor
     if day!=TARGET_DAY:return "BASELINE","NOT_TARGET_SUNDAY"
     end=monotonic()+18
     def timeout(cap):
@@ -120,8 +165,11 @@ def recover(day,*,repo,collector_sha,key,monotonic=time.monotonic):
         _key(key)
         if not re.fullmatch(r"[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+",repo) or not re.fullmatch(r"[a-f0-9]{40}",collector_sha):
             raise ValueError("invalid_runtime_identity")
-        def api(endpoint):
-            return json.loads(subprocess.check_output(["gh","api",endpoint],text=True,stderr=subprocess.DEVNULL,timeout=timeout(5)))
+        timeout(18)
+    except Exception as exc:return "BASELINE","FALLBACK_"+type(exc).__name__
+    def api(endpoint):
+        return json.loads(subprocess.check_output(["gh","api",endpoint],text=True,stderr=subprocess.DEVNULL,timeout=timeout(5)))
+    def primary():
         index=api(f"repos/{repo}/actions/workflows/{WORKFLOW}/runs?created=2026-11-28&per_page=100")
         runs=index["workflow_runs"]
         if index["total_count"]!=len(runs) or len(runs)>100 or len({r["id"] for r in runs})!=len(runs):raise ValueError("incomplete_run_index")
@@ -129,7 +177,16 @@ def recover(day,*,repo,collector_sha,key,monotonic=time.monotonic):
                   and r.get("event")=="schedule" and r.get("status")=="completed" and r.get("conclusion")=="success"
                   and r.get("head_repository",{}).get("full_name")==repo
                   and r.get("path","").split("@",1)[0]==".github/workflows/"+WORKFLOW]
-        if len(eligible)!=1:raise ValueError("missing_or_ambiguous_saturday_handoff")
+        if len(eligible)!=1:
+            scheduled=[r for r in runs if r.get("name")==NAME and r.get("created_at","")[:10]=="2026-11-28"
+                       and r.get("event")=="schedule" and r.get("head_repository",{}).get("full_name")==repo
+                       and r.get("path","").split("@",1)[0]==".github/workflows/"+WORKFLOW]
+            if not scheduled:raise ValueError("HANDOFF_NOT_STARTED")
+            if len(scheduled)!=1:raise ValueError("HANDOFF_AMBIGUOUS")
+            r=scheduled[0]
+            if r.get("status")!="completed":raise ValueError("HANDOFF_INCOMPLETE")
+            if r.get("conclusion")=="timed_out":raise ValueError("HANDOFF_TIMED_OUT")
+            raise ValueError("HANDOFF_FAILED")
         rid=eligible[0]["id"]
         index=api(f"repos/{repo}/actions/runs/{rid}/artifacts?per_page=100")
         arts=index["artifacts"]
@@ -144,9 +201,36 @@ def recover(day,*,repo,collector_sha,key,monotonic=time.monotonic):
                 if p.is_symlink() or not p.is_file() or not 0<p.stat().st_size<=5_000_000:
                     raise ValueError("invalid_policy_artifact_file")
                 return json.loads(p.read_text(encoding="utf8"))
-            mode=accept(read("nextday_policy.json"),read("report.json"),repo=repo,run_id=rid,collector_sha=collector_sha,key=key)
+            try:report=read("report.json")
+            except (OSError,ValueError):raise ValueError("HANDOFF_REPORT_MISSING_OR_INVALID") from None
+            try:doc=read("nextday_policy.json")
+            except (OSError,ValueError):raise ValueError("HANDOFF_POLICY_MISSING_OR_INVALID") from None
+            mode=accept(doc,report,repo=repo,run_id=rid,collector_sha=collector_sha,key=key)
             return mode,"AUTHENTICATED_SATURDAY_HANDOFF_"+str(rid)
-    except Exception as exc:return "BASELINE","FALLBACK_"+type(exc).__name__
+    pool=ThreadPoolExecutor(max_workers=2)
+    try:
+        main=pool.submit(primary)
+        backup=pool.submit(recover_from_metadata,api,repo)
+        try:
+            return main.result(timeout=max(0,end-monotonic()))
+        except Exception as exc:
+            # Only fixed diagnostic labels may leave this function; never log
+            # API output, credentials, exception arguments or artifact bytes.
+            labels={"HANDOFF_NOT_STARTED","HANDOFF_AMBIGUOUS","HANDOFF_INCOMPLETE",
+                    "HANDOFF_TIMED_OUT","HANDOFF_FAILED","HANDOFF_REPORT_MISSING_OR_INVALID",
+                    "HANDOFF_POLICY_MISSING_OR_INVALID","missing_or_ambiguous_artifact",
+                    "policy_authentication_failed","policy_context_or_recomputation_mismatch",
+                    "incomplete_run_index","incomplete_artifact_index"}
+            primary_error=str(exc) if isinstance(exc,ValueError) and str(exc) in labels else type(exc).__name__
+        try:
+            mode,reason=backup.result(timeout=max(0,end-monotonic()))
+            return mode,"PRIMARY_"+primary_error+"__"+reason
+        except Exception as exc:
+            return "BASELINE","PRIMARY_"+primary_error+"__SECONDARY_"+type(exc).__name__
+    finally:
+        # No write, no JRA requests, no acquisition veto. Each running API
+        # command already has a deadline; do not wait for a losing path.
+        pool.shutdown(wait=False,cancel_futures=True)
 
 def budgets(mode):
     return POLICY.get(mode,POLICY["BASELINE"])
