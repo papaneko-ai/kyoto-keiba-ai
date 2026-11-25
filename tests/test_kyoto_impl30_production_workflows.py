@@ -150,4 +150,14 @@ class ProductionWorkflowContract(unittest.TestCase):
         self.assertEqual(signed[0]["continue-on-error"],"true")
         self.assertIn("--report handoff/report.json --out handoff/nextday_policy.json",signed[0]["run"])
         self.assertLess(steps.index(signed[0]),next(i for i,x in enumerate(steps) if x.get("uses","").startswith("actions/upload-artifact@")))
+    def test_sunday_improvement_evaluation_is_evidence_only_before_upload(self):
+        steps=self.handoff["jobs"]["authenticated-handoff"]["steps"]
+        found=[x for x in steps if "kyoto_impl31_improvement_evaluation" in x.get("run","")]
+        self.assertEqual(len(found),1)
+        step=found[0]
+        self.assertIn("20261129",step["if"])
+        self.assertEqual(step["continue-on-error"],"true")
+        self.assertEqual(step["timeout-minutes"],"1")
+        self.assertIn("--report handoff/report.json --out handoff/improvement_evaluation.json",step["run"])
+        self.assertLess(steps.index(step),next(i for i,x in enumerate(steps) if x.get("uses","").startswith("actions/upload-artifact@")))
 if __name__=="__main__":unittest.main()

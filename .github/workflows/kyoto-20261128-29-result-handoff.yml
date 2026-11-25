@@ -29,7 +29,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: '298cbb95f4fe0cbf5ce62a67e670eb0c5377b0ee'
+          ref: '7a6fbc7eda10de1131511951a08eefbce16a274a'
           persist-credentials: false
       - uses: actions/setup-python@v5
         with:
@@ -47,6 +47,11 @@ jobs:
         if: ${{ env.KYOTO_TARGET_DAY == '20261128' }}
         continue-on-error: true
         run: python -m diagnostics.kyoto_impl30_nextday_adaptation --report handoff/report.json --out handoff/nextday_policy.json
+      - name: Evaluate observed Sunday acquisition improvement
+        if: ${{ env.KYOTO_TARGET_DAY == '20261129' }}
+        continue-on-error: true
+        timeout-minutes: 1
+        run: python -m diagnostics.kyoto_impl31_improvement_evaluation --report handoff/report.json --out handoff/improvement_evaluation.json
       - name: Upload summary only
         if: always()
         uses: actions/upload-artifact@v4
