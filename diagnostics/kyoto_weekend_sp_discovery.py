@@ -77,8 +77,10 @@ def observed_kyoto_race_candidates(raw, parent, day):
         # meeting(8 digits), race(2 digits), day, opaque verified suffix.
         # Unlike the obsolete "raceNNYYYYMMDD" test token, this pattern
         # is derived from observed official SP racecard URLs.
+        # Both 01 and 10 views were observed in actual Nov22 SP originals
+        # (run 45558381201); no suffix or URL is generated.
         match=re.fullmatch(
-            r"sw01dde01(08)[0-9]{8}(0[1-9]|1[0-2])"
+            r"sw01dde(?:01|10)(08)[0-9]{8}(0[1-9]|1[0-2])"
             +re.escape(day)+r"/[A-Za-z0-9]+",token,re.I)
         legacy=re.search(r"race(0?[1-9]|1[0-2])"+re.escape(day)+r"(?=/)",token,re.I)
         if match:

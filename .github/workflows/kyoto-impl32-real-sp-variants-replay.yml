@@ -1,0 +1,36 @@
+name: Kyoto Impl32 actual saved SP variants replay
+on:
+  push:
+    branches: ['fix/impl32-real-sp-token-variants-20261125']
+permissions:
+  contents: read
+  actions: read
+jobs:
+  replay:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      PYTHONPATH: .
+      KYOTO_TARGET_DAY: '20261122'
+      KYOTO_WEEKEND_HTTP_APPROVED: 'NO'
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11.18'
+      - run: python -m pip install --no-deps beautifulsoup4==4.15.0 soupsieve==4.1.3 typing-extensions==4.16.0 cryptography==46.0.7 cffi==2.1.1 pycparser==3.12
+      - run: gh run download 45558381201 --name kyoto-impl32-historical-sp12-45558381201 --repo "$GITHUB_REPOSITORY" --dir sp_archive
+      - name: Replay exact saved source, no new JRA requests
+        env:
+          ARCHIVE_KEY: ${{ secrets.KYOTO_JRA_ARCHIVE_AES256_HEX }}
+        run: python -m diagnostics.kyoto_impl32_real_sp_variants_replay
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: kyoto-impl32-real-sp-variants-${{ github.run_id }}
+          path: sp_real_variant_evidence/
+          if-no-files-found: error
+          retention-days: 90

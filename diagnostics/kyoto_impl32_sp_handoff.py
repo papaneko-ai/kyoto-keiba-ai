@@ -16,6 +16,7 @@ def aggregate(day,entries):
     if day not in DAYS:raise ValueError('invalid_day')
     by={'schedule':{n:[] for n in RACES},'workflow_dispatch':{n:[] for n in RACES}}
     seen=set();unavailable=[];audited=0
+    partial={'schedule':{n:[] for n in RACES},'workflow_dispatch':{n:[] for n in RACES}}
     for e in entries:
         r=e.get('run',{});rid=r.get('id');event=r.get('event')
         if event not in by or r.get('status')!='completed':continue
@@ -32,7 +33,15 @@ def aggregate(day,entries):
         audited+=1
         for n in RACES:
             v=d['races'][n]
-            if not isinstance(v,dict) or v.get('state')!='SP_STRUCTURAL_ROSTER_OBSERVED':continue
+            if not isinstance(v,dict):continue
+            if v.get('state') in ('SP_SPLIT_LAYOUT_OBSERVED','SP_SPLIT_LAYOUT_PARTIAL'):
+                try:
+                    c=v['observed_row_count'];k=v['numeric_row_count'];u=v['cancelled_number_unknown_count']
+                    if any(type(x) is not int for x in (c,k,u)) or not 2<=c<=18 or not 1<=k<=c or k+u!=c or u<0 or v['declared_runner_count_verified'] is not False or not _sha(v['source_sha256']) or not _sha(v['roster_sha256']) or ((u>0)!=(v['state']=='SP_SPLIT_LAYOUT_PARTIAL')):raise ValueError('invalid_partial')
+                    partial[event][n].append({'run_id':rid,'state':v['state'],'observed_row_count':c,'numeric_row_count':k,'cancelled_number_unknown_count':u,'declared_runner_count_verified':False,'source_sha256':v['source_sha256'],'roster_sha256':v['roster_sha256'],'captured_at_utc':_stamp(v['captured_at_utc'],day)})
+                except (KeyError,TypeError,ValueError,AttributeError):unavailable.append({'run_id':rid,'event':event,'race':n,'state':'SP_PARTIAL_OBSERVATION_REJECTED'})
+                continue
+            if v.get('state')!='SP_STRUCTURAL_ROSTER_OBSERVED':continue
             try:
                 if type(v['runner_count']) is not int or not 2<=v['runner_count']<=18 or not _sha(v['source_sha256']) or not _sha(v['roster_sha256']):raise ValueError('invalid_observation')
                 stamp=_stamp(v['captured_at_utc'],day)
@@ -46,8 +55,8 @@ def aggregate(day,entries):
             obs=sorted(obs,key=lambda x:(x['captured_at_utc'],x['run_id'],x['source_sha256']))
             sig={(x['runner_count'],x['roster_sha256']) for x in obs}
             state='NO_VERIFIED_SP_ROSTER' if not obs else 'SP_ROSTER_CONFLICT' if len(sig)>1 else 'SP_STRUCTURAL_ROSTER_OBSERVED'
-            summary[n]={'state':state,'observations':obs}
-        out[event]={'races':summary,'structural_roster_races':sum(v['state']=='SP_STRUCTURAL_ROSTER_OBSERVED' for v in summary.values()),'conflict_races':sum(v['state']=='SP_ROSTER_CONFLICT' for v in summary.values())}
+            summary[n]={'state':state,'observations':obs,'split_layout_observations':sorted(partial[event][n],key=lambda x:(x['captured_at_utc'],x['run_id'],x['source_sha256']))}
+        out[event]={'races':summary,'structural_roster_races':sum(v['state']=='SP_STRUCTURAL_ROSTER_OBSERVED' for v in summary.values()),'conflict_races':sum(v['state']=='SP_ROSTER_CONFLICT' for v in summary.values()),'split_layout_races':sum(bool(v['split_layout_observations']) for v in summary.values())}
     return {'schema':'kyoto_impl32_sp_handoff.v1','day':day,'race_denominator':12,'audited_sp_runs':audited,
         'scheduled':out['schedule'],'manual':out['workflow_dispatch'],'unavailable':sorted(unavailable,key=lambda x:(x['run_id'],x.get('race',''))),
         'pc_denominator_modified':False,'prestart_certified':False,'market_verified':False,'live_acquisition_certified':False}
