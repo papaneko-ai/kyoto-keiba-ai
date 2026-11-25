@@ -78,6 +78,11 @@ def assess_lane(root,*,day,channel,key,repo,run_id):
                         return result
                     result["sp_race_integrity"]=fresh["sp_race_integrity"]
                     result["sp_racewise_partial_integrity"]=fresh["source_verified"] is not True
+                    try:
+                        from diagnostics.kyoto_impl31_sp_saved_roster_audit import assess_checked
+                        result["sp_saved_roster_audit"]=assess_checked(source,day,fresh)
+                    except (OSError,ValueError,KeyError,TypeError,AttributeError):
+                        result["sp_saved_roster_audit_error"]="CONTENT_AUDIT_UNAVAILABLE"
                     if isinstance(receipt.get("sp_gap_plan"),dict):
                         try:
                             from diagnostics.kyoto_impl31_sp_gap_plan import feedback

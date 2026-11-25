@@ -60,4 +60,6 @@ class Racewise(unittest.TestCase):
             crypto.encrypt_evidence(self.root,out,key_hex=KEY,repo=REPO,run_id='42')
             result=assess_lane(out,day=DAY,channel='SP',key=KEY,repo=REPO,run_id='42')
         self.assertEqual(result['state'],'SP_RACEWISE_POSTFLIGHT_MISMATCH');self.assertFalse(result['source_original_sha_utc_checked'])
+from tests.test_kyoto_impl31_sp_saved_roster_audit import SPProof
+
 if __name__=='__main__':unittest.main()
