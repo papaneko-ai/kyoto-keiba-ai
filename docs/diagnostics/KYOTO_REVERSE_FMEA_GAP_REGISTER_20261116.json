@@ -1227,7 +1227,7 @@
     "diagnostics/kyoto_weekend_postflight.py": "b1b52eee94c486058d8cbb009e3c89fd6257a584",
     "diagnostics/kyoto_weekend_day21_triage.py": "a6639d5cab211d37d1eddefaa9bfc5b23901368d",
     "diagnostics/kyoto_nov15_two_original_observer.py": "0858ed767e61f9669301b4ed46c039e5cdb621a1",
-    "diagnostics/kyoto_sp_observed_source.py": "c2f07a1752216016b851307eba29d84491cdefac",
+    "diagnostics/kyoto_sp_observed_source.py": "5f5804e15d4c7af8b16a78663a0634965e16014f",
     "diagnostics/kyoto_nov15_encrypted_evidence.py": "c0168f85d8dd6d211acac369e67c2365259aa26b",
     "diagnostics/jra_benchmark_acceptance.py": "edbd6b5b9479fdbf3fc88c7450c0c7ae3260a76f",
     "diagnostics/jra_market_integrity_gate.py": "6f20257575d7c5aeb232512bb64700dee21c3e06",
@@ -1236,7 +1236,7 @@
     "diagnostics/jra_odds_matrix_parser.py": "27f73b3be02a48c98d931b99217f9da4aa741a2f",
     "diagnostics/jra_odds_source_archive.py": "04ffb7982da138c611ff622a8fba0c0868b618e4",
     "diagnostics/jra_official_link_repair.py": "4bf0b16b4d0a6ff322c813718eb7ec38dd0d2f46",
-    "diagnostics/jra_official_market_navigation.py": "f452e6e0778fb9d86af7fa232092892c6ff11f34",
+    "diagnostics/jra_official_market_navigation.py": "b3b003e0594f01965482769c8aa86734834fdfe8",
     "diagnostics/jra_one_shot_market_capture.py": "106489bf7e7d6d30bdd5ac04f7f53c53473fe74f",
     "diagnostics/jra_pc_sp_benchmark.py": "a6c952bbaa128275efb010100f3c5e789c68451e",
     "diagnostics/jra_source_router.py": "d7eae104adecd60374ac0b6cc9ee622f9e47df95",
@@ -1538,5 +1538,24 @@
     "review_status": "UNREVIEWED_INDEPENDENT_FMEA",
     "closed_risks": 0,
     "reason": "Bounded authenticated same-day PC evidence changes SP race order only; no source coverage promotion."
+  },
+  "impl31_market_isolation_reopen": {
+    "reason": "Isolate transient failure per independently observed SP market; align parser host classification with existing approved mobile hosts.",
+    "sources": [
+      {
+        "source": "diagnostics/kyoto_sp_observed_source.py",
+        "old_blob": "c2f07a1752216016b851307eba29d84491cdefac",
+        "new_blob": "5f5804e15d4c7af8b16a78663a0634965e16014f",
+        "review_status": "UNREVIEWED_INDEPENDENT_FMEA",
+        "closed_risks": 0
+      },
+      {
+        "source": "diagnostics/jra_official_market_navigation.py",
+        "old_blob": "f452e6e0778fb9d86af7fa232092892c6ff11f34",
+        "new_blob": "b3b003e0594f01965482769c8aa86734834fdfe8",
+        "review_status": "UNREVIEWED_INDEPENDENT_FMEA",
+        "closed_risks": 0
+      }
+    ]
   }
 }

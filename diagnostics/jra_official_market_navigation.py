@@ -14,6 +14,8 @@ def find_market_links(raw,*,expected_race_day,expected_race_number,expected_host
         raise MarketNavigationError("invalid_original_html")
     if not re.fullmatch(r"20\d{6}",expected_race_day) or not 1<=expected_race_number<=12:
         raise MarketNavigationError("invalid_race_identity")
+    if expected_host not in ("jra.jp","sp.jra.jp","app.jra.jp"):
+        raise MarketNavigationError("unapproved_market_host")
     soup=BeautifulSoup(raw.decode("cp932",errors="replace"),"html.parser")
     if not soup.title or "オッズ" not in soup.title.get_text():
         raise MarketNavigationError("not_official_odds_page")
@@ -32,7 +34,7 @@ def find_market_links(raw,*,expected_race_day,expected_race_number,expected_host
         if len(tokens)!=1:raise MarketNavigationError(market+"_unique_link_missing")
         token=next(iter(tokens))
         is_mobile=token.startswith("sw")
-        if (expected_host=="sp.jra.jp")!=is_mobile:
+        if (expected_host in ("sp.jra.jp","app.jra.jp"))!=is_mobile:
             raise MarketNavigationError("unexpected_channel_token")
         result[market]={"official_post_url":f"https://{expected_host}/JRADB/accessO.html",
             "form_parameter":"cname","cname":token,

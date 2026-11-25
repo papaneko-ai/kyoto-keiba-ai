@@ -196,15 +196,29 @@ def _capture_sp_observed_markets(root, opener, racecard, referer,
         for market in ("quinella","bracket_quinella"):
             item=links["markets"][market]
             receipt["network_requests_started"]+=1
-            page=http_fetch(opener,"SP",item["official_post_url"],
-                            cname=item["cname"],
-                            referer=f"https://{source_host}/JRADB/accessO.html",
-                            pacer=pacer)
+            try:
+                page=http_fetch(opener,"SP",item["official_post_url"],
+                                cname=item["cname"],
+                                referer=f"https://{source_host}/JRADB/accessO.html",
+                                pacer=pacer)
+            except Exception as exc:
+                if day not in ("20261128","20261129"):
+                    raise
+                from urllib.error import HTTPError, URLError
+                transient=(isinstance(exc,HTTPError) and exc.code in (404,408,500,502,503,504)) or isinstance(exc,(TimeoutError,ConnectionError)) or (isinstance(exc,URLError) and not isinstance(exc,HTTPError) and isinstance(exc.reason,(TimeoutError,ConnectionError)))
+                receipt[f"sp_{market}_error_class"]=type(exc).__name__
+                if not transient:
+                    receipt["sp_market_state"]="MARKET_PATH_UNAVAILABLE"
+                    return
+                # A different, independently observed market remains eligible.
+                # No retry of this action and no bypass of refusal/rate limit.
+                continue
             (root/f"official_sp_{market}_odds.html").write_bytes(page["raw"])
             receipt[f"sp_{market}_sha256"]=page["sha256"]
             receipt[f"sp_{market}_captured_at_utc"]=page["captured_at_utc"]
             receipt[f"sp_{market}_action"]=item["cname"]
-        receipt["sp_market_state"]="BOTH_RAW_MARKET_ORIGINALS_CAPTURED_UNVALIDATED"
+        n=sum(f"sp_{m}_sha256" in receipt for m in ("quinella","bracket_quinella"))
+        receipt["sp_market_state"]=("BOTH_RAW_MARKET_ORIGINALS_CAPTURED_UNVALIDATED" if n==2 else "PARTIAL_RAW_MARKET_ORIGINALS_CAPTURED_UNVALIDATED" if n==1 else "MARKET_PATH_UNAVAILABLE")
     except Exception as exc:
         receipt["sp_market_state"]="MARKET_PATH_UNAVAILABLE"
         receipt["sp_market_error_class"]=type(exc).__name__

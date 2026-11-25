@@ -128,6 +128,36 @@ class SPSourceTests(unittest.TestCase):
         self.assertTrue((self.dir/"official_sp_quinella_odds.html").is_file())
         self.assertTrue((self.dir/"official_sp_bracket_quinella_odds.html").is_file())
         self.assertFalse(r["sp_odds_originals_verified"])
+    def test_weekend_market_failures_are_isolated_without_retry_or_refusal_bypass(self):
+        from unittest.mock import patch,Mock
+        from urllib.error import HTTPError
+        from diagnostics.kyoto_sp_observed_source import _capture_sp_observed_markets
+        import ssl
+        day="20261128"
+        raw=("<html><a onclick=\"doAction('/JRADB/accessO.html','sw01oddsmenu20261128/AA')\">オッズ</a></html>").encode("cp932")
+        menu=("<html><title>オッズ</title><a onclick=\"doAction('/JRADB/accessO.html','sw01market1220261128/AA')\">馬連</a><a onclick=\"doAction('/JRADB/accessO.html','sw01bracket1220261128/BB')\">枠連</a></html>").encode("cp932")
+        for error,continue_other in ((TimeoutError(),True),(HTTPError("https://sp.jra.jp",503,"temp",{},None),True),(HTTPError("https://sp.jra.jp",403,"refused",{},None),False),(HTTPError("https://sp.jra.jp",429,"limited",{},None),False),(ssl.SSLError("tls"),False)):
+            with self.subTest(error=type(error).__name__,status=getattr(error,"code",None)),tempfile.TemporaryDirectory() as tmp:
+                root=Path(tmp);receipt={"network_requests_started":1};calls=[]
+                def fetch(opener,channel,url,*,cname,referer,pacer):
+                    calls.append(cname)
+                    if "market12" in cname:raise error
+                    data=menu if "oddsmenu" in cname else b"bracket-original"
+                    return {"raw":data,"sha256":__import__("hashlib").sha256(data).hexdigest(),"captured_at_utc":"2026-11-28T01:00:00Z"}
+                with patch("diagnostics.kyoto_sp_observed_source.http_fetch",side_effect=fetch):
+                    _capture_sp_observed_markets(root,object(),raw,"https://sp.jra.jp/JRADB/accessD.html",day,12,receipt,Mock())
+                self.assertEqual(len(calls),3 if continue_other else 2)
+                self.assertEqual(sum("market12" in x for x in calls),1)
+                self.assertEqual((root/"official_sp_bracket_quinella_odds.html").exists(),continue_other)
+                self.assertEqual(receipt["sp_market_state"],"PARTIAL_RAW_MARKET_ORIGINALS_CAPTURED_UNVALIDATED" if continue_other else "MARKET_PATH_UNAVAILABLE")
+                self.assertFalse(receipt["sp_odds_originals_verified"])
+    def test_existing_app_mobile_host_is_not_misclassified_as_pc(self):
+        from diagnostics.jra_official_market_navigation import find_market_links,MarketNavigationError
+        menu=("<html><title>オッズ</title><a onclick=\"doAction('/JRADB/accessO.html','sw01market1220261128/AA')\">馬連</a><a onclick=\"doAction('/JRADB/accessO.html','sw01bracket1220261128/BB')\">枠連</a></html>").encode("cp932")
+        links=find_market_links(menu,expected_race_day="20261128",expected_race_number=12,expected_host="app.jra.jp")
+        self.assertTrue(all(v["official_post_url"]=="https://app.jra.jp/JRADB/accessO.html" for v in links["markets"].values()))
+        for host in ("jra.jp","unapproved.example"):
+            with self.assertRaises(MarketNavigationError):find_market_links(menu,expected_race_day="20261128",expected_race_number=12,expected_host=host)
     def test_offline_comparison_no_originals(self):
         from diagnostics.kyoto_sp_observed_source import compare_saved_pc_sp
         self.dir.mkdir()
