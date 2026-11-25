@@ -43,6 +43,12 @@ class SplitLayout(unittest.TestCase):
         from diagnostics.kyoto_impl31_sp_saved_roster_audit import inspect_observed_layout
         a=inspect_observed_layout(self.raw(True),DAY,1)
         self.assertEqual(a['state'],'SP_SPLIT_LAYOUT_PARTIAL');self.assertEqual(a['cancelled_number_unknown_count'],1);self.assertEqual(a['numeric_row_count'],1)
+    def test_column_heading_not_entrant_but_malformed_numbered_row_rejected(self):
+        from diagnostics.kyoto_impl31_sp_saved_roster_audit import inspect_observed_layout
+        b=self.raw().replace(b'<table>',b'<table><tr><th class="uban">No.</th></tr>',1)
+        self.assertEqual(inspect_observed_layout(b,DAY,1)['numeric_row_count'],2)
+        b=b.replace(b'<a href="/JRADB/accessU.html">',b'<a href="/other">',1)
+        with self.assertRaisesRegex(ValueError,'ambiguous_roster_row'):inspect_observed_layout(b,DAY,1)
     def test_wrong_identity(self):
         from diagnostics.kyoto_impl31_sp_saved_roster_audit import inspect_observed_layout
         for b in (self.raw(day='29'),self.raw(race=2)):

@@ -81,8 +81,12 @@ def inspect_observed_layout(raw,day,number):
     if races!={number}:raise ValueError('split_race_mismatch')
     rows=[];frame=None;seen=set();cancelled=0
     for tr in table.select('tr'):
-        links=tr.select('a[href*="/JRADB/accessU.html"]');nums=tr.select('.uban')
-        if not links and not nums:continue
+        # Column header (th.uban) and ancillary detail rows are not entrants.
+        # A direct horse-number data cell is mandatory; do not silently discard
+        # a malformed numbered entrant even if its profile link is missing.
+        nums=[cell for cell in tr.find_all('td',recursive=False) if 'uban' in cell.get('class',[])]
+        if not nums:continue
+        links=tr.select('a[href*="/JRADB/accessU.html"]')
         if len(links)!=1 or len(nums)!=1:raise ValueError('ambiguous_roster_row')
         f=tr.select_one('.wban')
         if f and f.get_text(strip=True):

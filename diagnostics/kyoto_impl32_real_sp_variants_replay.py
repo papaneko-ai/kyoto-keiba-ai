@@ -28,15 +28,17 @@ def main():
                 if not any(k in v for k in ('京都','出馬表','2026','頭')):continue
                 # Only coarse flags; no raw page text or horse names published.
                 headings.append({'tag':h.name,'classes':h.get('class',[]),'before_table':bool(table and any(e is h for e in table.previous_elements)),'date':bool(re.search(r'2026\s*年\s*11\s*月\s*22\s*日',v)),'kyoto':'京都' in v,'card':'出馬表' in v,'race':bool(re.search(r'(?<!\d)'+str(n)+r'\s*(?:R|レース)(?!\d)',v,re.I)),'counts':[int(y) for y in re.findall(r'(\d{1,2})\s*頭',v)]})
-            nums=[]
+            nums=[];row_shapes={}
             if table:
                 for tr in table.select('tr'):
                     a=tr.select('a[href*="/JRADB/accessU.html"]');ns=tr.select('.uban')
+                    shape=f'links={len(a)};number={len(ns)};number_tags={sorted(x.name for x in ns)};direct_td_uban={sum(1 for c in tr.find_all("td",recursive=False) if "uban" in c.get("class",[]))}'
+                    row_shapes[shape]=row_shapes.get(shape,0)+1
                     if len(a)==1 and len(ns)==1:
                         v=ns[0].get_text(' ',strip=True)
                         nums.append(v if v.isascii() and v.isdigit() or v=='取消' else 'OTHER')
             found=observed_kyoto_race_candidates(raw,url,day)
-            row={'race':n,'prefix':token[7:9],'source_sha256':x['sha256'],'exact_url_accepted':True,'observed_anchor_counts':{k:len(v) for k,v in found.items()},'number_cells':nums,'headings':headings}
+            row={'race':n,'prefix':token[7:9],'source_sha256':x['sha256'],'exact_url_accepted':True,'observed_anchor_counts':{k:len(v) for k,v in found.items()},'number_cells':nums,'row_shapes':row_shapes,'headings':headings}
             try:row['strict_roster_count']=len(inspect_heading(raw,day,n))
             except (ValueError,UnicodeError) as exc:row['strict_roster_error']=type(exc).__name__+':'+str(exc)[:80]
             try:row['split_layout']=inspect_observed_layout(raw,day,n)
