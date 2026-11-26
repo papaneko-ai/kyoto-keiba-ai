@@ -5,11 +5,11 @@ from datetime import date, datetime, timedelta
 from hashlib import sha256
 import json, re
 from bs4 import BeautifulSoup
-from diagnostics.kyoto_impl33_whitegreen_probe import inspect, tables, text, timing, FINAL, JST
+from diagnostics.kyoto_impl33_whitegreen_probe import inspect, tables, text, timing, FINAL, FINAL_SHORT, JST
 
 
-def bind(raw, day, race, url, captured_utc, roster, start_utc):
-    receipt=inspect(raw,day,race,url,captured_utc)
+def bind(raw, day, race, url, captured_utc, roster, start_utc, observed_urls=()):
+    receipt=inspect(raw,day,race,url,captured_utc,observed_urls)
     if not isinstance(roster,dict) or not 2<=len(roster)<=18 or any(type(n) is not int or not 1<=n<=18 or not isinstance(v,str) or not v for n,v in roster.items()) or len(set(roster.values()))!=len(roster):
         raise ValueError('official_roster_identity')
     start=datetime.fromisoformat(start_utc.replace('Z','+00:00'))
@@ -20,7 +20,7 @@ def bind(raw, day, race, url, captured_utc, roster, start_utc):
     if receipt['summary_kind']!='FINAL_NUMBERED':
         raise ValueError('numbered_roster_not_published')
     soup=BeautifulSoup(raw,'html.parser')
-    rows=next(rows for _,header,rows in tables(soup) if header==FINAL)
+    rows=next(rows for _,header,rows in tables(soup) if header in (FINAL,FINAL_SHORT))
     source={int(row[1]):row[2] for row in rows}
     if source!=roster:
         raise ValueError('source_official_roster_mismatch')
@@ -52,4 +52,4 @@ def bind(raw, day, race, url, captured_utc, roster, start_utc):
         records[n].sort(key=lambda r:(r['training_date'],r['course'],r['distance_m'],r['elapsed_s'],r['last_1f_s']))
     digest=sha256(json.dumps(records,sort_keys=True,separators=(',',':'),allow_nan=False).encode()).hexdigest()
     valid=sum(bool(x) for x in records.values())
-    return {**receipt,'official_roster_match':True,'official_horses':len(roster),'history_horses_bound':len(seen),'horses_with_dated_workout':valid,'bound_dated_records':sum(map(len,records.values())),'unbound_or_invalid_rows':malformed,'normalized_digest':digest,'historical_only':captured>=start or receipt['result_section_present'],'prestart_candidate':captured<start and not receipt['result_section_present'],'production_coverage_authorized':False},records
+    return {**receipt,'official_roster_match':True,'independent_roster_verified':True,'horse_history_binding_verified':len(seen)==len(roster),'official_horses':len(roster),'history_horses_bound':len(seen),'horses_with_dated_workout':valid,'bound_dated_records':sum(map(len,records.values())),'unbound_or_invalid_rows':malformed,'normalized_digest':digest,'historical_only':captured>=start or receipt['result_section_present'],'prestart_candidate':captured<start and not receipt['result_section_present'],'production_coverage_authorized':False},records

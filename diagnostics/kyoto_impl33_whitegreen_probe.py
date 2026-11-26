@@ -19,6 +19,7 @@ MAX_BYTES = 4_000_000
 JST = timezone(timedelta(hours=9))
 COURSES = {'栗東CW':'RITTO_CW', '栗東坂路':'RITTO_HILL', '美浦W':'MIHO_W', '美浦坂路':'MIHO_HILL'}
 FINAL = ('枠','馬番','馬名','判定','コース','本線','終い','併せ馬')
+FINAL_SHORT = FINAL[:-1]
 PREVIEW = ('馬名','判定','コース','本線','終い')
 
 
@@ -44,8 +45,9 @@ def timing(course, main, last):
     return {'course':COURSES[course], 'distance_m':f*200, 'elapsed_s':total, 'last_1f_s':end}
 
 
-def inspect(raw, day, race, url, captured_utc):
-    if (day,race,url) not in SAMPLES:
+def inspect(raw, day, race, url, captured_utc, observed_urls=()):
+    expected = HOST + f'/race/{day}-kyoto-{race:02d}/'
+    if (day,race,url) not in SAMPLES and (url != expected or (day,race,url) not in observed_urls or not 1 <= race <= 12):
         raise ValueError('unobserved_sample_identity')
     if not isinstance(raw,bytes) or not 0 < len(raw) <= MAX_BYTES:
         raise ValueError('invalid_bytes')
@@ -59,8 +61,8 @@ def inspect(raw, day, race, url, captured_utc):
     if h1 is None or not re.search(rf'京都\s*{race}R\b',text(h1)) or f'{d.year}年{d.month}月{d.day}日' not in text(soup):
         raise ValueError('visible_race_identity')
     result_section=any(text(h)=='レース結果' for h in soup.find_all(['h2','h3','h4']))
-    matches=[(header,rows) for _,header,rows in tables(soup) if header in (FINAL,PREVIEW)]
-    finals=[rows for header,rows in matches if header==FINAL]
+    matches=[(header,rows) for _,header,rows in tables(soup) if header in (FINAL,FINAL_SHORT,PREVIEW)]
+    finals=[rows for header,rows in matches if header in (FINAL,FINAL_SHORT)]
     previews=[rows for header,rows in matches if header==PREVIEW]
     if len(finals)>1 or len(previews)>1 or not (finals or previews):
         raise ValueError('ambiguous_or_missing_summary')
@@ -68,10 +70,10 @@ def inspect(raw, day, race, url, captured_utc):
     rows=(finals or previews)[0]
     names=set(); numbers=set(); valid=0; missing=0
     for row in rows:
-        if len(row)!=(8 if final else 5):
+        if (final and len(row) not in (7,8)) or (not final and len(row)!=5):
             raise ValueError('summary_shape')
         if final:
-            _,number,name,_,course,main,last,_=row
+            _,number,name,_,course,main,last=row[:7]
             if not re.fullmatch(r'[1-9]|1[0-8]',number) or number in numbers:
                 raise ValueError('duplicate_or_invalid_horse_number')
             numbers.add(number)
