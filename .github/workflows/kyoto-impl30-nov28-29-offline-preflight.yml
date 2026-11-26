@@ -1,0 +1,74 @@
+name: Kyoto Impl30 Nov28-29 offline release preflight
+on:
+  push:
+    branches:
+      - 'fix/impl30-root-causes-20261124'
+      - 'fix/impl30-nov29-*'
+      - 'fix/impl30-cancellation-postrace-20261124'
+      - 'fix/impl30-final-reconcile-20261124'
+      - 'fix/impl30-nov28-acquisition-priority-20261124'
+      - 'fix/impl30-profile-resume-20261124'
+      - 'fix/impl30-day-coverage-20261124'
+  pull_request:
+    branches: ['fix/impl29-weekend-20261128-29']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  offline-next-week:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    env:
+      PYTHONPATH: .
+      KYOTO_TARGET_DAY: '20261121'
+      KYOTO_WEEKEND_HTTP_APPROVED: 'NO'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11.18'
+      - name: Install existing parsing and crypto libraries
+        run: python -m pip install --no-deps beautifulsoup4==4.15.0 soupsieve==4.1.3 typing-extensions==4.16.0 cryptography==46.0.7 cffi==2.1.1 pycparser==3.12
+      - name: Exact candidate and offline root cause regression
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p impl30_preflight
+          git rev-parse HEAD | tee impl30_preflight/head.txt
+          test "$(git rev-parse HEAD)" = "${{ github.event.pull_request.head.sha || github.sha }}"
+          python -m unittest -v tests.test_kyoto_impl30_next_week_contract tests.test_kyoto_impl30_profile_priority tests.test_kyoto_nov22_preserve_saved_sp_r1 tests.test_kyoto_impl25_c10_auxiliary_coverage tests.test_kyoto_impl25_c11_per_family_proof tests.test_kyoto_impl25_c12_all_runs_handoff tests.test_kyoto_weekend_day21_triage tests.test_kyoto_weekend_day21_artifact_triage tests.test_kyoto_weekend_retry_guard tests.test_kyoto_weekend_remote_claim_runtime tests.test_kyoto_weekend_production_workflow tests.test_jra_odds_matrix_parser tests.test_jra_market_source_chain tests.test_jra_market_integrity_gate tests.test_kyoto_g06_missing_market_retry tests.test_kyoto_g06_item_level_recovery tests.test_kyoto_cancel_odds_classifier tests.test_kyoto_impl30_cancelled_market tests.test_kyoto_impl30_postrace_day tests.test_kyoto_impl30_final_reconcile tests.test_kyoto_impl30_postrace_runtime tests.test_kyoto_impl30_postrace_replay tests.test_jra_one_shot_market_capture tests.test_kyoto_g06_downstream_intake tests.test_kyoto_g06_four_stage_inboxes tests.test_jra_result_roster 2>&1 | tee impl30_preflight/root_tests.log
+      - name: Reproduce the actual Nov21 mandatory bridge failures before race day
+        shell: bash
+        run: |
+          set -euo pipefail
+          KYOTO_TARGET_DAY=20261121 python -m unittest -v tests.test_kyoto_g03_weekend_bridge tests.test_kyoto_g05_weekend_bridge 2>&1 | tee impl30_preflight/nov21_bridge.log
+      - name: Source integration regression without live authorization
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m unittest -v tests.test_kyoto_weekend_capture tests.test_kyoto_weekend_sp_discovery tests.test_kyoto_sp_all12_observed_capture tests.test_kyoto_weekend_race_parity tests.test_kyoto_weekend_postflight tests.test_kyoto_weekend_interruption_and_pacing tests.test_kyoto_weekend_end_to_end tests.test_kyoto_impl25_g04_market_time_reserve tests.test_kyoto_impl25_g06_market_sealing_reserve tests.test_kyoto_impl25_g04_priority tests.test_kyoto_impl25_partial_source_continuation tests.test_kyoto_g06_all12_capture tests.test_kyoto_g06_claim_execution tests.test_kyoto_impl25_g06_racewise_isolation tests.test_kyoto_impl25_g04_horsewise_quarantine 2>&1 | tee impl30_preflight/integration_tests.log
+          KYOTO_TARGET_DAY=20261115 python -m unittest -v tests.test_kyoto_nov15_encrypted_evidence tests.test_kyoto_nov15_offline_race_links tests.test_kyoto_sp_observed_source 2>&1 | tee impl30_preflight/legacy_tests.log
+      - name: Move remaining live-slot regression checks to verified release before race day
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m unittest -v tests.test_kyoto_impl30_day_coverage tests.test_kyoto_impl30_profile_resume tests.test_kyoto_g04_all_horse_profiles tests.test_kyoto_g05_conditions tests.test_kyoto_g05_official_track tests.test_kyoto_safe_stop_artifact tests.test_kyoto_impl23_claim_preflight tests.test_kyoto_impl23_lease_window tests.test_kyoto_impl23_lease_clock tests.test_kyoto_impl23_claim_evidence tests.test_kyoto_impl23_pc_to_g06_real_lease tests.test_kyoto_impl23_weekend_entrypoint_claim tests.test_kyoto_impl23_production_claim_activation tests.test_kyoto_impl23_claim_continuation 2>&1 | tee impl30_preflight/former_live_slot_checks.log
+          KYOTO_TARGET_DAY=20261115 python -m unittest -v tests.test_kyoto_nov15_two_original_observer 2>&1 | tee impl30_preflight/former_live_legacy.log
+      - name: Existing foreseeable failure and reverse FMEA gates
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m unittest -v tests.test_kyoto_predictable_failure_gate tests.test_kyoto_reverse_fmea_gate 2>&1 | tee impl30_preflight/risk_tests.log
+          python -m diagnostics.kyoto_predictable_failure_gate --report impl30_preflight/predictable.json
+          python -m diagnostics.kyoto_reverse_fmea_gate --report impl30_preflight/reverse_fmea.json
+      - name: Preserve test evidence even on failure
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: kyoto-impl30-preflight-${{ github.run_id }}
+          path: impl30_preflight/
+          retention-days: 30
+          if-no-files-found: error
