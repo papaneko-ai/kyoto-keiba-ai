@@ -1,7 +1,8 @@
 """Authenticated next-day operational adaptation, no arbitrary code or secret changes.
 
 The Saturday evidence handoff signs a bounded policy selected from revalidated
-coverage. Sunday consumes only that exact scheduled run's signed artifact.
+coverage. Sunday prefers the scheduled run's signed artifact and can use a
+verified main-branch dispatch of the same handoff workflow as recovery.
 Missing or inconsistent evidence preserves baseline; no acquisition veto.
 """
 import argparse,hashlib,hmac,json,os,re,subprocess,tempfile,time
@@ -100,7 +101,14 @@ def derive(report):
                     "source_coverage_proved":False}
         return {"mode":"BASELINE","reason":reason}
     c=report.get("day_source_coverage",{})
-    if (report.get("all_run_metadata_screened") is not True or
+    # A late or missing native schedule must not invalidate independently
+    # authenticated originals from an authorized same-day dispatch. C12 keeps
+    # those observations separate; this does not certify the scheduled slots.
+    manual=report.get("manual_source_assessment",[])
+    manual_verified=isinstance(manual,list) and any(
+        isinstance(m,dict) and type(m.get("run_id")) is int and m["run_id"]>0
+        and m.get("authenticated_pc_slot") is True for m in manual)
+    if ((report.get("all_run_metadata_screened") is not True and not manual_verified) or
         report.get("github_run_listing_complete") is not True or
         c.get("schema")!="kyoto_impl30_day_source_coverage.v1" or
         c.get("day")!=SOURCE_DAY or c.get("race_denominator")!=12 or
@@ -173,40 +181,58 @@ def recover(day,*,repo,collector_sha,key,monotonic=time.monotonic):
         index=api(f"repos/{repo}/actions/workflows/{WORKFLOW}/runs?created=2026-11-28&per_page=100")
         runs=index["workflow_runs"]
         if index["total_count"]!=len(runs) or len(runs)>100 or len({r["id"] for r in runs})!=len(runs):raise ValueError("incomplete_run_index")
-        eligible=[r for r in runs if r.get("name")==NAME and r.get("created_at","")[:10]=="2026-11-28"
-                  and r.get("event")=="schedule" and r.get("status")=="completed" and r.get("conclusion")=="success"
-                  and r.get("head_repository",{}).get("full_name")==repo
-                  and r.get("path","").split("@",1)[0]==".github/workflows/"+WORKFLOW]
-        if len(eligible)!=1:
-            scheduled=[r for r in runs if r.get("name")==NAME and r.get("created_at","")[:10]=="2026-11-28"
-                       and r.get("event")=="schedule" and r.get("head_repository",{}).get("full_name")==repo
-                       and r.get("path","").split("@",1)[0]==".github/workflows/"+WORKFLOW]
-            if not scheduled:raise ValueError("HANDOFF_NOT_STARTED")
-            if len(scheduled)!=1:raise ValueError("HANDOFF_AMBIGUOUS")
-            r=scheduled[0]
-            if r.get("status")!="completed":raise ValueError("HANDOFF_INCOMPLETE")
-            if r.get("conclusion")=="timed_out":raise ValueError("HANDOFF_TIMED_OUT")
-            raise ValueError("HANDOFF_FAILED")
-        rid=eligible[0]["id"]
-        index=api(f"repos/{repo}/actions/runs/{rid}/artifacts?per_page=100")
-        arts=index["artifacts"]
-        if index["total_count"]!=len(arts):raise ValueError("incomplete_artifact_index")
-        name=f"kyoto-handoff-{rid}-{SOURCE_DAY}"
-        if len([a for a in arts if a.get("name")==name and a.get("expired") is False])!=1:raise ValueError("missing_or_ambiguous_artifact")
-        with tempfile.TemporaryDirectory(prefix="kyoto_adaptive_plan_") as tmp:
-            subprocess.run(["gh","run","download",str(rid),"--repo",repo,"--name",name,"--dir",tmp],
-                stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL,check=True,timeout=timeout(10))
-            def read(name):
-                p=Path(tmp)/name
-                if p.is_symlink() or not p.is_file() or not 0<p.stat().st_size<=5_000_000:
-                    raise ValueError("invalid_policy_artifact_file")
-                return json.loads(p.read_text(encoding="utf8"))
-            try:report=read("report.json")
-            except (OSError,ValueError):raise ValueError("HANDOFF_REPORT_MISSING_OR_INVALID") from None
-            try:doc=read("nextday_policy.json")
-            except (OSError,ValueError):raise ValueError("HANDOFF_POLICY_MISSING_OR_INVALID") from None
-            mode=accept(doc,report,repo=repo,run_id=rid,collector_sha=collector_sha,key=key)
-            return mode,"AUTHENTICATED_SATURDAY_HANDOFF_"+str(rid)
+        def same_workflow(r):
+            return (type(r.get("id")) is int and r["id"]>0
+                    and r.get("name")==NAME and r.get("created_at","")[:10]=="2026-11-28"
+                    and r.get("head_repository",{}).get("full_name")==repo
+                    and r.get("path","").split("@",1)[0]==".github/workflows/"+WORKFLOW)
+        scheduled=[r for r in runs if same_workflow(r) and r.get("event")=="schedule"]
+        def complete(r):
+            return r.get("status")=="completed" and r.get("conclusion")=="success"
+        eligible=[r for r in scheduled if complete(r)]
+        manual=sorted((r for r in runs if same_workflow(r) and r.get("event")=="workflow_dispatch"
+                       and r.get("head_branch")=="main" and complete(r)),
+                      key=lambda r:(r["created_at"],r["id"]),reverse=True)
+        def read_run(r):
+            rid=r["id"]
+            index=api(f"repos/{repo}/actions/runs/{rid}/artifacts?per_page=100")
+            arts=index["artifacts"]
+            if index["total_count"]!=len(arts):raise ValueError("incomplete_artifact_index")
+            name=f"kyoto-handoff-{rid}-{SOURCE_DAY}"
+            if len([a for a in arts if a.get("name")==name and a.get("expired") is False])!=1:raise ValueError("missing_or_ambiguous_artifact")
+            with tempfile.TemporaryDirectory(prefix="kyoto_adaptive_plan_") as tmp:
+                subprocess.run(["gh","run","download",str(rid),"--repo",repo,"--name",name,"--dir",tmp],
+                    stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL,check=True,timeout=timeout(10))
+                def read(name):
+                    p=Path(tmp)/name
+                    if p.is_symlink() or not p.is_file() or not 0<p.stat().st_size<=5_000_000:
+                        raise ValueError("invalid_policy_artifact_file")
+                    return json.loads(p.read_text(encoding="utf8"))
+                try:report=read("report.json")
+                except (OSError,ValueError):raise ValueError("HANDOFF_REPORT_MISSING_OR_INVALID") from None
+                try:doc=read("nextday_policy.json")
+                except (OSError,ValueError):raise ValueError("HANDOFF_POLICY_MISSING_OR_INVALID") from None
+                mode=accept(doc,report,repo=repo,run_id=rid,collector_sha=collector_sha,key=key)
+                prefix="AUTHENTICATED_SATURDAY_HANDOFF_" if r["event"]=="schedule" else "AUTHENTICATED_SATURDAY_DISPATCH_HANDOFF_"
+                return mode,prefix+str(rid)
+        # Preserve native schedule preference and the existing failure labels.
+        # A signed, same-workflow main dispatch is a separate recovery path,
+        # not evidence that GitHub's native scheduler or Cloudflare worked.
+        if len(eligible)==1:
+            try:return read_run(eligible[0])
+            except Exception as exc: primary_error=exc
+        elif not scheduled:primary_error=ValueError("HANDOFF_NOT_STARTED")
+        elif len(scheduled)!=1:primary_error=ValueError("HANDOFF_AMBIGUOUS")
+        elif scheduled[0].get("status")!="completed":primary_error=ValueError("HANDOFF_INCOMPLETE")
+        elif scheduled[0].get("conclusion")=="timed_out":primary_error=ValueError("HANDOFF_TIMED_OUT")
+        else:primary_error=ValueError("HANDOFF_FAILED")
+        for candidate in manual:
+            try:
+                timeout(18)
+                return read_run(candidate)
+            except TimeoutError:break
+            except Exception:continue
+        raise primary_error
     pool=ThreadPoolExecutor(max_workers=2)
     try:
         main=pool.submit(primary)
