@@ -1,0 +1,26 @@
+name: Kyoto Impl33 workout production candidate contract
+on:
+  push:
+    branches: ['fix/impl33-workout-production-candidate-20261126']
+  pull_request:
+    paths:
+      - '.github/workflows/kyoto-20261128-29-workout-source.yml'
+permissions:
+  contents: read
+jobs:
+  contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Verify new workflow only; protected old schedules remain identical
+        shell: bash
+        run: |
+          set -euo pipefail
+          git diff --name-status '8813b6fccb4b236f37afb13af25084e5e8c46d31' HEAD
+          test "$(git diff --name-only '8813b6fccb4b236f37afb13af25084e5e8c46d31' HEAD | sort)" = "$(printf '%s\n' .github/workflows/kyoto-20261128-29-workout-source.yml .github/workflows/kyoto-impl33-workout-deploy-contract.yml | sort)"
+          test "$(git diff --name-only --diff-filter=MD '8813b6fccb4b236f37afb13af25084e5e8c46d31' HEAD)" = ''
+          ruby -ryaml -e 'd=YAML.load_file(ARGV[0]); o=d["on"] || d[true]; abort unless o["schedule"].map{|s|s["cron"]} == ["30 11 27 11 *","30 22 27 11 *","30 11 28 11 *","30 22 28 11 *"]; abort unless o["workflow_run"]["branches"] == ["main"]; abort unless d["permissions"] == {"contents"=>"read","actions"=>"read"}; abort unless d["concurrency"]["cancel-in-progress"] == false; j=d["jobs"]["source-only"]; abort unless j["env"]["KYOTO_WEEKEND_HTTP_APPROVED"] == "NO"; abort unless j["env"]["KYOTO_AUX_HTTP_APPROVED"] == "NO"; abort unless j["steps"][0]["with"]["ref"] == "d254c0a69d434ceb962194471b968f239dbcf999"; abort unless j["steps"][0]["with"]["persist-credentials"] == false; puts "WORKOUT_CONTRACT_OK"' .github/workflows/kyoto-20261128-29-workout-source.yml
