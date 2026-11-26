@@ -176,3 +176,59 @@ def parse_news_turf(raw,name,day):
         if k:hits.append(record(day,m[1],m[2],'KYOTO_TURF',6,k[1]+'.'+k[2],k[3]+'.'+k[4]))
     distinct={tuple(sorted(x.items())) for x in hits if x}
     return dict(next(iter(distinct))) if len(distinct)==1 else None
+
+
+def parse_table_v3(raw,name,day):
+    """Horse/date heading in first table row, labels in second row."""
+    import unicodedata
+    soup=BeautifulSoup(raw,'html.parser')
+    norm=lambda v:unicodedata.normalize('NFKC',v).strip()
+    hs=[h for h in soup.find_all(re.compile(r'^h[2-6]$')) if norm(text(h))==name]
+    if len(hs)!=1:return None
+    h=hs[0];level=int(h.name[1])
+    found=[]
+    for n in h.find_all_next(['h2','h3','h4','h5','h6','table']):
+        if n.name.startswith('h') and int(n.name[1])<=level:break
+        if n.name!='table':continue
+        rows=[[norm(text(c)) for c in tr.find_all(['th','td'],recursive=False)] for tr in n.find_all('tr')]
+        if len(rows)<3 or len(rows[0])!=1:continue
+        m=re.fullmatch(re.escape(name)+r'\s+(\d{1,2})月(\d{1,2})日(?:\([^()]+\))?(?:\s+評価.*)?',rows[0][0])
+        if not m:continue
+        hdr=rows[1]
+        if len(set(hdr))!=len(hdr) or not all(k in hdr for k in ('時期','場所','1F')):continue
+        for row in rows[2:]:
+            if len(row)!=len(hdr) or row[hdr.index('時期')] not in ('最終追切','最終追い切り'):continue
+            course=normalized_course(row[hdr.index('場所')])
+            for f in range(9,1,-1):
+                k=str(f)+'F'
+                if k in hdr and re.fullmatch(r'\d+(?:\.\d+)?',row[hdr.index(k)]):
+                    rec=record(day,m[1],m[2],course,f,row[hdr.index(k)],row[hdr.index('1F')])
+                    if rec:found.append(rec)
+                    break
+    distinct={tuple(sorted(x.items())) for x in found}
+    return dict(next(iter(distinct))) if len(distinct)==1 else None
+
+def preserve_partial(raw, day, roster, captured_utc):
+    """Retain valid observed total clock as a separate incomplete observation.
+    Never invent last-1F or classify the row as a complete timed workout."""
+    from hashlib import sha256
+    soup=BeautifulSoup(raw,'html.parser');d=date.fromisoformat(day);stamp=datetime.fromisoformat(captured_utc.replace('Z','+00:00'))
+    by_name={v:n for n,v in roster.items()}
+    items=[]
+    for node,header,rows in tables(soup):
+        if header not in (('日','コース','本線','終い'),('日','コース','本線','終い','脚色')):continue
+        h3=node.find_previous('h3');h4=node.find_previous('h4')
+        if h3 is None or h4 is None or text(h4)!='最終追い切りまでの21日間' or text(h3) not in by_name:continue
+        for row in rows:
+            if len(row)!=len(header) or row[3] not in ('','—','－','-'):continue
+            m=re.fullmatch(r'(\d{1,2})/(\d{1,2})',row[0]);c=normalized_course(row[1]);tm=re.fullmatch(r'([1-9])F\s+(\d+(?:\.\d+)?)',row[2])
+            if not m or not c or not tm:continue
+            dates=[]
+            for year in (d.year-1,d.year):
+                try:dt=date(year,int(m[1]),int(m[2]))
+                except ValueError:continue
+                if d-timedelta(days=31)<=dt<d and dt<=stamp.astimezone(JST).date():dates.append(dt)
+            total=float(tm[2])
+            if len(dates)!=1 or not 0<total<=600:continue
+            items.append({'number':by_name[text(h3)],'training_date':dates[0].isoformat(),'course':c,'distance_m':int(tm[1])*200,'elapsed_s':total,'last_1f_s':None,'state':'PARTIAL_OBSERVED_NOT_COMPLETE','row_sha256':sha256(repr(row).encode()).hexdigest()})
+    return items
