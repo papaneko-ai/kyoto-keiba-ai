@@ -1,0 +1,38 @@
+name: Kyoto Impl33 upcoming workout source freeze
+on:
+  push:
+    branches: ['fix/impl33-upcoming-workout-freeze-20261126']
+permissions:
+  contents: read
+jobs:
+  research:
+    runs-on: ubuntu-latest
+    timeout-minutes: 7
+    env:
+      PYTHONPATH: .
+      KYOTO_WEEKEND_HTTP_APPROVED: 'NO'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11.18'
+      - run: python -m pip install --no-deps beautifulsoup4==4.15.0 soupsieve==4.1.3 typing-extensions==4.16.0 cryptography==46.0.7 cffi==2.1.1 pycparser==3.12
+      - name: Verify pre-day boundary
+        run: |
+          set -euo pipefail
+          mkdir -p upcoming_workout
+          git rev-parse HEAD > upcoming_workout/head.txt
+          python -m unittest discover -s tests -p 'test_kyoto_impl33_workout_upcoming.py' -v 2>&1 | tee upcoming_workout/tests.log
+      - name: Preserve upcoming observed pages as encrypted originals
+        env:
+          ARCHIVE_KEY: ${{ secrets.KYOTO_JRA_ARCHIVE_AES256_HEX }}
+        run: python -m diagnostics.kyoto_impl33_workout_upcoming
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: kyoto-impl33-upcoming-workout-${{ github.run_id }}
+          path: upcoming_workout/
+          retention-days: 90
+          if-no-files-found: error
