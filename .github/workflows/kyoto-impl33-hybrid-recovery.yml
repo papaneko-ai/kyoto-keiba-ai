@@ -1,0 +1,46 @@
+name: Kyoto Impl33 hybrid workout recovery from preserved sources
+on:
+  push:
+    branches: ['fix/impl33-hybrid-workout-source-recovery-20261126']
+permissions:
+  contents: read
+  actions: read
+jobs:
+  research:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    env:
+      PYTHONPATH: .
+      GH_TOKEN: ${{ github.token }}
+      KYOTO_WEEKEND_HTTP_APPROVED: 'NO'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11.18'
+      - run: python -m pip install --no-deps beautifulsoup4==4.15.0 soupsieve==4.1.3 typing-extensions==4.16.0 cryptography==46.0.7 cffi==2.1.1 pycparser==3.12
+      - name: Verify affected source adapters
+        run: |
+          set -euo pipefail
+          mkdir -p hybrid_recovery
+          git rev-parse HEAD > hybrid_recovery/head.txt
+          python -m unittest discover -s tests -p 'test_kyoto_impl33_hybrid_workout*.py' -v 2>&1 | tee hybrid_recovery/tests.log
+      - name: Reuse all earlier encrypted originals
+        run: |
+          gh run download 44966013490 --name kyoto-nov22-real-observed-all12-encrypted-44966013490 --repo "$GITHUB_REPOSITORY" --dir pc_archive
+          gh run download 45755248661 --name kyoto-impl33-all12-workout-45755248661 --repo "$GITHUB_REPOSITORY" --dir previous_all12
+          gh run download 45755450768 --name kyoto-impl33-missing-workout-45755450768 --repo "$GITHUB_REPOSITORY" --dir missing_workout
+          gh run download 45756109438 --name kyoto-impl33-hybrid-workout-45756109438 --repo "$GITHUB_REPOSITORY" --dir previous_hybrid
+      - name: Replay preserved failed parse and try observed alternatives only
+        env:
+          ARCHIVE_KEY: ${{ secrets.KYOTO_JRA_ARCHIVE_AES256_HEX }}
+        run: python -m diagnostics.kyoto_impl33_hybrid_workout_recovery
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: kyoto-impl33-hybrid-recovery-${{ github.run_id }}
+          path: hybrid_recovery/
+          retention-days: 90
+          if-no-files-found: error

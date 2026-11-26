@@ -112,3 +112,67 @@ def classify_rejected(raw,day,roster,captured_utc):
                     keys.add(k)
             if reason:issues.append({'reason':reason,'horse_number':next(n for n,v in roster.items() if v==name),'row_sha256':__import__('hashlib').sha256(repr(row).encode()).hexdigest(),'course':row[1] if len(row)>1 else None,'main':row[2] if len(row)>2 else None,'last':row[3] if len(row)>3 else None})
     return issues
+
+
+def parse_table_v2(raw,name,day):
+    """Read actual horse section even when date is inline/inside a div, not p."""
+    import unicodedata
+    soup=BeautifulSoup(raw,'html.parser')
+    norm=lambda v:unicodedata.normalize('NFKC',v).strip()
+    heads=[h for h in soup.find_all(re.compile(r'^h[2-6]$')) if norm(text(h))==name]
+    if len(heads)!=1:return None
+    h=heads[0];level=int(h.name[1]);prefix=[]
+    for n in h.next_elements:
+        if getattr(n,'name',None) in ('h2','h3','h4','h5','h6') and int(n.name[1])<=level:break
+        if getattr(n,'name',None)=='table':
+            dates=set(re.findall(r'(\d{1,2})月(\d{1,2})日',' '.join(prefix)))
+            rows=[[norm(text(c)) for c in tr.find_all(['th','td'],recursive=False)] for tr in n.find_all('tr')]
+            if len(dates)!=1 or not rows:continue
+            header=rows[0]
+            if not all(k in header for k in ('時期','場所','1F')):continue
+            for row in rows[1:]:
+                if len(row)!=len(header) or row[header.index('時期')] not in ('最終追切','最終追い切り'):continue
+                course=normalized_course(row[header.index('場所')])
+                for f in range(9,1,-1):
+                    k=str(f)+'F'
+                    if k in header and re.fullmatch(r'\d+(?:\.\d+)?',row[header.index(k)]):
+                        rec=record(day,*next(iter(dates)),course,f,row[header.index(k)],row[header.index('1F')])
+                        if rec:return rec
+            break
+        if isinstance(n,str) and not n.parent.name in ('script','style'):prefix.append(norm(str(n)))
+    return None
+
+def parse_labeled_turf(raw,name,day):
+    import unicodedata
+    soup=BeautifulSoup(raw,'html.parser')
+    norm=lambda v:unicodedata.normalize('NFKC',v).strip()
+    hs=[h for h in soup.find_all(re.compile(r'^h[2-6]$')) if re.fullmatch(re.escape(name)+r'(?:\([^()]+\))?',norm(text(h)))]
+    if len(hs)!=1:return None
+    h=hs[0];level=int(h.name[1]);lines=[]
+    for n in h.find_all_next(['h2','h3','h4','h5','h6','p']):
+        if n.name.startswith('h') and int(n.name[1])<=level:break
+        if n.name=='p':lines.append(norm(text(n)))
+    for line in lines:
+        m=re.search(r'最終追い切り\s*[:：]\s*(\d{1,2})月(\d{1,2})日.*?京都芝(?:\([^()]+\))?.*?6F\s*(\d+\.\d+).*?ラスト\s*1F\s*(\d+\.\d+)',line)
+        if m:return record(day,m[1],m[2],'KYOTO_TURF',6,m[3],m[4])
+    return None
+
+def parse_news_turf(raw,name,day):
+    """Named single-horse report, explicit workout date, course, distance, clocks."""
+    import unicodedata
+    soup=BeautifulSoup(raw,'html.parser')
+    norm=lambda v:unicodedata.normalize('NFKC',v)
+    h=soup.find('h1')
+    if h is None or name not in norm(text(h)):return None
+    article=soup.find('article') or soup
+    s=norm(text(article))
+    m=re.search(r'追い切り\s*[=＝]\s*(\d{1,2})月(\d{1,2})日\s*[、,]\s*京都競馬場',s)
+    if not m:return None
+    hits=[]
+    for para in article.find_all('p'):
+        line=norm(text(para))
+        if name not in line or '芝コース' not in line:continue
+        k=re.search(r'6ハロン\s*(\d+)秒(\d+)\s*[―—–ー－-]\s*(\d+)秒(\d+)',line)
+        if k:hits.append(record(day,m[1],m[2],'KYOTO_TURF',6,k[1]+'.'+k[2],k[3]+'.'+k[4]))
+    distinct={tuple(sorted(x.items())) for x in hits if x}
+    return dict(next(iter(distinct))) if len(distinct)==1 else None
