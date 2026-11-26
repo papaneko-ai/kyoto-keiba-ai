@@ -1,7 +1,7 @@
 name: Kyoto Impl33 workout runtime isolated verification
 on:
   push:
-    branches: ['fix/impl33-workout-runtime-20261126']
+    branches: ['fix/impl33-workout-runtime-release-20261126']
 permissions:
   contents: read
 jobs:

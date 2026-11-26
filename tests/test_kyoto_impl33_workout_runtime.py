@@ -1,7 +1,8 @@
-import unittest
+import unittest,tempfile,json
+from pathlib import Path
 from unittest.mock import patch
 from datetime import datetime,timezone
-from diagnostics.kyoto_impl33_workout_runtime import roster_union,unique_snapshots,combine_primary,collect_primary,source_record,secondary_record,race_labels,PRIMARY_INDEX
+from diagnostics.kyoto_impl33_workout_runtime import roster_union,unique_snapshots,combine_primary,collect_primary,source_record,secondary_record,race_labels,PRIMARY_INDEX,append_snapshot,read_snapshot,partial_fields
 from test_kyoto_impl33_workout_generic import sample,DAY,URL
 class Runtime(unittest.TestCase):
     def test_roster_conflict_isolated(self):
@@ -32,4 +33,15 @@ class Runtime(unittest.TestCase):
     def test_secondary_after_start_excluded(self):
         x={'stamp':'2026-11-28T04:01:00Z','url':'https://umasiru.com/a','raw':b'x'}
         self.assertIsNone(secondary_record(x,'A',DAY,'2026-11-28T04:00:00Z'))
+    def test_checkpoint_recoverable_and_idempotent(self):
+        a=source_record(sample(),'2026-11-26T04:00:00Z',URL,'PRIMARY',9)
+        with tempfile.TemporaryDirectory() as tmp:
+            out=Path(tmp);r={'day':DAY,'run_id':123,'snapshots':[]};key=b'a'*32
+            append_snapshot(out,r,key,a);append_snapshot(out,r,key,a)
+            stored=json.loads((out/'receipt.json').read_text());self.assertEqual(len(stored['snapshots']),1)
+            m=stored['snapshots'][0];self.assertEqual(read_snapshot((out/'source_000.aesgcm').read_bytes(),m,key,m['archive_aad'].encode()),a['raw'])
+    def test_secondary_bad_page_not_fatal(self):
+        x={'stamp':'2026-11-26T04:00:00Z','url':'https://umasiru.com/a','raw':b'x'}
+        with patch('diagnostics.kyoto_impl33_workout_runtime.parse_table_v3',side_effect=ValueError):
+            self.assertIsNone(secondary_record(x,'A',DAY,'2026-11-28T04:00:00Z'))
 if __name__=='__main__':unittest.main()

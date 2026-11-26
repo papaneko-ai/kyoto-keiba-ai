@@ -12,7 +12,7 @@ from bs4 import BeautifulSoup
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 from diagnostics.kyoto_impl33_whitegreen_probe import HOST, AGENT, JST, get, text
 from diagnostics.kyoto_impl33_workout_generic import discover, bridge, candidate_links, parse_observed
-from diagnostics.kyoto_impl33_hybrid_workout import parse_table_v3,parse_labeled_turf,recover
+from diagnostics.kyoto_impl33_hybrid_workout import parse_table_v3,parse_labeled_turf,recover,preserve_partial
 from diagnostics.kyoto_g03_independent_partial import verify_partial
 from diagnostics.kyoto_g03_to_g06_input_adapter import records_from_g03
 from diagnostics.kyoto_nov15_encrypted_evidence import decrypt_evidence
@@ -197,7 +197,7 @@ def race_labels(index,day):
                 if 2<=len(label)<=40 and '未勝利' not in label and '新馬' not in label and '勝クラス' not in label:out[n]=label
     return out
 
-def collect_primary(day,items,rosters,fetch,clock=now):
+def collect_primary(day,items,rosters,fetch,clock=now,on_snapshot=lambda x:None):
     errors=[];labels={}
     try:index=fetch(PRIMARY_INDEX);urls=discover(index,day);labels=race_labels(index,day)
     except Exception as e:return items,labels,[type(e).__name__]
@@ -217,7 +217,7 @@ def collect_primary(day,items,rosters,fetch,clock=now):
             if cached:continue
         try:
             raw=fetch(url);stamp=clock().isoformat()
-            items.append(source_record(raw,stamp,url,'PRIMARY',n))
+            x=source_record(raw,stamp,url,'PRIMARY',n);items.append(x);on_snapshot(x)
         except Exception as e:errors.append(f'R{n}:{type(e).__name__}')
     return items,labels,errors
 
@@ -257,9 +257,37 @@ def secondary_record(x,name,day,start):
     host=urlsplit(x['url']).hostname
     parser={'umasiru.com':parse_table_v3,'talmudic.net':parse_labeled_turf}.get(host)
     if not parser:return None
-    rec=parser(x['raw'],name,day_iso(day))
+    try:rec=parser(x['raw'],name,day_iso(day))
+    except (ValueError,TypeError,KeyError,AttributeError):return None
     if rec and rec['training_date']<=utc(x['stamp']).astimezone(JST).date().isoformat():return rec
     return None
+
+def partial_fields(day,n,items,official):
+    result={}
+    for x in items:
+        if x['kind']!='PRIMARY' or x['race']!=n or utc(x['stamp'])>=utc(official['start']):continue
+        try:
+            receipt,_,_,_=parse_observed(x['raw'],day,n,x['url'],x['stamp'],((day,n,x['url']),))
+            if receipt['result_section_present']:continue
+            rows=preserve_partial(x['raw'],day_iso(day),official['roster'],x['stamp'])
+            for row in rows:
+                result[row['row_sha256']]={**row,'source_sha256':digest(x['raw']),'captured_utc':x['stamp']}
+        except (ValueError,TypeError,KeyError,AttributeError):continue
+    return list(result.values())
+
+def checkpoint(out,report):
+    tmp=out/'receipt.json.tmp'
+    tmp.write_text(json.dumps(report,sort_keys=True,ensure_ascii=False,indent=2),encoding='utf8')
+    tmp.replace(out/'receipt.json')
+
+def append_snapshot(out,report,key,x):
+    sha=digest(x['raw'])
+    if any((m['kind'],m['race'],m['url'],m['source_sha256'])==(x['kind'],x['race'],x['url'],sha) for m in report['snapshots']):return
+    i=len(report['snapshots']);day=report['day'];rid=report['run_id']
+    aad=f'kyoto-workout-runtime-v1|{REPO}|{rid}|{day}|{i}'.encode()
+    sh=seal(out,f'source_{i:03d}.aesgcm',x['raw'],key,aad)
+    report['snapshots'].append({'race':x['race'],'kind':x['kind'],'url':x['url'],'captured_utc':x['stamp'],'source_sha256':sha,'ciphertext_sha256':sh,'archive_aad':aad.decode()})
+    checkpoint(out,report)
 
 def run(day,out,key,rid):
     if day not in DAYS or os.environ.get('GITHUB_REPOSITORY')!=REPO or not str(rid).isdigit():raise ValueError('runtime_identity')
@@ -270,20 +298,38 @@ def run(day,out,key,rid):
     roster,conflicts,errors=gather_official(day,key,Budget(55)) if today==target else ({},[],[])
     items=unique_snapshots(previews(day,key,Budget(30))+previous(day,key,Budget(55)))
     fetch=PublicFetch(Budget(160))
-    items,labels,source_errors=collect_primary(day,items,roster,fetch)
-    report={'day':day,'run_id':int(rid),'official_roster_conflicts':conflicts,'archive_errors':errors,'source_errors':source_errors,'snapshots':[],'races':[],'jra_requests':0,'production_coverage_authorized':False}
+    report={'day':day,'run_id':int(rid),'official_roster_conflicts':conflicts,'archive_errors':errors,'source_errors':[],'snapshots':[],'races':[],'jra_requests':0,'production_coverage_authorized':False,'status':'SOURCE_ONLY_IN_PROGRESS'}
+    checkpoint(out,report)
+    save=lambda x:append_snapshot(out,report,key,x)
+    for x in items:save(x)
+    items,labels,source_errors=collect_primary(day,items,roster,fetch,on_snapshot=save)
+    report['source_errors']=source_errors;checkpoint(out,report)
+    # Current observed supplemental pages can be frozen before the official roster.
+    for (d,n),urls in SEEDS.items():
+        if d!=day or (n in roster and now()>=utc(roster[n]['start'])):continue
+        for url in urls:
+            if any(x['kind']=='SECONDARY' and x['race']==n and x['url']==url for x in items):continue
+            try:
+                x=source_record(fetch(url),now().isoformat(),url,'SECONDARY',n);items.append(x);save(x)
+            except Exception as e:report['source_errors'].append(f'S{n}:{type(e).__name__}')
     cache={}
     for n in range(1,13):
         if n not in roster:
             report['races'].append({'race':n,'status':'OFFICIAL_ROSTER_NOT_AVAILABLE','snapshot_count':sum(x['race']==n for x in items)});continue
         o=roster[n];values,proofs,issues=combine_primary(day,n,items,o)
         missing=[k for k in o['roster'] if not values[k]];obs={k:[] for k in missing}
+        # Existing prestart secondary bytes remain usable even after start.
+        for x in items:
+            if x['kind']!='SECONDARY' or x['race']!=n:continue
+            for k in missing:
+                rec=secondary_record(x,o['roster'][k],day,o['start'])
+                if rec:obs[k].append({'provider':urlsplit(x['url']).hostname,'record':rec})
         if missing and now()<utc(o['start']):
             for url in secondary_candidates(day,n,missing,o['roster'],labels,fetch,cache):
                 old=[x for x in items if x['kind']=='SECONDARY' and x['race']==n and x['url']==url]
                 if not old:
                     try:
-                        x=source_record(fetch(url),now().isoformat(),url,'SECONDARY',n);items.append(x);old=[x]
+                        x=source_record(fetch(url),now().isoformat(),url,'SECONDARY',n);items.append(x);save(x);old=[x]
                     except Exception:continue
                 for x in old:
                     for k in missing:
@@ -298,16 +344,14 @@ def run(day,out,key,rid):
                     if x['kind']=='SECONDARY' and x['race']==n and secondary_record(x,o['roster'][k],day,o['start'])==merged[k][0]:
                         proofs[k].append({'source_sha256':digest(x['raw']),'captured_utc':x['stamp'],'url':x['url']})
         a=f'kyoto-workout-normalized-v1|{REPO}|{rid}|{day}|{n}'.encode()
-        payload=json.dumps({'roster':o,'records':merged,'provenance':proofs,'recovery':audit},sort_keys=True,ensure_ascii=False,allow_nan=False).encode()
+        partial=partial_fields(day,n,items,o)
+        payload=json.dumps({'roster':o,'records':merged,'provenance':proofs,'recovery':audit,'partial_observations':partial},sort_keys=True,ensure_ascii=False,allow_nan=False).encode()
         sh=seal(out,f'r{n:02d}_normalized.aesgcm',payload,key,a)
-        report['races'].append({'race':n,'status':'SOURCE_JOINED','official_horses':len(o['roster']),'covered_horses':sum(bool(v) for v in merged.values()),'records':sum(map(len,merged.values())),'issues':len(issues),'recovery':audit,'normalized_ciphertext_sha256':sh,'normalized_aad':a.decode()})
-    for i,x in enumerate(unique_snapshots(items)):
-        a=f'kyoto-workout-runtime-v1|{REPO}|{rid}|{day}|{i}'.encode()
-        sh=seal(out,f'source_{i:03d}.aesgcm',x['raw'],key,a)
-        report['snapshots'].append({'race':x['race'],'kind':x['kind'],'url':x['url'],'captured_utc':x['stamp'],'source_sha256':digest(x['raw']),'ciphertext_sha256':sh,'archive_aad':a.decode()})
+        report['races'].append({'race':n,'status':'SOURCE_JOINED','official_horses':len(o['roster']),'covered_horses':sum(bool(v) for v in merged.values()),'records':sum(map(len,merged.values())),'issues':len(issues),'partial_observations':len(partial),'recovery':audit,'normalized_ciphertext_sha256':sh,'normalized_aad':a.decode()})
+        checkpoint(out,report)
     report['source_requests']=fetch.requests
     report['status']='SOURCE_ONLY_FINISHED'
-    (out/'receipt.json').write_text(json.dumps(report,sort_keys=True,ensure_ascii=False,indent=2))
+    checkpoint(out,report)
     print('WORKOUT_RUNTIME='+json.dumps({'day':day,'snapshots':len(report['snapshots']),'source_requests':fetch.requests,'races_joined':sum(r['status']=='SOURCE_JOINED' for r in report['races']),'covered_horses':sum(r.get('covered_horses',0) for r in report['races']),'official_horses':sum(r.get('official_horses',0) for r in report['races']),'production_coverage_authorized':False},sort_keys=True))
 if __name__=='__main__':
     key=bytes.fromhex(os.environ['ARCHIVE_KEY'])
