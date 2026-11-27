@@ -1,0 +1,92 @@
+name: Kyoto Impl36 isolated cushion raw-source evidence
+on:
+  push:
+    branches: ['impl36-cushion-real-source-proof-20261127']
+    paths: ['.github/workflows/kyoto-impl36-cushion-real-source-proof.yml']
+permissions:
+  contents: read
+jobs:
+  raw-source-evidence:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Capture bounded public supplementary originals and test existing parser
+        shell: bash
+        run: |
+          python - <<'PY'
+          import datetime as dt, hashlib, json, pathlib, urllib.request, urllib.error, sys
+          from urllib.parse import urlsplit
+          sys.path.insert(0, 'diagnostics')
+          import kyoto_impl35_cushion_candidate as c
+          root = pathlib.Path('impl36-cushion-evidence')
+          root.mkdir()
+          report = {'schema':'kyoto_impl36_cushion_raw_proof.v1','source':'supplementary_only','requests':[],'days':{},'jra_requests':0,'production_mutations':0,'prediction_ready':False}
+          class NoRedirect(urllib.request.HTTPRedirectHandler):
+              def redirect_request(self, req, fp, code, msg, headers, newurl):
+                  return None
+          opener = urllib.request.build_opener(NoRedirect())
+          def utc():
+              return dt.datetime.now(dt.timezone.utc).isoformat()
+          def capture(url, name):
+              rec = {'url':url,'request_utc':utc()}
+              report['requests'].append(rec)
+              try:
+                  if url != c.INDEX and not c.valid_detail(url):
+                      raise ValueError('unapproved_source_url')
+                  req = urllib.request.Request(url, headers={'User-Agent':'KyotoAI research evidence check/1.0','Accept':'text/html','Accept-Encoding':'identity'})
+                  with opener.open(req, timeout=12) as response:
+                      rec['http_status'] = response.status
+                      if response.geturl() != url or response.status != 200:
+                          raise ValueError('unexpected_response_identity')
+                      if response.headers.get_content_type() not in ('text/html','application/xhtml+xml'):
+                          raise ValueError('unexpected_content_type')
+                      raw = response.read(c.MAX_BYTES+1)
+                      rec['captured_utc'] = utc()
+                  if not 0 < len(raw) <= c.MAX_BYTES:
+                      raise ValueError('raw_size')
+                  p = root / name
+                  p.write_bytes(raw)
+                  rec.update(file=name,bytes=len(raw),sha256=hashlib.sha256(raw).hexdigest(),state='RAW_SAVED')
+                  return raw, rec['captured_utc']
+              except Exception as e:
+                  rec.update(state='REQUEST_FAILED',error_type=type(e).__name__,error=str(e)[:300])
+                  if isinstance(e,urllib.error.HTTPError): rec['http_status']=e.code
+                  return None,None
+          try:
+              index, _ = capture(c.INDEX, 'index.html')
+              for day in ('20261127','20261128','20261129','20261121'):
+                  result = report['days'][day] = {'state':'INDEX_UNAVAILABLE','candidates':[]}
+                  if index is None: continue
+                  try:
+                      links = c.observed_links(index, day)
+                      result.update(state='NO_OBSERVED_MATCH' if not links else 'LINKS_OBSERVED',observed_links=links)
+                      # Exactly one observed detail per date; no guessing and no automatic retry.
+                      if not links: continue
+                      url=links[0]
+                      raw, captured=capture(url,day+'.html')
+                      if raw is None:
+                          result['state']='DETAIL_UNAVAILABLE'
+                          continue
+                      try:
+                          parsed=c.parse_detail(raw,day,url,captured)
+                          result.update(state='SUPPLEMENTARY_RAW_PARSED',candidates=[parsed])
+                      except Exception as e:
+                          result.update(state='RAW_PARSE_REJECTED',error_type=type(e).__name__,error=str(e)[:300])
+                  except Exception as e:
+                      result.update(state='INDEX_PARSE_REJECTED',error_type=type(e).__name__,error=str(e)[:300])
+          finally:
+              report['state']='SUPPLEMENTARY_RAW_PARSED' if any(d['state']=='SUPPLEMENTARY_RAW_PARSED' for d in report['days'].values()) else 'NO_PARSED_PROOF'
+              report['current_meeting_measurement_proved']=False
+              (root/'report.json').write_text(json.dumps(report,ensure_ascii=False,sort_keys=True,indent=2))
+              print('IMPL36_SOURCE_REPORT',json.dumps(report,ensure_ascii=False,sort_keys=True))
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: impl36-cushion-raw-source-${{ github.run_id }}
+          path: impl36-cushion-evidence/
+          if-no-files-found: error
+          retention-days: 30
