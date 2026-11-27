@@ -42,6 +42,8 @@ FILES |= {"results_menu.html","results_meeting.html","payout_menu.html","payout_
           "postrace_input_proof.json","postrace_seed.html","postrace_revision_history.json"}
 FILES |= {f"r{race:02d}_result.html" for race in range(1,13)}
 FILES |= {"g05_official_kyoto_track.html","g05_track_receipt.json"}
+# Impl36 independently observed official cushion fragment, separate original.
+FILES.add("g05_official_cushion_fragment.html")
 FILES |= {f"g04_profile_r{race:02d}_h{horse:02d}.html"
           for race in range(1,13) for horse in range(1,19)}
 FILES |= {f"g04_profile_r{race:02d}_h{horse:02d}_parsed.json"
