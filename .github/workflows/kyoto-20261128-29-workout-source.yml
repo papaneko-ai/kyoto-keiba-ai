@@ -1,4 +1,5 @@
 name: Kyoto Nov28-29 independent workout source collection
+run-name: ${{ github.event_name == 'schedule' && format('kyoto-native:{0}', github.event.schedule) || github.event_name }}
 on:
   schedule:
     - cron: '30 11 27 11 *' # Nov27 20:30 JST, Nov28 preview
