@@ -1,0 +1,92 @@
+name: Kyoto Impl37 complete incremental migration evidence snapshot
+on:
+  push:
+    branches: ['backup/impl36-to-impl37-20261127']
+permissions:
+  contents: read
+  actions: read
+jobs:
+  source:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: true
+      - name: Preserve exact source commits and self-contained git bundle
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import pathlib,json,subprocess,hashlib,zipfile
+          plan=json.loads(pathlib.Path('docs/IMPL37_SOURCE_SNAPSHOT_PLAN.json').read_text())
+          root=pathlib.Path('snapshot');root.mkdir()
+          index={}
+          for name,sha in plan['refs'].items():
+              subprocess.run(['git','fetch','--no-tags','origin',sha],check=True,timeout=45)
+              ref='refs/heads/migration/'+name
+              subprocess.run(['git','update-ref',ref,sha],check=True)
+              actual=subprocess.check_output(['git','rev-parse',ref],text=True).strip();assert actual==sha
+              index[name]={'commit':sha,'tree':subprocess.check_output(['git','rev-parse',sha+'^{tree}'],text=True).strip(),'ref':ref}
+              if name in ('main','core','postrace','workout','cushion','cushion_day'):
+                  dest=root/(name+'.zip')
+                  subprocess.run(['git','archive','--format=zip','--output='+str(dest),sha],check=True,timeout=60)
+                  with zipfile.ZipFile(dest) as z:assert z.testzip() is None
+          subprocess.run(['git','bundle','create',str(root/'current.bundle')]+[v['ref'] for v in index.values()],check=True,timeout=120)
+          subprocess.run(['git','bundle','verify',str(root/'current.bundle')],check=True,timeout=30)
+          (root/'refs.json').write_text(json.dumps(index,sort_keys=True,indent=2))
+          files={p.name:{'bytes':p.stat().st_size,'sha256':hashlib.sha256(p.read_bytes()).hexdigest()} for p in root.iterdir()}
+          (root/'manifest.json').write_text(json.dumps(files,sort_keys=True,indent=2))
+          print('SOURCE_SNAPSHOT',len(index),len(files))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: impl37-source-${{ github.run_id }}
+          path: snapshot/
+          retention-days: 90
+          if-no-files-found: error
+  evidence:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Preserve incremental evidence with archive digest checks
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json,subprocess,pathlib,hashlib,zipfile,os
+          runs=[45923894265,45924845928,45942618366,45944774387,45944970998,45945608235,45945734747,45946367891,45946436675,45946672385,45947723339,45947862176,45947934382,45948842615,45949211870,45949733821,45949857659,45950024109,45950125673,45950125683,45950125675,45950125702]
+          root=pathlib.Path('evidence');root.mkdir()
+          repo=os.environ['GITHUB_REPOSITORY'];index=[]
+          def api(path):return json.loads(subprocess.check_output(['gh','api',path],text=True,timeout=30))
+          for rid in runs:
+              base=f'repos/{repo}/actions/runs/{rid}'
+              r=api(base);j=api(base+'/jobs?per_page=100');a=api(base+'/artifacts?per_page=100')
+              assert j['total_count']==len(j['jobs']) and a['total_count']==len(a['artifacts'])
+              (root/f'run-{rid}.json').write_text(json.dumps({'run':r,'jobs':j,'artifacts':a},sort_keys=True))
+              row={'run':rid,'head':r['head_sha'],'status':r['status'],'conclusion':r['conclusion'],'artifacts':[]}
+              for art in a['artifacts']:
+                  item={'id':art['id'],'name':art['name'],'expired':art['expired']}
+                  if not art['expired']:
+                      p=root/f'artifact-{art["id"]}.zip'
+                      with p.open('wb') as out:subprocess.run(['gh','api',f'repos/{repo}/actions/artifacts/{art["id"]}/zip'],stdout=out,check=True,timeout=60)
+                      with zipfile.ZipFile(p) as z:assert z.testzip() is None
+                      digest=hashlib.sha256(p.read_bytes()).hexdigest()
+                      if art.get('digest'):assert art['digest']=='sha256:'+digest
+                      item.update(file=p.name,bytes=p.stat().st_size,sha256=digest)
+                  row['artifacts'].append(item)
+              index.append(row);print('EVIDENCE',rid,r['conclusion'],len(a['artifacts']))
+          for n in (116,119,121,124,130,131,132,133,134):
+              p=f'repos/{repo}/issues/{n}'
+              (root/f'issue-{n}.json').write_text(json.dumps({'issue':api(p),'comments':api(p+'/comments?per_page=100')},sort_keys=True))
+          (root/'index.json').write_text(json.dumps(index,sort_keys=True,indent=2))
+          manifest={p.name:{'bytes':p.stat().st_size,'sha256':hashlib.sha256(p.read_bytes()).hexdigest()} for p in root.iterdir()}
+          (root/'manifest.json').write_text(json.dumps(manifest,sort_keys=True,indent=2))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: impl37-evidence-${{ github.run_id }}
+          path: evidence/
+          retention-days: 90
+          if-no-files-found: error

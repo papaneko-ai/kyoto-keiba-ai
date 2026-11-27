@@ -1,0 +1,32 @@
+{
+  "schema": "kyoto_impl37_source_snapshot_plan.v1",
+  "refs": {
+    "main": "351d702da1be9de07733f83ebada4fecd29f4110",
+    "core": "de0a5ce4333feb8edf6308f6f6a4a2a5e42febfb",
+    "postrace": "1fa2a43fcd17f5100b0b9b9b3dde43dec5a2981f",
+    "workout": "3274283595eac679f6a5e5fb9d658c2080149f62",
+    "cushion": "47cd7f9e881aa989b9f932373cfaf5278dea223a",
+    "cushion_day": "301916719e5bc0e3a8e392368434f952c16c05db",
+    "preday": "57ac2dc665dacb94d73d542eaf60218a000209a3",
+    "alternate": "b1d1d8e5c10934d9fbc109c384857b4a3173b5b3",
+    "preday_roster": "f0f6399c3fecdd7ed9af8e7001ec3144a1799601",
+    "missing_races": "9f75a345855d5980970b01da3a70c2a831c5d856",
+    "discrepancy": "533b400d299992282b62169e95c87c046a1ed46e",
+    "sunday": "f8e1e4a346c805193ce942d161c8307b6f8c151d",
+    "runtime_recovery": "e8ccb390bfd0bec24f9dbd5b4ca51d44fd0c9330",
+    "cushion_parser": "1639fc8e1c574fdf33e419d43c7178f51f3a758d",
+    "preday_reuse": "b9499bda96f5ce95f23bb558df40881e2f1544e7",
+    "secondary_refresh": "a2feebc1f718116e98c665edfd54555ffce75b7d"
+  },
+  "base": "351d702da1be9de07733f83ebada4fecd29f4110",
+  "prior_canonical_sha256": "21c482807a4fefd48253f17f2c1ca813267912ad7d586c035b936c0292e68936",
+  "fixed_metrics": [
+    87.5,
+    0,
+    100,
+    100,
+    100,
+    0,
+    0
+  ]
+}
