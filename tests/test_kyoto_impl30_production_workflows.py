@@ -41,7 +41,10 @@ class ProductionWorkflowContract(unittest.TestCase):
             job=self.jobs[lane]
             self.assertEqual(job["env"]["COLLECTOR_SHA"],"${{ needs.select-collector.outputs.collector_sha }}")
             self.assertEqual(job["env"]["KYOTO_TARGET_DAY"],select["env"]["KYOTO_TARGET_DAY"])
-            self.assertEqual(job["steps"][0]["with"]["ref"],"${{ env.COLLECTOR_SHA }}")
+            self.assertEqual(job["steps"][0]["name"],"Record monotonic runner start for source preservation reserve")
+            self.assertEqual(job["steps"][0]["run"],'echo "KYOTO_JOB_START_SECONDS=$(cut -d. -f1 /proc/uptime)" >> "$GITHUB_ENV"')
+            self.assertEqual(job["steps"][1]["uses"],"actions/checkout@v4")
+            self.assertEqual(job["steps"][1]["with"]["ref"],"${{ env.COLLECTOR_SHA }}")
             self.assertTrue(any(baseline in x.get("run","") and "SATURDAY_SOURCE_UNEXPECTED_NO_HTTP" in x.get("run","") for x in job["steps"]))
         self.assertIn("always()",self.jobs["sp-originals-independent"]["if"])
         self.assertIn("needs.select-collector.result == 'success'",self.jobs["sp-originals-independent"]["if"])
