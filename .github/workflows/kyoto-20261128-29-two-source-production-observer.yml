@@ -76,6 +76,9 @@ jobs:
       KYOTO_SHARED_CLAIM_TURSO_TOKEN: ${{ secrets.KYOTO_SHARED_CLAIM_TURSO_TOKEN }}
       COLLECTOR_SHA: ${{ needs.select-collector.outputs.collector_sha }}
     steps:
+      - name: Record monotonic runner start for source preservation reserve
+        shell: bash
+        run: echo "KYOTO_JOB_START_SECONDS=$(cut -d. -f1 /proc/uptime)" >> "$GITHUB_ENV"
       - name: Checkout pinned verified development collector, not default branch
         uses: actions/checkout@v4
         with:
@@ -126,7 +129,14 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          python -m diagnostics.kyoto_weekend_capture --day "$KYOTO_TARGET_DAY" --channel PC --source pc_raw --destination pc_sealed
+          # Reserve 120 seconds within the EXISTING hard job limit for
+          # postflight, seal and upload. A capture timeout fails this step,
+          # never suppresses always() preservation or the independent SP lane.
+          elapsed=$(( $(cut -d. -f1 /proc/uptime) - KYOTO_JOB_START_SECONDS ))
+          remaining=$(( 1200 - 120 - elapsed ))
+          if (( remaining < 1 )); then remaining=1; fi
+          echo "CAPTURE_SOFT_BUDGET_SECONDS=$remaining"
+          timeout --signal=TERM --kill-after=5s "${remaining}s" python -m diagnostics.kyoto_weekend_capture --day "$KYOTO_TARGET_DAY" --channel PC --source pc_raw --destination pc_sealed
       - name: Offline postflight verify saved original SHA and UTC before evidence sealing
         if: always()
         shell: bash
@@ -176,6 +186,9 @@ jobs:
       GITHUB_EVENT_SCHEDULE: ${{ github.event.schedule }}
       COLLECTOR_SHA: ${{ needs.select-collector.outputs.collector_sha }}
     steps:
+      - name: Record monotonic runner start for source preservation reserve
+        shell: bash
+        run: echo "KYOTO_JOB_START_SECONDS=$(cut -d. -f1 /proc/uptime)" >> "$GITHUB_ENV"
       - name: Checkout pinned verified development collector
         uses: actions/checkout@v4
         with:
@@ -217,7 +230,14 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          python -m diagnostics.kyoto_weekend_capture --day "$KYOTO_TARGET_DAY" --channel SP --source sp_raw --destination sp_sealed
+          # Reserve 120 seconds within the EXISTING hard job limit for
+          # postflight, seal and upload. A capture timeout fails this step,
+          # never suppresses always() preservation or the independent SP lane.
+          elapsed=$(( $(cut -d. -f1 /proc/uptime) - KYOTO_JOB_START_SECONDS ))
+          remaining=$(( 720 - 120 - elapsed ))
+          if (( remaining < 1 )); then remaining=1; fi
+          echo "CAPTURE_SOFT_BUDGET_SECONDS=$remaining"
+          timeout --signal=TERM --kill-after=5s "${remaining}s" python -m diagnostics.kyoto_weekend_capture --day "$KYOTO_TARGET_DAY" --channel SP --source sp_raw --destination sp_sealed
       - name: Offline postflight verify saved original SHA and UTC before evidence sealing
         if: always()
         shell: bash
