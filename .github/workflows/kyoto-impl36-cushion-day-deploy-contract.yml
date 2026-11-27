@@ -29,11 +29,21 @@ jobs:
           python - <<'PY'
           import subprocess
           from pathlib import Path
-          p='.github/workflows/kyoto-20261128-29-result-handoff.yml'
-          old=subprocess.check_output(['git','show','f47a1152503654273fc79b3debc3d4280770efdb:'+p])
-          new=Path(p).read_bytes()
-          assert new.startswith(old.rstrip()+b'\n\n  cushion-day-reconciliation:')
-          assert new[:len(old.rstrip())]==old.rstrip()
+          base='59335d38f6d663739bc1a6b64fc5bc657a4e6f62'
+          old_pin=b'de0a5ce4333feb8edf6308f6f6a4a2a5e42febfb'
+          new_pin=b'3f4b3d77357745ead05a9f78db34eb6ac2d78637'
+          names={'two-source-production-observer':3,'auxiliary-refresh':2,'result-handoff':1,
+                 'postrace-evidence':0,'workout-source':0,'cushion-source':0}
+          for name,count in names.items():
+              p='.github/workflows/kyoto-20261128-29-'+name+'.yml'
+              old=subprocess.check_output(['git','show',base+':'+p])
+              new=Path(p).read_bytes()
+              assert old.count(old_pin)==count,(name,'old pin count')
+              assert new==old.replace(old_pin,new_pin),(name,'unexpected production delta')
+              if name=='result-handoff':
+                  marker=b'\n  cushion-day-reconciliation:'
+                  assert old.count(marker)==new.count(marker)==1
+                  assert old.split(marker)[1]==new.split(marker)[1]
+          print('SIX_WORKFLOWS_EXACT_BASE_DELTA; CUSHION_SIDECAR_UNCHANGED')
           PY
-          git diff --exit-code f47a1152503654273fc79b3debc3d4280770efdb HEAD -- .github/workflows/kyoto-20261128-29-two-source-production-observer.yml .github/workflows/kyoto-20261128-29-auxiliary-refresh.yml .github/workflows/kyoto-20261128-29-postrace-evidence.yml .github/workflows/kyoto-20261128-29-workout-source.yml .github/workflows/kyoto-20261128-29-cushion-source.yml
           python -m unittest -v tests.test_kyoto_impl36_cushion_day_deploy
