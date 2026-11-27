@@ -7,7 +7,7 @@ on:
     - cron: '30 11 28 11 *' # Nov28 20:30 JST, Nov29 preview
     - cron: '30 22 28 11 *' # Nov29 07:30 JST
   workflow_run:
-    workflows: ['Kyoto Nov28-29 independent encrypted original collection']
+    workflows: ['Kyoto Nov28-29 independent encrypted original collection', 'Kyoto Nov28-29 afternoon auxiliary refresh']
     types: [completed]
     branches: [main]
   workflow_dispatch:
@@ -40,7 +40,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: 'd254c0a69d434ceb962194471b968f239dbcf999'
+          ref: 'f5cf7e218ad3229540159857dd8d0a9bb585aad1'
           persist-credentials: false
       - uses: actions/setup-python@v5
         with:
@@ -52,7 +52,7 @@ jobs:
           ARCHIVE_KEY: ${{ secrets.KYOTO_JRA_ARCHIVE_AES256_HEX }}
         run: |
           set -euo pipefail
-          test "$(git rev-parse HEAD)" = 'd254c0a69d434ceb962194471b968f239dbcf999'
+          test "$(git rev-parse HEAD)" = 'f5cf7e218ad3229540159857dd8d0a9bb585aad1'
           python -m diagnostics.kyoto_impl33_workout_runtime
       - name: Upload encrypted source and normalized evidence
         id: upload_workout
