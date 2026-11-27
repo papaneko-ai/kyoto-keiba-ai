@@ -40,7 +40,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: 'a2feebc1f718116e98c665edfd54555ffce75b7d'
+          ref: 'b9499bda96f5ce95f23bb558df40881e2f1544e7'
           persist-credentials: false
       - uses: actions/setup-python@v5
         with:
@@ -52,7 +52,7 @@ jobs:
           ARCHIVE_KEY: ${{ secrets.KYOTO_JRA_ARCHIVE_AES256_HEX }}
         run: |
           set -euo pipefail
-          test "$(git rev-parse HEAD)" = 'a2feebc1f718116e98c665edfd54555ffce75b7d'
+          test "$(git rev-parse HEAD)" = 'b9499bda96f5ce95f23bb558df40881e2f1544e7'
           python -m diagnostics.kyoto_impl33_workout_runtime
       - name: Upload encrypted source and normalized evidence
         id: upload_workout
