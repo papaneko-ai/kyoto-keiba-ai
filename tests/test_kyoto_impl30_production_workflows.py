@@ -167,4 +167,17 @@ class ProductionWorkflowContract(unittest.TestCase):
         self.assertEqual(step["timeout-minutes"],"1")
         self.assertIn("--report handoff/report.json --out handoff/improvement_evaluation.json",step["run"])
         self.assertLess(steps.index(step),next(i for i,x in enumerate(steps) if x.get("uses","").startswith("actions/upload-artifact@")))
+    def test_handoff_upload_retry_preserves_signed_policy_and_does_not_hide_second_failure(self):
+        steps=self.handoff["jobs"]["authenticated-handoff"]["steps"]
+        uploads=[x for x in steps if x.get("uses","").startswith("actions/upload-artifact@")]
+        self.assertEqual(len(uploads),2)
+        first,retry=uploads
+        self.assertEqual(first["id"],"upload_handoff_primary")
+        self.assertEqual(first["if"],"always()")
+        self.assertEqual(first["continue-on-error"],"true")
+        self.assertEqual(retry["if"],"${{ always() && steps.upload_handoff_primary.outcome == 'failure' }}")
+        self.assertNotIn("continue-on-error",retry)
+        self.assertEqual(retry["with"],dict(first["with"],overwrite="true"))
+        self.assertEqual(first["with"]["path"],"handoff/")
+        self.assertEqual(first["with"]["if-no-files-found"],"error")
 if __name__=="__main__":unittest.main()
