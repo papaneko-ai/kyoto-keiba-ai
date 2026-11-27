@@ -11,6 +11,13 @@ EXPECTED=["15 0 28 11 *","15 1 28 11 *","5 2 28 11 *","50 2 28 11 *",
           "15 0 29 11 *","15 1 29 11 *","10 2 29 11 *","55 2 29 11 *"]
 
 class ProductionWorkflowContract(unittest.TestCase):
+    def test_exact_native_slot_run_names_on_all_five_workflows(self):
+        expected = "${{ github.event_name == 'schedule' && format('kyoto-native:{0}', github.event.schedule) || github.event_name }}"
+        for path in (OBS,HAND,"kyoto-20261128-29-postrace-evidence.yml","kyoto-20261128-29-auxiliary-refresh.yml","kyoto-20261128-29-workout-source.yml"):
+            doc=yaml.load((ROOT/path).read_text(),Loader=yaml.BaseLoader)
+            self.assertEqual(doc["run-name"],expected)
+            self.assertIn("schedule",doc["on"])
+            self.assertIn("workflow_dispatch",doc["on"])
     def setUp(self):
         self.raw=(ROOT/OBS).read_text()
         self.obs=yaml.load(self.raw,Loader=yaml.BaseLoader)

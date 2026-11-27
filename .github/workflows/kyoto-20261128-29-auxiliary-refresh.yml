@@ -1,4 +1,5 @@
 name: Kyoto Nov28-29 afternoon auxiliary refresh
+run-name: ${{ github.event_name == 'schedule' && format('kyoto-native:{0}', github.event.schedule) || github.event_name }}
 on:
   schedule:
     - cron: '30 3 28 11 *' # 12:30 JST
