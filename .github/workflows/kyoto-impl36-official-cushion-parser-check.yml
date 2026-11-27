@@ -54,7 +54,11 @@ jobs:
           rejected('future_day',lambda:c.parse_official(raw,'20261128',c.URL,cap))
           rejected('wrong_year',lambda:c.parse_official(raw,'20251127',c.URL,cap))
           rejected('weekday_conflict',lambda:c.parse_official(edit('11月27日（金曜）10時30分','11月27日（土曜）10時30分'),'20261127',c.URL,cap))
-          rejected('non_numeric',lambda:c.parse_official(edit('<div class="cushion">9.5</div>\n</div>\n\n<div class="unit">\n<div class="time">11月22日','<div class="cushion">参考値</div>\n</div>\n\n<div class="unit">\n<div class="time">11月22日'),'20261127',c.URL,cap))
+          k=t.index('<div id="rcB" title="京都">')
+          old='<div class="cushion">9.5</div>'
+          assert old in t[k:]
+          mutated=(t[:k]+t[k:].replace(old,'<div class="cushion">参考値</div>',1)).encode('cp932')
+          rejected('non_numeric',lambda:c.parse_official(mutated,'20261127',c.URL,cap))
           row='<div class="unit"><div class="time">11月27日（金曜）10時30分</div><div class="cushion">9.5</div></div>'
           rejected('duplicate_target',lambda:c.parse_official(edit('<div id="rcB" title="京都">','<div id="rcB" title="京都">'+row),'20261127',c.URL,cap))
           check('display_slot_not_venue',c.parse_official(edit('id="rcB"','id="rcZ"'),'20261127',c.URL,cap)['cushion_value']=='9.5')
