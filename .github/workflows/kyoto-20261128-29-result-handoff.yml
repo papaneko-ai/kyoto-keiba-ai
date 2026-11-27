@@ -53,6 +53,8 @@ jobs:
         timeout-minutes: 1
         run: python -m diagnostics.kyoto_impl31_improvement_evaluation --report handoff/report.json --out handoff/improvement_evaluation.json
       - name: Upload summary only
+        id: upload_handoff_primary
+        continue-on-error: true
         if: always()
         uses: actions/upload-artifact@v4
         with:
@@ -60,3 +62,12 @@ jobs:
           path: handoff/
           if-no-files-found: error
           retention-days: 30
+      - name: Retry the same authenticated handoff after first upload failure
+        if: ${{ always() && steps.upload_handoff_primary.outcome == 'failure' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: kyoto-handoff-${{ github.run_id }}-${{ env.KYOTO_TARGET_DAY }}
+          path: handoff/
+          if-no-files-found: error
+          retention-days: 30
+          overwrite: true
