@@ -30,17 +30,17 @@ jobs:
           from pathlib import Path
           old=Path('/tmp/kyoto-workout-before.yml').read_text()
           new=Path('.github/workflows/kyoto-20261128-29-workout-source.yml').read_text()
-          old_pin='a2feebc1f718116e98c665edfd54555ffce75b7d'
-          new_pin='b9499bda96f5ce95f23bb558df40881e2f1544e7'
+          old_pin='b9499bda96f5ce95f23bb558df40881e2f1544e7'
+          new_pin='3274283595eac679f6a5e5fb9d658c2080149f62'
           old_hook="workflows: ['Kyoto Nov28-29 independent encrypted original collection', 'Kyoto Nov28-29 afternoon auxiliary refresh']"
           new_hook="workflows: ['Kyoto Nov28-29 independent encrypted original collection', 'Kyoto Nov28-29 afternoon auxiliary refresh']"
           assert old.count(old_pin)==2 and old.count(old_hook)==1, 'UNEXPECTED_BASE_WORKOUT_CONTRACT'
           assert new==old.replace(old_pin,new_pin).replace(old_hook,new_hook), 'WORKOUT_UNAPPROVED_DELTA'
-          print('WORKOUT_EXACT_PREDAY_REUSE_PIN_DELTA')
+          print('WORKOUT_EXACT_CLOCK_VARIANTS_PIN_DELTA')
           PY
           else
             git diff --name-status '8813b6fccb4b236f37afb13af25084e5e8c46d31' HEAD
             test "$(git diff --name-only '8813b6fccb4b236f37afb13af25084e5e8c46d31' HEAD | sort)" = "$(printf '%s\n' .github/workflows/kyoto-20261128-29-workout-source.yml .github/workflows/kyoto-impl33-workout-deploy-contract.yml | sort)"
             test "$(git diff --name-only --diff-filter=MD '8813b6fccb4b236f37afb13af25084e5e8c46d31' HEAD)" = ''
           fi
-          ruby -ryaml -e 'd=YAML.load_file(ARGV[0]); o=d["on"] || d[true]; abort unless o["schedule"].map{|s|s["cron"]} == ["30 11 27 11 *","30 22 27 11 *","30 11 28 11 *","30 22 28 11 *"]; abort unless o["workflow_run"]["branches"] == ["main"]; abort unless d["permissions"] == {"contents"=>"read","actions"=>"read"}; abort unless d["concurrency"]["cancel-in-progress"] == false; j=d["jobs"]["source-only"]; abort unless j["env"]["KYOTO_WEEKEND_HTTP_APPROVED"] == "NO"; abort unless j["env"]["KYOTO_AUX_HTTP_APPROVED"] == "NO"; abort unless j["steps"][0]["with"]["ref"] == "b9499bda96f5ce95f23bb558df40881e2f1544e7"; abort unless j["steps"][0]["with"]["persist-credentials"] == false; puts "WORKOUT_CONTRACT_OK"' .github/workflows/kyoto-20261128-29-workout-source.yml
+          ruby -ryaml -e 'd=YAML.load_file(ARGV[0]); o=d["on"] || d[true]; abort unless o["schedule"].map{|s|s["cron"]} == ["30 11 27 11 *","30 22 27 11 *","30 11 28 11 *","30 22 28 11 *"]; abort unless o["workflow_run"]["branches"] == ["main"]; abort unless d["permissions"] == {"contents"=>"read","actions"=>"read"}; abort unless d["concurrency"]["cancel-in-progress"] == false; j=d["jobs"]["source-only"]; abort unless j["env"]["KYOTO_WEEKEND_HTTP_APPROVED"] == "NO"; abort unless j["env"]["KYOTO_AUX_HTTP_APPROVED"] == "NO"; abort unless j["steps"][0]["with"]["ref"] == "3274283595eac679f6a5e5fb9d658c2080149f62"; abort unless j["steps"][0]["with"]["persist-credentials"] == false; puts "WORKOUT_CONTRACT_OK"' .github/workflows/kyoto-20261128-29-workout-source.yml
