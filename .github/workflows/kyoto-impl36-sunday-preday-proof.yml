@@ -1,0 +1,115 @@
+name: Kyoto Impl36 Sunday preday roster and workout proof
+on:
+  push:
+    branches: ['impl36-p05-sunday-preday-proof-20261127']
+    paths: ['.github/workflows/kyoto-impl36-sunday-preday-proof.yml']
+permissions:
+  contents: read
+  actions: read
+jobs:
+  proof:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      PYTHONPATH: .
+      KYOTO_TARGET_DAY: '20261129'
+      GH_TOKEN: ${{ github.token }}
+      KYOTO_WEEKEND_HTTP_APPROVED: 'NO'
+      KYOTO_AUX_HTTP_APPROVED: 'NO'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: '3274283595eac679f6a5e5fb9d658c2080149f62'
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11.18'
+      - run: python -m pip install --no-deps beautifulsoup4==4.15.0 soupsieve==4.1.3 typing-extensions==4.16.0 cryptography==46.0.7 cffi==2.1.1 pycparser==3.12
+      - name: Join retained workout originals to bounded official SP observations
+        env:
+          ARCHIVE_KEY: ${{ secrets.KYOTO_JRA_ARCHIVE_AES256_HEX }}
+        run: |
+          set -euo pipefail
+          test "$(TZ=Asia/Tokyo date +%Y%m%d)" = 20261127
+          python - <<'PY'
+          import json,os,time,re
+          from datetime import datetime,timezone
+          from pathlib import Path
+          from urllib.request import build_opener
+          from hashlib import sha256
+          from bs4 import BeautifulSoup
+          from diagnostics.kyoto_nov15_two_original_observer import _read,NoRedirect
+          from diagnostics.kyoto_impl31_sp_saved_roster_audit import inspect_heading,inspect_observed_layout,exact_mobile_race
+          from diagnostics.jra_pc_sp_benchmark import sp_rows
+          from diagnostics.kyoto_impl33_workout_runtime import previews,Budget,combine_primary,seal,PublicFetch,PRIMARY_INDEX,source_record
+          from diagnostics.kyoto_impl33_workout_generic import parse_observed,discover
+          day='20261129';repo='papaneko-ai/kyoto-keiba-ai';rid=os.environ['GITHUB_RUN_ID']
+          assert os.environ['GITHUB_REPOSITORY']==repo
+          key=bytes.fromhex(os.environ['ARCHIVE_KEY']);assert len(key)==32
+          items=previews(day,key,Budget(55));assert {x['race'] for x in items}=={9,10,11,12}
+          # Individually observed exact links and starts preserved in issue116 comment7208567061.
+          targets={9:('https://app.jra.jp/JRADB/accessD.html?CNAME=sw01dde0108202605080920261129%2F49','14:05','05:05'),10:('https://app.jra.jp/JRADB/accessD.html?CNAME=sw01dde0108202605081020261129%2F3E','14:40','05:40'),11:('https://app.jra.jp/JRADB/accessD.html?CNAME=sw01dde0108202605081120261129%2FF3','15:15','06:15'),12:('https://app.jra.jp/JRADB/accessD.html?CNAME=sw01dde0108202605081220261129%2FA8','16:15','07:15')}
+          p=Path('roster_proof');p.mkdir()
+          doc={'schema':'kyoto_impl36_preday_roster_proof.v1','day':day,'run_id':rid,'jra_requests':0,'retained_workout_originals':len(items),'races':[],'full_day_certified':False,'production_coverage_authorized':False}
+          fetch=PublicFetch(Budget(100))
+          doc['new_workout_sources']=[]
+          try:
+              idx=fetch(PRIMARY_INDEX);links=discover(idx,day)
+              for n in sorted(targets):
+                  if n not in links:continue
+                  try:
+                      u=links[n];raw=fetch(u);stamp=datetime.now(timezone.utc).isoformat()
+                      name=f'workout_r{n:02d}.aesgcm';aad=f'kyoto-impl36-sunday-workout-v1|{repo}|{rid}|{day}|{n}'.encode()
+                      doc['new_workout_sources'].append({'race':n,'url':u,'captured_utc':stamp,'source_sha256':sha256(raw).hexdigest(),'ciphertext_sha256':seal(p,name,raw,key,aad),'file':name,'aad':aad.decode()})
+                      items.append(source_record(raw,stamp,u,'PRIMARY',n))
+                  except Exception as exc:doc['new_workout_sources'].append({'race':n,'error':type(exc).__name__})
+          except Exception as exc:doc['source_index_error']=type(exc).__name__
+          doc['public_source_requests']=fetch.requests
+          for n,(url,jst,utc) in targets.items():
+              row={'race':n,'url':url,'state':'UNVERIFIED','preview_sources':[]};doc['races'].append(row)
+              for x in items:
+                  if x['race']!=n or x['kind']!='PRIMARY':continue
+                  try:
+                      rec,names,records,issues=parse_observed(x['raw'],day,n,x['url'],x['stamp'],((day,n,x['url']),))
+                      row['preview_sources'].append({'source_sha256':sha256(x['raw']).hexdigest(),'captured_utc':x['stamp'],'summary_kind':rec['summary_kind'],'named_entries':len(names),'names_with_dated_workout':sum(bool(v) for v in records.values()),'dated_records':sum(map(len,records.values())),'issue_count':len(issues)})
+                  except Exception as exc:row['preview_sources'].append({'error':type(exc).__name__})
+              try:
+                  assert exact_mobile_race(url,day,n)
+                  if n!=9:time.sleep(2)
+                  doc['jra_requests']+=1
+                  raw=_read(build_opener(NoRedirect()),url)
+                  stamp=datetime.now(timezone.utc).isoformat()
+                  filename=f'r{n:02d}.aesgcm';aad=f'kyoto-impl36-preday-sp-v1|{repo}|{rid}|{day}|{n}'.encode()
+                  row.update(captured_utc=stamp,source_sha256=sha256(raw).hexdigest(),ciphertext_sha256=seal(p,filename,raw,key,aad),file=filename,aad=aad.decode(),state='RAW_SAVED')
+                  try:s=raw.decode('utf8')
+                  except UnicodeError:s=raw.decode('cp932')
+                  soup=BeautifulSoup(s,'html.parser')
+                  first=soup.find('table');assert first is not None
+                  prefix=' '.join(t.get_text(' ',strip=True) for t in soup.find_all(['h1','h2','h3','h4','div','span','p']) if any(v is t for v in first.previous_elements) and not t.find('table'))
+                  hh,mm=jst.split(':')
+                  assert re.search(r'(?<!\d)'+hh+r'[:：時]\s*'+mm+r'(?!\d)',prefix),'start_not_visible'
+                  try:
+                      rows=inspect_heading(raw,day,n)
+                      row['denominator_declared']=True
+                  except ValueError:
+                      layout=inspect_observed_layout(raw,day,n)
+                      assert layout['state']=='SP_SPLIT_LAYOUT_OBSERVED'
+                      rows=sp_rows(s.encode('cp932'))
+                      assert len(rows)==layout['numeric_row_count']
+                      row['denominator_declared']=False
+                  roster={num:name for num,frame,name in rows}
+                  assert len(roster)==len(rows) and len(set(roster.values()))==len(roster)
+                  start='2026-11-29T'+utc+':00Z'
+                  vals,proofs,issues=combine_primary(day,n,items,{'roster':roster,'start':start})
+                  row.update(state='SP_NUMBERED_ROSTER_WORKOUT_JOIN',observed_horses=len(roster),covered_horses=sum(bool(v) for v in vals.values()),dated_records=sum(map(len,vals.values())),issue_count=len(issues),start_utc=start,all_observed_horses_have_workout=all(vals.values()))
+              except Exception as exc:row['error_class']=type(exc).__name__;row['error_code']=str(exc)[:100] if isinstance(exc,(ValueError,AssertionError)) else None
+              (p/'receipt.json').write_text(json.dumps(doc,ensure_ascii=False,indent=2,sort_keys=True))
+          print('PREDAY_JOIN='+json.dumps(doc,ensure_ascii=False,sort_keys=True))
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: impl36-sunday-preday-proof-${{ github.run_id }}
+          path: roster_proof/
+          retention-days: 90
+          if-no-files-found: error
