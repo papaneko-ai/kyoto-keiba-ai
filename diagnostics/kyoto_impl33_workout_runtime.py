@@ -285,6 +285,35 @@ def secondary_record(x,name,day,start):
     if rec and rec['training_date']<=utc(x['stamp']).astimezone(JST).date().isoformat():return rec
     return None
 
+def refresh_missing_secondary(day,n,missing,official,urls,items,fetch,save,attempted,*,clock=now):
+    """Reuse complete cached records; refresh a known incomplete source once
+    per invocation while the race is still upcoming. Never refetch just
+    because a cached page exists or overwrite a retained observation.
+    """
+    observations={k:[] for k in missing}
+    for url in sorted(set(urls)):
+        def add(x):
+            for k in missing:
+                rec=secondary_record(x,official['roster'][k],day,official['start'])
+                if rec:
+                    item={'provider':urlsplit(url).hostname,'record':rec}
+                    if item not in observations[k]:observations[k].append(item)
+        old=[x for x in items if x['kind']=='SECONDARY' and x['race']==n and x['url']==url]
+        for x in old:add(x)
+        # One independent provider may not suffice for promotion; retain it,
+        # and refresh only if it has no record for at least one missing horse.
+        provider=urlsplit(url).hostname
+        if not any(not any(v['provider']==provider for v in observations[k]) for k in missing):continue
+        if (n,url) in attempted or clock()>=utc(official['start']):continue
+        attempted.add((n,url))
+        try:
+            raw=fetch(url)
+            stamp=clock().isoformat()
+            x=source_record(raw,stamp,url,'SECONDARY',n)
+            items.append(x);save(x);add(x)
+        except Exception:continue
+    return observations
+
 def partial_fields(day,n,items,official):
     result={}
     for x in items:
@@ -327,11 +356,13 @@ def run(day,out,key,rid):
     for x in items:save(x)
     items,labels,source_errors=collect_primary(day,items,roster,fetch,on_snapshot=save)
     report['source_errors']=source_errors;checkpoint(out,report)
+    attempted=set()
     # Current observed supplemental pages can be frozen before the official roster.
     for (d,n),urls in SEEDS.items():
         if d!=day or (n in roster and now()>=utc(roster[n]['start'])):continue
         for url in urls:
             if any(x['kind']=='SECONDARY' and x['race']==n and x['url']==url for x in items):continue
+            attempted.add((n,url))
             try:
                 x=source_record(fetch(url),now().isoformat(),url,'SECONDARY',n);items.append(x);save(x)
             except Exception as e:report['source_errors'].append(f'S{n}:{type(e).__name__}')
@@ -348,16 +379,14 @@ def run(day,out,key,rid):
                 rec=secondary_record(x,o['roster'][k],day,o['start'])
                 if rec:obs[k].append({'provider':urlsplit(x['url']).hostname,'record':rec})
         if missing and now()<utc(o['start']):
-            for url in secondary_candidates(day,n,missing,o['roster'],labels,fetch,cache):
-                old=[x for x in items if x['kind']=='SECONDARY' and x['race']==n and x['url']==url]
-                if not old:
-                    try:
-                        x=source_record(fetch(url),now().isoformat(),url,'SECONDARY',n);items.append(x);save(x);old=[x]
-                    except Exception:continue
-                for x in old:
-                    for k in missing:
-                        rec=secondary_record(x,o['roster'][k],day,o['start'])
-                        if rec:obs[k].append({'provider':urlsplit(url).hostname,'record':rec})
+            # Include observed previously saved secondary URLs even when the
+            # current index omits them; keep exact URL, date/race and source.
+            urls=set(secondary_candidates(day,n,missing,o['roster'],labels,fetch,cache))
+            urls.update(x['url'] for x in items if x['kind']=='SECONDARY' and x['race']==n)
+            refreshed=refresh_missing_secondary(day,n,missing,o,sorted(urls)[:8],items,fetch,save,attempted)
+            for k,rows in refreshed.items():
+                for row in rows:
+                    if row not in obs[k]:obs[k].append(row)
         merged,audit=recover(values,o['roster'],obs)
         # Include source-specific canonical evidence; secondary promotion
         # requires corroborated clocks and preserves separate source provenance.
