@@ -24,7 +24,7 @@ def plan_from_pc(pc,day,rid,now,previous=None):
     if (pc.get("ciphertext_authenticated") is not True or pc.get("source_original_sha_utc_checked") is not True
         or slot.get("day")!=day or slot.get("run_id")!=str(rid) or not isinstance(slot.get("races"),dict)):
         return None
-    future={}; gaps={}; expired=[]; unknown=[]
+    future={}; gaps={}; urgent={}; expired=[]; unknown=[]
     for n in RACES:
         row=slot["races"].get(str(n),{})
         try:
@@ -34,10 +34,17 @@ def plan_from_pc(pc,day,rid,now,previous=None):
             cutoff=start-timedelta(minutes=10)
         except (KeyError,TypeError,ValueError,AttributeError):
             unknown.append(n);continue
-        if cutoff<=now:expired.append(n);continue
+        if cutoff<=now:
+            # Evaluation needs a ten-minute margin; acquisition does not.
+            # An actual upcoming race with missing market originals retains
+            # the opportunity to collect strictly before the verified start.
+            if now<start and row.get('paired_same_slot') is not True:
+                urgent[n]=start
+            else:expired.append(n)
+            continue
         future[n]=cutoff
         if row.get("paired_same_slot") is not True:gaps[n]=cutoff
-    if not future:return None
+    if not future and not urgent:return None
     order=lambda d: sorted(d,key=lambda n:(d[n],n))
     mode="GAP_FIRST" if gaps else "START_FIRST"
     reason="VERIFIED_CURRENT_PC_MARKET_GAPS" if gaps else "VERIFIED_CURRENT_PC_START_ORDER"
@@ -62,9 +69,14 @@ def plan_from_pc(pc,day,rid,now,previous=None):
         races=order(gaps)+unknown+order({n:v for n,v in future.items() if n not in gaps})+expired
     elif mode=="START_FIRST":races=order(future)+unknown+expired
     else:races=RACES.copy()
+    if urgent:
+        first=order(urgent)
+        races=first+[n for n in races if n not in urgent]
+    if sorted(races)!=RACES:raise ValueError('race_order_partition')
     return {"schema":"kyoto_impl31_sp_gap_plan.v1","day":day,"source_run_id":str(rid),
         "selected_at_utc":now.isoformat(),"mode":mode,"reason":reason,"race_order":races,
         "targets":{str(n):v.isoformat() for n,v in gaps.items()},
+        "urgent_prestart_missing_market_races":order(urgent),
         "window_seconds":EVALUATION_SECONDS,"previous_measured_targets":comparable,
         "previous_same_day_failed_targets":sorted(failed),
         "official_market_success_claimed":False}
