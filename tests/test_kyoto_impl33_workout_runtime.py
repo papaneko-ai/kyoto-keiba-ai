@@ -1,6 +1,11 @@
 import unittest,tempfile,json
 from pathlib import Path
-from unittest.mock import patch
+from unittest.mock import patch, Mock
+import shutil
+from diagnostics.kyoto_impl33_workout_runtime import gather_official,eligible_runs,OBSERVER,AUXILIARY,WORKFLOW,REPO
+from tests.test_kyoto_impl30_postrace_runtime import inputs
+from diagnostics.kyoto_nov15_encrypted_evidence import encrypt_evidence
+import diagnostics.kyoto_nov15_encrypted_evidence as crypto
 from datetime import datetime,timezone
 from diagnostics.kyoto_impl33_workout_runtime import roster_union,unique_snapshots,combine_primary,collect_primary,source_record,secondary_record,race_labels,PRIMARY_INDEX,append_snapshot,read_snapshot,partial_fields
 from test_kyoto_impl33_workout_generic import sample,DAY,URL
@@ -44,4 +49,39 @@ class Runtime(unittest.TestCase):
         x={'stamp':'2026-11-26T04:00:00Z','url':'https://umasiru.com/a','raw':b'x'}
         with patch('diagnostics.kyoto_impl33_workout_runtime.parse_table_v3',side_effect=ValueError):
             self.assertIsNone(secondary_record(x,'A',DAY,'2026-11-28T04:00:00Z'))
+    def test_authenticated_auxiliary_roster_when_pc_missing(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root=Path(tmp);raw=inputs(root/'fixture',DAY);cipher=root/'cipher';key=b'a'*32
+            (raw/'receipt.json').write_text(json.dumps({'day':DAY,'schema':'kyoto_impl30_auxiliary_refresh.v1'}))
+            with patch.object(crypto,'DAY',DAY):encrypt_evidence(raw,cipher,key_hex=key.hex(),repo=REPO,run_id='201')
+            def api(endpoint):
+                self.assertIn('created=2026-11-28',endpoint)
+                rows=[{'id':201,'status':'completed','head_branch':'main','head_repository':{'full_name':REPO},'path':'.github/workflows/'+AUXILIARY,'event':'workflow_dispatch','created_at':'2026-11-28T03:30:00Z'}] if AUXILIARY in endpoint else []
+                return {'total_count':len(rows),'workflow_runs':rows}
+            def download(rid,name,dest):
+                self.assertEqual((rid,name),(201,'kyoto-auxiliary-201-20261128'))
+                for f in cipher.iterdir():shutil.copyfile(f,dest/f.name)
+            b=Mock();b.api.side_effect=api;b.download.side_effect=download
+            with patch.object(crypto,'DAY',DAY):
+                got,conflicts,issues=gather_official(DAY,key,b,aux_budget_factory=lambda:b)
+                self.assertEqual(len(got),12);self.assertFalse(conflicts);self.assertFalse(issues)
+                self.assertEqual(got[1]['source_lane'],'auxiliary');self.assertEqual(got[1]['run_id'],201)
+                bad,_,issues=gather_official(DAY,b'b'*32,b,aux_budget_factory=lambda:b)
+                self.assertEqual(bad,{});self.assertTrue(issues)
+    def test_auxiliary_never_overwrites_pc_or_resolves_pc_conflict(self):
+        b=Mock();b.download.return_value=None
+        pc={'roster':{1:'A'},'start':'2026-11-28T01:00:00Z'};bad={'roster':{1:'B'},'start':pc['start']}
+        r={'day':DAY,'schema':'kyoto_impl30_auxiliary_refresh.v1'}
+        def dec(src,dst,**kw):dst.mkdir();(dst/'receipt.json').write_text(json.dumps(r))
+        with patch('diagnostics.kyoto_impl33_workout_runtime.eligible_runs',side_effect=[[{'id':101},{'id':102}],[{'id':201}]]),patch('diagnostics.kyoto_impl33_workout_runtime.decrypt_evidence',side_effect=dec),patch('diagnostics.kyoto_impl33_workout_runtime.official',side_effect=[{1:pc,2:pc},{2:bad},{1:bad,2:bad,3:pc}]):
+            found,conflicts,issues=gather_official(DAY,b'a'*32,b,aux_budget_factory=lambda:b)
+            self.assertEqual(found[1],pc);self.assertNotIn(2,found);self.assertEqual(conflicts,[2]);self.assertEqual(found[3]['source_lane'],'auxiliary')
+    def test_complete_pc_skips_auxiliary(self):
+        b=Mock();factory=Mock()
+        with patch('diagnostics.kyoto_impl33_workout_runtime.eligible_runs',return_value=[{'id':101}]),patch('diagnostics.kyoto_impl33_workout_runtime.decrypt_evidence'),patch('diagnostics.kyoto_impl33_workout_runtime.official',return_value={n:{} for n in range(1,13)}):
+            found,_,_=gather_official(DAY,b'a'*32,b,aux_budget_factory=factory)
+            self.assertEqual(len(found),12);factory.assert_not_called()
+    def test_previous_workout_index_includes_pre_day(self):
+        b=Mock();b.api.return_value={'total_count':0,'workflow_runs':[]};eligible_runs(b,DAY,WORKFLOW)
+        self.assertIn('created=2026-11-27..2026-11-28',b.api.call_args.args[0])
 if __name__=='__main__':unittest.main()

@@ -22,6 +22,7 @@ DAYS=('20261128','20261129')
 REPO='papaneko-ai/kyoto-keiba-ai'
 OBSERVER='kyoto-20261128-29-two-source-production-observer.yml'
 WORKFLOW='kyoto-20261128-29-workout-source.yml'
+AUXILIARY='kyoto-20261128-29-auxiliary-refresh.yml'
 PRIMARY_INDEX=HOST+'/keiba/'
 SECONDARY={'umasiru.com':'https://umasiru.com/','talmudic.net':'https://talmudic.net/'}
 # Observed current published link; not a hardcoded horse or fabricated URL.
@@ -67,7 +68,8 @@ class Budget:
         subprocess.run(['gh','run','download',str(rid),'--repo',REPO,'--name',name,'--dir',str(dest)],check=True,stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL,timeout=self.remaining(30))
 
 def eligible_runs(budget,day,workflow):
-    index=budget.api(f'repos/{REPO}/actions/workflows/{workflow}/runs?per_page=100')
+    dates=day_iso(day) if workflow in (OBSERVER,AUXILIARY) else (datetime.fromisoformat(day_iso(day)).date()-timedelta(days=1)).isoformat()+'..'+day_iso(day)
+    index=budget.api(f'repos/{REPO}/actions/workflows/{workflow}/runs?created={dates}&per_page=100')
     rows=index['workflow_runs']
     if index['total_count']!=len(rows) or len(rows)>100:raise ValueError('run_index_incomplete')
     out=[]
@@ -75,12 +77,12 @@ def eligible_runs(budget,day,workflow):
         if r.get('status')!='completed' or r.get('head_branch')!='main' or r.get('head_repository',{}).get('full_name')!=REPO:continue
         if r.get('path','').split('@',1)[0]!='.github/workflows/'+workflow:continue
         if not isinstance(r.get('id'),int) or r['id']<=0:continue
-        if workflow==OBSERVER and (r.get('event') not in ('schedule','workflow_dispatch') or r['created_at'][:10]!=day_iso(day)):continue
+        if workflow in (OBSERVER,AUXILIARY) and (r.get('event') not in ('schedule','workflow_dispatch') or r['created_at'][:10]!=day_iso(day)):continue
         if workflow==WORKFLOW and r.get('event') not in ('schedule','workflow_dispatch','workflow_run'):continue
         out.append(r)
     return sorted(out,key=lambda r:r['id'],reverse=True)
 
-def gather_official(day,key,budget):
+def gather_official(day,key,budget,*,aux_budget_factory=lambda:Budget(35)):
     found={};conflicts=set();issues=[]
     try:
         rows=eligible_runs(budget,day,OBSERVER)
@@ -94,6 +96,27 @@ def gather_official(day,key,budget):
                     roster_union(found,official(root,day,rid),conflicts)
             except Exception as e:issues.append(type(e).__name__)
     except Exception as e:issues.append(type(e).__name__)
+    # The independently encrypted afternoon G03 originals can restore missing
+    # prestart rosters even if all morning PC runs failed. Keep PC provenance,
+    # do not overwrite or silently resolve a known roster conflict.
+    if len(found)<12:
+        auxiliary={};aux_conflicts=set()
+        try:
+            b=aux_budget_factory()
+            for r in eligible_runs(b,day,AUXILIARY)[:4]:
+                rid=r['id']
+                try:
+                    with tempfile.TemporaryDirectory() as tmp:
+                        cipher=Path(tmp)/'cipher';cipher.mkdir();root=Path(tmp)/'raw'
+                        b.download(rid,f'kyoto-auxiliary-{rid}-{day}',cipher)
+                        decrypt_evidence(cipher,root,key_hex=key.hex(),repo=REPO,run_id=str(rid))
+                        receipt=json.loads((root/'receipt.json').read_text())
+                        if receipt.get('day')!=day or receipt.get('schema')!='kyoto_impl30_auxiliary_refresh.v1':raise ValueError('auxiliary_identity')
+                        candidates={n:{**v,'source_lane':'auxiliary'} for n,v in official(root,day,rid).items() if n not in found and n not in conflicts}
+                        roster_union(auxiliary,candidates,aux_conflicts)
+                except Exception as e:issues.append('AUX:'+type(e).__name__)
+        except Exception as e:issues.append('AUX:'+type(e).__name__)
+        found.update(auxiliary);conflicts.update(aux_conflicts)
     return found,sorted(conflicts),issues
 
 def seal(out,name,raw,key,aad):
