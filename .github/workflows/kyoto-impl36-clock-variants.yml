@@ -1,0 +1,92 @@
+name: Kyoto Impl36 preserve ambiguous clock observations
+on:
+  push:
+    branches: ['impl36-p05-clock-variants-20261127']
+    paths: ['.github/workflows/kyoto-impl36-clock-variants.yml']
+permissions:
+  contents: read
+  actions: read
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    env:
+      GH_TOKEN: ${{ github.token }}
+      PYTHONPATH: .
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11.18'
+      - run: python -m pip install --no-deps beautifulsoup4==4.15.0 soupsieve==4.1.3 typing-extensions==4.16.0 cryptography==46.0.7 cffi==2.1.1 pycparser==3.12
+      - run: PYTHONPATH=.:tests python -m unittest -v test_kyoto_impl36_clock_variants test_kyoto_impl33_workout_runtime
+      - name: Replay actual ambiguous clock groups without fetching any source
+        env:
+          ARCHIVE_KEY: ${{ secrets.KYOTO_JRA_ARCHIVE_AES256_HEX }}
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import os,json,tempfile,collections
+          from pathlib import Path
+          from hashlib import sha256
+          from cryptography.hazmat.primitives.ciphers.aead import AESGCM
+          from diagnostics.kyoto_impl33_workout_runtime import preday_saved,Budget,combine_primary,clock_variant_receipt
+          from diagnostics.kyoto_impl33_workout_generic import parse_observed
+          from diagnostics.jra_pc_sp_benchmark import sp_rows
+          day='20261128';repo='papaneko-ai/kyoto-keiba-ai';key=bytes.fromhex(os.environ['ARCHIVE_KEY'])
+          assert os.environ['GITHUB_REPOSITORY']==repo
+          items=preday_saved(day,key,Budget(55));assert len(items)==7
+          b=Budget(55);rid=45949211870
+          r=b.api(f'repos/{repo}/actions/runs/{rid}')
+          assert r['head_sha']=='f0f6399c3fecdd7ed9af8e7001ec3144a1799601' and r['conclusion']=='success'
+          with tempfile.TemporaryDirectory() as t:
+              p=Path(t);b.download(rid,f'impl36-preday-roster-proof-{rid}',p)
+              d=json.loads((p/'receipt.json').read_text())
+              assert d['day']==day and int(d['run_id'])==rid
+              result={'schema':'kyoto_impl36_workout_discrepancy_review.v1','source_runs':[45947723339,rid],'day':day,'source_http':0,'jra_requests':0,'all_day_certified':False,'races':[]}
+              for row in d['races']:
+                  n=row['race'];aad=f'kyoto-impl36-preday-sp-v1|{repo}|{rid}|{day}|{n}'.encode();blob=(p/row['file']).read_bytes()
+                  assert sha256(blob).hexdigest()==row['ciphertext_sha256'] and row['aad'].encode()==aad
+                  raw=AESGCM(key).decrypt(blob[:12],blob[12:],aad)
+                  assert sha256(raw).hexdigest()==row['source_sha256']
+                  try:s=raw.decode('utf8')
+                  except UnicodeError:s=raw.decode('cp932')
+                  roster={num:name for num,frame,name in sp_rows(s.encode('cp932'))}
+                  assert len(roster)==row['observed_horses']
+                  observations={}
+                  vals,_,issues=combine_primary(day,n,items,{'roster':roster,'start':row['start_utc']},clock_observations=observations)
+                  variants=clock_variant_receipt(observations)
+                  extra=sum(len(v['variants'])-1 for v in variants)
+                  assert sum(map(len,vals.values()))==row['dated_records']
+                  assert extra>0 and all(not v['capture_sets_differ'] for v in variants)
+                  assert len(issues)==row['issue_count']
+                  prior,current=sorted([x for x in items if x['race']==n and x['kind']=='PRIMARY'],key=lambda x:x['stamp'])
+                  def rows(x):
+                      _,_,rec,_=parse_observed(x['raw'],day,n,x['url'],x['stamp'],((day,n,x['url']),))
+                      return rec
+                  a,c=rows(prior),rows(current)
+                  conflict_horses=0;conflict_sessions=0;new_only=0;old_only=0;equal=0
+                  for h in roster.values():
+                      def grouped(records):
+                          out=collections.defaultdict(set)
+                          for z in records:out[(z['training_date'],z['course'],z['distance_m'])].add(tuple(sorted(z.items())))
+                          return out
+                      aa,cc=grouped(a.get(h,[])),grouped(c.get(h,[]))
+                      conflicts=[k for k in aa.keys()&cc.keys() if aa[k]!=cc[k]]
+                      conflict_horses+=bool(conflicts);conflict_sessions+=len(conflicts)
+                      new_only+=len(cc.keys()-aa.keys());old_only+=len(aa.keys()-cc.keys())
+                      equal+=sum(aa[k]==cc[k] for k in aa.keys()&cc.keys())
+                  result['races'].append({'race':n,'horses':len(roster),'issue_types':dict(collections.Counter(issues)),'affected_horses':conflict_horses,'different_session_keys':conflict_sessions,'new_session_keys':new_only,'old_only_session_keys':old_only,'identical_session_keys':equal,'variant_groups':len(variants),'additional_distinct_values_retained':extra,'canonical_records_unchanged':sum(map(len,vals.values())),'both_originals_preserved':True,'no_conflict_resolution_claim':True})
+              assert sum(x['additional_distinct_values_retained'] for x in result['races'])==21
+              out=Path('discrepancy');out.mkdir()
+              (out/'receipt.json').write_text(json.dumps(result,sort_keys=True,indent=2))
+              print('DISCREPANCY='+json.dumps(result,sort_keys=True))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: impl36-clock-variants-${{ github.run_id }}
+          path: discrepancy/
+          retention-days: 90
+          if-no-files-found: error

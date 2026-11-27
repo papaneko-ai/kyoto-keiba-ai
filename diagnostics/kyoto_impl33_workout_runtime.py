@@ -282,7 +282,7 @@ def collect_primary(day,items,rosters,fetch,clock=now,on_snapshot=lambda x:None)
         except Exception as e:errors.append(f'R{n}:{type(e).__name__}')
     return items,labels,errors
 
-def combine_primary(day,n,items,official):
+def combine_primary(day,n,items,official,*,clock_observations=None):
     roster=official['roster'];start=official['start']
     values={k:[] for k in roster};proofs={k:[] for k in roster};issues=[]
     for x in sorted(items,key=lambda a:a['stamp'],reverse=True):
@@ -296,12 +296,41 @@ def combine_primary(day,n,items,official):
             # Overlapping same day/course/distance with differing clock is
             # retained as a conflict instead of silently overriding a value.
             for r in rows:
+                if clock_observations is not None:
+                    g=(k,r['training_date'],r['course'],r['distance_m'])
+                    variants=clock_observations.setdefault(g,{})
+                    v=tuple(sorted(r.items()))
+                    p={'source_sha256':digest(x['raw']),'captured_utc':x['stamp'],'url':x['url']}
+                    ps=variants.setdefault(v,[])
+                    if p not in ps:ps.append(p)
                 same=[v for v in values[k] if (v['training_date'],v['course'],v['distance_m'])==(r['training_date'],r['course'],r['distance_m'])]
                 if same and r not in same:issues.append('overlap_clock_conflict');continue
                 if tuple(sorted(r.items())) not in existing:
                     values[k].append(r);proofs[k].append({'source_sha256':digest(x['raw']),'captured_utc':x['stamp'],'url':x['url']});existing.add(tuple(sorted(r.items())))
         issues+=issues2
     return values,proofs,issues
+
+def clock_variant_receipt(observations):
+    """Retain ambiguous same-key clock observations, separate from canonical records.
+    Identical sets across captures do not imply distinct physical sessions.
+    Neither ambiguous variants nor repeated observations increase canonical counts.
+    """
+    out=[]
+    for (n,day,course,distance),variants in sorted(observations.items()):
+        if len(variants)<2:continue
+        snapshots={}
+        rows=[]
+        for val,proofs in sorted(variants.items()):
+            ordered=sorted(proofs,key=lambda p:(p['captured_utc'],p['source_sha256'],p['url']))
+            rows.append({'record':dict(val),'source_proofs':ordered})
+            for p in ordered:
+                sid=(p['source_sha256'],p['captured_utc'],p['url'])
+                snapshots.setdefault(sid,set()).add(val)
+        different=len({frozenset(v) for v in snapshots.values()})>1
+        out.append({'horse_number':n,'training_date':day,'course':course,'distance_m':distance,
+                    'state':'MULTIPLE_CLOCK_VALUES_REVIEW_REQUIRED',
+                    'capture_sets_differ':different,'variants':rows})
+    return out
 
 def secondary_candidates(day,n,missing,roster,labels,fetch,cache):
     urls=set(SEEDS.get((day,n),[]))
@@ -409,7 +438,7 @@ def run(day,out,key,rid):
     for n in range(1,13):
         if n not in roster:
             report['races'].append({'race':n,'status':'OFFICIAL_ROSTER_NOT_AVAILABLE','snapshot_count':sum(x['race']==n for x in items)});continue
-        o=roster[n];values,proofs,issues=combine_primary(day,n,items,o)
+        o=roster[n];clock_observations={};values,proofs,issues=combine_primary(day,n,items,o,clock_observations=clock_observations)
         missing=[k for k in o['roster'] if not values[k]];obs={k:[] for k in missing}
         # Existing prestart secondary bytes remain usable even after start.
         for x in items:
@@ -436,9 +465,10 @@ def run(day,out,key,rid):
                         proofs[k].append({'source_sha256':digest(x['raw']),'captured_utc':x['stamp'],'url':x['url']})
         a=f'kyoto-workout-normalized-v1|{REPO}|{rid}|{day}|{n}'.encode()
         partial=partial_fields(day,n,items,o)
-        payload=json.dumps({'roster':o,'records':merged,'provenance':proofs,'recovery':audit,'partial_observations':partial},sort_keys=True,ensure_ascii=False,allow_nan=False).encode()
+        variants=clock_variant_receipt(clock_observations)
+        payload=json.dumps({'roster':o,'records':merged,'provenance':proofs,'recovery':audit,'partial_observations':partial,'clock_variant_observations':variants},sort_keys=True,ensure_ascii=False,allow_nan=False).encode()
         sh=seal(out,f'r{n:02d}_normalized.aesgcm',payload,key,a)
-        report['races'].append({'race':n,'status':'SOURCE_JOINED','official_horses':len(o['roster']),'covered_horses':sum(bool(v) for v in merged.values()),'records':sum(map(len,merged.values())),'issues':len(issues),'partial_observations':len(partial),'recovery':audit,'normalized_ciphertext_sha256':sh,'normalized_aad':a.decode()})
+        report['races'].append({'race':n,'status':'SOURCE_JOINED','official_horses':len(o['roster']),'covered_horses':sum(bool(v) for v in merged.values()),'records':sum(map(len,merged.values())),'issues':len(issues),'partial_observations':len(partial),'clock_variant_groups':len(variants),'clock_variant_values':sum(len(v['variants']) for v in variants),'recovery':audit,'normalized_ciphertext_sha256':sh,'normalized_aad':a.decode()})
         checkpoint(out,report)
     report['source_requests']=fetch.requests
     report['status']='SOURCE_ONLY_FINISHED'
