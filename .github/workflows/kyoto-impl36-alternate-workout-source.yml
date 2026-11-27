@@ -1,0 +1,93 @@
+name: Kyoto Impl36 P05 alternate pre-day source discovery
+on:
+  push:
+    branches: ['impl36-p05-alternate-source-20261127']
+    paths: ['.github/workflows/kyoto-impl36-alternate-workout-source.yml']
+permissions:
+  contents: read
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: 'a2feebc1f718116e98c665edfd54555ffce75b7d'
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11.18'
+      - run: python -m pip install --no-deps beautifulsoup4==4.15.0 soupsieve==4.1.3 typing-extensions==4.16.0 cryptography==46.0.7 cffi==2.1.1 pycparser==3.12
+      - name: Discover observed alternate race pages without guessing URLs
+        env:
+          ARCHIVE_KEY: ${{ secrets.KYOTO_JRA_ARCHIVE_AES256_HEX }}
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import os,json,time,re,pathlib,hashlib
+          from datetime import datetime,timezone
+          from urllib.parse import urlsplit,urljoin
+          from urllib.error import HTTPError
+          from urllib.robotparser import RobotFileParser
+          from bs4 import BeautifulSoup
+          from diagnostics.kyoto_impl33_whitegreen_probe import get,AGENT
+          from diagnostics.kyoto_impl33_workout_runtime import seal
+          root=pathlib.Path('alternate_evidence');root.mkdir()
+          key=bytes.fromhex(os.environ['ARCHIVE_KEY'])
+          assert len(key)==32 and os.environ['GITHUB_REPOSITORY']=='papaneko-ai/kyoto-keiba-ai'
+          rid=os.environ['GITHUB_RUN_ID']; index='https://www.keiba-analysis.jp/jra/tag/20261128.html'
+          origin='https://www.keiba-analysis.jp'
+          report={'schema':'kyoto_impl36_alternate_workout_probe.v1','day':'20261128','run_id':rid,'requests':0,'jra_requests':0,'prediction_ready':False,'observations':[]}
+          def fetch(url):
+              report['requests']+=1
+              return get(url)
+          def store(raw,url,name):
+              stamp=datetime.now(timezone.utc).isoformat()
+              aad=f'kyoto-alt-workout-v1|{rid}|{name}'.encode()
+              rec={'url':url,'captured_utc':stamp,'bytes':len(raw),'source_sha256':hashlib.sha256(raw).hexdigest(),'file':name,'ciphertext_sha256':seal(root,name,raw,key,aad),'aad':aad.decode()}
+              report['observations'].append(rec)
+              return rec
+          try:
+              try: robots=fetch(origin+'/robots.txt').decode('utf8')
+              except HTTPError as e:
+                  if e.code!=404: raise
+                  robots='User-agent: *\nDisallow:'
+              rp=RobotFileParser();rp.parse(robots.splitlines())
+              delay=max(2,rp.crawl_delay(AGENT) or 0)
+              if delay>15 or not rp.can_fetch(AGENT,index): raise ValueError('robots_or_delay')
+              time.sleep(delay);raw=fetch(index);entry=store(raw,index,'index.aesgcm')
+              soup=BeautifulSoup(raw,'html.parser')
+              report['date_present']=bool(re.search(r'2026\s*年\s*11\s*月\s*28\s*日',soup.get_text(' ',strip=True)))
+              links={}
+              for a in soup.find_all('a',href=True):
+                  label=' '.join(a.stripped_strings)
+                  u=urljoin(index,a['href']);p=urlsplit(u)
+                  if p.scheme!='https' or p.netloc!='www.keiba-analysis.jp' or p.fragment or p.username or p.password:continue
+                  m=re.search(r'京都\s*(1[0-2]|[1-9])\s*(?:R|レース)(?!\d)',label,re.I)
+                  if m and u!=index:links.setdefault(int(m.group(1)),set()).add(u)
+              report['observed_races']=sorted(links)
+              report['workout_labels_present']='調教' in soup.get_text(' ',strip=True)
+              # Sample one currently missing race, only an unambiguous observed link.
+              for n in (1,2,3,4,5,6,7,8,12):
+                  urls=links.get(n,set())
+                  if len(urls)!=1:continue
+                  u=next(iter(urls))
+                  if not rp.can_fetch(AGENT,u):continue
+                  time.sleep(delay);r=fetch(u);v=store(r,u,f'r{n:02d}.aesgcm')
+                  ss=BeautifulSoup(r,'html.parser');txt=ss.get_text(' ',strip=True)
+                  report['sample']={'race':n,'workout_labels_present':'調教' in txt,'date_present':bool(re.search(r'2026\s*年\s*11\s*月\s*28\s*日',txt)),'table_count':len(ss.find_all('table')),'full_workout_records_proved':False}
+                  break
+              report['state']='INDEX_RAW_SAVED'
+          except Exception as e:
+              report['state']='SOURCE_PARTIAL_OR_UNAVAILABLE';report['error_class']=type(e).__name__
+              if isinstance(e,HTTPError):report['http_status']=e.code
+          (root/'receipt.json').write_text(json.dumps(report,ensure_ascii=False,sort_keys=True,indent=2))
+          print('ALT_WORKOUT='+json.dumps({k:v for k,v in report.items() if k!='observations'},ensure_ascii=False,sort_keys=True))
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: impl36-alternate-workout-${{ github.run_id }}
+          path: alternate_evidence/
+          retention-days: 90
+          if-no-files-found: error
