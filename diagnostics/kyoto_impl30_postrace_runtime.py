@@ -2,7 +2,7 @@
 independent G03 reparsing, observed menu navigation and existing AES archive.
 No synthetic URL, pre-race data promotion, settlement, or production DB write.
 """
-import argparse,json,os,re,tempfile
+import argparse,json,os,re,tempfile,subprocess,time
 from pathlib import Path
 from datetime import datetime,timezone,timedelta
 from hashlib import sha256
@@ -18,13 +18,80 @@ from diagnostics.kyoto_impl30_postrace_day import collect_day,observed_actions,M
 from diagnostics.jra_one_shot_market_capture import RequestPacer,NoRedirect
 
 DAYS=('20261128','20261129')
+
+def auxiliary_inputs(day,repo,key,*,api=None,download=None,monotonic=time.monotonic):
+    """Re-use independently authenticated afternoon cards, without source HTTP.
+
+    Only verified PRESTART G03 originals from the exact same-day auxiliary
+    workflow can provide missing roster/start or observed menu seed. Preserve
+    the existing evening transport and its 16-request limit. A single bounded
+    auxiliary lookup cannot consume the evening capture window.
+    """
+    from diagnostics.kyoto_impl30_auxiliary_refresh import WORKFLOW,NAME
+    end=monotonic()+90
+    def remaining(cap):
+        left=end-monotonic()
+        if left<=0:raise TimeoutError('auxiliary_postrace_lookup_deadline')
+        return min(cap,left)
+    if api is None:
+        def api(endpoint):
+            return json.loads(subprocess.check_output(['gh','api',endpoint],text=True,
+                stderr=subprocess.DEVNULL,timeout=remaining(8)))
+    if download is None:
+        def download(rid,name,target,repo):
+            subprocess.run(['gh','run','download',str(rid),'--repo',repo,'--name',name,'--dir',str(target)],
+                stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL,check=True,timeout=remaining(20))
+    rows=[];errors=[];seed=None;conflicts=set();found={}
+    try:
+        index=api(f'repos/{repo}/actions/workflows/{WORKFLOW}/runs?created={_date(day)}&per_page=100')
+        runs=index['workflow_runs']
+        if not isinstance(runs,list) or index['total_count']!=len(runs) or len(runs)>100 or len({r['id'] for r in runs})!=len(runs):raise ValueError('auxiliary_run_index_incomplete')
+        for run in sorted(runs,key=lambda r:r['id'],reverse=True):
+            rid=run['id']
+            if (type(rid) is not int or rid<=0 or run.get('name')!=NAME or run.get('created_at','')[:10]!=_date(day)
+                or run.get('head_branch')!='main' or run.get('head_repository',{}).get('full_name')!=repo
+                or run.get('path','').split('@',1)[0]!='.github/workflows/'+WORKFLOW
+                or run.get('status')!='completed' or run.get('event') not in ('schedule','workflow_dispatch')):continue
+            try:
+                remaining(90)
+                arts=api(f'repos/{repo}/actions/runs/{rid}/artifacts?per_page=100')
+                if arts['total_count']!=len(arts['artifacts']):raise ValueError('auxiliary_artifact_index_incomplete')
+                name=f'kyoto-auxiliary-{rid}-{day}'
+                if len([a for a in arts['artifacts'] if a.get('name')==name and a.get('expired') is False])!=1:continue
+                with tempfile.TemporaryDirectory(prefix='kyoto_postrace_aux_') as tmp:
+                    base=Path(tmp);cipher=base/'cipher';cipher.mkdir();raw=base/'raw'
+                    download(rid,name,cipher,repo)
+                    decrypt_evidence(cipher,raw,key_hex=key,repo=repo,run_id=str(rid))
+                    receipt=json.loads((raw/'receipt.json').read_text())
+                    if receipt.get('day')!=day or receipt.get('schema')!='kyoto_impl30_auxiliary_refresh.v1':raise ValueError('auxiliary_identity')
+                    verified=verify_partial(raw,expected_day=day)['verified_race_numbers']
+                    records=records_from_g03(raw,day=day,skip_invalid_races=True)
+                    for race in verified:
+                        item=records[race]
+                        if item is None:continue
+                        original=(raw/f'g03_official_racecard_{race:02d}.html').read_bytes()
+                        named=item['expected_named_runners'];start=item['verified_start_utc']
+                        if seed is None and all(any(a[0]==label for a in observed_actions(original,p)) for p,label in MENU.values()):seed=original
+                        if race in conflicts:continue
+                        if race in found and (found[race]['named'],found[race]['start'])!=(named,start):
+                            conflicts.add(race);found.pop(race);continue
+                        if race not in found:found[race]={'named':named,'start':start,'run_id':rid,'sha256':sha256(original).hexdigest(),'source_lane':'auxiliary'}
+                    rows.append(rid)
+            except Exception as exc:errors.append({'run_id':rid,'error_class':type(exc).__name__})
+            if monotonic()>=end:break
+    except Exception as exc:errors.append({'error_class':type(exc).__name__})
+    return found,seed,{'examined_runs':rows,'conflicting_races':sorted(conflicts),'errors':errors,'deadline_exhausted':monotonic()>=end}
 def recover_inputs(day,repo,key,*,include_coverage=False):
     if day not in DAYS or not re.fullmatch(r'[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+',repo):raise ValueError('bad_day_or_repository')
     workflow,file,_=WEEKENDS[day]
-    index=_gh(f'repos/{repo}/actions/workflows/{file}/runs?created={_date(day)}&per_page=100')
-    runs=index['workflow_runs']
-    if index['total_count']!=len(runs) or len(runs)>100 or len({r['id'] for r in runs})!=len(runs):raise ValueError('run_listing_incomplete')
     roster={r:None for r in range(1,13)};starts={};seed=None;sources={};rejected=[];conflicts=set()
+    try:
+        index=_gh(f'repos/{repo}/actions/workflows/{file}/runs?created={_date(day)}&per_page=100')
+        runs=index['workflow_runs']
+        if index['total_count']!=len(runs) or len(runs)>100 or len({r['id'] for r in runs})!=len(runs):raise ValueError('run_listing_incomplete')
+        if any(r['name']!=workflow or r['created_at'][:10]!=_date(day) for r in runs):raise ValueError('wrong_run_identity')
+    except Exception as exc:
+        runs=[];rejected.append({'source_lane':'PC','error_class':type(exc).__name__})
     coverage_slots=[];coverage_errors=[]
     for run in sorted(runs,key=lambda r:r['id'],reverse=True):
         rid=run['id']
@@ -62,8 +129,18 @@ def recover_inputs(day,repo,key,*,include_coverage=False):
                     if seed is None and all(any(a[0]==label for a in observed_actions(original,p)) for p,label in MENU.values()):
                         seed=original
         except Exception as exc:rejected.append({'run_id':rid,'error_class':type(exc).__name__})
+    aux_proof={'attempted':False}
+    if seed is None or len(starts)<12:
+        found,aux_seed,aux_proof=auxiliary_inputs(day,repo,key)
+        aux_proof['attempted']=True
+        if seed is None:seed=aux_seed
+        for race,item in found.items():
+            # Do not overwrite verified PC facts or silently resolve PC conflicts.
+            if roster[race] is not None or race in conflicts:continue
+            roster[race]=item['named'];starts[race]=item['start']
+            sources[str(race)]={k:item[k] for k in ('run_id','sha256','source_lane')}
     if seed is None:raise ValueError('no_verified_observed_postrace_menu_seed')
-    proof={'sources':sources,'rejected_runs':rejected,'conflicting_races':sorted(conflicts)}
+    proof={'sources':sources,'rejected_runs':rejected,'conflicting_races':sorted(conflicts),'auxiliary_fallback':aux_proof}
     if include_coverage:
         # Day aggregation is not a hard prerequisite for official result GETs.
         # Preserve the already verified roster even when this diagnostic fails.
