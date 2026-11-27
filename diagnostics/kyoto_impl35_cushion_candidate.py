@@ -107,7 +107,7 @@ def parse_detail(raw, day, url, captured_at_utc, cutoff_utc=None):
     amount = Decimal(value)
     if not Decimal(0) < amount <= Decimal(100):
         raise Rejected("value_range")
-    observed = unique(r"初回取得\s*[:：]\s*(\d{4}/\d{2}/\d{2}\s+\d{2}:\d{2}:\d{2})\s*\(日本時間\)", text, "provider_observed")
+    observed = unique(r"初回取得(?:\s*[:：]\s*|\s+)(\d{4}/\d{2}/\d{2}\s+\d{2}:\d{2}:\d{2})\s*\(日本時間\)", text, "provider_observed")
     first = datetime.strptime(observed, "%Y/%m/%d %H:%M:%S").replace(tzinfo=JST).astimezone(UTC)
     measured = datetime(d.year, d.month, d.day, int(h), int(m), tzinfo=JST).astimezone(UTC)
     capture = aware_utc(captured_at_utc)
