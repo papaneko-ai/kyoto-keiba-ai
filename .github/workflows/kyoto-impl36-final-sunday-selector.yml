@@ -1,0 +1,55 @@
+name: Kyoto Impl36 final Sunday selector and workflow states read-only
+on:
+  push:
+    branches: ['impl36-final-sunday-selector-readonly-20261127']
+    paths: ['.github/workflows/kyoto-impl36-final-sunday-selector.yml']
+permissions:
+  contents: read
+  actions: read
+jobs:
+  proof:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    env:
+      PYTHONPATH: .
+      GH_TOKEN: ${{ github.token }}
+      SUNDAY_OVERRIDE_SHA: ${{ vars.KYOTO_NOV29_VERIFIED_COLLECTOR_SHA }}
+      KYOTO_WEEKEND_HTTP_APPROVED: 'NO'
+      KYOTO_AUX_HTTP_APPROVED: 'NO'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: '6ac6e7bf53ae45bf9985fb33d61244bc1d239af3'
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11.18'
+      - name: Resolve actual repository variable using production selector
+        run: |
+          python - <<'PY'
+          import os,json,subprocess
+          from pathlib import Path
+          from diagnostics.kyoto_impl30_collector_selection import choose,verify_preflight
+          repo='papaneko-ai/kyoto-keiba-ai'
+          assert os.environ['GITHUB_REPOSITORY']==repo
+          pin='3f4b3d77357745ead05a9f78db34eb6ac2d78637'
+          override=os.getenv('SUNDAY_OVERRIDE_SHA','')
+          selected,reason=choose('20261129',pin,override,lambda h:verify_preflight(h,repo,os.environ['GH_TOKEN']))
+          saturday,_=choose('20261128',pin,override,lambda h:False)
+          states={}
+          for name in ('two-source-production-observer','auxiliary-refresh','result-handoff','postrace-evidence','workout-source','cushion-source'):
+              try:
+                  x=json.loads(subprocess.check_output(['gh','api',f'repos/{repo}/actions/workflows/kyoto-20261128-29-{name}.yml'],stderr=subprocess.DEVNULL,timeout=10))
+                  states[name]=x.get('state')
+              except Exception as e:states[name]=type(e).__name__
+          receipt={'schema':'kyoto_impl36_final_sunday_selector.v1','main':'6ac6e7bf53ae45bf9985fb33d61244bc1d239af3','baseline':pin,'override_present':bool(override),'saturday_selected':saturday,'sunday_selected':selected,'selection_reason':reason,'common_pin_selected':saturday==selected==pin,'workflow_states':states,'settings_writes':0,'database_writes':0,'jra_requests':0}
+          p=Path('selector_receipt');p.mkdir()
+          (p/'receipt.json').write_text(json.dumps(receipt,sort_keys=True,indent=2))
+          print('FINAL_SELECTOR='+json.dumps(receipt,sort_keys=True))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: impl36-final-selector-${{ github.run_id }}
+          path: selector_receipt/
+          retention-days: 90
+          if-no-files-found: error
