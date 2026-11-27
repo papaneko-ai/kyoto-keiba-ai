@@ -1,0 +1,39 @@
+name: Kyoto Impl36 cushion daily integration contract
+on:
+  push:
+    branches: ['release/impl36-cushion-day-sidecar-20261127']
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/workflows/kyoto-20261128-29-result-handoff.yml'
+      - 'tests/test_kyoto_impl36_cushion_day_deploy.py'
+permissions:
+  contents: read
+jobs:
+  contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install 'PyYAML>=6,<7'
+      - name: Verify exact original handoff bytes and all protected schedules
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import subprocess
+          from pathlib import Path
+          p='.github/workflows/kyoto-20261128-29-result-handoff.yml'
+          old=subprocess.check_output(['git','show','f47a1152503654273fc79b3debc3d4280770efdb:'+p])
+          new=Path(p).read_bytes()
+          assert new.startswith(old.rstrip()+b'\n\n  cushion-day-reconciliation:')
+          assert new[:len(old.rstrip())]==old.rstrip()
+          PY
+          git diff --exit-code f47a1152503654273fc79b3debc3d4280770efdb HEAD -- .github/workflows/kyoto-20261128-29-two-source-production-observer.yml .github/workflows/kyoto-20261128-29-auxiliary-refresh.yml .github/workflows/kyoto-20261128-29-postrace-evidence.yml .github/workflows/kyoto-20261128-29-workout-source.yml .github/workflows/kyoto-20261128-29-cushion-source.yml
+          python -m unittest -v tests.test_kyoto_impl36_cushion_day_deploy
