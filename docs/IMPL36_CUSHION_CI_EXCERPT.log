@@ -1,0 +1,18 @@
+Exact connector-fetched test result lines, run 45933993824 job 140292856834, head 5edc5c792ffce392fc1cf75ae676243c751e3d1c
+2026-11-27T03:24:43.6362450Z test_conflicting_value (test_kyoto_impl35_cushion_candidate.TestCandidate.test_conflicting_value) ... ok
+2026-11-27T03:24:43.6369442Z test_deterministic (test_kyoto_impl35_cushion_candidate.TestCandidate.test_deterministic) ... ok
+2026-11-27T03:24:43.6373226Z test_discovery (test_kyoto_impl35_cushion_candidate.TestCandidate.test_discovery) ... ok
+2026-11-27T03:24:43.6374873Z test_equal_cutoff (test_kyoto_impl35_cushion_candidate.TestCandidate.test_equal_cutoff) ... ok
+2026-11-27T03:24:43.6376668Z test_future_provider (test_kyoto_impl35_cushion_candidate.TestCandidate.test_future_provider) ... ok
+2026-11-27T03:24:43.6378174Z test_late (test_kyoto_impl35_cushion_candidate.TestCandidate.test_late) ... ok
+2026-11-27T03:24:43.6379780Z test_missing_official (test_kyoto_impl35_cushion_candidate.TestCandidate.test_missing_official) ... ok
+2026-11-27T03:24:43.6380916Z test_no_implicit_url (test_kyoto_impl35_cushion_candidate.TestCandidate.test_no_implicit_url) ... ok
+2026-11-27T03:24:43.6382655Z test_scale_not_measurement (test_kyoto_impl35_cushion_candidate.TestCandidate.test_scale_not_measurement) ... ok
+2026-11-27T03:24:43.6385896Z test_valid (test_kyoto_impl35_cushion_candidate.TestCandidate.test_valid) ... ok
+2026-11-27T03:24:43.6386668Z test_wrong_day (test_kyoto_impl35_cushion_candidate.TestCandidate.test_wrong_day) ... ok
+2026-11-27T03:24:43.6396865Z test_wrong_host (test_kyoto_impl35_cushion_candidate.TestCandidate.test_wrong_host) ... ok
+2026-11-27T03:24:43.6397664Z test_wrong_index (test_kyoto_impl35_cushion_candidate.TestCandidate.test_wrong_index) ... ok
+2026-11-27T03:24:43.6398560Z test_wrong_measurement (test_kyoto_impl35_cushion_candidate.TestCandidate.test_wrong_measurement) ... ok
+2026-11-27T03:24:43.6406490Z test_wrong_venue (test_kyoto_impl35_cushion_candidate.TestCandidate.test_wrong_venue) ... ok
+2026-11-27T03:24:43.6408099Z Ran 15 tests in 0.163s
+2026-11-27T03:24:43.6408528Z OK
