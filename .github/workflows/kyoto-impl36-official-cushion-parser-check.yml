@@ -1,0 +1,75 @@
+name: Kyoto Impl36 official cushion actual-original parser checks
+on:
+  push:
+    branches: ['impl36-cushion-official-crosscheck-20261127']
+    paths: ['.github/workflows/kyoto-impl36-official-cushion-parser-check.yml']
+permissions:
+  contents: read
+  actions: read
+jobs:
+  actual-original:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Replay exact retained official original and test adverse variants without source HTTP
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python - <<'PY'
+          import hashlib, io, json, os, pathlib, subprocess, sys, zipfile
+          sys.path.insert(0,'diagnostics')
+          import kyoto_impl36_official_cushion as c
+          b=subprocess.check_output(['gh','api','repos/'+os.environ['GITHUB_REPOSITORY']+'/actions/artifacts/15174815333/zip'],timeout=30)
+          assert hashlib.sha256(b).hexdigest()=='752de0b4e66243ccbb729f929cde0c6506843af39172d669852a49c717566f67'
+          with zipfile.ZipFile(io.BytesIO(b)) as z:
+              assert z.testzip() is None
+              raw=z.read('official_cushion.html')
+              prior=json.loads(z.read('prior_report.json'))
+          assert hashlib.sha256(raw).hexdigest()=='88c1e1a97e0733bd4af287bcd5d68a094b99728ea02f920628d721bcd9130203'
+          cap='2026-11-27T05:16:07.864547+00:00'
+          report={'actual':{},'checks':{},'jra_http_requests':0,'production_mutations':0}
+          def check(name, cond):
+              assert cond, name
+              report['checks'][name]='PASS'
+          for day in ('20261121','20261127'):
+              r=c.parse_official(raw,day,c.URL,cap)
+              q=prior['days'][day]['candidates'][0]
+              check(day+'_value',r['cushion_value']==q['cushion_value'])
+              check(day+'_measurement',r['measurement_utc']==q['measurement_utc'])
+              report['actual'][day]=r
+          def rejected(name, f):
+              try: f()
+              except (ValueError, UnicodeError): report['checks'][name]='PASS'
+              else: raise AssertionError(name)
+          t=raw.decode('cp932')
+          def edit(a,b):
+              assert a in t,a
+              return t.replace(a,b,1).encode('cp932')
+          rejected('wrong_url',lambda:c.parse_official(raw,'20261127','https://example.com',cap))
+          rejected('wrong_venue',lambda:c.parse_official(edit('title="京都"','title="大阪"'),'20261127',c.URL,cap))
+          rejected('missing_day',lambda:c.parse_official(raw,'20261126',c.URL,cap))
+          rejected('future_day',lambda:c.parse_official(raw,'20261128',c.URL,cap))
+          rejected('wrong_year',lambda:c.parse_official(raw,'20251127',c.URL,cap))
+          rejected('weekday_conflict',lambda:c.parse_official(edit('11月27日（金曜）10時30分','11月27日（土曜）10時30分'),'20261127',c.URL,cap))
+          rejected('non_numeric',lambda:c.parse_official(edit('<div class="cushion">9.5</div>\n</div>\n\n<div class="unit">\n<div class="time">11月22日','<div class="cushion">参考値</div>\n</div>\n\n<div class="unit">\n<div class="time">11月22日'),'20261127',c.URL,cap))
+          row='<div class="unit"><div class="time">11月27日（金曜）10時30分</div><div class="cushion">9.5</div></div>'
+          rejected('duplicate_target',lambda:c.parse_official(edit('<div id="rcB" title="京都">','<div id="rcB" title="京都">'+row),'20261127',c.URL,cap))
+          check('display_slot_not_venue',c.parse_official(edit('id="rcB"','id="rcZ"'),'20261127',c.URL,cap)['cushion_value']=='9.5')
+          check('cutoff_equal_rejected_for_prestart',c.parse_official(raw,'20261127',c.URL,cap,cap)['capture_before_cutoff'] is False)
+          check('cutoff_after_capture',c.parse_official(raw,'20261127',c.URL,cap,'2026-11-27T05:16:08Z')['capture_before_cutoff'] is True)
+          check('deterministic',c.parse_official(raw,'20261127',c.URL,cap)==report['actual']['20261127'])
+          check('encoding',report['actual']['20261127']['encoding']=='cp932')
+          check('no_publication_or_prediction_claim',not report['actual']['20261127']['prediction_ready'] and not report['actual']['20261127']['official_publication_time_verified'])
+          report['state']='PASS'
+          pathlib.Path('official_parser_receipt.json').write_text(json.dumps(report,ensure_ascii=False,sort_keys=True,indent=2))
+          print('OFFICIAL_PARSER_RECEIPT',json.dumps(report,ensure_ascii=False,sort_keys=True))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: impl36-official-parser-receipt-${{ github.run_id }}
+          path: official_parser_receipt.json
+          if-no-files-found: error
+          retention-days: 90
