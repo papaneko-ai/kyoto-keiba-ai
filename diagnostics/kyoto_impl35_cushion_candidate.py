@@ -111,7 +111,7 @@ def parse_detail(raw, day, url, captured_at_utc, cutoff_utc=None):
     first = datetime.strptime(observed, "%Y/%m/%d %H:%M:%S").replace(tzinfo=JST).astimezone(UTC)
     measured = datetime(d.year, d.month, d.day, int(h), int(m), tzinfo=JST).astimezone(UTC)
     capture = aware_utc(captured_at_utc)
-    if not measured <= first <= capture:
+    if not measured <= first <= capture or first.astimezone(JST).date() not in (d, d + timedelta(days=1)):
         raise Rejected("time_order")
     originals = sorted({href for href, _ in v.links
                         if urlsplit(href).scheme == "https"
@@ -123,7 +123,7 @@ def parse_detail(raw, day, url, captured_at_utc, cutoff_utc=None):
         "schema": "kyoto_impl35_cushion_candidate.v1",
         "day": day, "venue": venue, "source_url": url,
         "source_sha256": sha256(raw).hexdigest(), "bytes": len(raw),
-        "cushion_value": str(amount.normalize()),
+        "cushion_value": format(amount.normalize(), "f"),
         "measurement_utc": measured.isoformat(),
         "provider_first_observed_utc": first.isoformat(),
         "captured_at_utc": capture.isoformat(),
