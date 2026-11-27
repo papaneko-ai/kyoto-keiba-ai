@@ -1,0 +1,38 @@
+name: Kyoto Impl36 preday original reuse proof
+on:
+  push:
+    branches: ['impl36-p05-preday-reuse-20261127']
+permissions:
+  contents: read
+  actions: read
+jobs:
+  replay:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    env:
+      PYTHONPATH: .:tests
+      KYOTO_TARGET_DAY: '20261128'
+      KYOTO_WEEKEND_HTTP_APPROVED: 'NO'
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11.18'
+      - run: python -m pip install --no-deps beautifulsoup4==4.15.0 soupsieve==4.1.3 typing-extensions==4.16.0 cryptography==46.0.7 cffi==2.1.1 pycparser==3.12
+      - run: python -m unittest -v tests.test_kyoto_impl36_preday_reuse
+      - name: Authenticate actual seven retained originals, no source HTTP
+        env:
+          ARCHIVE_KEY: ${{ secrets.KYOTO_JRA_ARCHIVE_AES256_HEX }}
+        run: |
+          python - <<'PY'
+          import os,json
+          from diagnostics.kyoto_impl33_workout_runtime import preday_saved,Budget,primary_final
+          items=preday_saved('20261128',bytes.fromhex(os.environ['ARCHIVE_KEY']),Budget(55))
+          assert len(items)==7
+          assert {x['race'] for x in items}=={9,10,11}
+          assert sum(x['kind']=='SECONDARY' for x in items)==1
+          print('PREDAY_REPLAY='+json.dumps({'authenticated_originals':len(items),'races':sorted({x['race'] for x in items}),'primary_final_pages':sum(x['kind']=='PRIMARY' and primary_final(x,'20261128') for x in items),'jra_requests':0,'source_http_requests':0,'all_horses_certified':False}))
+          PY

@@ -169,6 +169,44 @@ def previous(day,key,budget):
     except Exception:pass
     return out
 
+# Exact existing isolated pre-day capture: reuse only its authenticated bytes.
+PREDAY_RUN=45947723339
+PREDAY_HEAD='57ac2dc665dacb94d73d542eaf60218a000209a3'
+PREDAY_WORKFLOW='.github/workflows/kyoto-impl36-pre-day-workout-source.yml'
+def preday_saved(day,key,budget):
+    if day!='20261128':return []
+    out=[]
+    try:
+        r=budget.api(f'repos/{REPO}/actions/runs/{PREDAY_RUN}')
+        if (r.get('id')!=PREDAY_RUN or r.get('head_sha')!=PREDAY_HEAD or
+            r.get('path','').split('@',1)[0]!=PREDAY_WORKFLOW or
+            r.get('head_repository',{}).get('full_name')!=REPO or
+            r.get('event')!='push' or r.get('status')!='completed' or r.get('conclusion')!='success'):
+            raise ValueError('preday_run_identity')
+        with tempfile.TemporaryDirectory() as tmp:
+            p=Path(tmp)
+            budget.download(PREDAY_RUN,f'impl36-preday-workout-{PREDAY_RUN}-{day}',p)
+            d=json.loads((p/'receipt.json').read_text())
+            if (d.get('day')!=day or d.get('run_id')!=PREDAY_RUN or
+                d.get('jra_requests')!=0 or d.get('production_coverage_authorized') is not False or
+                d.get('status')!='SOURCE_ONLY_FINISHED' or len(d['snapshots'])>50):
+                raise ValueError('preday_receipt_identity')
+            for i,m in enumerate(d['snapshots']):
+                try:
+                    n=m['race'];kind=m['kind'];u=urlsplit(m['url'])
+                    if type(n) is not int or not 1<=n<=12 or kind not in ('PRIMARY','SECONDARY'):continue
+                    if u.scheme!='https' or u.username or u.password or u.fragment:continue
+                    if (kind=='PRIMARY' and u.hostname!=urlsplit(HOST).hostname) or (kind=='SECONDARY' and u.hostname not in SECONDARY):continue
+                    if utc(m['captured_utc']).astimezone(JST).strftime('%Y%m%d') not in ('20261126','20261127'):continue
+                    f=p/f'source_{i:03d}.aesgcm'
+                    if f.is_symlink() or not f.is_file() or not 0<f.stat().st_size<=4_000_000:continue
+                    aad=f'kyoto-workout-runtime-v1|{REPO}|{PREDAY_RUN}|{day}|{i}'.encode()
+                    raw=read_snapshot(f.read_bytes(),m,key,aad)
+                    out.append(source_record(raw,m['captured_utc'],m['url'],kind,n))
+                except Exception:continue
+    except Exception:return []
+    return out
+
 class PublicFetch:
     def __init__(self,budget):
         self.budget=budget;self.robots={};self.last={};self.requests=0
@@ -348,7 +386,8 @@ def run(day,out,key,rid):
     if not target-timedelta(days=1)<=today<=target:raise ValueError('runtime_date')
     out=Path(out);out.mkdir(exist_ok=True)
     roster,conflicts,errors=gather_official(day,key,Budget(55)) if today==target else ({},[],[])
-    items=unique_snapshots(previews(day,key,Budget(30))+previous(day,key,Budget(55)))
+    saved_budget=Budget(55)
+    items=unique_snapshots(previews(day,key,Budget(30))+previous(day,key,saved_budget)+preday_saved(day,key,saved_budget))
     fetch=PublicFetch(Budget(160))
     report={'day':day,'run_id':int(rid),'official_roster_conflicts':conflicts,'archive_errors':errors,'source_errors':[],'snapshots':[],'races':[],'jra_requests':0,'production_coverage_authorized':False,'status':'SOURCE_ONLY_IN_PROGRESS'}
     checkpoint(out,report)
