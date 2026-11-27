@@ -71,3 +71,49 @@ class RuntimeFallback(unittest.TestCase):
             with patch('diagnostics.kyoto_impl30_nextday_adaptation.subprocess.check_output',side_effect=cli):
                 mode,reason=recover(TARGET_DAY,repo=REPO,collector_sha=SHA,key=KEY)
             self.assertEqual(mode,'MARKET_OR_ROSTER_RECOVERY');self.assertIn(label,reason)
+import copy,json,unittest
+from pathlib import Path
+from unittest.mock import patch
+from diagnostics.kyoto_impl30_nextday_adaptation import derive,make,accept,recover,recover_from_metadata,WORKFLOW,NAME,TARGET_DAY
+from diagnostics.kyoto_impl31_handoff_budget import gather_bounded
+from tests.test_kyoto_impl30_nextday_adaptation import saturday,REPO,SHA,KEY
+from tests.test_kyoto_impl31_handoff_budget import fixture,DAY
+
+class DispatchFailureRecovery(unittest.TestCase):
+    def dispatch(self):return dict(run(),event='workflow_dispatch',head_branch='main')
+    def test_only_exact_main_dispatch_positive_failure(self):
+        r=self.dispatch();self.assertEqual(recover_from_metadata(api_for(r,job()),REPO),('MARKET_OR_ROSTER_RECOVERY','OBSERVER_DISPATCH_FAILURE_METADATA_ONLY_42_PC'))
+        for field,val in [('head_branch','other'),('created_at','2026-11-29'),('head_repository',{'full_name':'other/repo'}),('path','wrong'),('event','pull_request'),('status','in_progress')]:
+            self.assertEqual(recover_from_metadata(api_for(dict(r,**{field:val}),job()),REPO)[0],'BASELINE')
+        for field,val in [('run_id',43),('conclusion','success'),('status','in_progress'),('steps',[])]:
+            self.assertEqual(recover_from_metadata(api_for(r,dict(job(),**{field:val})),REPO)[0],'BASELINE')
+    def test_handoff_signed_dispatch_failure_when_no_native_or_original(self):
+        def invoke(task,end):
+            kind,day,repo,rid,lane=task
+            if kind=='index':return {'total_count':1,'workflow_runs':[self.dispatch()]} if lane=='main' else {'total_count':0,'workflow_runs':[]}
+            if kind=='metadata':return {'jobs':[job()],'artifacts':[]}
+            raise AssertionError('no artifact read')
+        report=gather_bounded(DAY,REPO,invoke=invoke)
+        self.assertEqual(report['observed_schedule_count'],0);self.assertEqual(report['day_source_coverage']['authenticated_pc_slots'],0)
+        self.assertEqual(len(report['manual_failure_assessment']),1)
+        self.assertEqual(derive(report)['mode'],'MARKET_OR_ROSTER_RECOVERY')
+        d=make(report,repo=REPO,run_id=101,collector_sha=SHA,key=KEY)
+        self.assertEqual(accept(d,report,repo=REPO,run_id=101,collector_sha=SHA,key=KEY),'MARKET_OR_ROSTER_RECOVERY')
+        q=copy.deepcopy(report);q['manual_failure_assessment'][0]['head_branch']='other'
+        self.assertEqual(derive(q)['mode'],'BASELINE')
+        with self.assertRaises(ValueError):accept(d,q,repo=REPO,run_id=101,collector_sha=SHA,key=KEY)
+    def test_incomplete_signed_baseline_does_not_hide_late_positive_failure(self):
+        for complete,want in ((False,'MARKET_OR_ROSTER_RECOVERY'),(True,'BASELINE')):
+            r=saturday();r['all_run_metadata_screened']=complete
+            doc=make(r,repo=REPO,run_id=101,collector_sha=SHA,key=KEY)
+            h=dict(id=101,name=NAME,created_at='2026-11-28T12:00:00Z',event='schedule',status='completed',conclusion='success',head_repository={'full_name':REPO},path='.github/workflows/'+WORKFLOW)
+            def cli(args,**kw):
+                ep=args[-1]
+                if WORKFLOW in ep:return json.dumps({'total_count':1,'workflow_runs':[h]})
+                if '/artifacts?' in ep:return json.dumps({'total_count':1,'artifacts':[{'name':'kyoto-handoff-101-20261128','expired':False}]})
+                return json.dumps(api_for(self.dispatch(),job())(ep))
+            def dl(args,**kw):
+                p=Path(args[-1]);(p/'report.json').write_text(json.dumps(r));(p/'nextday_policy.json').write_text(json.dumps(doc))
+            with patch('diagnostics.kyoto_impl30_nextday_adaptation.subprocess.check_output',side_effect=cli),patch('diagnostics.kyoto_impl30_nextday_adaptation.subprocess.run',side_effect=dl):
+                self.assertEqual(recover(TARGET_DAY,repo=REPO,collector_sha=SHA,key=KEY)[0],want)
+if __name__=='__main__':unittest.main()

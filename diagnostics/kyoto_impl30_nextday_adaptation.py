@@ -17,13 +17,31 @@ SCHEMA="kyoto_nextday_adaptation.v1"
 OBSERVER="kyoto-20261128-29-two-source-production-observer.yml"
 OBSERVER_NAME="Kyoto Nov28-29 independent encrypted original collection"
 
+def confirmed_failure_lanes(run,jobs):
+    """Positive job failure only, never infer failure from absence of originals."""
+    from diagnostics.kyoto_weekend_day21_triage import STAGES
+    rid=run.get("id")
+    if type(rid) is not int or rid<=0 or run.get("status")!="completed" or not isinstance(jobs,list):return []
+    found=[]
+    for lane,name in (("PC","pc-originals-independent"),("SP","sp-originals-independent")):
+        matches=[j for j in jobs if isinstance(j,dict) and j.get("name")==name]
+        if len(matches)!=1:continue
+        job=matches[0]
+        if job.get("run_id")!=rid or job.get("status")!="completed" or job.get("conclusion")!="failure":continue
+        steps=job.get("steps",[])
+        if not isinstance(steps,list):continue
+        stages=[STAGES.get(step.get("name")) for step in steps if isinstance(step,dict) and step.get("conclusion")=="failure"]
+        valid=[x for x in stages if x in {"PRE_HTTP_GUARD","PC_CAPTURE","SP_CAPTURE","OFFLINE_REGRESSION","ENCRYPTION_OR_STOP","ARTIFACT"}]
+        if valid:found.append({"run_id":rid,"lane":lane,"stage":valid[0]})
+    return found
+
+
 def recover_from_metadata(api, repo):
     """Independent, read-only fallback: positive failure evidence only.
 
     GitHub API provenance is supplied by the authenticated runtime gh client.
     No source coverage, raw data, or successful acquisition is inferred.
     """
-    from diagnostics.kyoto_weekend_day21_triage import STAGES
     index=api(f"repos/{repo}/actions/workflows/{OBSERVER}/runs?created=2026-11-28&per_page=100")
     runs=index["workflow_runs"]
     if not isinstance(runs,list) or index["total_count"]!=len(runs) or len(runs)>100:
@@ -33,7 +51,8 @@ def recover_from_metadata(api, repo):
         raise ValueError("invalid_observer_run_identity")
     eligible=[r for r in runs if r.get("name")==OBSERVER_NAME
               and r.get("created_at","")[:10]=="2026-11-28"
-              and r.get("event")=="schedule" and r.get("status")=="completed"
+              and (r.get("event")=="schedule" or (r.get("event")=="workflow_dispatch" and r.get("head_branch")=="main"))
+              and r.get("status")=="completed"
               and r.get("head_repository",{}).get("full_name")==repo
               and r.get("path","").split("@",1)[0]==".github/workflows/"+OBSERVER]
     # Most recent completed failure first. A positive failure observation
@@ -44,14 +63,11 @@ def recover_from_metadata(api, repo):
         jobs=jobs_doc["jobs"]
         if not isinstance(jobs,list) or jobs_doc["total_count"]!=len(jobs) or len(jobs)>100:
             continue
-        for lane,name in (("PC","pc-originals-independent"),("SP","sp-originals-independent")):
-            matches=[j for j in jobs if j.get("name")==name]
-            if len(matches)!=1:continue
-            job=matches[0]
-            if job.get("run_id")!=rid or job.get("status")!="completed" or job.get("conclusion")!="failure":continue
-            stages={STAGES.get(step.get("name")) for step in job.get("steps",[]) if step.get("conclusion")=="failure"}
-            if stages & {"PRE_HTTP_GUARD","PC_CAPTURE","SP_CAPTURE","OFFLINE_REGRESSION","ENCRYPTION_OR_STOP","ARTIFACT"}:
-                return "MARKET_OR_ROSTER_RECOVERY",f"OBSERVER_FAILURE_METADATA_ONLY_{rid}_{lane}"
+        failures=confirmed_failure_lanes(r,jobs)
+        if failures:
+            f=failures[0]
+            prefix="OBSERVER_DISPATCH_FAILURE_METADATA_ONLY" if r["event"]=="workflow_dispatch" else "OBSERVER_FAILURE_METADATA_ONLY"
+            return "MARKET_OR_ROSTER_RECOVERY",f"{prefix}_{rid}_{f['lane']}"
     return "BASELINE","NO_CONFIRMED_OBSERVER_FAILURE"
 
 
@@ -94,6 +110,18 @@ def derive(report):
             if (row.get("artifact_evidence_state")=="PRE_HTTP_SAFE_STOP_NO_SOURCE" or
                 (row.get("job_conclusion")=="failure" and row.get("job_state") in ("NO_ARTIFACT","FAILED_WITH_ARTIFACT"))):
                 known_failures.append({"run_id":rid,"lane":lane,"stage":row.get("failure_stage","UNKNOWN")})
+    # Handoff builder adds this separate evidence only for same-day main
+    # dispatches with authenticated API run/job identity; native counts stay fixed.
+    manual_failures=report.get("manual_failure_assessment",[])
+    for row in manual_failures if isinstance(manual_failures,list) else []:
+        if not isinstance(row,dict):continue
+        rid=row.get("run_id");lane=row.get("lane");stage=row.get("stage")
+        if (type(rid) is int and rid>0 and rid not in seen and lane in ("PC","SP")
+            and stage in {"PRE_HTTP_GUARD","PC_CAPTURE","SP_CAPTURE","OFFLINE_REGRESSION","ENCRYPTION_OR_STOP","ARTIFACT"}
+            and row.get("event")=="workflow_dispatch" and row.get("head_branch")=="main"
+            and row.get("created_at","")[:10]=="2026-11-28"):
+            f={"run_id":rid,"lane":lane,"stage":stage}
+            if f not in known_failures:known_failures.append(f)
     def incomplete(reason):
         if known_failures:
             return {"mode":"MARKET_OR_ROSTER_RECOVERY","reason":"SATURDAY_EXECUTION_FAILURE_WITH_INCOMPLETE_SOURCE_EVIDENCE",
@@ -214,7 +242,7 @@ def recover(day,*,repo,collector_sha,key,monotonic=time.monotonic):
                 except (OSError,ValueError):raise ValueError("HANDOFF_POLICY_MISSING_OR_INVALID") from None
                 mode=accept(doc,report,repo=repo,run_id=rid,collector_sha=collector_sha,key=key)
                 prefix="AUTHENTICATED_SATURDAY_HANDOFF_" if r["event"]=="schedule" else "AUTHENTICATED_SATURDAY_DISPATCH_HANDOFF_"
-                return mode,prefix+str(rid)
+                return mode,prefix+str(rid),doc["body"]["decision"]["reason"]
         # Preserve native schedule preference and the existing failure labels.
         # A signed, same-workflow main dispatch is a separate recovery path,
         # not evidence that GitHub's native scheduler or Cloudflare worked.
@@ -238,7 +266,16 @@ def recover(day,*,repo,collector_sha,key,monotonic=time.monotonic):
         main=pool.submit(primary)
         backup=pool.submit(recover_from_metadata,api,repo)
         try:
-            return main.result(timeout=max(0,end-monotonic()))
+            mode,reason,decision_reason=main.result(timeout=max(0,end-monotonic()))
+            # A signed incomplete baseline is not affirmative evidence of full
+            # capture. A later confirmed failure may still justify recovery.
+            # Never override a complete authenticated decision or wait longer.
+            if mode=="BASELINE" and decision_reason in {"SOURCE_INDEX_INCOMPLETE","RACE_DENOMINATOR_UNVERIFIED","COVERAGE_COUNTS_DISAGREE"}:
+                try:
+                    m,r=backup.result(timeout=max(0,end-monotonic()))
+                    if m=="MARKET_OR_ROSTER_RECOVERY":return m,reason+"__"+r
+                except Exception:pass
+            return mode,reason
         except Exception as exc:
             # Only fixed diagnostic labels may leave this function; never log
             # API output, credentials, exception arguments or artifact bytes.

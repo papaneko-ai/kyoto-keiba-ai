@@ -146,6 +146,10 @@ def gather_bounded(day, repo, *, invoke=_invoke, clock=time.monotonic, budget=BU
         if e['run'].get('event')=='workflow_dispatch':
             manual.append({'run_id':e['run']['id'],'authenticated_pc_slot':verified,'state':e.get('metadata_error',source.get('state','NO_SOURCE_ASSESSMENT'))})
     report['manual_source_assessment']=manual
+    from diagnostics.kyoto_impl30_nextday_adaptation import confirmed_failure_lanes
+    report['manual_failure_assessment']=[{**failure,'event':'workflow_dispatch','head_branch':'main','created_at':e['run']['created_at']}
+        for e in active if e['run'].get('event')=='workflow_dispatch' and e['run'].get('head_branch')=='main'
+        for failure in confirmed_failure_lanes(e['run'],e.get('jobs',[]))]
     # Preserve the separate independently authenticated SP evidence; never
     # promote structural roster observations into the PC/model denominator.
     from diagnostics.kyoto_impl32_sp_handoff import aggregate
