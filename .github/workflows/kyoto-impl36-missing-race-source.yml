@@ -1,0 +1,77 @@
+name: Kyoto Impl36 targeted missing race workout discovery
+on:
+  push:
+    branches: ['impl36-p05-missing-race-source-20261127']
+    paths: ['.github/workflows/kyoto-impl36-missing-race-source.yml']
+permissions:
+  contents: read
+  actions: read
+jobs:
+  proof:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      PYTHONPATH: .
+      GH_TOKEN: ${{ github.token }}
+      KYOTO_TARGET_DAY: '20261128'
+      KYOTO_WEEKEND_HTTP_APPROVED: 'NO'
+      KYOTO_AUX_HTTP_APPROVED: 'NO'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: 'b9499bda96f5ce95f23bb558df40881e2f1544e7'
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11.18'
+      - run: python -m pip install --no-deps beautifulsoup4==4.15.0 soupsieve==4.1.3 typing-extensions==4.16.0 cryptography==46.0.7 cffi==2.1.1 pycparser==3.12
+      - name: Observe only newly available missing race URLs
+        env:
+          ARCHIVE_KEY: ${{ secrets.KYOTO_JRA_ARCHIVE_AES256_HEX }}
+        run: |
+          set -euo pipefail
+          test "$(TZ=Asia/Tokyo date +%Y%m%d)" = 20261127
+          python - <<'PY'
+          import json,os
+          from pathlib import Path
+          from datetime import datetime,timezone
+          from hashlib import sha256
+          from diagnostics.kyoto_impl33_workout_runtime import PublicFetch,Budget,PRIMARY_INDEX,seal
+          from diagnostics.kyoto_impl33_workout_generic import discover,parse_observed
+          day='20261128';repo='papaneko-ai/kyoto-keiba-ai';rid=os.environ['GITHUB_RUN_ID']
+          assert os.environ['GITHUB_REPOSITORY']==repo
+          key=bytes.fromhex(os.environ['ARCHIVE_KEY']);assert len(key)==32
+          root=Path('missing_sources');root.mkdir()
+          fetch=PublicFetch(Budget(130))
+          report={'schema':'kyoto_impl36_missing_race_source.v1','day':day,'run_id':rid,'jra_requests':0,'full_day_certified':False,'races':[],'missing_target_races':[1,2,3,4,5,6,7,8,12]}
+          def save(raw,url,name):
+              stamp=datetime.now(timezone.utc).isoformat()
+              aad=f'kyoto-impl36-missing-source-v1|{repo}|{rid}|{day}|{name}'.encode()
+              return {'url':url,'captured_utc':stamp,'file':name,'source_sha256':sha256(raw).hexdigest(),'ciphertext_sha256':seal(root,name,raw,key,aad),'aad':aad.decode()}
+          try:
+              raw=fetch(PRIMARY_INDEX)
+              report['index']=save(raw,PRIMARY_INDEX,'index.aesgcm')
+              links=discover(raw,day)
+              report['observed_races']=sorted(links)
+              for n in report['missing_target_races']:
+                  if n not in links:continue
+                  url=links[n];row={'race':n};report['races'].append(row)
+                  try:
+                      raw=fetch(url);row.update(save(raw,url,f'r{n:02d}.aesgcm'))
+                      rec,names,records,issues=parse_observed(raw,day,n,url,row['captured_utc'],((day,n,url),))
+                      row.update(state='OBSERVED_WORKOUT_PAGE',summary_kind=rec['summary_kind'],named_entries=len(names),names_with_dated_workout=sum(bool(v) for v in records.values()),dated_records=sum(map(len,records.values())),issue_count=len(issues))
+                  except Exception as e:row.update(state='UNVERIFIED',error_class=type(e).__name__)
+                  (root/'receipt.json').write_text(json.dumps(report,sort_keys=True,indent=2))
+              report['state']='INDEX_OBSERVED'
+          except Exception as e:report.update(state='INDEX_UNVERIFIED',error_class=type(e).__name__)
+          report['source_requests']=fetch.requests
+          (root/'receipt.json').write_text(json.dumps(report,sort_keys=True,indent=2))
+          print('MISSING_RACE_SOURCE='+json.dumps(report,sort_keys=True))
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: impl36-missing-race-source-${{ github.run_id }}
+          path: missing_sources/
+          retention-days: 90
+          if-no-files-found: error
