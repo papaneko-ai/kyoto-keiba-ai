@@ -82,7 +82,11 @@ class ProductionWorkflowContract(unittest.TestCase):
         self.assertTrue(doc["concurrency"]["group"].startswith("kyoto-20261128-29-source-"))
         job=doc["jobs"]["postrace-source-evidence"]
         pin=self.jobs["select-collector"]["env"]["DEFAULT_COLLECTOR_SHA"]
-        self.assertEqual(job["steps"][0]["with"]["ref"],pin)
+        expected_postrace_pin="1fa2a43fcd17f5100b0b9b9b3dde43dec5a2981f"
+        self.assertEqual(job["steps"][0]["with"]["ref"],expected_postrace_pin)
+        self.assertNotEqual(expected_postrace_pin,pin)
+        self.assertIn('test "$(git rev-parse HEAD)" = '+repr(expected_postrace_pin),raw)
+        self.assertNotIn(pin,raw)
         self.assertEqual(job["env"]["KYOTO_WEEKEND_HTTP_APPROVED"],"NO")
         self.assertEqual(job["env"]["KYOTO_POSTRACE_HTTP_APPROVED"],"YES")
         self.assertIn("kyoto_impl30_postrace_runtime",raw)
