@@ -1,0 +1,38 @@
+name: Kyoto Impl37 exact final snapshot
+on:
+  push:
+    branches: ['backup/impl36-to-impl37-final-20261127']
+    paths: ['.github/workflows/kyoto-impl37-final-snapshot.yml']
+permissions:
+  contents: read
+  actions: read
+  issues: read
+  pull-requests: read
+jobs:
+  snapshot:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    env:
+      GH_TOKEN: ${{ github.token }}
+      KYOTO_WEEKEND_HTTP_APPROVED: 'NO'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: true
+      - name: Save exact source history and metadata
+        run: python -u docs/kyoto_impl37_snapshot.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: impl37-source-${{ github.run_id }}
+          path: IMPL37_GITHUB_SOURCE.zip
+          retention-days: 90
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: impl37-evidence-${{ github.run_id }}
+          path: IMPL37_GITHUB_EVIDENCE.zip
+          retention-days: 90
+          if-no-files-found: error
