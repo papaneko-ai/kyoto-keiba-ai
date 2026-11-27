@@ -1,0 +1,52 @@
+name: Kyoto Impl37 isolated proof history snapshot
+on:
+  push:
+    branches: ['backup/impl37-isolated-proof-history-20261127']
+permissions:
+  contents: read
+  actions: read
+jobs:
+  proof-history:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: true
+      - name: Bundle exact proof commits from recorded runs
+        run: |
+          python - <<'PY'
+          import json,subprocess,pathlib,os
+          p=pathlib.Path('isolated');p.mkdir()
+          m=json.loads(pathlib.Path('docs/KYOTO_IMPL37_SNAPSHOT_REQUEST.json').read_text())
+          repo=os.environ['GITHUB_REPOSITORY'];assert repo=='papaneko-ai/kyoto-keiba-ai'
+          def call(*a):return subprocess.check_output(a,timeout=45)
+          refs={};errors=[]
+          for rid in m['runs']:
+              try:
+                  r=json.loads(call('gh','api',f'repos/{repo}/actions/runs/{rid}'))
+                  assert r['id']==rid and r['head_repository']['full_name']==repo
+                  sha=r['head_sha']
+                  if sha not in refs.values():
+                      try:call('git','cat-file','-e',sha+'^{commit}')
+                      except subprocess.CalledProcessError:call('git','fetch','--no-tags','origin',sha)
+                  name='refs/heads/impl37-proof/run-'+str(rid)
+                  call('git','update-ref',name,sha)
+                  refs[name]=sha
+              except Exception as exc:errors.append([rid,type(exc).__name__])
+          (p/'refs.json').write_text(json.dumps({'refs':refs,'errors':errors},indent=2))
+          assert refs
+          call('git','bundle','create',str(p/'ISOLATED_HISTORY.bundle'),*refs)
+          (p/'heads.txt').write_bytes(call('git','bundle','list-heads',str(p/'ISOLATED_HISTORY.bundle')))
+          (p/'verify.txt').write_bytes(call('git','bundle','verify',str(p/'ISOLATED_HISTORY.bundle')))
+          print('PROOF_HISTORY',len(refs),errors)
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: impl37-isolated-history-${{ github.run_id }}
+          path: isolated/
+          retention-days: 90
+          if-no-files-found: error
