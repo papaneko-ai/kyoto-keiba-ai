@@ -71,6 +71,41 @@ jobs:
                       action=a.get("onclick","")
                       if ("京都" in title or "20261129" in href or "20261129" in action) and len(title)<100:
                           print(label,"MEETING",json.dumps({"title":title,"href":href[:300],"onclick":action[:300]},ensure_ascii=False))
+                  meetings=set()
+                  for a in soup.select("a[onclick]"):
+                      m=re.fullmatch(r"\s*(?:return\s+)?doAction\(\s*['\"](/JRADB/accessD\.html)['\"]\s*,\s*['\"]("+prefix+r"01drl0008[0-9]{8}20261129/[A-Za-z0-9]+)['\"]\s*\)\s*;?\s*(?:return\s+false\s*;?)?\s*",a["onclick"])
+                      if m and "京都" in a.get_text(" ",strip=True):meetings.add((m.group(1),m.group(2)))
+                  if len(meetings)!=1 or soup.find("base") is not None:continue
+                  path,token=next(iter(meetings))
+                  time.sleep(2)
+                  request=Request(urljoin(endpoint,path),data=urlencode({"cname":token}).encode("ascii"),method="POST",headers={"User-Agent":"KyotoRaceAI-Private-ReadOnly/0.1","Accept":"text/html","Referer":endpoint,"Content-Type":"application/x-www-form-urlencoded"})
+                  with client.open(request,timeout=12) as response:
+                      raw=response.read(1500001)
+                      print(label,"MEETING_RESPONSE",response.status,response.geturl(),len(raw))
+                      if response.status!=200 or response.geturl()!=endpoint or len(raw)>1500000:continue
+                  try: text=raw.decode("utf-8")
+                  except UnicodeDecodeError: text=raw.decode("cp932",errors="replace")
+                  soup=BeautifulSoup(text,"html.parser")
+                  print(label,"MEETING_TITLE",soup.title.get_text(" ",strip=True) if soup.title else "")
+                  races={}
+                  for a in soup.select("a[href]"):
+                      href=a.get("href","")
+                      target=urljoin(endpoint,href)
+                      u=urlsplit(target)
+                      if u.scheme!="https" or u.hostname not in (urlsplit(endpoint).hostname,"app.jra.jp" if label=="SP" else "jra.jp") or u.path!="/JRADB/accessD.html":continue
+                      q=parse_qs(u.query)
+                      if set(q)!={"CNAME"} or len(q["CNAME"])!=1:continue
+                      m=re.fullmatch(prefix+r"01dde(?:01|10)08[0-9]{8}(0[1-9]|1[0-2])20261129/[A-Za-z0-9]+",q["CNAME"][0])
+                      if m:
+                          races.setdefault(m.group(1),set()).add(target)
+                          print(label,"RACE_ANCHOR",json.dumps({"race":m.group(1),"title":a.get_text(" ",strip=True)[:100],"url":target},ensure_ascii=False))
+                  print(label,"RACE_COUNTS",json.dumps({n:len(v) for n,v in races.items()},sort_keys=True))
+                  if len(races.get("12",[]))==1:
+                      target=next(iter(races["12"]))
+                      time.sleep(2)
+                      with client.open(Request(target,headers={"User-Agent":"KyotoRaceAI-Private-ReadOnly/0.1","Accept":"text/html","Referer":endpoint}),timeout=12) as response:
+                          raw=response.read(1500001)
+                          print(label,"RACE12_RESPONSE",response.status,response.geturl(),len(raw))
               except HTTPError as exc:
                   print(label,"HTTP",exc.code)
               except Exception as exc:
