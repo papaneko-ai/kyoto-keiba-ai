@@ -78,6 +78,15 @@ def slots(day,filename,runs,now):
         out.append({"cron":title[13:],"due_utc":due.isoformat(),"state":state,"run_ids":[r["id"] for r in exact],
                     "late_seconds":max(0,int((stamp(exact[0]["created_at"])-due).total_seconds())) if len(exact)==1 else None})
     return out
+def external_slots(day,filename,runs,now):
+    """Observe dispatches near the fixed plan; no provider or data credit."""
+    out=[]
+    for native in slots(day,filename,runs,now):
+        due=stamp(native["due_utc"])+timedelta(minutes=2)
+        exact=[r for r in runs if r["event"]=="workflow_dispatch" and due<=stamp(r["created_at"])<due+timedelta(minutes=5)]
+        state=("NOT_DUE" if now<due else "DISPATCH_GRACE" if now<due+timedelta(minutes=5) else "DISPATCH_NOT_OBSERVED") if not exact else "DISPATCH_AMBIGUOUS" if len(exact)!=1 else "DISPATCH_UNFINISHED" if exact[0]["status"]!="completed" else "DISPATCH_COMPLETED" if exact[0]["conclusion"]=="success" else "DISPATCH_UNSUCCESSFUL"
+        out.append({"due_utc":due.isoformat(),"state":state,"run_ids":[r["id"] for r in exact],"provider_proved":False,"source_success_certified":False})
+    return out
 def proof_ok(value,cutoff,day,allowed,after=False):
     try:
         utc=stamp(value["utc"])
@@ -211,11 +220,12 @@ def review_cancellations(day,metadata,coverage,key):
         except Exception as exc:errors.append({"run_id":rid,"error_class":type(exc).__name__})
     return {"schema":"kyoto_independent_cancellation_review.v1","day":day,"races":result,"errors":errors,"source_http_requests":0}
 
-def coverage_gaps(day,coverage,allowed_run_ids,workout_review=None,allowed_workout_run_ids=(),cancellation_review=None):
+def coverage_gaps(day,coverage,allowed_run_ids,workout_review=None,allowed_workout_run_ids=(),cancellation_review=None,allowed_sp_market_run_ids=()):
     """Compute missing cells from independently replayed aggregate, not totals."""
     if coverage.get("day")!=day or coverage.get("schema")!="kyoto_impl30_day_source_coverage.v1" or coverage.get("race_denominator")!=12 or set(coverage.get("races",{}))!=set(RACES):raise ValueError("coverage_identity_incomplete")
     allowed=set(map(str,allowed_run_ids))
     allowed_workout=set(map(str,allowed_workout_run_ids))
+    allowed_markets=allowed|set(map(str,allowed_sp_market_run_ids))
     workout_review=workout_review or {}
     workout_rows=workout_review.get("races",{}) if workout_review.get("day")==day and workout_review.get("schema")=="kyoto_independent_workout_day_replay.v1" else {}
     cancellation_review=cancellation_review or {}
@@ -264,10 +274,10 @@ def coverage_gaps(day,coverage,allowed_run_ids,workout_review=None,allowed_worko
                 v=row.get(section,{}).get(f,{})
                 check(f,proof_ok(v,cutoff,day,allowed),proof=v)
         a,b=(row.get("markets",{}).get(f,{}) for f in MARKETS)
-        for f,v in zip(MARKETS,(a,b)):check(f,proof_ok(v,cutoff,day,allowed),proof=v)
+        for f,v in zip(MARKETS,(a,b)):check(f,proof_ok(v,cutoff,day,allowed_markets),proof=v)
         cancelled=a.get("cancelled_horses")
         valid_cancel=isinstance(cancelled,list) and all(type(n) is int and str(n) in horses for n in cancelled) and len(set(cancelled))==len(cancelled)
-        check("paired_market_same_slot",row.get("paired_same_slot") is True and proof_ok(a,cutoff,day,allowed) and proof_ok(b,cutoff,day,allowed) and a.get("run_id")==b.get("run_id") and valid_cancel and cancelled==b.get("cancelled_horses"))
+        check("paired_market_same_slot",row.get("paired_same_slot") is True and proof_ok(a,cutoff,day,allowed_markets) and proof_ok(b,cutoff,day,allowed_markets) and a.get("run_id")==b.get("run_id") and valid_cancel and cancelled==b.get("cancelled_horses"))
         p=row.get("postrace",{})
         for f,k in (("official_result","result"),("official_payout","payout")):
             v=p.get(k,{})
@@ -314,9 +324,9 @@ def collect_metadata(day,now):
                     for lane,a in matches.items():
                         r["artifacts"][lane]=classify_artifact(filename,lane,r["id"],a,jobs)
                 except Exception as exc:r["artifact_index_error"]=type(exc).__name__
-            reports[filename]={"index_complete":True,"runs":runs,"native_slots":slots(day,filename,runs,now),"metadata_recovery":recovery_trace}
+            reports[filename]={"index_complete":True,"runs":runs,"native_slots":slots(day,filename,runs,now),"external_dispatch_slots":external_slots(day,filename,runs,now),"metadata_recovery":recovery_trace}
         except Exception as exc:
-            reports[filename]={"index_complete":False,"error_class":type(exc).__name__,"runs":[],"native_slots":[],"metadata_recovery":recovery_trace}
+            reports[filename]={"index_complete":False,"error_class":type(exc).__name__,"runs":[],"native_slots":[],"external_dispatch_slots":[],"metadata_recovery":recovery_trace}
             errors.append(filename)
     return reports,errors
 def review(day,now,out):
@@ -325,6 +335,8 @@ def review(day,now,out):
     (out/"metadata_checkpoint.json").write_bytes(canon({"day":day,"workflows":metadata,"errors":errors})+b"\n")
     report={"schema":"kyoto_weekend_closure_review.v1","day":day,"observed_utc":now.isoformat(),"workflow_index_errors":errors,"workflows":metadata,
        "new_source_http_requests":0,"full_acquisition_certified":False,"all_risks_closed":False}
+    sp_attempted=False
+    sp_allowed=[]
     # Reuse production's authenticated PC/auxiliary/market/result replay, not
     # unverified handoff totals. Same-day correction chain is reopened.
     try:
@@ -332,10 +344,28 @@ def review(day,now,out):
         from diagnostics.kyoto_impl30_postrace_replay import replay_history,prior_archives
         from diagnostics.kyoto_impl30_day_coverage import include_postrace
         key=os.environ["ARCHIVE_KEY"]
-        roster,starts,_,proof=recover_inputs(day,REPO,key,include_coverage=True,allow_missing_seed=True)
+        roster,starts,_,proof=recover_inputs(day,REPO,key,include_coverage=True,allow_missing_seed=True,**({"return_coverage_slots":True} if day=="20261129" else {}))
         report["roster_verified_races"]=[n for n in range(1,13) if roster.get(n) and starts.get(n)]
         report["input_replay_errors"]={k:proof[k] for k in ("rejected_runs","conflicting_races","day_source_coverage_error") if k in proof}
         coverage=proof["day_source_coverage"]
+        if day=="20261129":
+            # Reopen each SP archive once with exact authenticated PC context.
+            # Failure of supplemental replay must not erase existing PC/aux data.
+            try:
+                from diagnostics.kyoto_impl39_sp_market_union import context
+                from diagnostics.kyoto_impl30_day_coverage import combine
+                verified_slots=proof["authenticated_coverage_slots"]
+                sp_attempted=True
+                sp=review_sp(day,metadata["two-source-production-observer.yml"],sp_context=context(verified_slots,day))
+                report["independent_sp_source_coverage"]=sp
+                market_slots=sp["verified_market_slots"]
+                merged=combine(day,verified_slots,sp_slots=market_slots)
+                for k in ("authenticated_pc_slots","authenticated_auxiliary_slots","auxiliary_errors","slot_errors"):
+                    merged[k]=coverage[k]
+                coverage=merged
+                sp_allowed=[int(s["run_id"]) for s in market_slots]
+                report["sp_market_replay"]={"authenticated_run_ids":sp_allowed,"source_http_requests":0}
+            except Exception as exc:report["independent_sp_market_replay_error"]=type(exc).__name__
         # Existing replay_history includes the current run. For day close
         # use the latest actual postrace archive as current (not this workflow).
         post=[r for r in metadata["postrace-evidence.yml"]["runs"] if r.get("artifacts",{}).get("postrace",{}).get("state")=="PRESENT"]
@@ -364,16 +394,16 @@ def review(day,now,out):
             cr=review_cancellations(day,metadata,coverage,key)
             report["cancellation_review"]=cr
         except Exception as exc:report["cancellation_review_error"]=type(exc).__name__
-        report["coverage"]=coverage_gaps(day,coverage,allowed,wr,workout_allowed,cr)
+        report["coverage"]=coverage_gaps(day,coverage,allowed,wr,workout_allowed,cr,allowed_sp_market_run_ids=sp_allowed)
         try:
             report["independent_cushion_day_replay"]=review_cushion(day,metadata["cushion-source.yml"],coverage,key,os.environ["KYOTO_CUSHION_READER"])
         except Exception as exc:report["independent_cushion_day_replay_error"]=type(exc).__name__
     except Exception as exc:
         report["coverage_replay_error"]=type(exc).__name__
         report["coverage"]={"counts":{},"races":[{"race":n,"state":"NOT_EVALUATED","missing":[{"family":"day_coverage_unavailable"}],"unknown_horse_families":list(HORSE)} for n in range(1,13)],"all_reviewed_cells_present":False,"full_acquisition_certified":False}
-    try:
-        report["independent_sp_source_coverage"]=review_sp(day,metadata["two-source-production-observer.yml"])
-    except Exception as exc:report["independent_sp_source_coverage_error"]=type(exc).__name__
+    if not sp_attempted:
+        try:report["independent_sp_source_coverage"]=review_sp(day,metadata["two-source-production-observer.yml"])
+        except Exception as exc:report["independent_sp_source_coverage_error"]=type(exc).__name__
     try:
         register=Path(os.environ.get("KYOTO_FIXED_RISK_REGISTER","docs/diagnostics/KYOTO_REVERSE_FMEA_GAP_REGISTER_20261116.json"))
         report["fixed_risks"]=worklist(report,register.read_bytes())
@@ -387,7 +417,9 @@ def review(day,now,out):
         missing=[s for s in v["native_slots"] if s["state"] not in ("NOT_DUE","NATIVE_RUN_COMPLETED")]
         gaps=[(r["id"],k,a["state"]) for r in v["runs"] for k,a in r.get("artifacts",{}).items() if a["state"] not in ("PRESENT",SKIPPED)]
         skips=[(r["id"],k,a["job_id"]) for r in v["runs"] for k,a in r.get("artifacts",{}).items() if a["state"]==SKIPPED]
-        summary.append(f"- {name}: index={v['index_complete']}, runs={len(v['runs'])}, native gaps={[(s['cron'],s['state']) for s in missing]}, artifact gaps={gaps}, skipped producer jobs (reason unverified)={skips}")
+        summary.append(f"- {name}: index={v['index_complete']}, runs={len(v['runs'])}, historical native gaps (not external launch credit)={[(s['cron'],s['state']) for s in missing]}, external dispatch observations={[(s['due_utc'],s['state'],s['run_ids']) for s in v.get('external_dispatch_slots',[])]}, artifact gaps={gaps}, skipped producer jobs (reason unverified)={skips}")
+    if "sp_market_replay" in report:summary.append("- SP市場原本の独立照合: "+str(report["sp_market_replay"]))
+    if "independent_sp_market_replay_error" in report:summary.append("- SP市場照合未完: "+report["independent_sp_market_replay_error"])
     if "coverage_replay_error" in report:summary.append("- 原本再検証未完: "+report["coverage_replay_error"])
     if "workout_day_replay" in report:
         w=report["workout_day_replay"]

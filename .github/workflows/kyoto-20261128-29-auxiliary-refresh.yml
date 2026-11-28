@@ -32,7 +32,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: 'c289c5ec4e6ad322a7e08acf173da3352ed23dba'
+          ref: ${{ inputs.race_day == '20261129' && '74c823836b7099e959d885e1cca778f390fd2195' || 'c289c5ec4e6ad322a7e08acf173da3352ed23dba' }}
           persist-credentials: false
       - uses: actions/setup-python@v5
         with:
@@ -43,7 +43,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          test "$(git rev-parse HEAD)" = 'c289c5ec4e6ad322a7e08acf173da3352ed23dba'
+          test "$(git rev-parse HEAD)" = "${{ inputs.race_day == '20261129' && '74c823836b7099e959d885e1cca778f390fd2195' || 'c289c5ec4e6ad322a7e08acf173da3352ed23dba' }}"
           python -m diagnostics.kyoto_impl30_auxiliary_refresh --day "$KYOTO_TARGET_DAY" --out auxiliary_sealed
       - name: Upload encrypted afternoon racecard and track originals only
         id: upload_auxiliary_primary

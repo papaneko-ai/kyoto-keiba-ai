@@ -23,6 +23,22 @@ class ClosureTests(unittest.TestCase):
   v=slots(DAY,FILE,index(DAY,FILE,{"total_count":4,"workflow_runs":rs}),NOW)
   self.assertEqual([x["state"] for x in v],["NATIVE_RUN_COMPLETED"]+["NATIVE_SLOT_NOT_OBSERVED"]*3)
   self.assertEqual(v[0]["late_seconds"],120)
+ def test_external_slot_observations_are_not_native_or_source_credit(self):
+  from diagnostics.kyoto_weekend_closure_review import external_slots
+  rs=[run(),run(2,"workflow_dispatch","workflow_dispatch")]
+  v=external_slots(DAY,FILE,index(DAY,FILE,{"total_count":2,"workflow_runs":rs}),NOW)
+  self.assertEqual([x["state"] for x in v],["DISPATCH_COMPLETED"]+["DISPATCH_NOT_OBSERVED"]*3)
+  self.assertEqual(v[0]["run_ids"],[2]);self.assertFalse(v[0]["provider_proved"]);self.assertFalse(v[0]["source_success_certified"])
+  rs.append(run(3,"workflow_dispatch","workflow_dispatch"))
+  self.assertEqual(external_slots(DAY,FILE,index(DAY,FILE,{"total_count":3,"workflow_runs":rs}),NOW)[0]["state"],"DISPATCH_AMBIGUOUS")
+ def test_sp_run_credit_is_market_only(self):
+  d=data();r=d["races"]["1"]
+  for m in MARKETS:r["markets"][m]["run_id"]="8"
+  r["racecard"]["run_id"]="8"
+  v=coverage_gaps(DAY,d,[1],workouts(d),[3],allowed_sp_market_run_ids=[8])
+  self.assertEqual(v["counts"]["quinella"]["verified"],12)
+  self.assertEqual(v["counts"]["paired_market_same_slot"]["verified"],12)
+  self.assertEqual(v["counts"]["racecard"]["verified"],11)
  def test_duplicate_native_and_index(self):
   rs=[run(),run(2)]
   self.assertEqual(slots(DAY,FILE,index(DAY,FILE,{"total_count":2,"workflow_runs":rs}),NOW)[0]["state"],"NATIVE_SLOT_AMBIGUOUS")
@@ -171,6 +187,19 @@ class ClosureTests(unittest.TestCase):
   with self.assertRaises(ValueError):review_sp(DAY,{**m,"runs":m["runs"]+[m["runs"][0]]},invoke=invoke,aggregate=aggregate)
   def bad(day,entries):return {**aggregate(day,entries),"market_verified":True}
   with self.assertRaises(ValueError):review_sp(DAY,m,invoke=invoke,aggregate=bad)
+ def test_sp_market_replay_uses_exact_context_and_rejects_unbound_receipts(self):
+  from diagnostics.kyoto_day_supplemental_replay import review_sp
+  m={"index_complete":True,"runs":[{"id":i,"event":"workflow_dispatch","status":"completed","artifacts":{"sp":{"state":"PRESENT"}}} for i in (1,2,3)]}
+  calls=[];context={"1":{"start_utc":"2026-11-29T05:00:00Z"}}
+  def invoke(task,end):
+   calls.append(task)
+   return {"ciphertext_authenticated":task[3]!=3,"source_original_sha_utc_checked":True,"sp_market_slot":{"day":DAY,"run_id":str(99 if task[3]==2 else task[3]),"races":{"1":{}}}}
+  def aggregate(day,entries):
+   return {"schema":"kyoto_impl32_sp_handoff.v1","day":day,"race_denominator":12,"pc_denominator_modified":False,"prestart_certified":False,"market_verified":False,"live_acquisition_certified":False}
+  v=review_sp(DAY,m,invoke=invoke,aggregate=aggregate,sp_context=context)
+  self.assertEqual(sorted(t[3] for t in calls),[1,2,3]);self.assertTrue(all(t[5]==context for t in calls))
+  self.assertEqual([s["run_id"] for s in v["verified_market_slots"]],["1"])
+  self.assertFalse(v["market_verified"])
  def test_supplemental_cushion_delegates_authenticated_observations_only(self):
   from diagnostics.kyoto_day_supplemental_replay import replay_cushions
   d=data();before=copy.deepcopy(d)
