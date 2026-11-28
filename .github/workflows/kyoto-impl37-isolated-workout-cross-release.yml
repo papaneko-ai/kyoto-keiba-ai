@@ -2,6 +2,8 @@ name: Impl37 isolated workout cross-release offline regression
 on:
   push:
     branches: ['repair/impl37-workout-reader-20261128']
+  pull_request:
+    branches: ['repair/impl37-workout-reader-base-20261128']
 permissions:
   contents: read
 jobs:
