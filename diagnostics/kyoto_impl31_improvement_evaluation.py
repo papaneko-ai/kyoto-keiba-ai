@@ -105,7 +105,8 @@ def load_saturday(repo,collector,key):
     index=api(f"repos/{repo}/actions/workflows/{WORKFLOW}/runs?created=2026-11-28&per_page=100")
     runs=index["workflow_runs"]
     if index["total_count"]!=len(runs) or len(runs)>100:raise ValueError("incomplete_index")
-    eligible=[r for r in runs if r.get("name")==NAME and r.get("event")=="schedule" and r.get("status")=="completed" and r.get("conclusion")=="success" and r.get("created_at","")[:10]=="2026-11-28" and r.get("head_repository",{}).get("full_name")==repo and r.get("path","").split("@",1)[0]==".github/workflows/"+WORKFLOW]
+    from diagnostics.kyoto_impl25_c12_all_runs_handoff import run_name_matches
+    eligible=[r for r in runs if run_name_matches(r,NAME,WORKFLOW,SAT) and r.get("event")=="schedule" and r.get("status")=="completed" and r.get("conclusion")=="success" and r.get("created_at","")[:10]=="2026-11-28" and r.get("head_repository",{}).get("full_name")==repo and r.get("path","").split("@",1)[0]==".github/workflows/"+WORKFLOW]
     if len(eligible)!=1:raise ValueError("ambiguous_saturday")
     rid=eligible[0]["id"]
     if type(rid) is not int or rid<=0:raise ValueError("run_identity")
