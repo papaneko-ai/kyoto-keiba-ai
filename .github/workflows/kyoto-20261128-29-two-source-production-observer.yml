@@ -41,7 +41,9 @@ jobs:
     env:
       KYOTO_TARGET_DAY: ${{ ((github.event.schedule == '15 0 28 11 *' || github.event.schedule == '15 1 28 11 *' || github.event.schedule == '5 2 28 11 *' || github.event.schedule == '50 2 28 11 *' || inputs.race_day == '20261128')) && '20261128' || '20261129' }}
       DEFAULT_COLLECTOR_SHA: '3f4b3d77357745ead05a9f78db34eb6ac2d78637'
-      SUNDAY_OVERRIDE_SHA: ${{ vars.KYOTO_NOV29_VERIFIED_COLLECTOR_SHA }}
+      # Emergency Nov29 release: exact immutable SHA verified by existing preflight selector.
+      # Preflight run 46102047091; the independent PC and SP lanes share this selected SHA.
+      SUNDAY_OVERRIDE_SHA: 'b216cee873e2b93c345aeb9741e1214d10760e85'
       GH_TOKEN: ${{ github.token }}
     steps:
       - uses: actions/checkout@v4
