@@ -161,6 +161,30 @@ class DiscoveryTests(unittest.TestCase):
         self.assertEqual(r["per_race_observed_navigation_candidates"]["12"]["candidate_urls"],[race])
         self.assertFalse(r["prediction_ready"])
 
+    def test_actual_sunday_meeting_form_yields_all_twelve(self):
+        day="20261129"
+        endpoint="https://sp.jra.jp/JRADB/accessD.html"
+        form='<form id="commForm01" method="POST" action=""><input name="cname"></form>'
+        home=html(form+'<a onclick="return doAction(\'/JRADB/accessD.html\',\'sw01dli00/80\')">出馬表</a>')
+        urls={n:endpoint+f"?CNAME=sw01dde010820260508{n:02d}{day}/A1" for n in range(1,13)}
+        selection=html(form+'<a onclick="return doAction(\'/JRADB/accessD.html\', \'sw01drl00082026050820261129/F8\');">京都</a>'+f'<a href="{urls[12]}">京都12R</a>')
+        meeting=html("".join(f'<a href="{url}">{n}R 15:00</a>' for n,url in urls.items()))
+        class Forms:
+            def __init__(self):self.calls=[]
+            def open(self,request,timeout=12):
+                self.calls.append((request.full_url,request.get_method(),request.data))
+                if len(self.calls)==1:return Response(SEED,home)
+                if len(self.calls)==2:return Response(endpoint,selection)
+                if len(self.calls)==3:return Response(endpoint,meeting)
+                raise AssertionError("unneeded navigation")
+        stub=Forms()
+        r=discover(self.root,day=day,opener=stub,pacer=self.pacer)
+        self.assertEqual(stub.calls,[(SEED,"GET",None),(endpoint,"POST",b"cname=sw01dli00%2F80"),(endpoint,"POST",b"cname=sw01drl00082026050820261129%2FF8")])
+        self.assertEqual(r["network_requests_started"],3)
+        self.assertEqual(r["racecard_url"],urls[12])
+        self.assertEqual({int(n):v["candidate_urls"] for n,v in r["per_race_observed_navigation_candidates"].items()},{n:[u] for n,u in urls.items()})
+        self.assertFalse(r["prediction_ready"])
+
     def test_untrusted_post_action_is_never_followed(self):
         day="20261129"
         home=html('<form method="POST" action=""><input name="cname"></form>'
