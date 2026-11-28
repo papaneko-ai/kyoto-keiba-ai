@@ -55,7 +55,7 @@ jobs:
                   assert old.split(marker)[1]==new.split(marker)[1]
               elif name=='auxiliary-refresh':
                   assert old.count(b"ref: '"+saturday+b"'")==1
-                  aux_pin=b'28c4bc775984e9c19eb9aa0315bf8d8514f2d88f'
+                  aux_pin=b'e9658568ec157f369d66e4d20f45aa701edb321e'
                   expected=old.replace(b"ref: '"+saturday+b"'",b"ref: '"+aux_pin+b"'")
                   assert old.count(b"test \"$(git rev-parse HEAD)\" = '"+saturday+b"'")==1
                   expected=expected.replace(b"test \"$(git rev-parse HEAD)\" = '"+saturday+b"'",b"test \"$(git rev-parse HEAD)\" = '"+aux_pin+b"'")
