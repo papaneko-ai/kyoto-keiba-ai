@@ -1222,35 +1222,35 @@
   },
   "notes": "Reverse FMEA explicitly finds risk modes not enumerated by the original 30 cases. Counting passing tests is not an independent proof of completeness.",
   "source_git_blob_sha1": {
-    "diagnostics/kyoto_weekend_capture.py": "2f6306fd99221b78fe1d88724e6c769c126a1b9e",
-    "diagnostics/kyoto_weekend_sp_discovery.py": "4d2d99b25368fb23c41ef1b85cdf3a461c383df5",
-    "diagnostics/kyoto_weekend_postflight.py": "b1b52eee94c486058d8cbb009e3c89fd6257a584",
+    "diagnostics/kyoto_weekend_capture.py": "073da06e328f5b4578bec4f003c3e3584183f942",
+    "diagnostics/kyoto_weekend_sp_discovery.py": "1559d0e95b2ccd0aa40f1d2680706d17dedf42b5",
+    "diagnostics/kyoto_weekend_postflight.py": "eb45accfb77e5df6ede87ca4e71d50d355779a05",
     "diagnostics/kyoto_weekend_day21_triage.py": "a6639d5cab211d37d1eddefaa9bfc5b23901368d",
-    "diagnostics/kyoto_nov15_two_original_observer.py": "0858ed767e61f9669301b4ed46c039e5cdb621a1",
+    "diagnostics/kyoto_nov15_two_original_observer.py": "136c8c7799283463354081bc38de07c4ac60afc1",
     "diagnostics/kyoto_sp_observed_source.py": "5f5804e15d4c7af8b16a78663a0634965e16014f",
-    "diagnostics/kyoto_nov15_encrypted_evidence.py": "c0168f85d8dd6d211acac369e67c2365259aa26b",
+    "diagnostics/kyoto_nov15_encrypted_evidence.py": "2dbe7572fee81e50ff6b67473ff51d4ec1c9cf48",
     "diagnostics/jra_benchmark_acceptance.py": "edbd6b5b9479fdbf3fc88c7450c0c7ae3260a76f",
     "diagnostics/jra_market_integrity_gate.py": "6f20257575d7c5aeb232512bb64700dee21c3e06",
-    "diagnostics/jra_market_source_chain.py": "aecc0619fe087c316f9db1814da748bc1c855a57",
+    "diagnostics/jra_market_source_chain.py": "6f69226b1f1f16379681e7bd72b6720e3420f77c",
     "diagnostics/jra_multi_capture_20261106.py": "a223f6d20beebd1852e071a44af89e1a98e9ca6d",
     "diagnostics/jra_odds_matrix_parser.py": "27f73b3be02a48c98d931b99217f9da4aa741a2f",
     "diagnostics/jra_odds_source_archive.py": "04ffb7982da138c611ff622a8fba0c0868b618e4",
-    "diagnostics/jra_official_link_repair.py": "4bf0b16b4d0a6ff322c813718eb7ec38dd0d2f46",
-    "diagnostics/jra_official_market_navigation.py": "b3b003e0594f01965482769c8aa86734834fdfe8",
-    "diagnostics/jra_one_shot_market_capture.py": "106489bf7e7d6d30bdd5ac04f7f53c53473fe74f",
+    "diagnostics/jra_official_link_repair.py": "b6f451910e0052047bd884dacd99c01df800e715",
+    "diagnostics/jra_official_market_navigation.py": "1f2f333a8ff86c0ce01a478dd9a8ce362479d105",
+    "diagnostics/jra_one_shot_market_capture.py": "e6cd4202b09baa466e055c0e20e48f3da1550738",
     "diagnostics/jra_pc_sp_benchmark.py": "a6c952bbaa128275efb010100f3c5e789c68451e",
     "diagnostics/jra_source_router.py": "d7eae104adecd60374ac0b6cc9ee622f9e47df95",
     "diagnostics/kyoto_p1_nov14_official_one_shot_nav.py": "0aa2e6e53cb78f317d77c001ce55e101f45b8c50",
     "diagnostics/kyoto_safe_stop_artifact.py": "01532bc0c3386039988f1430713fdf833544490b",
-    "diagnostics/kyoto_g03_all_races.py": "299fccd184cd65212cc9c393413f2947fe15c41c",
+    "diagnostics/kyoto_g03_all_races.py": "582f23a02126d27adf75db36478d5efc9d21590d",
     "diagnostics/kyoto_g03_weekend_bridge.py": "5f3e4011f84738a057520434ad83351a7d3e0d27",
-    "diagnostics/kyoto_g04_all_horse_profiles.py": "540344bcad1cafd723bd474ddf580a56bc3b9931",
-    "diagnostics/jra_pending_profile_plan.py": "799e3f11b7a96e6c5fec9796954a2b5ca6e07d1d",
+    "diagnostics/kyoto_g04_all_horse_profiles.py": "c3db006adc1d88353a55ea18ccaf8c965d42c92f",
+    "diagnostics/jra_pending_profile_plan.py": "eab63366494467f5b52d070c1773436bdca2d398",
     "diagnostics/jra_prior_form_offline.py": "bd986d15d642dd8388643825941893d3a8c69045",
     "diagnostics/kyoto_g03_proof_verify.py": "9eb905f489b050c842b2793bd43e1c5385d77df0",
     "diagnostics/kyoto_g05_conditions.py": "e582c7dd548394d035559444293165d29e6dcd72",
     "diagnostics/kyoto_g05_official_track.py": "9d377df996b91b87baf453324840792563a62940",
-    "diagnostics/kyoto_g06_missing_market_retry.py": "dc0c2ce19b36600293f76bc30179b525f450f2d3"
+    "diagnostics/kyoto_g06_missing_market_retry.py": "95429900253d6131c4d20aaa484245c8fa34e54d"
   },
   "revision_note": "Impl30 exact source re-enumeration, 29 registered modules compared; changed source functions reopened, not certified. Historical ledger preserved in parent; all 25 risk records unchanged.",
   "previous_source_commit": "7e88a7d4dadcbdc56495f9c5a4b43fd8806c510f",
@@ -1631,5 +1631,102 @@
       }
     ],
     "reason": "Authenticated Nov28 source diagnostics: actual SP homepage uses a POST navigation action not an href. Preserve exact original and failure code. No live acquisition or FMEA closure certified."
+  },
+  "impl37_public_form_reopen": {
+    "prior_ledger_blob": "42bb4086f51817ff13f4da0cad2fe4f40f42c712",
+    "sources": [
+      {
+        "source": "diagnostics/kyoto_nov15_two_original_observer.py",
+        "old_blob": "0858ed767e61f9669301b4ed46c039e5cdb621a1",
+        "new_blob": "136c8c7799283463354081bc38de07c4ac60afc1",
+        "review_status": "UNREVIEWED_INDEPENDENT_FMEA",
+        "closed_risks": 0
+      },
+      {
+        "source": "diagnostics/kyoto_weekend_capture.py",
+        "old_blob": "2f6306fd99221b78fe1d88724e6c769c126a1b9e",
+        "new_blob": "073da06e328f5b4578bec4f003c3e3584183f942",
+        "review_status": "UNREVIEWED_INDEPENDENT_FMEA",
+        "closed_risks": 0
+      },
+      {
+        "source": "diagnostics/kyoto_g03_all_races.py",
+        "old_blob": "299fccd184cd65212cc9c393413f2947fe15c41c",
+        "new_blob": "582f23a02126d27adf75db36478d5efc9d21590d",
+        "review_status": "UNREVIEWED_INDEPENDENT_FMEA",
+        "closed_risks": 0
+      },
+      {
+        "source": "diagnostics/jra_official_link_repair.py",
+        "old_blob": "4bf0b16b4d0a6ff322c813718eb7ec38dd0d2f46",
+        "new_blob": "b6f451910e0052047bd884dacd99c01df800e715",
+        "review_status": "UNREVIEWED_INDEPENDENT_FMEA",
+        "closed_risks": 0
+      },
+      {
+        "source": "diagnostics/kyoto_weekend_postflight.py",
+        "old_blob": "b1b52eee94c486058d8cbb009e3c89fd6257a584",
+        "new_blob": "eb45accfb77e5df6ede87ca4e71d50d355779a05",
+        "review_status": "UNREVIEWED_INDEPENDENT_FMEA",
+        "closed_risks": 0
+      },
+      {
+        "source": "diagnostics/kyoto_nov15_encrypted_evidence.py",
+        "old_blob": "c0168f85d8dd6d211acac369e67c2365259aa26b",
+        "new_blob": "2dbe7572fee81e50ff6b67473ff51d4ec1c9cf48",
+        "review_status": "UNREVIEWED_INDEPENDENT_FMEA",
+        "closed_risks": 0
+      },
+      {
+        "source": "diagnostics/jra_one_shot_market_capture.py",
+        "old_blob": "106489bf7e7d6d30bdd5ac04f7f53c53473fe74f",
+        "new_blob": "e6cd4202b09baa466e055c0e20e48f3da1550738",
+        "review_status": "UNREVIEWED_INDEPENDENT_FMEA",
+        "closed_risks": 0
+      },
+      {
+        "source": "diagnostics/jra_official_market_navigation.py",
+        "old_blob": "b3b003e0594f01965482769c8aa86734834fdfe8",
+        "new_blob": "1f2f333a8ff86c0ce01a478dd9a8ce362479d105",
+        "review_status": "UNREVIEWED_INDEPENDENT_FMEA",
+        "closed_risks": 0
+      },
+      {
+        "source": "diagnostics/jra_market_source_chain.py",
+        "old_blob": "aecc0619fe087c316f9db1814da748bc1c855a57",
+        "new_blob": "6f69226b1f1f16379681e7bd72b6720e3420f77c",
+        "review_status": "UNREVIEWED_INDEPENDENT_FMEA",
+        "closed_risks": 0
+      },
+      {
+        "source": "diagnostics/kyoto_g06_missing_market_retry.py",
+        "old_blob": "dc0c2ce19b36600293f76bc30179b525f450f2d3",
+        "new_blob": "95429900253d6131c4d20aaa484245c8fa34e54d",
+        "review_status": "UNREVIEWED_INDEPENDENT_FMEA",
+        "closed_risks": 0
+      },
+      {
+        "source": "diagnostics/jra_pending_profile_plan.py",
+        "old_blob": "799e3f11b7a96e6c5fec9796954a2b5ca6e07d1d",
+        "new_blob": "eab63366494467f5b52d070c1773436bdca2d398",
+        "review_status": "UNREVIEWED_INDEPENDENT_FMEA",
+        "closed_risks": 0
+      },
+      {
+        "source": "diagnostics/kyoto_g04_all_horse_profiles.py",
+        "old_blob": "540344bcad1cafd723bd474ddf580a56bc3b9931",
+        "new_blob": "c3db006adc1d88353a55ea18ccaf8c965d42c92f",
+        "review_status": "UNREVIEWED_INDEPENDENT_FMEA",
+        "closed_risks": 0
+      },
+      {
+        "source": "diagnostics/kyoto_weekend_sp_discovery.py",
+        "old_blob": "4d2d99b25368fb23c41ef1b85cdf3a461c383df5",
+        "new_blob": "1559d0e95b2ccd0aa40f1d2680706d17dedf42b5",
+        "review_status": "UNREVIEWED_INDEPENDENT_FMEA",
+        "closed_risks": 0
+      }
+    ],
+    "reason": "Observed official public PC/SP form routes: all 12 unique Kyoto racecard links per channel and R12 HTTP 200; run 46102320045. No live odds or FMEA closure certified."
   }
 }
