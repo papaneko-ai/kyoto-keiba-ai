@@ -47,4 +47,19 @@ class Reserve(unittest.TestCase):
         c,calls,f,s=self.setup_fetch(within=lambda:False)
         with self.assertRaises(ValueError):f(KYOTO_TRACK_PAGE)
         self.assertEqual(calls,[])
+    def test_observed_post_counts_against_existing_track_reserve(self):
+        from diagnostics.kyoto_nov29_public_forms import PC_HOME,PC_ENTRY
+        c=Clock();calls=[]
+        def get(_,url):calls.append(("GET",url));return b"fixture"
+        def post(_,token,referer):calls.append(("POST",token,referer));return b"fixture"
+        f,state=bounded_auxiliary_fetch(None,lambda:True,monotonic=c,pacer=Pacer(c),read=get,post=post)
+        f(PC_HOME)
+        f(PC_ENTRY,token="pw01dli00/F3",referer=PC_HOME)
+        f(PC_ENTRY,token="pw01drl00082026050820261129/6B",referer=PC_ENTRY)
+        for _ in range(11):f(CARD)
+        with self.assertRaisesRegex(ValueError,"track_reserve"):f(CARD)
+        f(KYOTO_TRACK_PAGE)
+        self.assertEqual(state["requests"],15)
+        self.assertEqual(calls[1][0],"POST")
+        self.assertEqual(calls[-1],("GET",KYOTO_TRACK_PAGE))
 if __name__=="__main__":unittest.main()
