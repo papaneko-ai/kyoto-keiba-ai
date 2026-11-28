@@ -2,11 +2,12 @@
 Separate evidence recheck for exact-day correction histories; no JRA HTTP.
 """
 from pathlib import Path
+from urllib.parse import urlsplit
 from hashlib import sha256
 import json,re,tempfile
 from diagnostics.kyoto_impl30_postrace_day import MENU,observed_actions
 from diagnostics.kyoto_impl30_final_reconcile import reconcile,append_revision,FinalEvidenceRejected
-from diagnostics.kyoto_impl25_c12_all_runs_handoff import _gh,_download,_date
+from diagnostics.kyoto_impl25_c12_all_runs_handoff import _gh,_download,_date,run_name_matches
 from diagnostics.kyoto_nov15_encrypted_evidence import decrypt_evidence
 from diagnostics.p6_virtual_settlement_fixture_lab import _utc
 
@@ -25,22 +26,22 @@ def saved_observations(root,day,roster,starts):
     if sha256(seed).hexdigest()!=receipt.get('seed_sha256'):raise FinalEvidenceRejected('seed_sha_mismatch')
     requests=receipt['requests'];by_name={x['file']:x for x in requests}
     if len(requests)!=len(by_name):raise FinalEvidenceRejected('duplicate_receipt_file')
-    def bound(name,parent,path):
+    def bound(name,parent,path,origin):
         meta=by_name[name];raw=read(name)
         if len(raw)!=meta['bytes'] or sha256(raw).hexdigest()!=meta['sha256']:raise FinalEvidenceRejected('original_sha_mismatch')
         if _utc(meta['captured_at_utc']).strftime('%Y%m%d')!=day:raise FinalEvidenceRejected('wrong_capture_day')
-        matches=[x for x in observed_actions(parent,path) if (x[1],x[2],x[3])==(meta['action_token'],meta['method'],meta['source_url'])]
+        matches=[x for x in observed_actions(parent,path,origin=origin) if (x[1],x[2],x[3])==(meta['action_token'],meta['method'],meta['source_url'])]
         if len(matches)!=1:raise FinalEvidenceRejected('observed_action_not_bound')
         return raw,meta
     menus={}
     for market,(path,label) in MENU.items():
-        menu,_=bound(market+'_menu.html',seed,path)
-        menus[market]=bound(market+'_meeting.html',menu,path)
-    payout,pm=menus['payout'];result_meeting,_=menus['results']
+        menu,mm=bound(market+'_menu.html',seed,path,receipt.get('seed_origin','https://jra.jp'))
+        menus[market]=bound(market+'_meeting.html',menu,path,'https://'+urlsplit(mm['source_url']).netloc)
+    payout,pm=menus['payout'];result_meeting,rm=menus['results']
     outcomes={}
     for race in range(1,13):
         try:
-            raw,meta=bound(f'r{race:02d}_result.html',result_meeting,MENU['results'][0])
+            raw,meta=bound(f'r{race:02d}_result.html',result_meeting,MENU['results'][0],'https://'+urlsplit(rm['source_url']).netloc)
             if not roster[race] or not starts.get(race):raise FinalEvidenceRejected('no_independent_prerace_roster')
             outcomes[race]=reconcile(result_raw=raw,payout_raw=payout,day=day,race=race,registered=roster[race],
                 result_url=meta['source_url'],result_utc=meta['captured_at_utc'],payout_utc=pm['captured_at_utc'],start_utc=starts[race])
@@ -53,7 +54,7 @@ def prior_archives(day,repo,key,current_run):
     runs=response['workflow_runs']
     if response['total_count']!=len(runs) or len(runs)>100 or len({r['id'] for r in runs})!=len(runs):raise FinalEvidenceRejected('incomplete_prior_run_index')
     for run in sorted(runs,key=lambda x:(x['created_at'],x['id'])):
-        if run['name']!=NAME or run['created_at'][:10]!=_date(day):raise FinalEvidenceRejected('wrong_prior_workflow_or_day')
+        if not run_name_matches(run,NAME,WORKFLOW,day) or run['created_at'][:10]!=_date(day):raise FinalEvidenceRejected('wrong_prior_workflow_or_day')
         rid=run['id']
         if str(rid)==str(current_run) or run['status']!='completed' or run['event'] not in ('schedule','workflow_dispatch'):continue
         with tempfile.TemporaryDirectory(prefix='kyoto_postrace_prior_') as tmp:
