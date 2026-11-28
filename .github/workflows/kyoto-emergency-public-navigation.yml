@@ -1,4 +1,4 @@
-name: Kyoto cancellation number evidence probe
+name: Kyoto final cancellation roster smoke
 on:
   push:
     branches: ['fix/impl30-nov29-source-diagnostics-20261128']
@@ -12,48 +12,37 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: '0b64019a0ca47bf1c389119e3169c06a4a033fef'
+          ref: '15d66874903400e50c4a4350b34aed42133a3738'
           persist-credentials: false
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11.18'
       - run: python -m pip install --no-deps beautifulsoup4==4.15.0 soupsieve==4.1.3 typing-extensions==4.16.0
-      - name: Inspect cancellation number and status in two already observed racecards
+      - name: Verify corrected parser on both previously observed public R12 cards
         env:
           PYTHONPATH: .
           KYOTO_TARGET_DAY: '20261129'
         run: |
           python - <<'PY'
-          import json
+          from datetime import datetime,timezone
           from urllib.request import build_opener,HTTPCookieProcessor
           from http.cookiejar import CookieJar
-          from bs4 import BeautifulSoup
           from diagnostics.kyoto_nov15_two_original_observer import _read
           from diagnostics.kyoto_p1_nov14_official_one_shot_nav import NoRedirect
           from diagnostics.jra_one_shot_market_capture import RequestPacer
           from diagnostics.jra_pc_sp_benchmark import sp_rows
+          from diagnostics.kyoto_g03_all_races import parse
           client=build_opener(NoRedirect(),HTTPCookieProcessor(CookieJar()))
           pacer=RequestPacer(min_gap_seconds=2.0)
-          for channel,url in [("PC","https://www.jra.go.jp/JRADB/accessD.html?CNAME=pw01dde0108202605081220261129/1B"),("SP","https://sp.jra.jp/JRADB/accessD.html?CNAME=sw01dde0108202605081220261129/A8")]:
-              pacer.before_request()
-              try:
-                  raw=_read(client,url)
-                  soup=BeautifulSoup(raw.decode("cp932",errors="replace"),"html.parser")
-                  table=next(t for t in soup.select("table") if all(t.select_one("th."+x) for x in ("horse","num","waku"))) if channel=="PC" else soup.select("table")[0]
-                  rows=[]
-                  for tr in table.select("tr"):
-                      n=tr.select_one("td.num" if channel=="PC" else ".uban")
-                      a=tr.select_one('a[href*="/JRADB/accessU.html"]')
-                      if not n or not a:continue
-                      rows.append((n.get_text(" ",strip=True),a.get_text(strip=True)))
-                      if "取消" in n.get_text(" ",strip=True) or "除外" in n.get_text(" ",strip=True) or a.get_text(strip=True)=="ビッグシーザー":
-                          print(channel,"CANCELLED_NUMBER_CELL",str(n)[:3000])
-                          print(channel,"CANCELLED_ROW_ATTRIBUTES",json.dumps(tr.attrs,ensure_ascii=False))
-                          print(channel,"CANCELLED_NUMBER_PARENT",str(n.parent)[:500] if channel=="SP" else "")
-                          print(channel,"CANCELLED_NAME_CELL",str(a.parent)[:800])
-                  print(channel,"REGISTERED_ORDER",json.dumps(rows,ensure_ascii=False))
-                  if channel=="SP":
-                      try: print("SP_PARSE_COUNT",len(sp_rows(raw)))
-                      except Exception as exc:print("SP_PARSE_ERROR",type(exc).__name__,str(exc)[:100])
-              except Exception as exc:print(channel,"ERROR",type(exc).__name__,str(exc)[:100])
+          p="https://www.jra.go.jp/JRADB/accessD.html?CNAME=pw01dde0108202605081220261129/1B"
+          s="https://sp.jra.jp/JRADB/accessD.html?CNAME=sw01dde0108202605081220261129/A8"
+          pacer.before_request()
+          pc=parse(_read(client,p),"20261129",12,p,datetime.now(timezone.utc).isoformat())
+          pacer.before_request()
+          sp=sp_rows(_read(client,s))
+          roster=tuple((r["number"],r["frame"],r["name"]) for r in pc["runners"])
+          cancelled=[r["number"] for r in pc["runners"] if r.get("cancelled") is True]
+          print("PC_ROSTER_COUNT",len(roster),"SP_ROSTER_COUNT",len(sp),"PC_CANCELLED",cancelled,"PC_START",pc["start_time_jst"])
+          assert len(roster)==18 and roster==sp and cancelled==[16]
+          print("REAL_TWO_SOURCE_CANCELLATION_ROSTER_MATCH")
           PY
