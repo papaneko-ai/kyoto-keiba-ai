@@ -42,6 +42,49 @@ def one(candidates):
     if len(candidates)!=1:raise PostraceRejected('missing_or_ambiguous_observed_navigation')
     return candidates[0]
 
+def select_navigation(raw,day,stage,*,origin=HOST,race=None,meeting=None):
+    """Bounded self-repair of observed JRA action selection, not token generation.
+
+    Legacy mode 00/10 and mode 01 independently observed on Nov28 are accepted.
+    All eligible actions participate in the ambiguity check. The repair must
+    agree with independent fixed-field decomposition of the exact observed token.
+    No old CNAME, URI, or suffix can become a request for a new page/day.
+    """
+    if day not in ('20261128','20261129') or stage not in ('results_meeting','payout_meeting','result_race'):
+        raise PostraceRejected('navigation_scope')
+    family={'results_meeting':'srl','payout_meeting':'hde','result_race':'sde'}[stage]
+    path=MENU['payout' if stage=='payout_meeting' else 'results'][0]
+    is_race=stage=='result_race'
+    if is_race and (type(race) is not int or not 1<=race<=12 or not isinstance(meeting,str) or not re.fullmatch(r'\d{4}',meeting)):
+        raise PostraceRejected('navigation_race_context')
+    pattern=r'pw01'+family+r'(?P<mode>00|10|01)08'+day[:4]+r'(?P<meeting>\d{4})'+(f'{race:02d}' if is_race else '')+day+r'/[A-Za-z0-9]+'
+    candidates=[]
+    for action in observed_actions(raw,path,origin=origin):
+        label,token,method,url=action
+        match=re.fullmatch(pattern,token)
+        if not match:continue
+        mode,key=match.group('mode','meeting')
+        if not is_race:
+            heading=re.fullmatch(r'(\d{1,2})回京都(\d{1,2})日',label)
+            if not heading or key!=f'{int(heading[1]):02d}{int(heading[2]):02d}':continue
+        elif key!=meeting:continue
+        # A second representation check independent of the regex capture.
+        body,suffix=token.split('/')
+        fields=body[len('pw01'+family):]
+        if (fields[:2]!=mode or fields[2:4]!='08' or fields[4:8]!=day[:4]
+            or fields[8:12]!=key or fields[12:]!=((f'{race:02d}' if is_race else '')+day)
+            or not suffix or not 1<=int(key[:2])<=12 or not 1<=int(key[2:])<=12):
+            continue
+        candidates.append((action,mode,key))
+    if len(candidates)!=1:raise PostraceRejected('missing_or_ambiguous_observed_navigation')
+    action,mode,key=candidates[0]
+    proof={'stage':stage,'race':race,'day':day,'meeting':key,'mode':mode,
+           'source_sha256':sha256(raw).hexdigest(),'action_sha256':sha256(action[1].encode()).hexdigest(),
+           'candidate_count':1,'legacy_candidate_count':int(mode!='01'),
+           'rule':'OBSERVED_MODE_01_RECOVERY' if mode=='01' else 'LEGACY_OBSERVED_ACTION',
+           'independent_field_agreement':True,'source_only':True}
+    return action,proof
+
 def parse_result(raw,*,day,race,url,registered):
     doc=visible(raw);text=doc.get_text(' ',strip=True)
     y,m,d=map(int,(day[:4],day[4:6],day[6:]))
@@ -65,7 +108,7 @@ def parse_result(raw,*,day,race,url,registered):
         return {**result,'quinella':q,'bracket_quinella':b,'reason':'REFUND_CORRECTION_OR_EXCEPTION_REVIEW'}
     return {**result,'state':'RESULT_AND_PAYOUT_PARSED_FINAL_NOT_CERTIFIED','quinella':q,'bracket_quinella':b}
 
-def collect_day(root,*,day,seed_raw,seed_sha256,registered,fetch,clock,not_before_utc,verified_starts=None,seed_origin=HOST):
+def collect_day(root,*,day,seed_raw,seed_sha256,registered,fetch,clock,not_before_utc,verified_starts=None,seed_origin=HOST,prior_navigation=()):
     """All 12 slots retained; observed raw pages saved before any parsing.
 
     fetch(method,url,token) returns {raw, captured_at_utc, requested_url, method,
@@ -89,18 +132,27 @@ def collect_day(root,*,day,seed_raw,seed_sha256,registered,fetch,clock,not_befor
         with (root/name).open('xb') as f:f.write(raw)
         report['requests'].append({'file':name,'sha256':sha256(raw).hexdigest(),'bytes':len(raw),'captured_at_utc':stamp,'source_url':url,'method':method,'action_token':token})
         return raw,url
+    report['navigation_recovery']=[]
+    prior_modes={(p.get('stage'),p.get('mode')) for p in prior_navigation
+                 if isinstance(p,dict) and p.get('rule')=='OBSERVED_MODE_01_RECOVERY'
+                 and p.get('independent_field_agreement') is True}
+    def selected(data,stage,**kw):
+        action,proof=select_navigation(data,day,stage,**kw)
+        proof['prior_failure_revalidated']=((stage,proof['mode']) in prior_modes)
+        report['navigation_recovery'].append(proof)
+        return action,proof['meeting']
     result_meeting=None
+    result_meeting_key=None
     payout_meeting=None
     payout_stamp=None
     try:
         for market,(path,label) in MENU.items():
             try:
                 raw,menu_url=save(market+'_menu.html',one([a for a in observed_actions(seed_raw,path,origin=seed_origin) if a[0]==label]))
-                family='srl' if market=='results' else 'hde'
-                candidates=[a for a in observed_actions(raw,path,origin='https://'+urlsplit(menu_url).netloc) if re.fullmatch(r'\d+回京都\d+日',a[0]) and re.fullmatch(r'pw01'+family+r'[01]008'+day[:4]+r'\d{4}'+day+r'/[A-Za-z0-9]+',a[1])]
-                meeting,meeting_url=save(market+'_meeting.html',one(candidates))
+                action,key=selected(raw,market+'_meeting',origin='https://'+urlsplit(menu_url).netloc)
+                meeting,meeting_url=save(market+'_meeting.html',action)
                 report[market+'_meeting_state']='ORIGINAL_OBSERVED_NOT_FINAL_PROOF'
-                if market=='results':result_meeting=meeting;result_meeting_origin='https://'+urlsplit(meeting_url).netloc
+                if market=='results':result_meeting=meeting;result_meeting_origin='https://'+urlsplit(meeting_url).netloc;result_meeting_key=key
                 else:
                     payout_meeting=meeting
                     payout_stamp=report['requests'][-1]['captured_at_utc']
@@ -109,8 +161,8 @@ def collect_day(root,*,day,seed_raw,seed_sha256,registered,fetch,clock,not_befor
             row={'state':'RESULT_NOT_OBSERVED'}
             try:
                 if result_meeting is None:raise PostraceRejected('result_meeting_not_available')
-                candidates=[a for a in observed_actions(result_meeting,MENU['results'][0],origin=result_meeting_origin) if re.fullmatch(r'pw01sde[01]008'+day[:4]+r'\d{4}'+f'{race:02d}'+day+r'/[A-Za-z0-9]+',a[1])]
-                raw,url=save(f'r{race:02d}_result.html',one(candidates))
+                action,_=selected(result_meeting,'result_race',origin=result_meeting_origin,race=race,meeting=result_meeting_key)
+                raw,url=save(f'r{race:02d}_result.html',action)
                 if registered[race] is None:raise PostraceRejected('independent_registered_roster_missing')
                 row=parse_result(raw,day=day,race=race,url=url,registered=registered[race])
                 # Independently parse both original pages, including cases the
@@ -124,12 +176,14 @@ def collect_day(root,*,day,seed_raw,seed_sha256,registered,fetch,clock,not_befor
                             payout_utc=payout_stamp,start_utc=verified_starts[race])
                     except (ValueError,TypeError,KeyError) as exc:
                         row["independent_reconciliation"]={"state":"RECONCILIATION_PENDING","reason":str(exc)[:100]}
-            except Exception as exc:row={'state':'RESULT_SOURCE_OR_PARSE_FAILED','reason':type(exc).__name__+':'+str(exc)[:100]}
+            except Exception as exc:row={'state':'RESULT_SOURCE_OR_PARSE_FAILED','reason':type(exc).__name__+':'+str(exc)[:100], 'raw_result_saved':(root/f'r{race:02d}_result.html').is_file()}
             report['races'][str(race)]=row
     finally:
         report['structured_result_payout_races']=sum(x['state']=='RESULT_AND_PAYOUT_PARSED_FINAL_NOT_CERTIFIED' for x in report['races'].values())
         report['dual_page_explicit_final_races']=sum(x.get('independent_reconciliation',{}).get('state')=='DUAL_PAGE_EXPLICIT_FINAL' for x in report['races'].values())
         report['dual_page_published_source_races']=sum(x.get('independent_reconciliation',{}).get('official_payout_publication_verified') is True for x in report['races'].values())
+        report['raw_result_races']=sum((root/f'r{n:02d}_result.html').is_file() for n in range(1,13))
+        report['raw_payout_meeting_saved']=(root/'payout_meeting.html').is_file()
         report['confirmed_final_races']=0
         with (root/'receipt.json').open('x',encoding='utf8') as f:json.dump(report,f,ensure_ascii=False,sort_keys=True,indent=2)
     return report
