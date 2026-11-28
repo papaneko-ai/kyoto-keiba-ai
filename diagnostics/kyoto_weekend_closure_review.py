@@ -211,10 +211,13 @@ def review_cancellations(day,metadata,coverage,key):
         except Exception as exc:errors.append({"run_id":rid,"error_class":type(exc).__name__})
     return {"schema":"kyoto_independent_cancellation_review.v1","day":day,"races":result,"errors":errors,"source_http_requests":0}
 
-def coverage_gaps(day,coverage,allowed_run_ids,workout_review=None,allowed_workout_run_ids=(),cancellation_review=None):
+def coverage_gaps(day,coverage,allowed_run_ids,workout_review=None,allowed_workout_run_ids=(),cancellation_review=None,allowed_sp_run_ids=()):
     """Compute missing cells from independently replayed aggregate, not totals."""
     if coverage.get("day")!=day or coverage.get("schema")!="kyoto_impl30_day_source_coverage.v1" or coverage.get("race_denominator")!=12 or set(coverage.get("races",{}))!=set(RACES):raise ValueError("coverage_identity_incomplete")
     allowed=set(map(str,allowed_run_ids))
+    allowed_sp=set(map(str,allowed_sp_run_ids))
+    def market_ok(v,cutoff):
+        return proof_ok(v,cutoff,day,allowed|allowed_sp if v.get('channel')=='SP' else allowed)
     allowed_workout=set(map(str,allowed_workout_run_ids))
     workout_review=workout_review or {}
     workout_rows=workout_review.get("races",{}) if workout_review.get("day")==day and workout_review.get("schema")=="kyoto_independent_workout_day_replay.v1" else {}
@@ -264,10 +267,10 @@ def coverage_gaps(day,coverage,allowed_run_ids,workout_review=None,allowed_worko
                 v=row.get(section,{}).get(f,{})
                 check(f,proof_ok(v,cutoff,day,allowed),proof=v)
         a,b=(row.get("markets",{}).get(f,{}) for f in MARKETS)
-        for f,v in zip(MARKETS,(a,b)):check(f,proof_ok(v,cutoff,day,allowed),proof=v)
+        for f,v in zip(MARKETS,(a,b)):check(f,market_ok(v,cutoff),proof=v)
         cancelled=a.get("cancelled_horses")
         valid_cancel=isinstance(cancelled,list) and all(type(n) is int and str(n) in horses for n in cancelled) and len(set(cancelled))==len(cancelled)
-        check("paired_market_same_slot",row.get("paired_same_slot") is True and proof_ok(a,cutoff,day,allowed) and proof_ok(b,cutoff,day,allowed) and a.get("run_id")==b.get("run_id") and valid_cancel and cancelled==b.get("cancelled_horses"))
+        check("paired_market_same_slot",row.get("paired_same_slot") is True and market_ok(a,cutoff) and market_ok(b,cutoff) and a.get("run_id")==b.get("run_id") and valid_cancel and cancelled==b.get("cancelled_horses"))
         p=row.get("postrace",{})
         for f,k in (("official_result","result"),("official_payout","payout")):
             v=p.get(k,{})
@@ -332,10 +335,18 @@ def review(day,now,out):
         from diagnostics.kyoto_impl30_postrace_replay import replay_history,prior_archives
         from diagnostics.kyoto_impl30_day_coverage import include_postrace
         key=os.environ["ARCHIVE_KEY"]
-        roster,starts,_,proof=recover_inputs(day,REPO,key,include_coverage=True,allow_missing_seed=True)
+        roster,starts,_,proof=recover_inputs(day,REPO,key,include_coverage=day!="20261129",allow_missing_seed=True)
         report["roster_verified_races"]=[n for n in range(1,13) if roster.get(n) and starts.get(n)]
         report["input_replay_errors"]={k:proof[k] for k in ("rejected_runs","conflicting_races","day_source_coverage_error") if k in proof}
-        coverage=proof["day_source_coverage"]
+        if day=="20261129":
+            # Reopen every authenticated slot independently of the handoff artifact.
+            from diagnostics.kyoto_impl31_handoff_budget import gather_bounded
+            replay=gather_bounded(day,REPO)
+            coverage=replay["day_source_coverage"]
+            report["external_dispatch_slot_ledger"]=replay.get("external_dispatch_slot_ledger",{})
+            report["sp_market_replay_slots"]=replay.get("sp_market_replay_slots",0)
+            report["handoff_budget"]=replay.get("handoff_budget",{})
+        else:coverage=proof["day_source_coverage"]
         # Existing replay_history includes the current run. For day close
         # use the latest actual postrace archive as current (not this workflow).
         post=[r for r in metadata["postrace-evidence.yml"]["runs"] if r.get("artifacts",{}).get("postrace",{}).get("state")=="PRESENT"]
@@ -364,7 +375,8 @@ def review(day,now,out):
             cr=review_cancellations(day,metadata,coverage,key)
             report["cancellation_review"]=cr
         except Exception as exc:report["cancellation_review_error"]=type(exc).__name__
-        report["coverage"]=coverage_gaps(day,coverage,allowed,wr,workout_allowed,cr)
+        allowed_sp={r["id"] for r in metadata["two-source-production-observer.yml"]["runs"] if r.get("artifacts",{}).get("sp",{}).get("state")=="PRESENT"} if day=="20261129" else set()
+        report["coverage"]=coverage_gaps(day,coverage,allowed,wr,workout_allowed,cr,allowed_sp_run_ids=allowed_sp)
         try:
             report["independent_cushion_day_replay"]=review_cushion(day,metadata["cushion-source.yml"],coverage,key,os.environ["KYOTO_CUSHION_READER"])
         except Exception as exc:report["independent_cushion_day_replay_error"]=type(exc).__name__
@@ -388,6 +400,9 @@ def review(day,now,out):
         gaps=[(r["id"],k,a["state"]) for r in v["runs"] for k,a in r.get("artifacts",{}).items() if a["state"] not in ("PRESENT",SKIPPED)]
         skips=[(r["id"],k,a["job_id"]) for r in v["runs"] for k,a in r.get("artifacts",{}).items() if a["state"]==SKIPPED]
         summary.append(f"- {name}: index={v['index_complete']}, runs={len(v['runs'])}, native gaps={[(s['cron'],s['state']) for s in missing]}, artifact gaps={gaps}, skipped producer jobs (reason unverified)={skips}")
+    if day=="20261129":
+        summary.append("- 本番native予約はPR169で隔離済み。native欄は旧枠の診断情報であり、取得失敗の分母ではない。外部起動観測は別ledger参照（provider受領証明ではない）。")
+        summary.append("- 外部起動観測: "+str(report.get("external_dispatch_slot_ledger",{})))
     if "coverage_replay_error" in report:summary.append("- 原本再検証未完: "+report["coverage_replay_error"])
     if "workout_day_replay" in report:
         w=report["workout_day_replay"]

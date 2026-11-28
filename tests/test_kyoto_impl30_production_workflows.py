@@ -50,7 +50,7 @@ class ProductionWorkflowContract(unittest.TestCase):
         self.assertIn("needs.select-collector.result == 'success'",self.jobs["sp-originals-independent"]["if"])
         sunday=select["env"]["SUNDAY_OVERRIDE_SHA"]
         self.assertRegex(sunday,r"^[0-9a-f]{40}$")
-        self.assertEqual(self.handoff["jobs"]["authenticated-handoff"]["steps"][0]["with"]["ref"],"c289c5ec4e6ad322a7e08acf173da3352ed23dba")
+        self.assertEqual(self.handoff["jobs"]["authenticated-handoff"]["steps"][0]["with"]["ref"],"${{ env.KYOTO_TARGET_DAY == '20261128' && 'c289c5ec4e6ad322a7e08acf173da3352ed23dba' || '9ceb07be0c4754bd5119ea8f87c2a87a44103f73' }}")
         self.assertNotEqual(self.handoff["jobs"]["authenticated-handoff"]["steps"][0]["with"]["ref"],sunday)
         self.assertEqual(baseline,"3f4b3d77357745ead05a9f78db34eb6ac2d78637")
 
@@ -120,10 +120,10 @@ class ProductionWorkflowContract(unittest.TestCase):
         self.assertIn("kyoto-20261128-29-source-{0}",doc["concurrency"]["group"])
         job=doc["jobs"]["afternoon-auxiliary-source"]
         pin=self.jobs["select-collector"]["env"]["DEFAULT_COLLECTOR_SHA"]
-        expected_aux_pin="c289c5ec4e6ad322a7e08acf173da3352ed23dba"
+        expected_aux_pin="${{ env.KYOTO_TARGET_DAY == '20261128' && 'c289c5ec4e6ad322a7e08acf173da3352ed23dba' || '9ceb07be0c4754bd5119ea8f87c2a87a44103f73' }}"
         self.assertEqual(job["steps"][0]["with"]["ref"],expected_aux_pin)
         self.assertNotEqual(expected_aux_pin,pin)
-        self.assertIn('test "$(git rev-parse HEAD)" = '+repr(expected_aux_pin),raw)
+        self.assertIn('test "$(git rev-parse HEAD)" = "'+expected_aux_pin+'"',raw)
         self.assertEqual(job["env"]["KYOTO_WEEKEND_HTTP_APPROVED"],"NO")
         self.assertEqual(job["env"]["KYOTO_AUX_HTTP_APPROVED"],"YES")
         self.assertIn("kyoto_impl30_auxiliary_refresh --day",raw)

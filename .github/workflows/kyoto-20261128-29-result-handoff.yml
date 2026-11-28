@@ -27,7 +27,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: 'c289c5ec4e6ad322a7e08acf173da3352ed23dba'
+          ref: "${{ env.KYOTO_TARGET_DAY == '20261128' && 'c289c5ec4e6ad322a7e08acf173da3352ed23dba' || '9ceb07be0c4754bd5119ea8f87c2a87a44103f73' }}"
           persist-credentials: false
       - uses: actions/setup-python@v5
         with:

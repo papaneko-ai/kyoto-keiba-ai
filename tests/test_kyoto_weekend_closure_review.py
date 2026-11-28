@@ -50,6 +50,19 @@ class ClosureTests(unittest.TestCase):
  def test_pair_different_run(self):
   d=data();d["races"]["1"]["markets"]["quinella"]["run_id"]="2"
   self.assertEqual(assess(DAY,d,[1,2])["counts"]["paired_market_same_slot"]["verified"],11)
+ def test_sp_market_only_permission_never_promotes_pc_roster_or_profiles(self):
+  d=data();row=d["races"]["1"]
+  for v in row["markets"].values():v.update(channel="SP",run_id="7")
+  v=coverage_gaps(DAY,d,[1],workouts(d),[3],allowed_sp_run_ids=[7])
+  self.assertEqual(v["counts"]["paired_market_same_slot"]["verified"],12)
+  self.assertEqual(assess(DAY,d,[1])["counts"]["paired_market_same_slot"]["verified"],11)
+  row["racecard"]["run_id"]="7";row["horses"]["1"]["profile"]["run_id"]="7"
+  v=coverage_gaps(DAY,d,[1],workouts(d),[3],allowed_sp_run_ids=[7])
+  self.assertEqual(v["counts"]["racecard"]["verified"],11)
+  self.assertEqual(v["counts"]["profile"]["verified"],23)
+  row["markets"]["quinella"]["channel"]="PC"
+  v=coverage_gaps(DAY,d,[1],workouts(d),[3],allowed_sp_run_ids=[7])
+  self.assertEqual(v["counts"]["paired_market_same_slot"]["verified"],11)
  def test_missing_origin_and_cancellation_proof(self):
   for bad in ("99",None):
    d=data();d["races"]["1"]["racecard"]["run_id"]=bad
