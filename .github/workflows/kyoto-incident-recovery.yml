@@ -18,12 +18,14 @@ on:
     branches: ['fix/impl37-root-cause-recovery-20261128']
     paths:
       - 'diagnostics/kyoto_incident_recovery.py'
+      - 'diagnostics/kyoto_incident_g05_replay.py'
       - 'tests/test_kyoto_incident_recovery.py'
       - '.github/workflows/kyoto-incident-recovery.yml'
   pull_request:
     branches: [main]
     paths:
       - 'diagnostics/kyoto_incident_recovery.py'
+      - 'diagnostics/kyoto_incident_g05_replay.py'
       - 'tests/test_kyoto_incident_recovery.py'
       - '.github/workflows/kyoto-incident-recovery.yml'
 permissions:

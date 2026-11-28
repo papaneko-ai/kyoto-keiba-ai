@@ -126,9 +126,40 @@ class IncidentRecoveryTests(unittest.TestCase):
    self.put(root,"g05_track_receipt.json",doc)
    for lane,name in (("pc","G05"),("auxiliary","AUXILIARY")):
     v=inspect_source(root,day,lane)
-    self.assertEqual(next(i for i in v["stages"] if i["stage"]==name)["state"],"OBSERVED_NOT_CERTIFIED")
+    self.assertEqual(next(i for i in v["stages"] if i["stage"]==name)["state"],"GAP_REQUIRES_DIAGNOSIS")
     self.assertFalse(v["source_claims_independently_certified"])
    for bad in ({**doc,"same_day_official_meeting_heading_verified":False},{**doc,"source_sha256":"a"*64},{**doc,"weather":None}):
     self.put(root,"g05_track_receipt.json",bad)
     self.assertEqual(inspect_source(root,day,"auxiliary")["incidents"][0]["stage"],"AUXILIARY")
+ def test_auxiliary_partial_targets_and_stale_conditions_are_not_green(self):
+  from diagnostics.kyoto_incident_recovery import G05_COURSE_FIELDS
+  with tempfile.TemporaryDirectory() as d:
+   root=Path(d);day="20261128"
+   self.put(root,"receipt.json",{"day":day,"target_races":[10,11],"verified_races":[10],"observed_field_values":1})
+   row={"active_horses":15,"cancelled_horses":[],"missing_body_weight_kg":[1,2],"missing_body_weight_change_kg":[2],"missing_race_conditions":["turf_going"]}
+   replay={"replay_complete":True,"verified_races":[10],"race_rows":{"10":row},"course_observed":["weather"]}
+   v=inspect_source(root,day,"auxiliary",field_review=replay)
+   self.assertEqual(v["incidents"][0]["code"],"AUXILIARY_SOURCE_FIELD_GAPS")
+   g=v["stages"][0]["observations"]["field_review"]
+   self.assertEqual(g["missing_target_races"],[11])
+   self.assertEqual(g["race_field_gaps"]["10"]["missing_body_weight_kg"],[1,2])
+   self.assertEqual(g["course_missing_fields"],list(G05_COURSE_FIELDS[1:]))
+   self.assertTrue(g["missingness_is_not_root_cause_proof"])
+ def test_auxiliary_complete_planned_slot_is_not_forced_to_all_twelve(self):
+  from diagnostics.kyoto_incident_recovery import G05_COURSE_FIELDS
+  with tempfile.TemporaryDirectory() as d:
+   root=Path(d);day="20261129"
+   row={"active_horses":10,"cancelled_horses":[11],"missing_body_weight_kg":[],"missing_body_weight_change_kg":[],"missing_race_conditions":[]}
+   replay={"replay_complete":True,"verified_races":[11],"race_rows":{"11":row},"course_observed":list(G05_COURSE_FIELDS)}
+   self.put(root,"receipt.json",{"day":day,"target_races":[11],"verified_races":[11]})
+   v=inspect_source(root,day,"auxiliary",field_review=replay)
+   self.assertFalse(v["incidents"]);self.assertFalse(v["source_claims_independently_certified"])
+   for targets in ([],[11,11],[0],None):
+    self.put(root,"receipt.json",{"day":day,"target_races":targets,"verified_races":[11]})
+    self.assertTrue(inspect_source(root,day,"auxiliary",field_review=replay)["incidents"])
+   self.put(root,"receipt.json",{"day":day,"target_races":[11]})
+   self.assertTrue(inspect_source(root,day,"auxiliary")["incidents"])
+   v=inspect_source(root,day,"pc",field_review=replay)
+   g=next(s["observations"]["field_review"] for s in v["stages"] if s["stage"]=="G05")
+   self.assertEqual(g["missing_target_races"],list(range(1,11))+[12])
 if __name__=="__main__":unittest.main()
