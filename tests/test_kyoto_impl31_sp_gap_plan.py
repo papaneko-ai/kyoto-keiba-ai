@@ -84,7 +84,7 @@ class GapPlan(unittest.TestCase):
             current=pc();current["day_coverage_slot"]["run_id"]="43"
             workflow,filename,_=WEEKENDS[DAY]
             def run(i,when,status):
-                return {"id":i,"name":workflow,"path":".github/workflows/"+filename,"head_repository":{"full_name":repo},"created_at":when,"status":status,"event":"schedule"}
+                return {"id":i,"name":workflow,"path":".github/workflows/"+filename,"head_repository":{"full_name":repo},"head_branch":"main","created_at":when,"status":status,"event":"schedule"}
             calls=[]
             def invoke(task,end):
                 calls.append((task,end))
@@ -95,6 +95,36 @@ class GapPlan(unittest.TestCase):
             self.assertEqual(selected["mode"],"START_FIRST")
             self.assertEqual(selected["previous_same_day_failed_targets"],[4])
             self.assertEqual(len(calls),3);self.assertTrue(all(end==112 for _,end in calls))
+            # Replay the SAME encrypted prior evidence under actual dispatch
+            # run-name metadata, without creating a second source fixture.
+            calls.clear()
+            def dispatch_invoke(task,end):
+                if task[0]=="index":
+                    rows=[run(42,"2026-11-29T00:45:00Z","completed"),run(43,"2026-11-29T01:05:00Z","in_progress")]
+                    for row in rows:row.update(event="workflow_dispatch",name="workflow_dispatch")
+                    calls.append((task,end))
+                    return {"total_count":2,"workflow_runs":rows}
+                return invoke(task,end)
+            selected=get_plan(DAY,repo,43,deadline=340,clock=lambda:100,wall=lambda:later,invoke=dispatch_invoke)
+            self.assertEqual(selected["mode"],"START_FIRST")
+            self.assertEqual(selected["previous_same_day_failed_targets"],[4])
+            self.assertEqual(len(calls),3);self.assertTrue(all(end==112 for _,end in calls))
+            # A newer completed safe-stop with no original must not suppress
+            # a prior authenticated dispatch. A mismatched run ID cannot vote.
+            def mixed(task,end,*,wrong=False,untrusted=False):
+                if task[0]=="index":
+                    rows=[run(42,"2026-11-29T00:45:00Z","completed"),run(44,"2026-11-29T00:55:00Z","completed"),run(43,"2026-11-29T01:05:00Z","in_progress")]
+                    for row in rows:row.update(event="workflow_dispatch",name="workflow_dispatch")
+                    rows[1]["event"]="schedule";rows[1]["name"]="kyoto-native:15 0 29 11 *"
+                    if untrusted:rows[0]["head_branch"]="other"
+                    return {"total_count":3,"workflow_runs":rows}
+                if task[3]==44:raise TimeoutError("newer native evidence unavailable")
+                if task[3]==43:return current
+                if wrong:return {**previous,"sp_gap_feedback":{**previous["sp_gap_feedback"],"run_id":"99"}}
+                return previous
+            for opts,mode in (({},"START_FIRST"),({"wrong":True},"GAP_FIRST"),({"untrusted":True},"GAP_FIRST")):
+                selected=get_plan(DAY,repo,43,deadline=340,clock=lambda:100,wall=lambda:later,invoke=lambda t,e:mixed(t,e,**opts))
+                self.assertEqual(selected["mode"],mode)
             # No prior lookup or artifact absence can prevent baseline SP work.
             self.assertIsNone(get_plan(DAY,repo,43,deadline=340,clock=lambda:100,wall=lambda:later,invoke=lambda t,e:{"error_class":"TIMEOUT"}))
 if __name__=="__main__":unittest.main()

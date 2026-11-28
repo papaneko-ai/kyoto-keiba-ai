@@ -148,12 +148,40 @@ def get_plan(day,repo,rid,*,deadline,clock=time.monotonic,wall=lambda:datetime.n
         previous=None
         current=[r for r in runs if str(r["id"])==str(rid)]
         if complete and len(current)==1 and clock()<end:
-            earlier=[r for r in runs if r["created_at"]<current[0]["created_at"] and r.get("status")=="completed" and r.get("event")=="schedule"]
-            if earlier:
-                old=earlier[-1]["id"]
-                prior=invoke(("lane",day,repo,old,"SP"),end)
-                if prior.get("ciphertext_authenticated") is True and prior.get("source_original_sha_utc_checked") is True:
-                    previous=prior.get("sp_gap_feedback")
+            # A verified main dispatch (including the external timer) is an
+            # acquisition attempt, not a native schedule success. Reuse its
+            # authenticated feedback on the same basis as native evidence.
+            def eligible(r):
+                return (r.get("event") in ("schedule","workflow_dispatch")
+                        and r.get("head_branch")=="main")
+            if eligible(current[0]):
+                earlier=[r for r in runs if r["created_at"]<current[0]["created_at"]
+                         and r.get("status")=="completed" and eligible(r)]
+                # A late native safe-stop or an unavailable recent archive
+                # must not erase an earlier comparable result. Bound reads
+                # within the original 12-second shared budget.
+                for row in reversed(earlier[-2:]):
+                    if clock()>=end:break
+                    old=row["id"]
+                    try:
+                        prior=invoke(("lane",day,repo,old,"SP"),end)
+                        f=prior.get("sp_gap_feedback")
+                        if (prior.get("ciphertext_authenticated") is True
+                            and prior.get("source_original_sha_utc_checked") is True
+                            and prior.get("channel")=="SP" and prior.get("day")==day
+                            and isinstance(f,dict) and f.get("day")==day
+                            and f.get("run_id")==str(old)
+                            and f.get("official_market_success_claimed") is False
+                            and f.get("causal_effect_proved") is False
+                            and f.get("mode") in MODES
+                            and f.get("window_seconds")==EVALUATION_SECONDS
+                            and isinstance(f.get("measured_targets"),dict)
+                            and f["measured_targets"]):
+                            previous=f
+                            break
+                    except Exception:
+                        # Optional feedback must never erase current PC planning.
+                        continue
         return plan_from_pc(pc,day,rid,wall(),previous)
     except Exception:
         return None
