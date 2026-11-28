@@ -1,0 +1,72 @@
+name: Impl42 authenticated prior archive fallback proof
+on:
+  push:
+    branches: ['fix/impl42-postrace-feedback-real-proof-20261128']
+    paths: ['.github/workflows/impl42-postrace-feedback-real-proof.yml']
+permissions:
+  contents: read
+  actions: read
+jobs:
+  original-fallback:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      PYTHONPATH: .
+      KYOTO_TARGET_DAY: '20261128'
+      KYOTO_WEEKEND_HTTP_APPROVED: 'NO'
+      KYOTO_POSTRACE_HTTP_APPROVED: 'NO'
+      GH_TOKEN: ${{ github.token }}
+      ARCHIVE_KEY: ${{ secrets.KYOTO_JRA_ARCHIVE_AES256_HEX }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: '0d46856ad831ab644df92914e6338a5e65914e20'
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11.18'
+      - name: Install existing exact dependencies
+        run: python -m pip install --no-deps beautifulsoup4==4.15.0 soupsieve==4.1.3 typing-extensions==4.16.0 cryptography==46.0.7 cffi==2.1.1 pycparser==3.12
+      - name: Prove new fallback using prior authenticated actual capture without live source HTTP
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = '0d46856ad831ab644df92914e6338a5e65914e20'
+          python - <<'PY'
+          import json,os,re,socket,subprocess,tempfile
+          from unittest.mock import patch
+          from diagnostics.kyoto_impl30_postrace_runtime import recover_prior_navigation
+          from diagnostics.kyoto_impl30_postrace_replay import WORKFLOW,NAME
+          day='20261128'; repo=os.environ['GITHUB_REPOSITORY']; key=os.environ['ARCHIVE_KEY']
+          real=46133297877; fake=999999999999
+          assert re.fullmatch('[a-fA-F0-9]{64}',key)
+          original=subprocess.check_output
+          def gh(endpoint):return json.loads(original(['gh','api',endpoint],text=True,timeout=8,stderr=subprocess.DEVNULL))
+          row=gh(f'repos/{repo}/actions/runs/{real}')
+          assert row['id']==real and row['status']=='completed' and row['head_branch']=='main'
+          assert row['created_at'][:10]=='2026-11-28' and row['path'].split('@',1)[0]=='.github/workflows/'+WORKFLOW
+          assert row['head_repository']['full_name']==repo
+          index=gh(f'repos/{repo}/actions/runs/{real}/artifacts?per_page=100')
+          arts=[a for a in index['artifacts'] if a['id']==15258294810 and a['name']==f'kyoto-postrace-{real}-{day}' and a['expired'] is False]
+          assert len(arts)==1
+          synthetic={**row,'id':fake,'created_at':'2026-11-28T11:59:59Z'}
+          queries=[]
+          def injected(args,**kwargs):
+              endpoint=args[-1];queries.append(endpoint)
+              if f'/actions/workflows/{WORKFLOW}/runs?' in endpoint:
+                  return json.dumps({'total_count':2,'workflow_runs':[row,synthetic]})
+              if f'/actions/runs/{fake}/artifacts?' in endpoint:
+                  return json.dumps({'total_count':0,'artifacts':[]})
+              return original(args,**kwargs)
+          def denied(*args,**kwargs):raise AssertionError('direct network prohibited')
+          with tempfile.TemporaryDirectory() as tmp,patch('diagnostics.kyoto_impl30_postrace_runtime.subprocess.check_output',side_effect=injected),patch.object(socket.socket,'connect',denied),patch.object(socket,'create_connection',denied):
+              candidates,cached,proof=recover_prior_navigation(day,repo,key,os.environ['GITHUB_RUN_ID'],tmp)
+              assert proof['state']=='AUTHENTICATED_PRIOR_REPLAY',proof.get('error_class')
+              assert proof['fallback_used'] and proof['run_id']==real and list(cached)==[str(real)]
+              assert [x['run_id'] for x in proof['attempts']]==[fake,real]
+              assert [x['state'] for x in proof['attempts']]==['REOPEN_FAILED','AUTHENTICATED']
+              assert len(candidates)==13
+              assert len({(x['stage'],x['race']) for x in candidates})==13
+              assert all(x['day']==day and x['rule']=='OBSERVED_MODE_01_RECOVERY' for x in candidates)
+          print('IMPL42_REAL_ARCHIVE_FALLBACK=PASS; INJECTED_NEWER_MISSING=TRUE; AUTHENTICATED_SOURCE_RUN=46133297877; ORIGINAL_ARTIFACT=15258294810; RECOVERED_CANDIDATES=13; SOURCE_HTTP=0; LIVE_FAILURE_PROVED=FALSE')
+          PY
