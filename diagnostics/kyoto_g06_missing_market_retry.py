@@ -80,7 +80,7 @@ def recover_one(*, root,channel,market,race_spec,active_runners,
         raise SourceChainError("market_navigation_identity_conflict")
     if _date(steps[chosen]["captured_at_utc"])>=cutoff:
         raise SourceChainError("navigation_not_pre_cutoff")
-    host="sp.jra.jp" if channel=="SP" else ("www.jra.go.jp" if race_spec.race_day=="20261129" and race_spec.pc_racecard_url.startswith("https://www.jra.go.jp/") else "jra.jp")
+    host="sp.jra.jp" if channel=="SP" else ("www.jra.go.jp" if race_spec.race_day in ("20261128","20261129") and race_spec.pc_racecard_url.startswith("https://www.jra.go.jp/") else "jra.jp")
     links=find_market_links(menu,expected_race_day=race_spec.race_day,
                             expected_race_number=race_spec.race_number,expected_host=host)
     if links["source_final_odds_detected"]:

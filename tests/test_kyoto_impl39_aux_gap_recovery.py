@@ -37,6 +37,19 @@ class AuxGap(unittest.TestCase):
         s["refused"]=True
         with self.assertRaises(ValueError):t.open(Request(URL))
         self.assertEqual(c.calls,[])
+    def test_reserve_for_profiles_and_pacing_cutoff(self):
+        c,s,t=self.make()
+        t.market_cap=12
+        for i in range(12):t.open(Request(URL))
+        with self.assertRaisesRegex(ValueError,"reserve_for_profiles"):t.open(Request(URL))
+        u="https://www.jra.go.jp/JRADB/accessU.html"
+        t.profile_cutoffs[u]=datetime.fromisoformat(END.replace("Z","+00:00"))
+        t.read=lambda opener,url:opener.open(Request(url),timeout=12)
+        t.profile(u)
+        self.assertEqual(len(c.calls),13)
+        t.pacer.before_request=lambda:setattr(t,"clock",lambda:END)
+        with self.assertRaisesRegex(ValueError,"race_cutoff"):t.profile(u)
+        self.assertEqual(len(c.calls),13)
     def test_exact_prior_pair_skip_and_conflicts(self):
         item={"verified_start_utc":END}
         row={"roster_digest":"a","named_roster_digest":"b","start_utc":END}

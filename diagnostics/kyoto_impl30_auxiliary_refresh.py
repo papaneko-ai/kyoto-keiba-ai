@@ -188,10 +188,23 @@ def main():
     with tempfile.TemporaryDirectory(prefix="kyoto_aux_refresh_") as d:
         root=Path(d)/"raw";report=collect(root,day=day,starts=starts,fetch=fetch,clock=lambda:now().isoformat(),public_form_navigation=day in DAYS)
         if recovery_enabled:
-            transport=RecoveryTransport(client,within,pacer,state,start=start)
-            report["gap_recovery"]=repair(root,day=day,prior=prior,transport=transport,clock=lambda:now().isoformat())
-            (root/"receipt.json").write_text(json.dumps(report,ensure_ascii=False,sort_keys=True,indent=2)+"\n",encoding="utf8")
-        encrypt_evidence(root,a.out,key_hex=key,repo=repo,run_id=rid)
+            import shutil
+            candidate=Path(d)/"recovery"
+            try:
+                shutil.copytree(root,candidate)
+                transport=RecoveryTransport(client,within,pacer,state,start=start)
+                report["gap_recovery"]=repair(candidate,day=day,prior=prior,transport=transport,clock=lambda:now().isoformat())
+                (candidate/"receipt.json").write_text(json.dumps(report,ensure_ascii=False,sort_keys=True,indent=2)+"\n",encoding="utf8")
+                encrypt_evidence(candidate,a.out,key_hex=key,repo=repo,run_id=rid)
+            except Exception as exc:
+                # Do not discard a verified original refresh when an
+                # optional recovery stage or its bundle cannot be sealed.
+                if a.out.exists():raise
+                report["gap_recovery"]={"state":"RECOVERY_SEAL_FAILED_BASE_REFRESH_RETAINED","error_class":type(exc).__name__,"source_success_certified":False}
+                (root/"receipt.json").write_text(json.dumps(report,ensure_ascii=False,sort_keys=True,indent=2)+"\n",encoding="utf8")
+                encrypt_evidence(root,a.out,key_hex=key,repo=repo,run_id=rid)
+        else:
+            encrypt_evidence(root,a.out,key_hex=key,repo=repo,run_id=rid)
     print(json.dumps({"verified_races":report["verified_races"],"observed_field_values":report.get("observed_field_values",0),"http_requests":state["requests"],"source_only":True},sort_keys=True))
 
 def saved_slots(day,repo,key):

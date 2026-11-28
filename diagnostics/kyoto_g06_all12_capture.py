@@ -68,7 +68,7 @@ def _verify_saved_channel(folder, *, verified_start_utc):
 def run_twelve(root, *, records, authorized_live_http=False, runner=None,
                request_pacer=None,openers=None,claim_client=None,claim_slot=None,
                claim_owner=None,claim_now_epoch=None,claim_clock=None,
-               capture_deadline_monotonic=None,monotonic_clock=None):
+               capture_deadline_monotonic=None,monotonic_clock=None,before_race=None):
     """records: 12 entries indexed 1..12; missing links explicitly None.
 
     Requires a fresh output directory. Every valid record carries an existing
@@ -87,6 +87,8 @@ def run_twelve(root, *, records, authorized_live_http=False, runner=None,
         raise SourceChainError("new_output_directory_required")
     if type(authorized_live_http) is not bool:
         raise SourceChainError("authorization_boolean_required")
+    if before_race is not None and not callable(before_race):
+        raise SourceChainError("invalid_before_race_callback")
     if claim_clock is not None and not callable(claim_clock):
         raise SourceChainError("remote_claim_clock_invalid")
     if claim_client is not None and (not authorized_live_http or runner is not None):
@@ -173,6 +175,7 @@ def run_twelve(root, *, records, authorized_live_http=False, runner=None,
                     entry["state"]="SHARED_SLOT_OWNED_OR_DONE_REUSE_NEXT_SLOT"
                     results.append(entry)
                     continue
+            if before_race is not None:before_race(item)
             receipt=collector(output,primary_channel=item["primary_channel"],
                 verified_start_utc=item["verified_start_utc"],
                 active_runners=item["active_runners"],race_spec=spec,
