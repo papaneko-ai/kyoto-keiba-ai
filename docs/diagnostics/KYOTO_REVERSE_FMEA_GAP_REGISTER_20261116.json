@@ -1248,7 +1248,7 @@
     "diagnostics/jra_pending_profile_plan.py": "eab63366494467f5b52d070c1773436bdca2d398",
     "diagnostics/jra_prior_form_offline.py": "bd986d15d642dd8388643825941893d3a8c69045",
     "diagnostics/kyoto_g03_proof_verify.py": "9eb905f489b050c842b2793bd43e1c5385d77df0",
-    "diagnostics/kyoto_g05_conditions.py": "e582c7dd548394d035559444293165d29e6dcd72",
+    "diagnostics/kyoto_g05_conditions.py": "46a9fe42885d2607842536e4ddae5a26300c4843",
     "diagnostics/kyoto_g05_official_track.py": "9d377df996b91b87baf453324840792563a62940",
     "diagnostics/kyoto_g06_missing_market_retry.py": "95429900253d6131c4d20aaa484245c8fa34e54d"
   },
@@ -1814,5 +1814,16 @@
       }
     ],
     "reason": "Recover known safe originals after strict archive rejection without granting provenance credit. Retain independent FMEA obligations."
+  },
+  "impl37_g05_cancellation_isolation_reopen": {
+    "prior_ledger_blob": "fcc6e23e990d3953b9f7d4c988ca8d9885ea2a6c",
+    "sources": [
+      {
+        "source": "diagnostics/kyoto_g05_conditions.py",
+        "old_blob": "e582c7dd548394d035559444293165d29e6dcd72",
+        "new_blob": "46a9fe42885d2607842536e4ddae5a26300c4843"
+      }
+    ],
+    "reason": "G03 registered cancellation row must not stop G05 weight or other race evidence. No fixed risk closure claimed."
   }
 }

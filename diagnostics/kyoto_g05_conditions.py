@@ -51,7 +51,7 @@ def _race_fields(raw):
                 extracted[surface]=next(iter(matches2)) if len(matches2)==1 else None
     return extracted
 
-def _body_weights(raw,expected_numbers):
+def _body_weights(raw,expected_numbers,*,expected_cancelled=()):
     soup=BeautifulSoup(raw.decode("cp932",errors="replace"),"html.parser")
     tables=[t for t in soup.select("table") if
             all(t.select_one("th."+key) for key in ("horse","num","waku"))]
@@ -60,10 +60,30 @@ def _body_weights(raw,expected_numbers):
     headings=[th.get_text(" ",strip=True) for th in table.select("tr")[0].find_all("th",recursive=False)]
     indices=[i for i,value in enumerate(headings) if "馬体重" in value]
     result={}
+    cancelled=set(expected_cancelled)
+    expected=list(expected_numbers)
+    if not cancelled.issubset(expected):raise G05Rejected("cancelled_weight_identity_mismatch")
+    ordinal=0;numeric=0
     for tr in table.select("tr"):
         number=tr.select_one("td.num")
-        if number is None or not number.get_text(strip=True).isdigit():continue
-        num=int(number.get_text(strip=True))
+        horse=tr.select_one("td.horse")
+        if number is None and horse is None:continue
+        if number is None or horse is None:raise G05Rejected("incomplete_weight_roster_row")
+        ordinal+=1
+        label=number.get_text(" ",strip=True)
+        if label.isascii() and label.isdigit():
+            num=int(label);numeric+=1
+            if num in cancelled or (cancelled and num!=ordinal):
+                raise G05Rejected("cancelled_weight_position_mismatch")
+        elif (ordinal in cancelled and label in ("取消","出走取消","除外","競走除外")
+              and number.select_one("span.cap") is not None
+              and number.select_one("span.cap").get_text(strip=True)==label):
+            # G03 independently reparsed this exact ordered cancelled row.
+            # A cancelled horse is registered, but no unprinted mass is inferred.
+            if ordinal in result:raise G05Rejected("duplicate_weight_row")
+            result[ordinal]=(None,None)
+            continue
+        else:raise G05Rejected("unverified_weight_number")
         value=None;change=None
         cells=tr.find_all("td",recursive=False)
         direct=tr.select("td.bodyweight, td.body-weight, td.batai, td.horse-weight")
@@ -78,7 +98,8 @@ def _body_weights(raw,expected_numbers):
                 if match.group(2) is not None:change=int(match.group(2))
         if num in result:raise G05Rejected("duplicate_weight_row")
         result[num]=(value,change)
-    if set(result)!=set(expected_numbers):raise G05Rejected("body_weight_roster_mismatch")
+    if set(result)!=set(expected) or (cancelled and (ordinal!=len(expected) or numeric<2)):
+        raise G05Rejected("body_weight_roster_mismatch")
     return result
 
 def compile_saved(root,*,day,expected_cutoff_utc=None,allow_partial=False):
@@ -98,7 +119,7 @@ def compile_saved(root,*,day,expected_cutoff_utc=None,allow_partial=False):
         selected=list(range(1,13))
     receipt=json.loads((root/"g03_receipt.json").read_text(encoding="utf8"))
     if (root/"g05_receipt.json").exists():raise G05Rejected("g05_receipt_already_exists")
-    results={};verified_values=0
+    results={};verified_values=0;body_weight_errors={}
     for race in selected:
         info=receipt["races"][str(race)]
         path=root/f"g03_official_racecard_{race:02d}.html"
@@ -112,7 +133,14 @@ def compile_saved(root,*,day,expected_cutoff_utc=None,allow_partial=False):
             raise G05Rejected("source_after_requested_cutoff")
         if captured>=start:raise G05Rejected("post_start_source_cannot_be_promoted")
         values=_race_fields(raw)
-        horses=_body_weights(raw,[x["number"] for x in info["runners"]])
+        cancelled={x["number"] for x in info["runners"] if x.get("cancelled") is True}
+        try:
+            horses=_body_weights(raw,[x["number"] for x in info["runners"]],expected_cancelled=cancelled)
+        except G05Rejected as exc:
+            # An unrecognized weight layout cannot erase independently verified
+            # track fields or the other races. No rejected row receives credit.
+            body_weight_errors[str(race)]=str(exc)
+            horses={x["number"]:(None,None) for x in info["runners"]}
         basename=path.name
         track={}
         for field in ("weather","turf_going","dirt_going"):
@@ -123,10 +151,12 @@ def compile_saved(root,*,day,expected_cutoff_utc=None,allow_partial=False):
         for horse in info["runners"]:
             number=horse["number"]
             val,delta=horses[number]
+            weight_reason=("WEIGHT_LAYOUT_REJECTED" if str(race) in body_weight_errors else
+                           "CANCELLED_RUNNER_WEIGHT_NOT_OBSERVED" if number in cancelled else MISSING)
             mass[str(number)]={
                 "horse_name":horse["name"],"horse_number":number,
-                "body_weight_kg":_ev(val,MISSING,sha,captured.isoformat(),basename),
-                "body_weight_change_kg":_ev(delta,MISSING,sha,captured.isoformat(),basename),
+                "body_weight_kg":_ev(val,weight_reason,sha,captured.isoformat(),basename),
+                "body_weight_change_kg":_ev(delta,weight_reason,sha,captured.isoformat(),basename),
                 "workout":_ev(None,_WORKOUT_SOURCE,sha,captured.isoformat(),basename)}
             verified_values+=sum(v is not None for v in (val,delta))
         results[str(race)]={"race":race,"start_utc":start.isoformat(),
@@ -142,7 +172,8 @@ def compile_saved(root,*,day,expected_cutoff_utc=None,allow_partial=False):
             "empty_is_not_zero":True,
             "future_jra_capture_claimed":False,"prediction_ready":False,
             "pre_event_source_contract_testable":True,
-            "full_twelve_race_data_verified":len(selected)==12}
+            "full_twelve_race_data_verified":len(selected)==12 and not body_weight_errors}
+    if body_weight_errors:report["body_weight_extraction_errors"]=body_weight_errors
     (root/"g05_receipt.json").write_text(
         json.dumps(report,ensure_ascii=False,sort_keys=True,indent=2)+"\n",
         encoding="utf8")

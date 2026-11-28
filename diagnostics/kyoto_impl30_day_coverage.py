@@ -88,7 +88,8 @@ def extract_slot(root,day,run_id):
                     row["track"][field]=proof(src["sha256"],stamp,value)
         except (ValueError,TypeError,KeyError):pass
         try:
-            for n,(mass,delta) in _body_weights(raw,[h["number"] for h in roster]).items():
+            cancelled={h["number"] for h in roster if h.get("cancelled") is True}
+            for n,(mass,delta) in _body_weights(raw,[h["number"] for h in roster],expected_cancelled=cancelled).items():
                 for field,value in (("body_weight_kg",mass),("body_weight_change_kg",delta)):
                     if value is not None:row["horses"][str(n)][field]=proof(src["sha256"],stamp,value)
         except (ValueError,TypeError,KeyError):pass
