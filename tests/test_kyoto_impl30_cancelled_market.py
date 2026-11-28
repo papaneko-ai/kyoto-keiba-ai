@@ -63,3 +63,13 @@ class Tests(unittest.TestCase):
   result,active=parse_current_market(html('馬連オッズ',q),'quinella',RUNNERS,racecard=raw,racecard_utc='2026-11-29T00:00:00Z',market_utc='2026-11-29T00:01:00Z',start_utc='2026-11-29T06:45:00Z',day='20261129',race=11)
   self.assertEqual(result['cancelled_horses'],[2])
   self.assertEqual(len(active),5)
+
+ def test_mobile_cancellation_excludes_pairs_in_both_markets(self):
+  mobile=('<html><h2>2026年11月29日 京都 11レース</h2><table>'+''.join('<tr><td class="wban">'+str((n+1)//2)+'</td><td class="uban'+(' keshi' if n==2 else '')+'">'+('取消' if n==2 else str(n))+'</td><td><a href="/JRADB/accessU.html?CNAME=x">競走馬'+str(n)+'</a></td></tr>' for n in range(1,7))+'</table></html>').encode('cp932')
+  q=''.join('<table class="basic narrow-xy umaren">'+str(i)+' '+' '.join(f'{j} '+('取消' if 2 in (i,j) else '3.0') for j in range(i+1,7))+'</table>' for i in range(1,6))
+  kw=dict(racecard=mobile,racecard_utc='2026-11-29T00:00:00Z',market_utc='2026-11-29T00:01:00Z',start_utc='2026-11-29T06:45:00Z',day='20261129',race=11)
+  for market,raw,count in [('quinella',html('馬連オッズ',q),10),('bracket_quinella',html('枠連オッズ',B.replace('1 2.0','1 ---')),5)]:
+   result,active=parse_current_market(raw,market,RUNNERS,**kw)
+   self.assertEqual(result['cancelled_horses'],[2]);self.assertEqual(result['pair_count'],count);self.assertEqual(len(active),5)
+   for broken in (mobile.replace(b'uban keshi',b'uban'),mobile.replace(b'>3</td>',b'>4</td>',1)):
+    with self.assertRaises(OddsMatrixError):parse_current_market(raw,market,RUNNERS,**{**kw,'racecard':broken})
