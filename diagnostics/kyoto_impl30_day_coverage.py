@@ -44,7 +44,16 @@ def independent_track(root,day):
         requested=_utc(stored["requested_at_utc"])
         if stamp.strftime("%Y%m%d")!=day or requested.strftime("%Y%m%d")!=day or requested>stamp:return {}
         replay=parse_kyoto_track(original.read_bytes(),day,stored["source_url"],stamp.isoformat())
-        if stored!={**replay,"requested_at_utc":requested.isoformat()} or replay["same_day_official_meeting_heading_verified"] is not True:return {}
+        if replay["same_day_official_meeting_heading_verified"] is not True:return {}
+        # Legacy authenticated originals remain usable; revalidate their
+        # immutable metadata and never grant credit to old value claims.
+        new_keys={"condition_observation_utc","moisture_observation_utc","undated_moisture_observations"}
+        expected={**replay,"requested_at_utc":requested.isoformat()}
+        if stored!=expected:
+            legacy_keys=set(expected)-new_keys
+            immutable=legacy_keys-set(TRACK+TRACK_EXTRA)-{"state"}
+            if set(stored)!=legacy_keys or any(stored[k]!=expected[k] for k in immutable):return {}
+            if any(stored[k] is not None and stored[k]!=expected[k] for k in TRACK+TRACK_EXTRA if expected[k] is not None):return {}
         return {k:{**proof(replay["source_sha256"],stamp.isoformat(),replay[k]),
                    "source_kind":"OFFICIAL_INDEPENDENT_TRACK_PAGE","publication_time_independently_verified":False}
                 for k in TRACK+TRACK_EXTRA if replay.get(k) is not None}

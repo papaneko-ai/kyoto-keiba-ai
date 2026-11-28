@@ -1248,8 +1248,8 @@
     "diagnostics/jra_pending_profile_plan.py": "eab63366494467f5b52d070c1773436bdca2d398",
     "diagnostics/jra_prior_form_offline.py": "bd986d15d642dd8388643825941893d3a8c69045",
     "diagnostics/kyoto_g03_proof_verify.py": "9eb905f489b050c842b2793bd43e1c5385d77df0",
-    "diagnostics/kyoto_g05_conditions.py": "bac894a4ec9b4ac3c84e6124d95cfd3659fe4f53",
-    "diagnostics/kyoto_g05_official_track.py": "0abbf7b580b625755854b59176f79de05a6fc78d",
+    "diagnostics/kyoto_g05_conditions.py": "30ceb25aea1328318147df750234501e2bae716e",
+    "diagnostics/kyoto_g05_official_track.py": "26449add0687ef013783237902e7cc8973709bb5",
     "diagnostics/kyoto_g06_missing_market_retry.py": "95429900253d6131c4d20aaa484245c8fa34e54d"
   },
   "revision_note": "Impl30 exact source re-enumeration, 29 registered modules compared; changed source functions reopened, not certified. Historical ledger preserved in parent; all 25 risk records unchanged.",
@@ -1877,5 +1877,26 @@
     ],
     "reason": "Actual authenticated 20261128 10R and 11R source: dedicated current horse-cell weight and race header going layout. Keep unpublished 11R weights unknown; never use past or jockey weight. No fixed risk closure.",
     "actual_layout_run": 46116349346
+  },
+  "impl38_g05_freshness_reopen": {
+    "prior_ledger_blob": "6dba84b462333a3eb5bb57763b34982341d10ae3",
+    "sources": [
+      {
+        "source": "diagnostics/kyoto_g05_conditions.py",
+        "old_blob": "bac894a4ec9b4ac3c84e6124d95cfd3659fe4f53",
+        "new_blob": "30ceb25aea1328318147df750234501e2bae716e",
+        "review_status": "UNREVIEWED_INDEPENDENT_FMEA",
+        "closed_risks": 0
+      },
+      {
+        "source": "diagnostics/kyoto_g05_official_track.py",
+        "old_blob": "0abbf7b580b625755854b59176f79de05a6fc78d",
+        "new_blob": "26449add0687ef013783237902e7cc8973709bb5",
+        "review_status": "UNREVIEWED_INDEPENDENT_FMEA",
+        "closed_risks": 0
+      }
+    ],
+    "actual_structure_run": 46118361838,
+    "reason": "Reject historical record conditions; independent per-observation same-day time; preserve undated moisture without target-day credit; no risk closure."
   }
 }

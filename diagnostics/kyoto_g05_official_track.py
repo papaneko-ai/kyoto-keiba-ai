@@ -6,7 +6,7 @@ Original is saved even when the HTML is stale or unparseable.
 """
 from __future__ import annotations
 import hashlib,json,re
-from datetime import datetime,timezone,date
+from datetime import datetime,timezone,date,timedelta
 from pathlib import Path
 from urllib.parse import urlsplit
 from urllib.error import HTTPError
@@ -56,16 +56,42 @@ def parse_kyoto_track(raw,day,source_url,captured_at_utc):
     if not fresh:
         out["state"]="MISSING_OR_STALE_KYOTO_MEETING_HEADING"
         return out
-    # Locate weather and going only in the initial current meeting block, not
-    # in older weekly weather tables or base explanatory materials.
-    section=soup.select_one("#main, main, .main")
-    contents=section.get_text(" ",strip=True) if section else text
-    status=contents.split("週間情報")[0].split("芝のクッション値")[0]
-    w=re.findall(r"天候\s*[:：]\s*(晴|曇|雨|小雨|雪|小雪)",status)
-    out["weather"]=w[0] if len(set(w))==1 and w else None
-    for surf,key in (("芝","turf_going"),("ダート","dirt_going")):
-        m=re.findall(rf"(?:^|\s){surf}\s*(良|稍重|重|不良)(?=\s|$)",status)
-        out[key]=m[0] if len(set(m))==1 and m else None
+    # A matching meeting heading does not date the individual observations.
+    jst=timezone(timedelta(hours=9))
+    def asof(value):
+        t=re.search(r"(?:(\d{4})年\s*)?(\d{1,2})月\s*(\d{1,2})日(?:\s*[（(][月火水木金土日]曜(?:日)?[）)])?\s*(正午|\d{1,2}時(?:\s*\d{1,2}分)?)",value)
+        if not t:return None
+        try:
+            year=int(t.group(1) or day[:4]);month=int(t.group(2));dd=int(t.group(3))
+            clock=t.group(4)
+            if clock=="正午":hour,minute=12,0
+            else:
+                m=re.fullmatch(r"(\d{1,2})時(?:\s*(\d{1,2})分)?",clock)
+                hour,minute=int(m.group(1)),int(m.group(2) or 0)
+            dt=datetime(year,month,dd,hour,minute,tzinfo=jst)
+            if dt.strftime("%Y%m%d")!=day or dt>stamp:return None
+            return dt.astimezone(timezone.utc).isoformat()
+        except (ValueError,AttributeError):return None
+    blocks=soup.select("div.line.condition")
+    current=None;condition_stamp=None
+    if len(blocks)==1:
+        headers=blocks[0].select("div.block_header h3")
+        if len(headers)==1:
+            condition_stamp=asof(headers[0].get_text(" ",strip=True))
+            current=blocks[0].select_one("div.grid") if condition_stamp else None
+    elif not blocks:
+        headers=[h for h in soup.select("h3") if h.get_text(" ",strip=True).startswith("馬場状態")]
+        if len(headers)==1:
+            condition_stamp=asof(headers[0].get_text(" ",strip=True))
+            current=headers[0].parent if condition_stamp else None
+    if current is not None:
+        status=current.get_text(" ",strip=True)
+        w=re.findall(r"天候\s*[:：]\s*(晴|曇|雨|小雨|雪|小雪)(?![ぁ-んァ-ン一-龥])",status)
+        out["weather"]=w[0] if len(set(w))==1 and w else None
+        for surf,key in (("芝","turf_going"),("ダート","dirt_going")):
+            m=re.findall(rf"(?:^|\s){surf}\s*(良|稍重|重|不良)(?=\s|$)",status)
+            out[key]=m[0] if len(set(m))==1 and m else None
+    out["condition_observation_utc"]=condition_stamp
     # The official table is separate from explanatory condition tables.
     # Accept only the unique exact heading/column/row combination. Values
     # describe the saved observation; the measurement time is not inferred.
@@ -84,9 +110,20 @@ def parse_kyoto_track(raw,day,source_url,captured_at_utc):
             if any(not 0<=v<=100 for v in nums):break
             values[cells[0]]=nums
         if set(values)=={"芝","ダート"}:moisture.append(values)
+    # Preserve measurements with unknown dates, but do not grant target-day credit.
+    out["moisture_observation_utc"]=None
+    out["undated_moisture_observations"]={}
     if len(moisture)==1:
+        blocks=soup.select("div.line.moist")
+        if len(blocks)==1:
+            times=blocks[0].select("div.grid")
+            if len(times)==1 and "測定時刻" in times[0].get_text(" ",strip=True):
+                out["moisture_observation_utc"]=asof(times[0].get_text(" ",strip=True))
         for surface,prefix in (("芝","turf"),("ダート","dirt")):
-            out[prefix+"_moisture_finish_pct"],out[prefix+"_moisture_turn4_pct"]=moisture[0][surface]
+            for suffix,value in zip(("finish_pct","turn4_pct"),moisture[0][surface]):
+                k=prefix+"_moisture_"+suffix
+                if out["moisture_observation_utc"]:out[k]=value
+                else:out["undated_moisture_observations"][k]=value
     out["state"]="SAME_DAY_KYOTO_SOURCE_SAVED_FIELDS_UNVERIFIED" if not any(
         out[key] is not None for key in ("weather","turf_going","dirt_going")
     ) else "SAME_DAY_KYOTO_SOURCE_PARTIALLY_PARSED"
