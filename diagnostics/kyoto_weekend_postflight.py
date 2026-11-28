@@ -127,6 +127,12 @@ def check_originals(root, *, day, channel):
                     or hashlib.sha256(path.read_bytes()).hexdigest()!=item.get("sha256")
                     or not _utc(item.get("captured_at_utc"))):
                     raise ValueError("discovery_original_invalid")
+                if "adaptive_navigation_repair" in item:
+                    from diagnostics.kyoto_adaptive_repair import recover_action
+                    stage="entry" if item.get("url")=="https://sp.jra.jp/" else "meeting"
+                    _,_,_,recomputed=recover_action(path.read_bytes(),day,"SP",stage)
+                    if recomputed!=item["adaptive_navigation_repair"]:
+                        raise ValueError("adaptive_sp_repair_receipt_mismatch")
                 report["source_rows"].append({"filename":name,
                     "sha256":item["sha256"],
                     "captured_at_utc":item["captured_at_utc"]})
