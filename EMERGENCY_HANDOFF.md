@@ -426,3 +426,7 @@
 
 ## 72. E40-POSTRACE-04 #175 全CI合格・本番反映承認待ち（2026-11-28 JST）
 - #175 exact HEAD b849ef232570a7435c906296f85a018a69460b7c、base 8a16f9e8e68b9b3fb3355c37f388f3a0f78c7b01、open/mergeable、未merge。最新CI7/7 SUCCESS（46135710699,46135710712,46135710717,46135710676,46135710742,46135710657,46135710672）。source840/840・実原本13/13の証拠は§71のとおり再利用。exact承認後のみ反映→tree、夜間pin、closure reader、自己修正連携、昼間保護面・予約維持の独立照合。今夜22:02実取得と21:02署名引継ぎを監視。まだ本番反映していない。固定25正式0/25。
+
+## 73. E40-RELEASE-05 #175 承認・本番反映（2026-11-28 19:36:12 JST）
+- ユーザー明示承認 exact HEAD b849ef232570a7435c906296f85a018a69460b7c、今夜22:02及び明日取得準備。merge前main/base 8a16f9e8e68b9b3fb3355c37f388f3a0f78c7b01、open/mergeable、exact source preflight 46135448305 SUCCESS、artifact15258839742 digest一致未失効、実原本probe46135477388 SUCCESS、PR CI7/7 SUCCESSを実照合。expected_head_sha指定merge成功、新main e093083f893b03d6ca0d5a8f70b47b8633193aa9、merged=true/merge SHA/main一致。tree 1e8392188ccd5ad4752f0f43be6f69e9410e6a74 承認headと完全一致、parents=[8a16f9e8e68b9b3fb3355c37f388f3a0f78c7b01,b849ef232570a7435c906296f85a018a69460b7c]、承認head→main差分0、旧main→新main差分8（夜間workflow、incident workflow/source/test、closure workflow、receipt、保護試験2）に限定。再merge禁止。
+- 続いて夜間source pin/feedback/closure reader・昼間保護面・予約・監視の独立照合。過去840/840と実原本13/13合格の再実行は不要。実原本取得・確定認定、未知障害自動修復、固定25正式0/25は未認定。
