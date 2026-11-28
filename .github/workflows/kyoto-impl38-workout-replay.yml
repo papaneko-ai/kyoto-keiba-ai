@@ -1,0 +1,204 @@
+name: Impl38 saved workout join and G05 layout diagnosis
+on:
+  push:
+    branches: ['repair/impl38-workout-replay-20261128']
+    paths: ['.github/workflows/kyoto-impl38-workout-replay.yml']
+permissions:
+  contents: read
+  actions: read
+jobs:
+  replay:
+    if: github.repository == 'papaneko-ai/kyoto-keiba-ai' && github.ref == 'refs/heads/repair/impl38-workout-replay-20261128'
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    env:
+      KYOTO_TARGET_DAY: '20261128'
+      KYOTO_WEEKEND_HTTP_APPROVED: 'NO'
+      KYOTO_AUX_HTTP_APPROVED: 'NO'
+      KYOTO_POSTRACE_HTTP_APPROVED: 'NO'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: '5855874f3f6dc9711d9b6f0444786ea2be0e05e7'
+          path: old
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          ref: 'bd800bc30db60919e274eadac419016c963e77de'
+          path: candidate
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          ref: 'c3b15355ba5a184e22cd87c34bc645538ce33200'
+          path: collector
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11.18'
+      - run: python -m pip install --no-deps beautifulsoup4==4.15.0 soupsieve==4.1.3 typing-extensions==4.16.0 cryptography==46.0.7 cffi==2.1.1 pycparser==3.12
+      - name: Targeted offline regression, preserve existing tested code
+        run: |
+          set -euo pipefail
+          test "$(git -C candidate rev-parse HEAD)" = 'bd800bc30db60919e274eadac419016c963e77de'
+          cd candidate
+          python - <<'PY'
+          import socket,unittest
+          from unittest.mock import patch
+          def denied(*a,**kw):raise AssertionError("network forbidden")
+          with patch.object(socket.socket,"connect",denied),patch.object(socket,"create_connection",denied):
+              s=unittest.defaultTestLoader.loadTestsFromName("tests.test_kyoto_impl38_workout_weekend_host")
+              result=unittest.TextTestRunner(verbosity=2).run(s)
+          raise SystemExit(not result.wasSuccessful())
+          PY
+      - name: Fetch exact existing encrypted archives only
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          mkdir -p replay-receipt "$RUNNER_TEMP/aux" "$RUNNER_TEMP/workout"
+          python - <<'PY'
+          import json,subprocess
+          repo="papaneko-ai/kyoto-keiba-ai"
+          for rid,aid,name,digest,path in (
+            (46112551733,15250785307,"kyoto-auxiliary-46112551733-20261128","444a678b0c8a98f475b369bd3acd858b3be96e1adf64527bc8ca5f4adf780b2c","auxiliary-refresh"),
+            (46112621733,15250370911,"kyoto-workout-46112621733-20261128","e1d93ff1c0be9dda7b389359a628ba2f6941af49ae357f4be1e33262d07c85dd","workout-source")):
+              r=json.loads(subprocess.check_output(["gh","api",f"repos/{repo}/actions/runs/{rid}"]))
+              assert r["id"]==rid and r["head_branch"]=="main" and r["head_repository"]["full_name"]==repo and r["status"]=="completed" and r["path"]==f".github/workflows/kyoto-20261128-29-{path}.yml"
+              d=json.loads(subprocess.check_output(["gh","api",f"repos/{repo}/actions/runs/{rid}/artifacts?per_page=100"]))
+              assert d["total_count"]==len(d["artifacts"])
+              a=[x for x in d["artifacts"] if x["id"]==aid and x["name"]==name and not x["expired"]]
+              assert len(a)==1 and a[0]["digest"]=="sha256:"+digest
+          PY
+          gh run download 46112551733 --repo papaneko-ai/kyoto-keiba-ai --name kyoto-auxiliary-46112551733-20261128 --dir "$RUNNER_TEMP/aux"
+          gh run download 46112621733 --repo papaneko-ai/kyoto-keiba-ai --name kyoto-workout-46112621733-20261128 --dir "$RUNNER_TEMP/workout"
+      - name: Reopen original and compare existing workout reader only
+        env:
+          ARCHIVE_KEY: ${{ secrets.KYOTO_JRA_ARCHIVE_AES256_HEX }}
+        run: |
+          set -euo pipefail
+          cat > "$RUNNER_TEMP/workout-replay.py" <<'PY'
+          import os,sys,json,tempfile
+          from pathlib import Path
+          from urllib.parse import urlsplit
+          from unittest.mock import patch
+          sys.path.insert(0,os.getcwd())
+          from diagnostics.kyoto_nov15_encrypted_evidence import decrypt_evidence
+          from diagnostics.kyoto_impl33_workout_runtime import official,read_snapshot,combine_primary,secondary_record,partial_fields,clock_variant_receipt,utc,REPO
+          from diagnostics.kyoto_impl33_hybrid_workout import recover
+          day="20261128";rid=46112551733;wid=46112621733
+          key=bytes.fromhex(os.environ["ARCHIVE_KEY"]);temp=Path(os.environ["RUNNER_TEMP"])
+          report={"revision":sys.argv[2],"day":day,"source_http_requests":0}
+          def denied(*a,**kw):raise AssertionError("network forbidden")
+          try:
+              with tempfile.TemporaryDirectory() as td,patch("socket.socket.connect",side_effect=denied),patch("socket.create_connection",side_effect=denied):
+                  raw=Path(td)/"raw"
+                  auth=decrypt_evidence(temp/"aux",raw,key_hex=key.hex(),repo=REPO,run_id=str(rid))
+                  report["roster_archive_authenticated"]=auth["authentication_tag_verified"]
+                  roster=official(raw,day,rid)
+                  report["roster_races"]=sorted(roster)
+                  work=temp/"workout";d=json.loads((work/"receipt.json").read_text())
+                  assert d["day"]==day and d["run_id"]==wid and len(d["snapshots"])<=300
+                  items=[];bad=0
+                  for i,m in enumerate(d["snapshots"]):
+                      try:
+                          p=work/f"source_{i:03d}.aesgcm"
+                          assert p.is_file() and not p.is_symlink() and 0<p.stat().st_size<=4000000
+                          aad=f"kyoto-workout-runtime-v1|{REPO}|{wid}|{day}|{i}".encode()
+                          data=read_snapshot(p.read_bytes(),m,key,aad)
+                          if m["kind"] in ("PRIMARY","SECONDARY") and type(m["race"]) is int and 1<=m["race"]<=12:
+                              items.append({"raw":data,"stamp":utc(m["captured_utc"]).isoformat(),"url":m["url"],"kind":m["kind"],"race":m["race"]})
+                      except Exception:bad+=1
+                  report["snapshot_count"]=len(d["snapshots"]);report["authenticated_snapshots"]=len(d["snapshots"])-bad;report["rejected_snapshots"]=bad
+                  report["races"]={}
+                  for n,o in sorted(roster.items()):
+                      clock={}
+                      values,proofs,issues=combine_primary(day,n,items,o,clock_observations=clock)
+                      missing=[k for k in o["roster"] if not values[k]]
+                      obs={k:[] for k in missing}
+                      for x in items:
+                          if x["kind"]!="SECONDARY" or x["race"]!=n:continue
+                          for k in missing:
+                              rec=secondary_record(x,o["roster"][k],day,o["start"])
+                              if rec:obs[k].append({"provider":urlsplit(x["url"]).hostname,"record":rec})
+                      merged,audit=recover(values,o["roster"],obs)
+                      report["races"][str(n)]={"registered_horses":len(o["roster"]),"covered_horses":sum(bool(v) for v in merged.values()),"canonical_records":sum(map(len,merged.values())),"prestart_snapshots":sum(x["race"]==n and utc(x["stamp"])<utc(o["start"]) for x in items),"partial_observations":len(partial_fields(day,n,items,o)),"clock_variant_groups":len(clock_variant_receipt(clock))}
+                  report["completed"]=True
+          except Exception as exc:
+              report["completed"]=False;report["error_class"]=type(exc).__name__
+          Path(sys.argv[1]).write_text(json.dumps(report,sort_keys=True,indent=2)+"\n")
+          print(json.dumps(report,sort_keys=True))
+          PY
+          for item in old candidate; do
+            (cd "$item" && python "$RUNNER_TEMP/workout-replay.py" "$GITHUB_WORKSPACE/replay-receipt/$item.json" "$(git rev-parse HEAD)")
+          done
+      - name: Diagnose G05 actual original field layout without leaking source values
+        env:
+          ARCHIVE_KEY: ${{ secrets.KYOTO_JRA_ARCHIVE_AES256_HEX }}
+        run: |
+          set -euo pipefail
+          cd collector
+          python - <<'PY'
+          import os,json,re,tempfile
+          from collections import Counter
+          from pathlib import Path
+          from bs4 import BeautifulSoup
+          from unittest.mock import patch
+          from diagnostics.kyoto_nov15_encrypted_evidence import decrypt_evidence
+          from diagnostics.kyoto_g03_independent_partial import verify_partial
+          from diagnostics.kyoto_g05_conditions import _body_weights,_race_fields,compile_saved,_MASS
+          def denied(*a,**kw):raise AssertionError("network forbidden")
+          def classes(tag):return ".".join(c for c in tag.get("class",[]) if re.fullmatch(r"[a-zA-Z0-9_-]{1,40}",c)) or "(none)"
+          def shape(text):
+              if not text:return "empty"
+              if _MASS.fullmatch(text):return "existing_mass_regex_match"
+              if re.search(r"[3-6][0-9]{2}",text):return "three_digit_mass_like_other_format"
+              if re.search(r"計不|未発表|取消|除外",text):return "unpublished_or_cancelled"
+              return "other"
+          report={"source_http_requests":0,"races":{}}
+          try:
+              with tempfile.TemporaryDirectory() as td,patch("socket.socket.connect",side_effect=denied),patch("socket.create_connection",side_effect=denied):
+                  root=Path(td)/"raw";day="20261128"
+                  decrypt_evidence(Path(os.environ["RUNNER_TEMP"])/"aux",root,key_hex=os.environ["ARCHIVE_KEY"],repo="papaneko-ai/kyoto-keiba-ai",run_id="46112551733")
+                  proof=verify_partial(root,expected_day=day);g=json.loads((root/"g03_receipt.json").read_text())
+                  report["verified_races"]=proof["verified_race_numbers"]
+                  p=root/"g05_receipt.json"
+                  if p.is_file():
+                      saved=json.loads(p.read_text())
+                      report["producer_reported_values"]=saved.get("observed_field_values")
+                      p.unlink()
+                  for n in proof["verified_race_numbers"]:
+                      raw=(root/f"g03_official_racecard_{n:02d}.html").read_bytes()
+                      soup=BeautifulSoup(raw.decode("cp932",errors="replace"),"html.parser")
+                      rows=g["races"][str(n)]["runners"];nums=[h["number"] for h in rows];cancel={h["number"] for h in rows if h.get("cancelled") is True}
+                      result={"registered_horses":len(nums),"cancelled_count":len(cancel),"track_fields_observed":sorted(k for k,v in _race_fields(raw).items() if v is not None)}
+                      try:
+                          weights=_body_weights(raw,nums,expected_cancelled=cancel)
+                          result["body_weights"]=sum(v is not None for v,d in weights.values());result["body_weight_changes"]=sum(d is not None for v,d in weights.values())
+                      except Exception as exc:result["body_weight_error"]=type(exc).__name__
+                      tables=[t for t in soup.select("table") if all(t.select_one("th."+key) for key in ("horse","num","waku"))]
+                      result["matched_tables"]=len(tables)
+                      if len(tables)==1:
+                          t=tables[0];headers=[{"row":i,"col":j,"class":classes(h),"colspan":int(h.get("colspan","1")) if str(h.get("colspan","1")).isdigit() else None,"weight_heading":"馬体重" in h.get_text(" ",strip=True)} for i,tr in enumerate(t.select("tr")[:4]) for j,h in enumerate(tr.find_all("th",recursive=False))]
+                          result["header_layout"]=headers[:80]
+                          cells={}
+                          for tr in t.select("tr"):
+                              if tr.select_one("td.num") is None or tr.select_one("td.horse") is None:continue
+                              for j,td2 in enumerate(tr.find_all("td",recursive=False)):
+                                  k=f"{j}:{classes(td2)}";cells.setdefault(k,Counter())[shape(td2.get_text(" ",strip=True))]+=1
+                          result["cell_layout"]={k:dict(v) for k,v in cells.items() if any(x!="other" for x in v) or re.search(r"weight|batai|body|mass",k,re.I)}
+                      report["races"][str(n)]=result
+                  c=compile_saved(root,day=day,allow_partial=True)
+                  report["replayed_observed_field_values"]=c["observed_field_values"]
+                  report["completed"]=True
+          except Exception as exc:
+              report["completed"]=False;report["error_class"]=type(exc).__name__
+          Path("../replay-receipt/g05.json").write_text(json.dumps(report,sort_keys=True,indent=2)+"\n")
+          print(json.dumps(report,sort_keys=True))
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: impl38-workout-and-g05-replay
+          path: replay-receipt/
+          retention-days: 90
+          if-no-files-found: error
