@@ -104,16 +104,21 @@ class HandoffConnection(unittest.TestCase):
         def api(path):
             if "auxiliary-refresh.yml/runs?" in path:return {"total_count":0,"workflow_runs":[]}
             if "/runs?" in path:return {"total_count":1,"workflow_runs":[{"id":101,"event":"schedule","name":workflow,"created_at":"2026-11-28T00:15:00Z","status":"completed","conclusion":"success","head_repository":{"full_name":repo},"path":".github/workflows/"+filename}]}
-            if "/jobs?" in path:return {"total_count":2,"jobs":[{"name":"pc-originals-independent","conclusion":"success","steps":[]},{"name":"sp-originals-independent","conclusion":"success","steps":[]}]}
-            return {"total_count":1,"artifacts":[{"name":"kyoto-pc-101-20261128","expired":False}]}
+            if "/jobs?" in path:return {"total_count":2,"jobs":[{"id":201,"name":"pc-originals-independent","conclusion":"success","steps":[]},{"id":202,"name":"sp-originals-independent","conclusion":"success","steps":[]}]}
+            return {"total_count":1,"artifacts":[{"id":301,"name":"kyoto-pc-101-20261128","expired":False}]}
+        from subprocess import CompletedProcess
+        def cli(args,**kwargs):
+            self.assertEqual(args[:2],["gh","api"])
+            self.assertIn("per_page=100&page=1",args[-1])
+            return CompletedProcess(args,0,stdout=json.dumps(api(args[-1])),stderr="")
         result={"state":"SOURCE_ONLY","ciphertext_authenticated":True,"source_original_sha_utc_checked":True,"day_coverage_slot":{"day":day,"run_id":"101","races":{}}}
-        with patch("diagnostics.kyoto_impl25_c12_all_runs_handoff._gh",side_effect=api),patch("diagnostics.kyoto_impl25_c12_all_runs_handoff._download"),patch("diagnostics.kyoto_weekend_day21_artifact_triage.assess_lane",return_value=result),patch("diagnostics.kyoto_impl31_handoff_budget.gather_bounded",side_effect=lambda d,r:gather_bounded(d,r,invoke=lambda task,end:_worker(*task))):
+        with patch("diagnostics.kyoto_repair_control.subprocess.run",side_effect=cli),patch("diagnostics.kyoto_impl25_c12_all_runs_handoff._download"),patch("diagnostics.kyoto_weekend_day21_artifact_triage.assess_lane",return_value=result),patch("diagnostics.kyoto_impl31_handoff_budget.gather_bounded",side_effect=lambda d,r:gather_bounded(d,r,invoke=lambda task,end:_worker(*task))):
             report=gather(day,repo)
         self.assertEqual(report["day_source_coverage"]["authenticated_pc_slots"],1)
         self.assertEqual(report["day_source_coverage"]["race_denominator"],12)
         self.assertFalse(report["day_source_coverage"]["full_data_acquisition_certified"])
         result["ciphertext_authenticated"]=False
-        with patch("diagnostics.kyoto_impl25_c12_all_runs_handoff._gh",side_effect=api),patch("diagnostics.kyoto_impl25_c12_all_runs_handoff._download"),patch("diagnostics.kyoto_weekend_day21_artifact_triage.assess_lane",return_value=result),patch("diagnostics.kyoto_impl31_handoff_budget.gather_bounded",side_effect=lambda d,r:gather_bounded(d,r,invoke=lambda task,end:_worker(*task))):
+        with patch("diagnostics.kyoto_repair_control.subprocess.run",side_effect=cli),patch("diagnostics.kyoto_impl25_c12_all_runs_handoff._download"),patch("diagnostics.kyoto_weekend_day21_artifact_triage.assess_lane",return_value=result),patch("diagnostics.kyoto_impl31_handoff_budget.gather_bounded",side_effect=lambda d,r:gather_bounded(d,r,invoke=lambda task,end:_worker(*task))):
             rejected=gather(day,repo)
         self.assertEqual(rejected["day_source_coverage"]["authenticated_pc_slots"],0)
 
