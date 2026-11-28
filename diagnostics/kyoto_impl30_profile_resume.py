@@ -34,7 +34,7 @@ def candidates(root,day,run_id):
             seen.add(k)
             h=roster.get(k)
             if not h or row.get("profile_verified") is not True:continue
-            url=trusted_url(h["profile_navigation"],parent_host="www.jra.go.jp" if day=="20261129" and g03["races"][str(race)].get("source_url","").startswith("https://www.jra.go.jp/") else "jra.jp")
+            url=trusted_url(h["profile_navigation"],parent_host="www.jra.go.jp" if day in ("20261128","20261129") and g03["races"][str(race)].get("source_url","").startswith("https://www.jra.go.jp/") else "jra.jp")
             if row.get("horse_name")!=h["name"] or row.get("source_url")!=url:continue
             name=f"g04_profile_r{race:02d}_h{n:02d}.html"
             if row.get("raw_original_file")!=name:continue
