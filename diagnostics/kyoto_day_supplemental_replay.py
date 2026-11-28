@@ -19,7 +19,7 @@ def inventory(metadata,lane):
              "artifact_state":r.get("artifacts",{}).get(lane,{}).get("state","ARTIFACT_NOT_INDEXED")}
             for r in sorted(rows,key=lambda r:r["id"])]
 
-def review_sp(day,metadata,*,invoke=None,aggregate=None,clock=time.monotonic):
+def review_sp(day,metadata,*,invoke=None,aggregate=None,clock=time.monotonic,sp_context=None):
     if day not in DAYS:raise ValueError("supplemental_day")
     if invoke is None:
         from diagnostics.kyoto_impl31_handoff_budget import _invoke as invoke
@@ -29,7 +29,9 @@ def review_sp(day,metadata,*,invoke=None,aggregate=None,clock=time.monotonic):
     candidates=[r for r in inv if r["status"]=="completed" and r["artifact_state"]=="PRESENT" and r["event"] in ("schedule","workflow_dispatch")]
     end=clock()+90
     def one(r):
-        try:return invoke(("lane",day,REPO,r["run_id"],"SP"),end)
+        task=("lane",day,REPO,r["run_id"],"SP")
+        if day=="20261129" and sp_context is not None:task+=(sp_context,)
+        try:return invoke(task,end)
         except Exception as e:return {"error_class":type(e).__name__}
     with ThreadPoolExecutor(max_workers=6) as pool:
         results=list(pool.map(one,candidates[:MAX_ARCHIVES]))
@@ -46,6 +48,12 @@ def review_sp(day,metadata,*,invoke=None,aggregate=None,clock=time.monotonic):
                   archive_bound_exceeded=len(candidates)>MAX_ARCHIVES,
                   replay_errors=[{"run_id":r["run_id"],"error_class":str(v.get("error_class","SP_ORIGINAL_NOT_VERIFIED"))}
                     for r,v in zip(candidates,results) if v.get("source_original_sha_utc_checked") is not True])
+    if day=="20261129" and sp_context is not None:
+        result["verified_market_slots"]=[]
+        for r,v in zip(candidates,results):
+            s=v.get("sp_market_slot")
+            if (v.get("ciphertext_authenticated") is True and v.get("source_original_sha_utc_checked") is True and isinstance(s,dict) and s.get("day")==day and s.get("run_id")==str(r["run_id"]) and isinstance(s.get("races"),dict)):
+                result["verified_market_slots"].append(s)
     return result
 
 def replay_cushions(day,coverage,archives,read,combine):
