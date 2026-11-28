@@ -51,7 +51,12 @@ class Aux(unittest.TestCase):
                 r=collect(Path(d)/"raw",day=day,starts={},fetch=fetch,clock=lambda:stamp,public_form_navigation=True)
                 self.assertEqual(calls[:3],[(PC_HOME,None,None),(PC_ENTRY,entry,PC_HOME),(PC_ENTRY,token,PC_ENTRY)])
                 self.assertEqual(len(r["adaptive_navigation_repairs"]),2)
-                self.assertTrue(r["verified_races"])
+                self.assertEqual(r["verified_races"],list(range(1,13)))
+                slot=extract_slot(Path(d)/"raw",day,101)
+                self.assertEqual(set(slot["races"]),{str(i) for i in range(1,13)})
+                totals=combine(day,[slot])["totals"]
+                self.assertEqual(totals["racecards"],12)
+                self.assertEqual(totals["registered_horses_known"],96)
                 self.assertEqual(calls[-1][0],KYOTO_TRACK_PAGE)
                 self.assertFalse(r["prediction_ready"])
     def test_exact_moisture_table_only(self):
