@@ -107,6 +107,103 @@ def workout_proof_ok(v,cutoff,allowed):
         return (v["mode"]=="PRIMARY" and providers=={"white-green.jp"}) or (v["mode"]=="SECONDARY_CORROBORATED" and len(providers)>=2 and providers<={"umasiru.com","talmudic.net"})
     except (ValueError,KeyError,TypeError,AttributeError):return False
 
+def named_roster_digest(named):
+    # Use the exact UTF-8/non-ASCII canonicalization of the source roster
+    # reader, not the ASCII-only canonical format for public review reports.
+    return digest(json.dumps(named,ensure_ascii=False,sort_keys=True,separators=(",",":"),allow_nan=False).encode("utf8"))
+
+def read_sp_named_archive(day,rid,key,targets,timeout):
+    """Reopen only selected authenticated SP card origins, once per run.
+    Names stay in memory and are never included in a public report.
+    """
+    from diagnostics.kyoto_nov15_encrypted_evidence import decrypt_evidence
+    from diagnostics.kyoto_weekend_postflight import check_originals
+    from diagnostics.kyoto_impl31_sp_saved_roster_audit import assess_checked,inspect_heading
+    from diagnostics.kyoto_impl39_sp_market_union import standalone_roster
+    out={}
+    with tempfile.TemporaryDirectory(prefix="kyoto_sp_named_") as td:
+        root=Path(td);cipher=root/"cipher";cipher.mkdir();raw=root/"raw"
+        subprocess.run(["gh","run","download",str(rid),"--repo",REPO,"--name",f"kyoto-sp-{rid}-{day}","--dir",str(cipher)],
+            stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL,check=True,timeout=timeout)
+        decrypt_evidence(cipher,raw,key_hex=key,repo=REPO,run_id=str(rid))
+        post=check_originals(raw,day=day,channel="SP")
+        if post!=json.loads((raw/"source_verification.json").read_text(encoding="utf8")):raise ValueError("sp_postflight_mismatch")
+        audit=assess_checked(raw,day,post)
+        for n in targets:
+            try:
+                rec=audit["races"][str(n)]
+                if rec["state"]!="SP_STRUCTURAL_ROSTER_OBSERVED":continue
+                p=raw/f"r{n:02d}_official_sp_racecard.html"
+                if p.is_symlink() or not p.is_file() or not 0<p.stat().st_size<=1500000:continue
+                card=p.read_bytes()
+                if digest(card)!=rec["source_sha256"]:continue
+                standalone=standalone_roster(card,day,n,stamp(rec["captured_at_utc"]),rec["source_sha256"])
+                named=inspect_heading(card,day,n)
+                if named_roster_digest(named)!=standalone["named_roster_digest"]:continue
+                out[n]={"named":named,"proof":standalone}
+            except (KeyError,ValueError,TypeError,OSError,AttributeError,IndexError):continue
+    return out
+
+def bridge_sp_named_rosters(day,coverage,sp_slots,roster,starts,key,conflicts=(),*,read=None,clock=time.monotonic):
+    """Fill the in-memory named-roster dependency of the independent workout
+    and postrace readers from exactly the SP card already selected by combine.
+    Do not alter source coverage, overwrite PC/aux names, or grant finality.
+    """
+    r=copy.deepcopy(roster);st=copy.deepcopy(starts)
+    status={"state":"NOT_APPLICABLE","verified_races":[],"rejected_races":[],"archive_attempts":[],
+            "source_http_requests":0,"raw_names_published":False}
+    if day!="20261129":return r,st,status
+    grouped={};blocked=set(conflicts)
+    status["state"]="SP_NAMED_ROSTER_BRIDGE"
+    def rejected(n,why):status["rejected_races"].append({"race":n,"reason":why})
+    for n in range(1,13):
+        row=coverage["races"][str(n)]
+        if row.get("roster_source_channel")!="SP" or row.get("state")!="ROSTER_VERIFIED":continue
+        if n in blocked or r.get(n) or st.get(n):
+            rejected(n,"EXISTING_OR_CONFLICTING_ROSTER_NOT_OVERWRITTEN");continue
+        try:
+            card=row["racecard"];rid=int(card["run_id"])
+            if str(rid)!=card["run_id"] or rid<=0:raise ValueError("run")
+            matching=[slot["races"][str(n)] for slot in sp_slots if slot.get("day")==day and slot.get("run_id")==str(rid) and str(n) in slot.get("races",{})]
+            if len(matching)!=1:raise ValueError("slot")
+            p=matching[0]
+            exact={"state":"SOURCE_VERIFIED","run_id":str(rid),**p["racecard"]}
+            if (exact!=card or card.get("channel")!="SP" or card.get("source_kind")!="INDEPENDENT_SP_PRESTART_ROSTER"
+                or not proof_ok(card,stamp(row["start_utc"]),day,{str(rid)})
+                or any(row[k]!=p[k] for k in ("roster_digest","named_roster_digest","start_utc"))
+                or set(row["horses"])!=set(p["horses"]) or any(p["horses"].values())):raise ValueError("card_binding")
+            grouped.setdefault(rid,{})[n]=p
+        except (ValueError,KeyError,TypeError,AttributeError):rejected(n,"SELECTED_SP_CARD_NOT_BOUND")
+    if read is None:read=read_sp_named_archive
+    end=clock()+35
+    for rid,targets in sorted(grouped.items(),reverse=True):
+        rec={"run_id":rid,"requested_races":sorted(targets),"verified_races":[]}
+        status["archive_attempts"].append(rec)
+        try:
+            left=end-clock()
+            if left<=0:raise TimeoutError("sp_named_budget")
+            reopened=read(day,rid,key,sorted(targets),min(15,left))
+            if not isinstance(reopened,dict) or set(reopened)-set(targets):raise ValueError("sp_named_inventory")
+        except Exception as exc:
+            rec["error_class"]=type(exc).__name__
+            for n in targets:rejected(n,"SP_NAMED_ARCHIVE_REOPEN_FAILED")
+            continue
+        for n,p in targets.items():
+            try:
+                x=reopened[n];named=x["named"];proof=x["proof"]
+                if (not isinstance(named,(tuple,list)) or not 2<=len(named)<=18
+                    or any(not isinstance(z,(tuple,list)) or len(z)!=3 or type(z[0]) is not int or type(z[1]) is not int or not 1<=z[1]<=8 or not isinstance(z[2],str) or not z[2].strip() for z in named)
+                    or [z[0] for z in named]!=list(range(1,len(named)+1)) or len({z[2] for z in named})!=len(named)
+                    or named_roster_digest(named)!=p["named_roster_digest"]
+                    or any(proof[k]!=p[k] for k in ("roster_digest","named_roster_digest","start_utc","racecard","horses","numbers"))
+                    or set(p["horses"])!={str(z[0]) for z in named}):raise ValueError("sp_named_binding")
+                r[n]=tuple(tuple(z) for z in named);st[n]=p["start_utc"]
+                rec["verified_races"].append(n);status["verified_races"].append(n)
+            except (ValueError,KeyError,TypeError,AttributeError):rejected(n,"SP_NAMED_ORIGINAL_NOT_MATCHED")
+    status["verified_races"].sort()
+    status["rejected_races"].sort(key=lambda x:x["race"])
+    return r,st,status
+
 def review_workouts(day,metadata,coverage,roster,starts,key,reader):
     # Bind the same independently replayed official names/frame/numbers used
     # for the day coverage. Never count a producer's normalized receipt alone.
@@ -518,6 +615,13 @@ def review(day,now,out,*,use_checkpoint=False):
                 report["sp_market_replay"]={"authenticated_run_ids":sp_allowed,"source_http_requests":0}
                 report["independent_sp_only_roster_races"]=[int(n) for n,r in coverage["races"].items() if r.get("roster_source_channel")=="SP"]
             except Exception as exc:report["independent_sp_market_replay_error"]=type(exc).__name__
+        if day=="20261129" and sp_roster_slots:
+            try:
+                conflicts=set(proof.get("conflicting_races",[]))|set(proof.get("auxiliary_fallback",{}).get("conflicting_races",[]))
+                roster,starts,bridge=bridge_sp_named_rosters(day,coverage,sp_roster_slots,roster,starts,key,conflicts)
+                report["sp_named_roster_bridge"]=bridge
+                report["roster_verified_races"]=[n for n in range(1,13) if roster.get(n) and starts.get(n)]
+            except Exception as exc:report["sp_named_roster_bridge_error"]=type(exc).__name__
         allowed={r["id"] for filename,lane in (("two-source-production-observer.yml","pc"),("auxiliary-refresh.yml","auxiliary"),("postrace-evidence.yml","postrace")) for r in metadata[filename]["runs"] if r.get("artifacts",{}).get(lane,{}).get("state")=="PRESENT"}
         # Save verified daytime cells before opening the independent evening
         # chain. The always-upload step preserves this even on process error.
@@ -578,6 +682,8 @@ def review(day,now,out,*,use_checkpoint=False):
         summary.append(f"- {name}: index={v['index_complete']}, runs={len(v['runs'])}, historical native gaps (not external launch credit)={[(s['cron'],s['state']) for s in missing]}, external dispatch observations={[(s['due_utc'],s['state'],s['run_ids']) for s in v.get('external_dispatch_slots',[])]}, artifact gaps={gaps}, skipped producer jobs (reason unverified)={skips}")
     summary.extend(continuity_summary(report["continuity_obligations"]))
     if "sp_market_replay" in report:summary.append("- SP市場原本の独立照合: "+str(report["sp_market_replay"]))
+    if "sp_named_roster_bridge" in report:summary.append("- SP原本から調教・結果再解析へ名簿接続: "+str(report["sp_named_roster_bridge"]))
+    if "sp_named_roster_bridge_error" in report:summary.append("- SP名簿接続未完: "+report["sp_named_roster_bridge_error"])
     if "independent_sp_market_replay_error" in report:summary.append("- SP市場照合未完: "+report["independent_sp_market_replay_error"])
     if "postrace_isolated_replay" in report:
         p=report["postrace_isolated_replay"]
