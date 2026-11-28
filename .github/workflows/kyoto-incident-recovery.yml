@@ -18,6 +18,7 @@ on:
     branches: ['fix/impl37-root-cause-recovery-20261128']
     paths:
       - 'diagnostics/kyoto_incident_recovery.py'
+      - 'diagnostics/kyoto_forensic_continuity.py'
       - 'diagnostics/kyoto_incident_g05_replay.py'
       - 'tests/test_kyoto_incident_recovery.py'
       - '.github/workflows/kyoto-incident-recovery.yml'
@@ -25,6 +26,7 @@ on:
     branches: [main]
     paths:
       - 'diagnostics/kyoto_incident_recovery.py'
+      - 'diagnostics/kyoto_forensic_continuity.py'
       - 'diagnostics/kyoto_incident_g05_replay.py'
       - 'tests/test_kyoto_incident_recovery.py'
       - '.github/workflows/kyoto-incident-recovery.yml'
@@ -33,6 +35,7 @@ permissions:
   actions: read
 jobs:
   offline:
+    if: ${{ github.event_name == 'pull_request' || github.event_name == 'push' }}
     runs-on: ubuntu-latest
     timeout-minutes: 4
     steps:
@@ -47,7 +50,7 @@ jobs:
       - run: python -m unittest -v tests.test_kyoto_incident_recovery
   diagnose:
     needs: offline
-    if: ${{ github.repository == 'papaneko-ai/kyoto-keiba-ai' && ((github.event_name == 'workflow_run' && github.event.workflow_run.head_repository.full_name == github.repository && github.event.workflow_run.head_branch == 'main') || (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main') || (github.event_name == 'push' && github.ref == 'refs/heads/fix/impl37-root-cause-recovery-20261128')) }}
+    if: ${{ always() && (needs.offline.result == 'success' || ((github.event_name == 'workflow_run' || github.event_name == 'workflow_dispatch') && needs.offline.result == 'skipped')) && github.repository == 'papaneko-ai/kyoto-keiba-ai' && ((github.event_name == 'workflow_run' && github.event.workflow_run.head_repository.full_name == github.repository && github.event.workflow_run.head_branch == 'main') || (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main') || (github.event_name == 'push' && github.ref == 'refs/heads/fix/impl37-root-cause-recovery-20261128')) }}
     runs-on: ubuntu-latest
     timeout-minutes: 8
     env:
@@ -82,6 +85,7 @@ jobs:
       - name: Reopen exact authenticated source artifacts without source HTTP
         run: python -m diagnostics.kyoto_incident_recovery --run-id "$SOURCE_RUN_ID" --reader trusted-reader --cushion-reader trusted-cushion-reader --postrace-reader trusted-postrace-reader --out incident
       - uses: actions/upload-artifact@v4
+        if: always()
         with:
           name: kyoto-incident-recovery
           path: incident/
@@ -89,7 +93,7 @@ jobs:
           retention-days: 90
   publish:
     needs: diagnose
-    if: ${{ github.ref == 'refs/heads/main' && (github.event_name == 'workflow_run' || github.event_name == 'workflow_dispatch') }}
+    if: ${{ always() && github.repository == 'papaneko-ai/kyoto-keiba-ai' && github.ref == 'refs/heads/main' && (github.event_name == 'workflow_run' || github.event_name == 'workflow_dispatch') && (github.event_name != 'workflow_run' || (github.event.workflow_run.head_repository.full_name == github.repository && github.event.workflow_run.head_branch == 'main')) }}
     runs-on: ubuntu-latest
     timeout-minutes: 3
     permissions:
@@ -98,8 +102,11 @@ jobs:
       issues: write
     env:
       GH_TOKEN: ${{ github.token }}
+      SOURCE_RUN_ID: ${{ github.event.workflow_run.id || inputs.run_id }}
+      DIAGNOSIS_RESULT: ${{ needs.diagnose.result }}
     steps:
       - uses: actions/download-artifact@v4
+        continue-on-error: true
         with:
           name: kyoto-incident-recovery
           path: incident
@@ -110,11 +117,24 @@ jobs:
           from pathlib import Path
           repo=os.environ['GITHUB_REPOSITORY']
           assert repo=='papaneko-ai/kyoto-keiba-ai'
-          summary=Path('incident/summary.md').read_text()
-          raw=Path('incident/report.json').read_bytes().rstrip(b'\n')
-          d=json.loads(raw)
-          marker=f"<!-- kyoto-incident:{d['source_run_id']}:{hashlib.sha256(raw).hexdigest()} -->"
-          assert summary.startswith(marker+'\n') and len(summary.encode())<=60000
+          rid=int(os.environ['SOURCE_RUN_ID']); assert rid>0
+          try:
+              assert os.environ['DIAGNOSIS_RESULT']=='success'
+              summary=Path('incident/summary.md').read_text()
+              raw=Path('incident/report.json').read_bytes().rstrip(b'\n')
+              d=json.loads(raw); assert d['source_run_id']==rid
+              marker=f"<!-- kyoto-incident:{rid}:{hashlib.sha256(raw).hexdigest()} -->"
+              assert summary.startswith(marker+'\n') and len(summary.encode())<=60000
+          except Exception:
+              marker=f"<!-- kyoto-incident-incomplete:{rid}:{os.environ['GITHUB_RUN_ID']} -->"
+              Path('incident').mkdir(exist_ok=True)
+              summary=marker+'\n診断未完了・要修復。取得成功または原因解決とは扱わない。\n'
+              summary+=f'- Source run: {rid}; diagnosis job: {os.environ["DIAGNOSIS_RESULT"]}\n'
+              summary+=f'- 元の実行: https://github.com/{repo}/actions/runs/{rid}\n'
+              summary+='- 次の処置: 元実行のjob/原本/ログを再開封し、未取得の証拠を特定する。\n'
+              if Path('incident/forensic.json').is_file():
+                  summary+='- 暗号化診断証拠のmanifestが保存されている。診断artifactから復元する。\n'
+              Path('incident/summary.md').write_text(summary)
           pages=json.loads(subprocess.check_output(['gh','api','--paginate','--slurp',f'repos/{repo}/issues/141/comments?per_page=100'],text=True,timeout=30))
           if not any(marker in c.get('body','') for page in pages for c in page):
               with Path('incident/summary.md').open('a') as f:f.write(f'\n診断原本: https://github.com/{repo}/actions/runs/{os.environ["GITHUB_RUN_ID"]}\n')
