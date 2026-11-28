@@ -190,19 +190,28 @@ def main():
         if recovery_enabled:
             import shutil
             candidate=Path(d)/"recovery"
+            # A later optional-stage failure leaves an already authenticated
+            # initial archive, even if the recovery process is interrupted.
+            encrypt_evidence(root,a.out,key_hex=key,repo=repo,run_id=rid)
+            recovered=a.out.with_name(a.out.name+".recovered")
+            backup=a.out.with_name(a.out.name+".base")
             try:
                 shutil.copytree(root,candidate)
                 transport=RecoveryTransport(client,within,pacer,state,start=start)
                 report["gap_recovery"]=repair(candidate,day=day,prior=prior,transport=transport,clock=lambda:now().isoformat())
                 (candidate/"receipt.json").write_text(json.dumps(report,ensure_ascii=False,sort_keys=True,indent=2)+"\n",encoding="utf8")
-                encrypt_evidence(candidate,a.out,key_hex=key,repo=repo,run_id=rid)
+                encrypt_evidence(candidate,recovered,key_hex=key,repo=repo,run_id=rid)
+                a.out.rename(backup)
+                try:recovered.rename(a.out)
+                finally:
+                    if not a.out.exists() and backup.exists():backup.rename(a.out)
             except Exception as exc:
-                # Do not discard a verified original refresh when an
-                # optional recovery stage or its bundle cannot be sealed.
-                if a.out.exists():raise
-                report["gap_recovery"]={"state":"RECOVERY_SEAL_FAILED_BASE_REFRESH_RETAINED","error_class":type(exc).__name__,"source_success_certified":False}
-                (root/"receipt.json").write_text(json.dumps(report,ensure_ascii=False,sort_keys=True,indent=2)+"\n",encoding="utf8")
-                encrypt_evidence(root,a.out,key_hex=key,repo=repo,run_id=rid)
+                if not a.out.exists():raise
+                print("RECOVERY_SEAL_FAILED_BASE_REFRESH_RETAINED="+type(exc).__name__)
+            finally:
+                # Backup/recovered are ciphertext-only; never upload plaintext.
+                for pth in (backup,recovered):
+                    if pth.exists():shutil.rmtree(pth)
         else:
             encrypt_evidence(root,a.out,key_hex=key,repo=repo,run_id=rid)
     print(json.dumps({"verified_races":report["verified_races"],"observed_field_values":report.get("observed_field_values",0),"http_requests":state["requests"],"source_only":True},sort_keys=True))

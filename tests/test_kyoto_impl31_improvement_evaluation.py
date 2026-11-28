@@ -37,6 +37,28 @@ class Evaluation(unittest.TestCase):
         for field,value in (("sp_seconds",999),("observed_at_utc","2026-11-28T02:00:00Z"),("improvement_proved",True)):
             x=dict(r);x[field]=value
             with self.assertRaises(ValueError):receipt(x,"PC")
+    def test_dispatch_slots_and_policy_without_native_denominator(self):
+        from diagnostics.kyoto_impl39_dispatch_slots import observe,PLAN
+        def make(day,pairs):
+            r=report(day,pairs)
+            r["all_run_metadata_screened"]=False
+            r["day_source_coverage"]["unassessed_pc_slots"]=2
+            iso="2026-11-"+day[-2:]
+            entries=[{"run":{"id":i,"event":"workflow_dispatch","head_branch":"main","status":"completed","created_at":iso+"T"+t+":01Z"},"source_assessment":{c:{"ciphertext_authenticated":True,"source_original_sha_utc_checked":True} for c in ("PC","SP")}} for i,t in enumerate(PLAN[day],1)]
+            r["external_dispatch_slot_ledger"]={"morning":observe(day,entries,complete=True)}
+            for x in r.get("authenticated_applied_policies",[]):
+                x["event"]="workflow_dispatch";x["policy"]["reason"]="AUTHENTICATED_SATURDAY_DISPATCH_HANDOFF_42"
+            return r,entries
+        sat,_=make(SAT,4);sun,entries=make(SUN,8)
+        result=evaluate(sat,sun,MODE,42)
+        self.assertEqual(result["status"],"OBSERVED_TARGET_IMPROVEMENT")
+        self.assertEqual(result["evaluated_launch_event"],"workflow_dispatch")
+        self.assertFalse(sun["external_dispatch_slot_ledger"]["morning"]["provider_proved"])
+        duplicate=copy.deepcopy(entries[0]);duplicate["run"]["id"]=55
+        sun["external_dispatch_slot_ledger"]["morning"]=observe(SUN,entries+[duplicate],complete=True)
+        self.assertEqual(evaluate(sat,sun,MODE,42)["status"],"INSUFFICIENT_EVIDENCE")
+        sun["external_dispatch_slot_ledger"]["morning"]=observe(SUN,entries[:-1],complete=True)
+        self.assertEqual(evaluate(sat,sun,MODE,42)["status"],"INSUFFICIENT_EVIDENCE")
     def test_no_improvement(self):
         self.assertEqual(evaluate(report(SAT,4),report(SUN,4),MODE,42)["status"],"NO_OBSERVED_TARGET_IMPROVEMENT")
 if __name__=="__main__":unittest.main()

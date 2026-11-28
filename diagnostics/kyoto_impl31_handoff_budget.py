@@ -167,6 +167,8 @@ def gather_bounded(day, repo, *, invoke=_invoke, clock=time.monotonic, budget=BU
         if e['run'].get('event')=='workflow_dispatch':
             manual.append({'run_id':e['run']['id'],'authenticated_pc_slot':verified,'state':e.get('metadata_error',source.get('state','NO_SOURCE_ASSESSMENT'))})
     report['manual_source_assessment']=manual
+    from diagnostics.kyoto_impl39_dispatch_slots import observe
+    report['external_dispatch_slot_ledger']={'morning':observe(day,entries,complete=complete),'afternoon':observe(day,[{'run':r} for r in auxiliaries],complete=aux_complete,family='afternoon',aux_ids={int(s['run_id']) for s in aux_slots})}
     from diagnostics.kyoto_impl30_nextday_adaptation import confirmed_failure_lanes
     report['manual_failure_assessment']=[{**failure,'event':'workflow_dispatch','head_branch':'main','created_at':e['run']['created_at']}
         for e in active if e['run'].get('event')=='workflow_dispatch' and e['run'].get('head_branch')=='main'

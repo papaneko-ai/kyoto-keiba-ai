@@ -26,11 +26,13 @@ def receipt(raw,channel):
 
 def _counts(report,day):
     c=report.get("day_source_coverage",{})
-    if (report.get("day")!=day or report.get("all_run_metadata_screened") is not True
+    from diagnostics.kyoto_impl39_dispatch_slots import bound_ids
+    dispatch=bound_ids(report.get('external_dispatch_slot_ledger',{}).get('morning'),day,both=False)
+    if (report.get("day")!=day or (report.get("all_run_metadata_screened") is not True and not dispatch)
         or report.get("github_run_listing_complete") is not True or c.get("day")!=day
         or c.get("schema")!="kyoto_impl30_day_source_coverage.v1" or c.get("race_denominator")!=12
         or type(c.get("authenticated_pc_slots")) is not int or c["authenticated_pc_slots"]<1
-        or c.get("unassessed_pc_slots",0)!=0):
+        or (not dispatch and c.get("unassessed_pc_slots",0)!=0)):
         raise ValueError("coverage_incomplete")
     # Recompute denominators and numerators from the independently extracted
     # source proofs. A missing roster is not a known horse denominator.
@@ -58,20 +60,28 @@ def evaluate(saturday,sunday,mode,source_run_id):
     # Both source lanes must have authenticated records of the exact signed
     # policy. Mixed/fallback policies cannot be attributed to that strategy.
     try:
+        from diagnostics.kyoto_impl39_dispatch_slots import bound_ids
+        ledger=sunday.get("external_dispatch_slot_ledger",{}).get("morning")
+        dispatch=bound_ids(ledger,SUN,both=True)
+        event="workflow_dispatch" if ledger is not None else "schedule"
+        if event=="workflow_dispatch" and len(dispatch)!=4:return out
         checked=[]
         seen=set()
         for item in applied:
-            if item.get("event")!="schedule":continue
+            if item.get("event")!=event:continue
+            if event=="workflow_dispatch" and item.get("run_id") not in dispatch:continue
             row=receipt(item["policy"],item["channel"])
             rid=item["run_id"]
             if type(rid) is not int or rid<=0 or (rid,item["channel"]) in seen:raise ValueError("duplicate_identity")
             seen.add((rid,item["channel"]))
             checked.append((rid,item["channel"],row))
         scheduled=sunday.get("scheduled_runs",[])
-        expected={(r["run"]["id"],lane) for r in scheduled for lane in ("PC","SP")}
+        expected=({(rid,lane) for rid in dispatch for lane in ("PC","SP")} if event=="workflow_dispatch" else {(r["run"]["id"],lane) for r in scheduled for lane in ("PC","SP")})
         if len(expected)!=8 or seen!=expected:return out
-        if any(row["selected_policy"]!=mode or row["reason"]!="AUTHENTICATED_SATURDAY_HANDOFF_"+str(source_run_id) for _,_,row in checked):
+        valid_reasons={"AUTHENTICATED_SATURDAY_HANDOFF_"+str(source_run_id),"AUTHENTICATED_SATURDAY_DISPATCH_HANDOFF_"+str(source_run_id)}
+        if any(row["selected_policy"]!=mode or row["reason"] not in valid_reasons for _,_,row in checked) or len({row["reason"] for _,_,row in checked})!=1:
             out["status"]="MIXED_OR_UNBOUND_POLICY";return out
+        out["evaluated_launch_event"]=event
         before=_counts(saturday,SAT);after=_counts(sunday,SUN)
         for field in ("racecards","paired_same_slot_races","profile","prior_form"):
             if field in ("profile","prior_form"):
@@ -94,7 +104,7 @@ def evaluate(saturday,sunday,mode,source_run_id):
     except (ValueError,KeyError,TypeError,AttributeError,OverflowError):pass
     return out
 
-def load_saturday(repo,collector,key):
+def load_saturday(repo,collector,key,source_id=None):
     end=time.monotonic()+35
     def timeout(cap):
         left=end-time.monotonic()
@@ -106,7 +116,9 @@ def load_saturday(repo,collector,key):
     runs=index["workflow_runs"]
     if index["total_count"]!=len(runs) or len(runs)>100:raise ValueError("incomplete_index")
     from diagnostics.kyoto_impl25_c12_all_runs_handoff import run_name_matches
-    eligible=[r for r in runs if run_name_matches(r,NAME,WORKFLOW,SAT) and r.get("event")=="schedule" and r.get("status")=="completed" and r.get("conclusion")=="success" and r.get("created_at","")[:10]=="2026-11-28" and r.get("head_repository",{}).get("full_name")==repo and r.get("path","").split("@",1)[0]==".github/workflows/"+WORKFLOW]
+    eligible=[r for r in runs if run_name_matches(r,NAME,WORKFLOW,SAT) and (r.get("event")=="schedule" or (r.get("event")=="workflow_dispatch" and r.get("head_branch")=="main")) and r.get("status")=="completed" and r.get("conclusion")=="success" and r.get("created_at","")[:10]=="2026-11-28" and r.get("head_repository",{}).get("full_name")==repo and r.get("path","").split("@",1)[0]==".github/workflows/"+WORKFLOW]
+    if source_id is not None:eligible=[r for r in eligible if r["id"]==source_id]
+    elif len([r for r in eligible if r.get("event")=="schedule"])==1:eligible=[r for r in eligible if r.get("event")=="schedule"]
     if len(eligible)!=1:raise ValueError("ambiguous_saturday")
     rid=eligible[0]["id"]
     if type(rid) is not int or rid<=0:raise ValueError("run_identity")
@@ -120,14 +132,34 @@ def load_saturday(repo,collector,key):
             if p.is_symlink() or not p.is_file() or not 0<p.stat().st_size<=5_000_000:raise ValueError("artifact_file")
             return json.loads(p.read_text())
         report=read("report.json");doc=read("nextday_policy.json")
-        return report,accept(doc,report,repo=repo,run_id=rid,collector_sha=collector,key=key),rid
+        from diagnostics.kyoto_impl30_nextday_adaptation import SATURDAY_HANDOFF_COLLECTOR,SATURDAY_HANDOFF_UPDATED_COLLECTOR,NOV28_INCIDENT_REPO,OBSERVER,OBSERVER_NAME
+        signer=doc.get("body",{}).get("collector_sha")
+        expected_signer=signer if repo==NOV28_INCIDENT_REPO and signer in (SATURDAY_HANDOFF_COLLECTOR,SATURDAY_HANDOFF_UPDATED_COLLECTOR) else collector
+        mode=accept(doc,report,repo=repo,run_id=rid,collector_sha=expected_signer,key=key)
+        # Historical Saturday signer is immutable. Extend its authenticated
+        # PC observations only with a fresh exact workflow index, after HMAC.
+        if eligible[0].get("event")=="workflow_dispatch" and "external_dispatch_slot_ledger" not in report:
+            try:
+                from diagnostics.kyoto_impl39_dispatch_slots import observe
+                idx=api(f"repos/{repo}/actions/workflows/{OBSERVER}/runs?created=2026-11-28&per_page=100")
+                rows=idx["workflow_runs"]
+                complete=idx["total_count"]==len(rows) and len(rows)<=100
+                valid=[r for r in rows if run_name_matches(r,OBSERVER_NAME,OBSERVER,SAT) and r.get("head_repository",{}).get("full_name")==repo and r.get("path","").split("@",1)[0]==".github/workflows/"+OBSERVER and r.get("created_at","")[:10]=="2026-11-28"]
+                manual=report.get("manual_source_assessment",[])
+                if len({r["run_id"] for r in manual})!=len(manual):raise ValueError("duplicate_manual")
+                report["external_dispatch_slot_ledger"]={"morning":observe(SAT,[{"run":r} for r in valid],complete=complete and len(valid)==len(rows),legacy_pc={r["run_id"]:r.get("authenticated_pc_slot") for r in manual})}
+            except Exception:pass
+        return report,mode,rid
 
 def main():
     p=argparse.ArgumentParser();p.add_argument("--report",type=Path,required=True);p.add_argument("--out",type=Path,required=True);a=p.parse_args()
     try:
         sunday=json.loads(a.report.read_text())
         collector=subprocess.check_output(["git","rev-parse","HEAD"],text=True,timeout=3).strip()
-        sat,mode,rid=load_saturday(os.environ["GITHUB_REPOSITORY"],collector,os.environ["ARCHIVE_KEY"])
+        reasons={x.get("policy",{}).get("reason","") for x in sunday.get("authenticated_applied_policies",[]) if x.get("event") in ("schedule","workflow_dispatch")}
+        candidates={int(m.group(1)) for x in reasons if isinstance(x,str) and (m:=re.fullmatch(r"AUTHENTICATED_SATURDAY_(?:DISPATCH_)?HANDOFF_(\d+)",x))}
+        source_id=next(iter(candidates)) if len(candidates)==1 else None
+        sat,mode,rid=load_saturday(os.environ["GITHUB_REPOSITORY"],collector,os.environ["ARCHIVE_KEY"],source_id)
         out=evaluate(sat,sunday,mode,rid)
     except Exception as exc:
         out={"schema":"kyoto_impl31_improvement_evaluation.v1","status":"INSUFFICIENT_EVIDENCE","error_class":type(exc).__name__,"causal_effect_proved":False,"automatic_code_promotion_authorized":False}
