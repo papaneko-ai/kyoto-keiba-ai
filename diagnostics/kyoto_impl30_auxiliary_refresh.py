@@ -78,18 +78,21 @@ def collect(root,*,day,starts,fetch,clock,public_form_navigation=False):
             "prediction_ready":False,"target_races":[],"verified_races":[]}
     try:
         if public_form_navigation:
-            if day!="20261129":raise ValueError("auxiliary_form_day_invalid")
+            if day not in DAYS:raise ValueError("auxiliary_form_day_invalid")
             home=fetch(PC_HOME)
             (root/"official_pc_navigation_home.html").write_bytes(home)
             report["navigation_home_sha256"]=sha256(home).hexdigest()
             report["navigation_home_captured_at_utc"]=clock()
-            token,_=observed_action(home,day,"entry")
+            repairs=[]
+            token,_=observed_action(home,day,"entry",repair_evidence=repairs)
+            if repairs:report["adaptive_navigation_repairs"]=repairs
             report["selection_action"]=token
             selection=fetch(PC_ENTRY,token=token,referer=PC_HOME)
             (root/"official_selection.html").write_bytes(selection)
             report["selection_sha256"]=sha256(selection).hexdigest()
             report["selection_captured_at_utc"]=clock()
-            token,_=observed_action(selection,day,"meeting")
+            token,_=observed_action(selection,day,"meeting",repair_evidence=repairs)
+            if repairs:report["adaptive_navigation_repairs"]=repairs
             report["meeting_action"]=token
             meeting_url=PC_ENTRY
             meeting=fetch(meeting_url,token=token,referer=PC_ENTRY)
@@ -178,7 +181,7 @@ def main():
     client=build_opener(NoRedirect(),HTTPCookieProcessor(CookieJar()))
     fetch,state=bounded_auxiliary_fetch(client,within)
     with tempfile.TemporaryDirectory(prefix="kyoto_aux_refresh_") as d:
-        root=Path(d)/"raw";report=collect(root,day=day,starts=starts,fetch=fetch,clock=lambda:now().isoformat(),public_form_navigation=day=="20261129")
+        root=Path(d)/"raw";report=collect(root,day=day,starts=starts,fetch=fetch,clock=lambda:now().isoformat(),public_form_navigation=day in DAYS)
         encrypt_evidence(root,a.out,key_hex=key,repo=repo,run_id=rid)
     print(json.dumps({"verified_races":report["verified_races"],"observed_field_values":report.get("observed_field_values",0),"http_requests":state["requests"],"source_only":True},sort_keys=True))
 

@@ -27,6 +27,33 @@ class Aux(unittest.TestCase):
             slot=extract_slot(root,DAY,1);self.assertIn('turf_moisture_finish_pct',slot['independent_track'])
             result=combine(DAY,[slot]);self.assertIn('turf_moisture_finish_pct',result['races']['4']['supplementary_track_observations'])
             self.assertFalse(result['full_data_acquisition_certified'])
+    def test_both_days_observed_form_navigation_and_repair_evidence(self):
+        from diagnostics.kyoto_nov29_public_forms import PC_HOME,PC_ENTRY
+        for day in ("20261128","20261129"):
+            form='<form id="new" method="post" action="/JRADB/accessD.html"><input type="hidden" name="cname"></form>'
+            entry="pw01dli00/F3"
+            token="pw01drl000820260508"+day+"/6B"
+            home=(form+f'<button onclick="doAction (\'/JRADB/accessD.html\',\'{entry}\')">出馬表</button>').encode("cp932")
+            sel=(form+f'<a href="javascript:doAction (\'/JRADB/accessD.html\',\'{token}\')">京都</a>').encode("cp932")
+            urls={n:PC_ENTRY+f"?CNAME=pw01dde010820260508{n:02d}{day}/A1" for n in range(1,13)}
+            meet="".join(f'<a href="{u}">出馬表</a>' for u in urls.values()).encode("cp932")
+            calls=[]
+            def fetch(url,*,token=None,referer=None):
+                calls.append((url,token,referer))
+                if url==PC_HOME:return home
+                if token==entry:return sel
+                if token is not None:return meet
+                if url==KYOTO_TRACK_PAGE:return RAW
+                race=next(n for n,u in urls.items() if u==url)
+                return card(race=race,day=day,time="発走 14:00")
+            with tempfile.TemporaryDirectory() as d:
+                stamp=f"2026-11-{day[-2:]}T04:00:00Z"
+                r=collect(Path(d)/"raw",day=day,starts={},fetch=fetch,clock=lambda:stamp,public_form_navigation=True)
+                self.assertEqual(calls[:3],[(PC_HOME,None,None),(PC_ENTRY,entry,PC_HOME),(PC_ENTRY,token,PC_ENTRY)])
+                self.assertEqual(len(r["adaptive_navigation_repairs"]),2)
+                self.assertTrue(r["verified_races"])
+                self.assertEqual(calls[-1][0],KYOTO_TRACK_PAGE)
+                self.assertFalse(r["prediction_ready"])
     def test_exact_moisture_table_only(self):
         r=parse_kyoto_track(RAW,DAY,KYOTO_TRACK_PAGE,STAMP)
         self.assertEqual([r[k] for k in ('turf_moisture_finish_pct','turf_moisture_turn4_pct','dirt_moisture_finish_pct','dirt_moisture_turn4_pct')],[10.1,9.2,7.4,7.1])
