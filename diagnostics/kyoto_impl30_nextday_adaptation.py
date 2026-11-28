@@ -16,6 +16,13 @@ POLICY={"BASELINE":(720,240),"MARKET_OR_ROSTER_RECOVERY":(720,360),"PROFILE_RECO
 SCHEMA="kyoto_nextday_adaptation.v1"
 OBSERVER="kyoto-20261128-29-two-source-production-observer.yml"
 OBSERVER_NAME="Kyoto Nov28-29 independent encrypted original collection"
+# Exact source revision used by the fixed Saturday handoff workflow; the
+# policy is authenticated evidence, not executable code. Never accept arbitrary SHA.
+SATURDAY_HANDOFF_COLLECTOR="3f4b3d77357745ead05a9f78db34eb6ac2d78637"
+# Independently decrypted four actual Nov28 dispatch artifacts proved no G03
+# or SP racecard link discovery (incident #141; runs 46100456028, 46100842649).
+NOV28_INCIDENT_REPO="papaneko-ai/kyoto-keiba-ai"
+NOV28_INCIDENT_RUN_IDS=(46087080554,46092343351,46096495437,46100155324)
 
 def confirmed_failure_lanes(run,jobs):
     """Positive job failure only, never infer failure from absence of originals."""
@@ -68,6 +75,14 @@ def recover_from_metadata(api, repo):
             f=failures[0]
             prefix="OBSERVER_DISPATCH_FAILURE_METADATA_ONLY" if r["event"]=="workflow_dispatch" else "OBSERVER_FAILURE_METADATA_ONLY"
             return "MARKET_OR_ROSTER_RECOVERY",f"{prefix}_{rid}_{f['lane']}"
+    # A successful Actions job is not a successful acquisition. These exact
+    # known runs were independently authenticated and investigated on Nov28.
+    # Verify their presence in the same official workflow before using the
+    # incident as a bounded fallback. This never grants source/model credit.
+    if repo==NOV28_INCIDENT_REPO:
+        incident={r["id"] for r in eligible if r["id"] in NOV28_INCIDENT_RUN_IDS}
+        if incident==set(NOV28_INCIDENT_RUN_IDS):
+            return "MARKET_OR_ROSTER_RECOVERY","NOV28_AUTHENTICATED_SOURCE_GAP_INCIDENT_141"
     return "BASELINE","NO_CONFIRMED_OBSERVER_FAILURE"
 
 
@@ -240,7 +255,14 @@ def recover(day,*,repo,collector_sha,key,monotonic=time.monotonic):
                 except (OSError,ValueError):raise ValueError("HANDOFF_REPORT_MISSING_OR_INVALID") from None
                 try:doc=read("nextday_policy.json")
                 except (OSError,ValueError):raise ValueError("HANDOFF_POLICY_MISSING_OR_INVALID") from None
-                mode=accept(doc,report,repo=repo,run_id=rid,collector_sha=collector_sha,key=key)
+                # The Saturday handoff intentionally runs a fixed older
+                # collector. Authenticate and recompute against that exact
+                # source, then apply only the bounded policy table.
+                signer=doc.get("body",{}).get("collector_sha")
+                if signer==SATURDAY_HANDOFF_COLLECTOR and repo==NOV28_INCIDENT_REPO:
+                    mode=accept(doc,report,repo=repo,run_id=rid,collector_sha=SATURDAY_HANDOFF_COLLECTOR,key=key)
+                else:
+                    mode=accept(doc,report,repo=repo,run_id=rid,collector_sha=collector_sha,key=key)
                 prefix="AUTHENTICATED_SATURDAY_HANDOFF_" if r["event"]=="schedule" else "AUTHENTICATED_SATURDAY_DISPATCH_HANDOFF_"
                 return mode,prefix+str(rid),doc["body"]["decision"]["reason"]
         # Preserve native schedule preference and the existing failure labels.
