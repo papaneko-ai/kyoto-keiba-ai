@@ -21,12 +21,14 @@ class PlanningError(ValueError):pass
 def canonical(obj):
     return (json.dumps(obj,sort_keys=True,ensure_ascii=False,separators=(",",":"))+"\n").encode("utf8")
 
-def trusted_url(href):
+def trusted_url(href,*,parent_host="jra.jp"):
+    if parent_host not in ("jra.jp","www.jra.go.jp"):
+        raise PlanningError("untrusted_profile_origin")
     if not isinstance(href,str) or not href.startswith("/JRADB/accessU.html?"):
         raise PlanningError("not_official_card_profile_path")
-    url="https://jra.jp"+href
+    url="https://"+parent_host+href
     u=urlsplit(url)
-    if u.scheme!="https" or u.hostname!="jra.jp" or u.path!="/JRADB/accessU.html":
+    if u.scheme!="https" or u.hostname!=parent_host or u.path!="/JRADB/accessU.html":
         raise PlanningError("untrusted_profile_origin")
     keys=parse_qs(u.query,keep_blank_values=True)
     if list(keys)!=(["CNAME"] if "CNAME" in keys else []) or len(keys.get("CNAME",[]))!=1:
