@@ -19,7 +19,8 @@ class CushionDeployment(unittest.TestCase):
         for token in ("github.repository == 'papaneko-ai/kyoto-keiba-ai'","github.ref == 'refs/heads/main'","github.event.workflow_run.head_repository.full_name == github.repository","github.event.workflow_run.head_branch == 'main'","NOV28-29-CUSHION-SOURCE-ONLY","2026-11-28","2026-11-29"):
             self.assertIn(token,c)
         self.assertNotIn("conclusion == 'success'",c)
-        self.assertEqual(c.count("kyoto-native:"),6)
+        self.assertEqual(c.count("kyoto-native:"),0)
+        self.assertIn("github.event.workflow_run.event == 'workflow_dispatch'",c)
         self.assertEqual(self.doc["on"]["workflow_dispatch"]["inputs"]["race_day"]["options"],["20261128","20261129"])
     def test_shared_lock_and_exact_target(self):
         c=self.job["concurrency"]
@@ -44,10 +45,7 @@ class CushionDeployment(unittest.TestCase):
         self.assertIn("outcome == 'failure'",b["if"])
         self.assertNotIn("continue-on-error",b)
     def test_native_26_unchanged(self):
-        names=("two-source-production-observer","auxiliary-refresh","postrace-evidence","result-handoff","workout-source")
-        count=0
-        for n in names:
-            p=ROOT/("kyoto-20261128-29-"+n+".yml")
-            count+=len(yaml.load(p.read_text(),Loader=yaml.BaseLoader)["on"]["schedule"])
-        self.assertEqual(count,26)
+        from tests.test_kyoto_impl39_native_isolation import NAMES,doc,diagnostic_crons
+        for n in NAMES:self.assertNotIn("schedule",doc(n)["on"])
+        self.assertEqual(len(diagnostic_crons()),26)
 if __name__=="__main__":unittest.main()

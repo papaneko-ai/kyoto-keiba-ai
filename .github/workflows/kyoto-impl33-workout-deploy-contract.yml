@@ -16,31 +16,9 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: false
-      - name: Verify exact reviewed workout reader pin; protected schedules remain identical
-        shell: bash
-        env:
-          PR_BASE_SHA: ${{ github.event.pull_request.base.sha || '' }}
-        run: |
-          set -euo pipefail
-          workflow='.github/workflows/kyoto-20261128-29-workout-source.yml'
-          if [ -n "$PR_BASE_SHA" ] && git cat-file -e "$PR_BASE_SHA:$workflow" 2>/dev/null; then
-            # Existing production workflow: verify exact reviewed Impl38 workout reader delta (real-original replay 46116229567).
-            git show "$PR_BASE_SHA:$workflow" > /tmp/kyoto-workout-before.yml
-            python - <<'PY'
-          from pathlib import Path
-          old=Path('/tmp/kyoto-workout-before.yml').read_text()
-          new=Path('.github/workflows/kyoto-20261128-29-workout-source.yml').read_text()
-          old_pin='5855874f3f6dc9711d9b6f0444786ea2be0e05e7'
-          new_pin='bd800bc30db60919e274eadac419016c963e77de'
-          old_hook="workflows: ['Kyoto Nov28-29 independent encrypted original collection', 'Kyoto Nov28-29 afternoon auxiliary refresh']"
-          new_hook="workflows: ['Kyoto Nov28-29 independent encrypted original collection', 'Kyoto Nov28-29 afternoon auxiliary refresh']"
-          assert old.count(old_pin)==2 and old.count(old_hook)==1, 'UNEXPECTED_BASE_WORKOUT_CONTRACT'
-          assert new==old.replace(old_pin,new_pin).replace(old_hook,new_hook), 'WORKOUT_UNAPPROVED_DELTA'
-          print('WORKOUT_EXACT_CROSS_RELEASE_READER_PIN_DELTA')
-          PY
-          else
-            git diff --name-status '8813b6fccb4b236f37afb13af25084e5e8c46d31' HEAD
-            test "$(git diff --name-only '8813b6fccb4b236f37afb13af25084e5e8c46d31' HEAD | sort)" = "$(printf '%s\n' .github/workflows/kyoto-20261128-29-workout-source.yml .github/workflows/kyoto-impl33-workout-deploy-contract.yml | sort)"
-            test "$(git diff --name-only --diff-filter=MD '8813b6fccb4b236f37afb13af25084e5e8c46d31' HEAD)" = ''
-          fi
-          ruby -ryaml -e 'd=YAML.load_file(ARGV[0]); o=d["on"] || d[true]; abort unless o["schedule"].map{|s|s["cron"]} == ["30 11 27 11 *","30 22 27 11 *","30 11 28 11 *","30 22 28 11 *"]; abort unless o["workflow_run"]["branches"] == ["main"]; abort unless d["permissions"] == {"contents"=>"read","actions"=>"read"}; abort unless d["concurrency"]["cancel-in-progress"] == false; j=d["jobs"]["source-only"]; abort unless j["env"]["KYOTO_WEEKEND_HTTP_APPROVED"] == "NO"; abort unless j["env"]["KYOTO_AUX_HTTP_APPROVED"] == "NO"; abort unless j["steps"][0]["with"]["ref"] == "bd800bc30db60919e274eadac419016c963e77de"; abort unless j["steps"][0]["with"]["persist-credentials"] == false; puts "WORKOUT_CONTRACT_OK"' .github/workflows/kyoto-20261128-29-workout-source.yml
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11.18'
+      - run: python -m pip install 'PyYAML>=6,<7'
+      - name: Verify protected workout reader and dispatch-only trigger
+        run: python -m unittest -v tests.test_kyoto_impl39_native_isolation.Isolation.test_exact_live_workflow_delta tests.test_kyoto_impl39_native_isolation.Isolation.test_legacy_event_and_lock_isolation

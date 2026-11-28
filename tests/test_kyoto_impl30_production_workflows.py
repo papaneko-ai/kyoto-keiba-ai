@@ -16,7 +16,7 @@ class ProductionWorkflowContract(unittest.TestCase):
         for path in (OBS,HAND,"kyoto-20261128-29-postrace-evidence.yml","kyoto-20261128-29-auxiliary-refresh.yml","kyoto-20261128-29-workout-source.yml"):
             doc=yaml.load((ROOT/path).read_text(),Loader=yaml.BaseLoader)
             self.assertEqual(doc["run-name"],expected)
-            self.assertIn("schedule",doc["on"])
+            self.assertNotIn("schedule",doc["on"])
             self.assertIn("workflow_dispatch",doc["on"])
     def setUp(self):
         self.raw=(ROOT/OBS).read_text()
@@ -25,8 +25,8 @@ class ProductionWorkflowContract(unittest.TestCase):
         self.jobs=self.obs["jobs"]
 
     def test_actual_eight_cron_slots_and_no_pull_request_live_trigger(self):
-        self.assertEqual([x["cron"] for x in self.obs["on"]["schedule"]],EXPECTED)
-        self.assertEqual(set(self.obs["on"]),{"schedule","workflow_dispatch"})
+        self.assertNotIn("schedule",self.obs["on"])
+        self.assertEqual(set(self.obs["on"]),{"workflow_dispatch"})
         self.assertEqual(self.obs["on"]["workflow_dispatch"]["inputs"]["race_day"]["options"],["20261128","20261129"])
         self.assertEqual(self.obs["concurrency"]["cancel-in-progress"],"false")
         self.assertEqual(self.obs["concurrency"]["queue"],"max")
@@ -71,7 +71,7 @@ class ProductionWorkflowContract(unittest.TestCase):
         self.assertNotIn("SP_INDEPENDENT_OFFICIAL_R12_URL",self.raw)
 
     def test_handoff_is_evidence_only_and_scheduled_both_days(self):
-        self.assertEqual([x["cron"] for x in self.handoff["on"]["schedule"]],["0 12 28 11 *","0 12 29 11 *"])
+        self.assertNotIn("schedule",self.handoff["on"])
         self.assertEqual(self.handoff["jobs"]["authenticated-handoff"]["env"]["KYOTO_WEEKEND_HTTP_APPROVED"],"NO")
         self.assertIn("kyoto_impl25_c12_all_runs_handoff",(ROOT/HAND).read_text())
         pre=yaml.load((ROOT/PREF).read_text(),Loader=yaml.BaseLoader)
@@ -81,12 +81,11 @@ class ProductionWorkflowContract(unittest.TestCase):
         path=ROOT/"kyoto-20261128-29-postrace-evidence.yml"
         raw=path.read_text()
         doc=yaml.load(raw,Loader=yaml.BaseLoader)
-        self.assertEqual([x["cron"] for x in doc["on"]["schedule"]],
-            ["0 10 28 11 *","0 13 28 11 *","0 10 29 11 *","0 13 29 11 *"])
-        self.assertEqual(set(doc["on"]),{"schedule","workflow_dispatch"})
+        self.assertNotIn("schedule",doc["on"])
+        self.assertEqual(set(doc["on"]),{"workflow_dispatch"})
         self.assertEqual(doc["concurrency"]["cancel-in-progress"],"false")
         self.assertEqual(doc["concurrency"]["queue"],"max")
-        self.assertTrue(doc["concurrency"]["group"].startswith("kyoto-20261128-29-source-"))
+        self.assertIn("kyoto-20261128-29-source-{0}",doc["concurrency"]["group"])
         job=doc["jobs"]["postrace-source-evidence"]
         pin=self.jobs["select-collector"]["env"]["DEFAULT_COLLECTOR_SHA"]
         expected_postrace_pin="b800308169173d9e82cf93db9bf7b381e361cc76"
@@ -113,13 +112,12 @@ class ProductionWorkflowContract(unittest.TestCase):
         raw=path.read_text()
         doc=yaml.load(raw,Loader=yaml.BaseLoader)
         self.assertEqual(doc["name"],"Kyoto Nov28-29 afternoon auxiliary refresh")
-        self.assertEqual([x["cron"] for x in doc["on"]["schedule"]],
-            [f"30 {hour} {day} 11 *" for day in (28,29) for hour in (3,4,5,6)])
-        self.assertEqual([x["cron"] for x in self.obs["on"]["schedule"]],EXPECTED)
-        self.assertEqual(set(doc["on"]),{"schedule","workflow_dispatch"})
+        self.assertNotIn("schedule",doc["on"])
+        self.assertNotIn("schedule",self.obs["on"])
+        self.assertEqual(set(doc["on"]),{"workflow_dispatch"})
         self.assertEqual(doc["concurrency"]["cancel-in-progress"],"false")
         self.assertEqual(doc["concurrency"]["queue"],"max")
-        self.assertTrue(doc["concurrency"]["group"].startswith("kyoto-20261128-29-source-"))
+        self.assertIn("kyoto-20261128-29-source-{0}",doc["concurrency"]["group"])
         job=doc["jobs"]["afternoon-auxiliary-source"]
         pin=self.jobs["select-collector"]["env"]["DEFAULT_COLLECTOR_SHA"]
         expected_aux_pin="c289c5ec4e6ad322a7e08acf173da3352ed23dba"

@@ -26,5 +26,5 @@ jobs:
       - name: Verify new hook and protected original workflow bytes
         run: |
           set -euo pipefail
-          git diff --exit-code aa1b804f415869f800dc75f1087e7c607f1e9be3 HEAD -- .github/workflows/kyoto-20261128-29-two-source-production-observer.yml .github/workflows/kyoto-20261128-29-auxiliary-refresh.yml .github/workflows/kyoto-20261128-29-postrace-evidence.yml .github/workflows/kyoto-20261128-29-result-handoff.yml .github/workflows/kyoto-20261128-29-workout-source.yml
+          python -m unittest -v tests.test_kyoto_impl39_native_isolation.Isolation.test_exact_live_workflow_delta
           python -m unittest -v tests.test_kyoto_impl36_cushion_deploy
