@@ -37,7 +37,7 @@ def is_sha(v):return isinstance(v,str) and re.fullmatch(r"[a-f0-9]{64}",v) is no
 def gh(path):
     return json.loads(subprocess.check_output(["gh","api",f"repos/{REPO}/{path}"],text=True,stderr=subprocess.DEVNULL,timeout=25))
 def index(day,filename,doc):
-    if day not in DAYS or filename not in LANES:raise ValueError("invalid_index_scope")
+    if filename not in LANES or (day not in DAYS and not (filename=="workout-source.yml" and day=="20261127")):raise ValueError("invalid_index_scope")
     rows=doc["workflow_runs"]
     if type(doc["total_count"]) is not int or doc["total_count"]!=len(rows) or len(rows)>100:raise ValueError("incomplete_run_index")
     date=f"{day[:4]}-{day[4:6]}-{day[6:]}"
@@ -203,6 +203,7 @@ def review(day,now,out):
     else:summary.append("- 原本再検証未完: "+report.get("coverage_replay_error","UNKNOWN"))
     summary.append("次回前に欠落原本・実行IDから原因再現、同根探索、隔離修正、反例試験、本番SHA照合を行う。独立証明のない欠落を完了扱いしない。")
     (out/"summary.md").write_text("\n".join(summary)+"\n",encoding="utf8")
+    print("CLOSURE_REVIEW",json.dumps({"day":day,"index_errors":errors,"source_runs":sum(len(x["runs"]) for x in metadata.values()),"native_slots":sum(len(x["native_slots"]) for x in metadata.values()),"coverage_counts":report.get("coverage",{}).get("counts",{}),"coverage_replay_error":report.get("coverage_replay_error"),"full_acquisition_certified":False},sort_keys=True))
 def main():
     p=argparse.ArgumentParser();p.add_argument("--day",choices=DAYS,required=True);p.add_argument("--out",required=True);a=p.parse_args()
     if os.environ.get("GITHUB_REPOSITORY")!=REPO:raise ValueError("repo_identity")

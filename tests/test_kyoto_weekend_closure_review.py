@@ -52,6 +52,9 @@ class ClosureTests(unittest.TestCase):
   self.assertEqual(coverage_gaps(DAY,d,[1,2])["counts"]["official_payout"]["verified"],0)
  def test_workout_two_previous_utc_date_slots_and_failed_run(self):
   v=slots(DAY,"workout-source.yml",[],NOW)
+  old={**run(),"path":PREFIX+"workout-source.yml","created_at":"2026-11-27T11:32:00Z","name":"kyoto-native:30 11 27 11 *"}
+  self.assertEqual(len(index("20261127","workout-source.yml",{"total_count":1,"workflow_runs":[old]})),1)
+  with self.assertRaises(ValueError):index("20261127",FILE,{"total_count":0,"workflow_runs":[]})
   self.assertEqual([x["due_utc"] for x in v],["2026-11-28T11:30:00+00:00","2026-11-28T22:30:00+00:00"])
   r=run();r["conclusion"]="failure"
   v=slots(DAY,FILE,index(DAY,FILE,{"total_count":1,"workflow_runs":[r]}),NOW)
