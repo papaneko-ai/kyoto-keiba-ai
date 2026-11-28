@@ -14,7 +14,7 @@ def find_market_links(raw,*,expected_race_day,expected_race_number,expected_host
         raise MarketNavigationError("invalid_original_html")
     if not re.fullmatch(r"20\d{6}",expected_race_day) or not 1<=expected_race_number<=12:
         raise MarketNavigationError("invalid_race_identity")
-    if expected_host not in ("jra.jp","sp.jra.jp","app.jra.jp"):
+    if expected_host not in ("jra.jp","www.jra.go.jp","sp.jra.jp","app.jra.jp"):
         raise MarketNavigationError("unapproved_market_host")
     soup=BeautifulSoup(raw.decode("cp932",errors="replace"),"html.parser")
     if not soup.title or "オッズ" not in soup.title.get_text():

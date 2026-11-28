@@ -30,7 +30,7 @@ def observed_links(original, parent):
             q = parse_qs(target.query, strict_parsing=True)
         except ValueError:
             continue
-        if (target.scheme != "https" or target.hostname != "jra.jp"
+        if (target.scheme != "https" or target.hostname not in ("jra.jp","www.jra.go.jp") or (target.hostname=="www.jra.go.jp" and urlsplit(parent).hostname!="www.jra.go.jp")
             or target.port is not None or target.username or target.password
             or target.path != "/JRADB/accessD.html" or target.fragment
             or set(q) != {"CNAME"} or len(q["CNAME"]) != 1

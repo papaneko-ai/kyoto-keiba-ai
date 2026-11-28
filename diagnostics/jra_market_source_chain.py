@@ -9,6 +9,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from hashlib import sha256
 import re
+from urllib.parse import urlsplit
 from diagnostics.jra_official_market_navigation import find_market_links
 from diagnostics.jra_odds_matrix_parser import parse_matrix
 from diagnostics.jra_market_integrity_gate import MarketEvidence,check
@@ -32,6 +33,8 @@ def audit_source_originals(menu_raw,market_raw,market_urls,*,race_key,
     if not _html_race_identity(menu_raw,race_day,venue,race_number):
         raise SourceChainError("menu_race_identity_not_proven")
     official_host="sp.jra.jp" if channel=="SP" else "jra.jp"
+    if channel=="PC" and race_day=="20261129" and all(isinstance(market_urls.get(m),str) and urlsplit(market_urls[m]).hostname=="www.jra.go.jp" for m in ("quinella","bracket_quinella")):
+        official_host="www.jra.go.jp"
     links=find_market_links(menu_raw,expected_race_day=race_day,
                             expected_race_number=race_number,expected_host=official_host)
     if len(active_runners)<2 or len({n for n,f in active_runners})!=len(active_runners):
