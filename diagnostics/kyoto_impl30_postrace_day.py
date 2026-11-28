@@ -16,7 +16,7 @@ from diagnostics.jra_market_integrity_gate import utc
 
 MENU={'results':('/JRADB/accessS.html','レース結果'),'payout':('/JRADB/accessH.html','払戻金')}
 HOST='https://jra.jp'
-ACTION=re.compile(r"(?:return\s+)?doAction\s*\(\s*['\"](/JRADB/access[SH]\.html)['\"]\s*,\s*['\"](pw[0-9A-Za-z]+/[0-9A-Za-z]+)['\"]\s*\)\s*;?",re.I)
+ACTION=re.compile(r"(?:return\s+)?doAction\s*\(\s*['\"](/JRADB/access[SH]\.html)['\"]\s*,\s*['\"](pw[0-9A-Za-z]+/[0-9A-Za-z]+)['\"]\s*\)\s*;?\s*(?:return\s+false\s*;?)?",re.I)
 LIMIT=1_500_000
 
 class PostraceRejected(ValueError):pass
@@ -34,7 +34,7 @@ def observed_actions(raw,path,*,origin=HOST):
         if act and act.group(1)==path:found.add((label,act.group(2),'POST',origin+path))
         href=a.get('href','')
         u=urlsplit(urljoin(origin,href));q=parse_qs(u.query)
-        if u.scheme=='https' and u.netloc==urlsplit(origin).netloc and u.path==path and not u.fragment and set(q)=={'CNAME'} and len(q['CNAME'])==1 and re.fullmatch(r'pw[0-9A-Za-z]+/[0-9A-Za-z]+',q['CNAME'][0]):
+        if u.scheme=='https' and u.netloc in ('jra.jp','www.jra.go.jp') and u.path==path and not u.fragment and set(q)=={'CNAME'} and len(q['CNAME'])==1 and re.fullmatch(r'pw[0-9A-Za-z]+/[0-9A-Za-z]+',q['CNAME'][0]):
             found.add((label,q['CNAME'][0],'GET',u.geturl()))
     return sorted(found)
 
