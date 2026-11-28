@@ -159,6 +159,51 @@ def inspect_source(root,day,lane):
     else:raise ValueError("unsupported_lane")
     return {"ciphertext_authenticated":True,"receipt_state":fields(receipt),"files":files,"stages":stages,"incidents":incidents,
             "source_claims_independently_certified":False}
+def replay_adaptive(root,day,lane,repair):
+    """Re-open original bytes, search candidates and compare any applied proof.
+    
+    No network; no claims of root-cause closure or future live success.
+    Record even rejected searches so unknown structure does not disappear.
+    """
+    root=Path(root);receipt=load(root,"receipt.json");tasks=[]
+    if lane in ("pc","auxiliary"):
+        claims=receipt.get("adaptive_navigation_repairs",[])
+        if not isinstance(claims,list):raise ValueError("repair_claims_invalid")
+        if any(not isinstance(x,dict) or x.get("stage") not in ("entry","meeting") for x in claims) or len({x["stage"] for x in claims})!=len(claims):
+            raise ValueError("repair_claims_ambiguous")
+        for stage,name,next_name in (("entry","official_pc_navigation_home.html","official_selection.html"),("meeting","official_selection.html","official_meeting.html")):
+            claim=next((x for x in claims if x["stage"]==stage),None)
+            if claim is not None or (root/name).is_file() and not (root/next_name).is_file():tasks.append((stage,name,"PC",claim))
+    elif lane=="sp":
+        discovery=load(root,"sp_discovery_receipt.json")
+        counts=discovery.get("per_race_observed_navigation_candidates",{})
+        incomplete=not isinstance(counts,dict) or not all(isinstance(counts.get(str(n)),dict) and counts[str(n)].get("candidate_count")==1 for n in range(1,13))
+        for row in discovery.get("attempts",[])[:6]:
+            if not isinstance(row,dict):continue
+            name=row.get("file","")
+            if not re.fullmatch(r"official_sp_discovery_[1-6]\.html",name):continue
+            claim=row.get("adaptive_navigation_repair")
+            if claim is not None or incomplete:
+                tasks.append(("entry" if row.get("url")=="https://sp.jra.jp/" else "meeting",name,"SP",claim))
+    result=[]
+    for stage,name,channel,claim in tasks:
+        row={"stage":stage,"file":name,"channel":channel,"recorded_repair":claim is not None,"root_cause_closed":False}
+        try:
+            p=root/name
+            if not p.is_file() or p.is_symlink() or not 0<p.stat().st_size<=1_500_000:raise ValueError("repair_original_missing")
+            raw=p.read_bytes();row["source_sha256"]=digest(raw)
+            _,_,_,proof=repair(raw,day,channel,stage)
+            if proof.get("source_sha256")!=row["source_sha256"] or proof.get("stage")!=stage or proof.get("channel")!=channel or proof.get("day")!=day or proof.get("parser_agreement") is not True or proof.get("counterexamples_rejected") is not True:
+                raise ValueError("repair_proof_identity_mismatch")
+            if claim is not None and proof!=claim:
+                row["state"]="RECORDED_REPAIR_MISMATCH"
+            else:
+                row.update(state="APPLIED_REPAIR_REPRODUCED" if claim is not None else "LOCAL_CANDIDATE_VERIFIED_NOT_APPLIED",rule_sha256=proof["rule_sha256"],action_sha256=proof["action_sha256"],rule=proof["rule"])
+        except Exception as exc:
+            row.update(state="REPAIR_SEARCH_UNRESOLVED",error_code=label(str(exc)),error_class=label(type(exc).__name__))
+        result.append(row)
+    return result
+
 def workout(root,day,rid,key):
     from cryptography.hazmat.primitives.ciphers.aead import AESGCM
     root=Path(root);d=load(root,"receipt.json")
@@ -236,6 +281,13 @@ def diagnose_run(rid,reader,cushion_reader):
                 else:
                     read_aes(cushion_reader if lane=="cushion" else reader,cipher,raw,day,rid,key)
                     meta.update(inspect_source(raw,day,lane))
+                    if lane in ("pc","sp","auxiliary"):
+                        try:
+                            spec=importlib.util.spec_from_file_location("trusted_adaptive_repair",Path(reader)/"diagnostics/kyoto_adaptive_repair.py")
+                            mod=importlib.util.module_from_spec(spec);spec.loader.exec_module(mod)
+                            meta["adaptive_repair_replay"]=replay_adaptive(raw,day,lane,mod.recover_action)
+                        except Exception as exc:
+                            meta["adaptive_repair_replay_error"]=label(type(exc).__name__)
                 meta["artifact_authenticated"]=meta.get("ciphertext_authenticated") is True
         except Exception as exc:
             meta.update(error_class=label(type(exc).__name__),error_code=label(str(exc)),incidents=[{"stage":"ARCHIVE","cause_status":"ROOT_CAUSE_NOT_YET_PROVED","root_cause_closed":False,"diagnostic_action":REPAIR["ARCHIVE"][0],"repair_direction":REPAIR["ARCHIVE"][1],"required_regression":REPAIR["ARCHIVE"][2]}])
@@ -252,6 +304,10 @@ def write_report(report,out):
         for i in m.get("incidents",[]):
             lines.append(f"- {i['stage']} / {i.get('code','UNKNOWN')} / {i['cause_status']} / blocked_by={i.get('blocked_by')}")
             lines.append(f"  - 再現: {i['diagnostic_action']} → 修正: {i['repair_direction']} → 検証: {i['required_regression']}")
+        for r in m.get("adaptive_repair_replay",[]):
+            lines.append(f"- 自動修復再検証: {r['stage']} / {r['state']} / 原本 {r.get('source_sha256','UNKNOWN')} / 規則 {r.get('rule_sha256','UNKNOWN')} / {r.get('error_code','')}")
+        if m.get("adaptive_repair_replay_error"):
+            lines.append("- 自動修復再検証自体が失敗: "+m["adaptive_repair_replay_error"])
         if not m.get("incidents"):lines.append("- 診断対象の欠落未検出（全取得成功の認定ではない）")
     # The durable comment retains stage worklists plus exact archive references;
     # full per-item evidence stays in the separately uploaded JSON.

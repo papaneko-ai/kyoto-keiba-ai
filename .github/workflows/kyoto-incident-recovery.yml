@@ -60,7 +60,7 @@ jobs:
           persist-credentials: false
       - uses: actions/checkout@v4
         with:
-          ref: '4dc34085eb9d9e10c88329ddf7d2933aec5e9958'
+          ref: 'f88f55c46ec03749dc71329abddb5c75f79d68a1'
           path: trusted-reader
           persist-credentials: false
       - uses: actions/checkout@v4

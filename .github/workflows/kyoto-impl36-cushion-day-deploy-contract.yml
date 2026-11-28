@@ -35,7 +35,7 @@ jobs:
           # reviewed exact incident repair; cushion sidecar and schedules stay byte-identical.
           base='5a7378a9b0a6c078c65d0c9b51cb8d3b2852a46e'
           old_pin=b'15d66874903400e50c4a4350b34aed42133a3738'
-          new_pin=b'248465ec88fd626df21ba13e25ec9344db7f9eb6'
+          new_pin=b'f88f55c46ec03749dc71329abddb5c75f79d68a1'
           saturday=b'3f4b3d77357745ead05a9f78db34eb6ac2d78637'
           names=('two-source-production-observer','auxiliary-refresh','result-handoff','postrace-evidence','workout-source','cushion-source')
           for name in names:
@@ -58,7 +58,7 @@ jobs:
                   expected=expected.replace(b"test \"$(git rev-parse HEAD)\" = '"+saturday+b"'",b'test "$(git rev-parse HEAD)" = "$(if [ "$KYOTO_TARGET_DAY" = 20261129 ]; then echo '+new_pin+b'; else echo '+saturday+b'; fi)"')
               elif name=='postrace-evidence':
                   old_postrace=b'1fa2a43fcd17f5100b0b9b9b3dde43dec5a2981f'
-                  new_postrace=b'4dc34085eb9d9e10c88329ddf7d2933aec5e9958'
+                  new_postrace=b'f88f55c46ec03749dc71329abddb5c75f79d68a1'
                   assert old.count(old_postrace)==2
                   expected=old.replace(old_postrace,new_postrace)
               assert new==expected,(name,'unexpected production delta')
