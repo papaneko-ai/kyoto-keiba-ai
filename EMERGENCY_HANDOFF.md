@@ -102,3 +102,7 @@
 ## 10. E38-159-01 再開・実原本比較着手（2026-11-28 JST）
 - main 1fed7e79796d91de76d2c5f85486f6625d69ef3f、再開正本旧HEAD 7d621799e50eb3a293dd41cda0868169109bda0e、#141/#116の本文・全コメント、#159 HEAD c3b15355ba5a184e22cd87c34bc645538ce33200 を照合。#159 CI4/4成功、preflight job 140887300165 のexact checkoutと延べ818試験（410+11+135+39+80+44+79+20）成功をログ確認。成功試験の再実行なし。
 - P0-1実原本: run 46112551733、artifact 15250785307、digest sha256:444a678b0c8a98f475b369bd3acd858b3be96e1adf64527bc8ca5f4adf780b2c、mainの正規午後workflowをAPIで照合。基準 ba7d5bb4c05698dfb92119460b45e730b5eb512b と#159 exact候補の独立同一原本比較を隔離PRで行う。既存AES鍵のGitHub内限定利用、原本/鍵/氏名出力なし、JRA通信なし。検査専用ブランチ repair/impl38-actual-aux-replay-base-20261128 / repair/impl38-actual-aux-replay-20261128 を予定。認証・G03・adapterの理由コード・日次coverage・夕方入力を個別確認。main/予約/Secrets/Turso変更なし。調教・クッション・日次統合は既存成果を再利用。固定25リスク0/25、最終検査未合格。
+
+## 11. E38-160-02 実原本比較の隔離実行
+- PR #160（診断専用、mainマージ禁止）、HEAD 9885c943716e23927a445f34e11d79e2b6db0f46、run 46115746435 / job 140889067752 を起動。原本run/ID/digest照合と同一暗号化artifact取得は成功。旧/候補の独立認証、G03・adapter・coverage・夕方補完の数値のみ比較中。鍵・平文はGitHub runner内の一時領域のみ、JRA通信なし。未完のため原因閉鎖なし。
+- 本番候補の必要差分: #159を採用する場合、日曜朝・午後・結果・handoffの4pin、独立検査/診断readerのpin、exact preflight receipt (run46115187068/job140887300165/artifact15251670211/digest fc59b385e6e45d44d0392257568fb51b1a579221753144025a87752388842d48)、FMEA register blob 3acb52965375909ea97b50d7f37a7633bd5456d1 と検査契約のみ同期。土曜朝・調教・クッション・日次sidecar・予約等を維持。旧本番main 1fed7e79796d91de76d2c5f85486f6625d69ef3f。承認待ちのmain PRはまだ作成していない。
