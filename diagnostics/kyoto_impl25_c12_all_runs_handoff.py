@@ -31,6 +31,27 @@ def _day(timestamp):
 def _date(day):
     return f"{day[:4]}-{day[4:6]}-{day[6:]}"
 
+def run_name_matches(run,name,filename,day):
+    """Match workflow name or exact main-branch run-name from protected cron.
+    
+    GitHub API returns run-name, not the workflow display name. A nonlegacy
+    title must bind the exact workflow path, main branch, event and day.
+    """
+    if run.get("name")==name:
+        return True
+    if day not in ("20261128","20261129") or str(run.get("path","")).split("@",1)[0]!=".github/workflows/"+filename or run.get("head_branch")!="main" or _day(run.get("created_at"))!=_date(day):
+        return False
+    event=run.get("event")
+    dd=day[-2:]
+    slots={
+        "kyoto-20261128-29-two-source-production-observer.yml":("15 0","15 1","5 2","50 2") if dd=="28" else ("15 0","15 1","10 2","55 2"),
+        "kyoto-20261128-29-auxiliary-refresh.yml":("30 3","30 4","30 5","30 6"),
+        "kyoto-20261128-29-result-handoff.yml":("0 12",),
+    }
+    if filename not in slots:return False
+    if event=="workflow_dispatch":return run.get("name")=="workflow_dispatch"
+    return event=="schedule" and run.get("name") in {f"kyoto-native:{s} {dd} 11 *" for s in slots[filename]}
+
 def _safe_run(run):
     return {"id":run.get("id"),"event":run.get("event"),
             "created_at":run.get("created_at"),
@@ -42,7 +63,7 @@ def summarize(day, entries, *, total_count=None, pagination_complete=True):
     """Fail closed on malformed/partial listings; never infer market success."""
     if day not in WEEKENDS:
         raise HandoffRejected("c12_only_20261121_or_nov28_29")
-    workflow,_,next_day=WEEKENDS[day]
+    workflow,filename,next_day=WEEKENDS[day]
     if not isinstance(entries,list) or type(pagination_complete) is not bool:
         raise HandoffRejected("invalid_run_index")
     seen=set()
@@ -57,7 +78,7 @@ def summarize(day, entries, *, total_count=None, pagination_complete=True):
         if run["id"] in seen:
             raise HandoffRejected("duplicate_run_identity")
         seen.add(run["id"])
-        if run.get("name")!=workflow or _day(run.get("created_at"))!=_date(day):
+        if not run_name_matches(run,workflow,filename,day) or _day(run.get("created_at"))!=_date(day):
             raise HandoffRejected("workflow_or_day_identity_mismatch")
         if run.get("event")!="schedule":
             excluded.append({"run_id":run["id"],"event":run.get("event"),"reason":"NON_SCHEDULED_RUN"})
