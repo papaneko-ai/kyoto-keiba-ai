@@ -4,7 +4,7 @@ Trusted checkout only. Source archives are authenticated by the existing reader.
 No original plaintext, credentials, URL, token or arbitrary exception text is
 published. Receipt observations do not certify JRA provenance or model readiness.
 """
-import argparse, hashlib, importlib.util, json, os, re, subprocess, tempfile
+import argparse, hashlib, importlib.util, json, os, re, subprocess, tempfile, sys
 from pathlib import Path
 from datetime import datetime, timezone
 from diagnostics.kyoto_job_artifact_state import classify_artifact, SKIPPED
@@ -82,7 +82,59 @@ def inventory(root):
             utc=stamp(row.get("captured_at_utc"))
             if utc:rows[row["filename"]]["receipt_utc"]=utc
     return rows
-def inspect_source(root,day,lane):
+G05_COURSE_FIELDS=("weather","turf_going","dirt_going","turf_moisture_finish_pct","turf_moisture_turn4_pct","dirt_moisture_finish_pct","dirt_moisture_turn4_pct")
+def review_g05_originals(root,day,reader):
+    # Exact reader is checked out by the existing production workflow. Keep
+    # secret/env data out of the helper and never expose its stdout on errors.
+    try:
+        reader=Path(reader).resolve()
+        actual=subprocess.check_output(["git","rev-parse","HEAD"],cwd=reader,text=True,stderr=subprocess.DEVNULL,timeout=5).strip()
+        if actual!=READER_SHA:raise ValueError("reader_revision_mismatch")
+        script=Path(__file__).with_name("kyoto_incident_g05_replay.py").resolve()
+        env={"PATH":os.environ.get("PATH",""),"PYTHONPATH":str(reader),"PYTHONUTF8":"1","KYOTO_TARGET_DAY":day}
+        raw=subprocess.check_output([sys.executable,str(script),str(Path(root).resolve()),day],cwd=reader,env=env,stderr=subprocess.DEVNULL,timeout=30)
+        if len(raw)>100000:raise ValueError("replay_output_too_large")
+        data=json.loads(raw)
+        if data.get("replay_complete") is not True:raise ValueError("replay_incomplete")
+        return data
+    except Exception:
+        return {"replay_complete":False,"error_code":"G05_INDEPENDENT_REPLAY_UNAVAILABLE"}
+
+def g05_gap_details(lane,receipt,review):
+    targets=list(range(1,13)) if lane=="pc" else receipt.get("target_races")
+    target_ok=isinstance(targets,list) and all(type(n) is int and 1<=n<=12 for n in targets) and len(targets)==len(set(targets))
+    targets=sorted(targets) if target_ok else []
+    review=review if isinstance(review,dict) else {}
+    replay_ok=review.get("replay_complete") is True
+    verified=review.get("verified_races",[])
+    rows=review.get("race_rows",{})
+    if not isinstance(verified,list) or not isinstance(rows,dict):replay_ok=False;verified=[];rows={}
+    verified=sorted({n for n in verified if type(n) is int and 1<=n<=12 and str(n) in rows})
+    missing_targets=[n for n in targets if n not in verified]
+    course=review.get("course_observed",[])
+    if not isinstance(course,list):replay_ok=False;course=[]
+    course=[k for k in G05_COURSE_FIELDS if k in course]
+    course_missing=[k for k in G05_COURSE_FIELDS if k not in course]
+    race_gaps={}
+    for n in targets:
+        if n not in verified:continue
+        row=rows[str(n)]
+        if not isinstance(row,dict):race_gaps[str(n)]={"state":"FIELD_REPLAY_UNAVAILABLE"};continue
+        active=row.get("active_horses")
+        keys=("missing_body_weight_kg","missing_body_weight_change_kg","missing_race_conditions")
+        if type(active) is not int or not 1<=active<=18 or any(not isinstance(row.get(k),list) for k in keys):
+            race_gaps[str(n)]={"state":"FIELD_REPLAY_UNAVAILABLE"};continue
+        if any(row[k] for k in keys):
+            race_gaps[str(n)]={k:row[k] for k in keys if row[k]}
+    # No unverified/empty target list can silently turn partial acquisition
+    # into success. This is a gap diagnostic, not a claim of provider failure.
+    complete=bool(replay_ok and target_ok and targets and not missing_targets and not course_missing and not race_gaps)
+    return complete,{"replay_complete":replay_ok,"target_inventory_known":bool(target_ok and targets),
+                    "target_races":targets,"independently_verified_races":verified,"missing_target_races":missing_targets,
+                    "course_observed_fields":course,"course_missing_fields":course_missing,
+                    "race_field_gaps":race_gaps,"missingness_is_not_root_cause_proof":True}
+
+def inspect_source(root,day,lane,field_review=None):
     root=Path(root);files=inventory(root);receipt=load(root,"receipt.json")
     if receipt.get("day")!=day:raise ValueError("receipt_day_mismatch")
     stages=[];incidents=[]
@@ -109,15 +161,6 @@ def inspect_source(root,day,lane):
         for k in ("error_code","error_class","failure_reason","reason","error"):
             if isinstance(d.get(k),str):return label(d[k])
         return None
-    def track_observed(track):
-        raw=files.get("g05_official_kyoto_track.html",{})
-        return (track.get("schema")=="kyoto_g05_kyoto_track.v1" and track.get("day")==day
-                and track.get("same_day_official_meeting_heading_verified") is True
-                and track.get("source_url") in ("https://www.jra.go.jp/keiba/baba/index2.html","https://jra.jp/keiba/baba/index2.html")
-                and bool(raw) and track.get("source_sha256")==raw.get("sha256")
-                and track.get("bytes")==raw.get("bytes")
-                and any(track.get(k) is not None for k in ("weather","turf_going","dirt_going",
-                       "turf_moisture_finish_pct","turf_moisture_turn4_pct","dirt_moisture_finish_pct","dirt_moisture_turn4_pct")))
     if receipt.get("schema")=="kyoto_archive_salvage.v1":
         saved=receipt.get("saved_originals")
         rejected=receipt.get("rejected_members")
@@ -139,7 +182,11 @@ def inspect_source(root,day,lane):
             if isinstance(r,dict) and r.get("profile_verified") is not True:missing.append(fields(r))
         stage("G04",g04.get("all_profiles_parsed") is True and len(good03)==12 and not missing,{"counts":fields(g04),"missing_profiles":missing[:216]},blocked="G03" if not good03 else None,evidence=("g04_receipt.json",))
         g05=load(root,"g05_receipt.json");track=load(root,"g05_track_receipt.json")
-        stage("G05",bool(g05) and track_observed(track),{"conditions":fields(g05),"track":fields(track),"track_independent_of_g03":True,"track_original_bound_observation":track_observed(track)},code(track),evidence=("g05_receipt.json","g05_track_receipt.json","g05_official_kyoto_track.html"))
+        g05_ok,gaps=g05_gap_details("pc",receipt,field_review)
+        stage("G05",g05_ok,{"conditions":fields(g05),"track":fields(track),"track_independent_of_g03":True,
+              "track_original_bound_observation":bool(gaps["course_observed_fields"]),"field_review":gaps},
+              code(track) or (None if g05_ok else "G05_SOURCE_FIELD_GAPS" if gaps["replay_complete"] else "G05_INDEPENDENT_REPLAY_UNAVAILABLE"),
+              evidence=("g05_receipt.json","g05_track_receipt.json","g05_official_kyoto_track.html","g03_receipt.json"))
         c11=load(root,"c11_per_family_source_proof.json");market={}
         for n,v in c11.get("races",{}).items():
             if str(n) in {str(k) for k in range(1,13)} and isinstance(v,dict):market[str(n)]=fields(v.get("g06",{}))
@@ -166,7 +213,11 @@ def inspect_source(root,day,lane):
         stage("SP_CAPTURE",all(both.values()),{"race_states":r,"all_three_originals_present":both},blocked="SP_DISCOVERY" if not any(v==1 for v in counts.values()) else None,evidence=("sp_all12_receipt.json",))
     elif lane=="auxiliary":
         track=load(root,"g05_track_receipt.json")
-        stage("AUXILIARY",bool(receipt.get("verified_races")) and track_observed(track),{"receipt":fields(receipt),"track":fields(track),"track_original_bound_observation":track_observed(track)},code(track) or code(receipt),evidence=("receipt.json","g03_receipt.json","g05_receipt.json","g05_track_receipt.json","g05_official_kyoto_track.html"))
+        ok,gaps=g05_gap_details("auxiliary",receipt,field_review)
+        stage("AUXILIARY",ok,{"receipt":fields(receipt),"track":fields(track),
+              "track_original_bound_observation":bool(gaps["course_observed_fields"]),"field_review":gaps},
+              code(track) or code(receipt) or (None if ok else "AUXILIARY_SOURCE_FIELD_GAPS" if gaps["replay_complete"] else "G05_INDEPENDENT_REPLAY_UNAVAILABLE"),
+              evidence=("receipt.json","g03_receipt.json","g05_receipt.json","g05_track_receipt.json","g05_official_kyoto_track.html"))
     elif lane=="postrace":
         r=rows(receipt)
         present={str(n):f"r{n:02d}_result.html" in files for n in range(1,13)}
@@ -307,7 +358,8 @@ def diagnose_run(rid,reader,cushion_reader):
                 if lane=="workout":meta.update(workout(cipher,day,rid,key))
                 else:
                     read_aes(cushion_reader if lane=="cushion" else reader,cipher,raw,day,rid,key)
-                    meta.update(inspect_source(raw,day,lane))
+                    field_review=review_g05_originals(raw,day,reader) if lane in ("pc","auxiliary") else None
+                    meta.update(inspect_source(raw,day,lane,field_review=field_review))
                     if lane in ("pc","sp","auxiliary"):
                         try:
                             spec=importlib.util.spec_from_file_location("trusted_adaptive_repair",Path(reader)/"diagnostics/kyoto_adaptive_repair.py")
