@@ -53,4 +53,36 @@ class Tests(unittest.TestCase):
             file.write_text(json.dumps(data))
             with self.assertRaisesRegex(SourceChainError,"filename"):
                 records_from_g03(root,day=DAY)
+    def test_both_weekend_days_exact_canonical_origin_and_negative_boundaries(self):
+        from dataclasses import replace
+        from datetime import date
+        from diagnostics.jra_one_shot_market_capture import ObservedRaceSpec
+        from diagnostics.jra_market_integrity_gate import normal_sales_open
+        for day in ("20261128","20261129"):
+            iso=f"{day[:4]}-{day[4:6]}-{day[6:]}"
+            opened=normal_sales_open(date.fromisoformat(iso)).isoformat()
+            spec=ObservedRaceSpec(day,11,iso+"_KYOTO_11R","京都",
+                f"https://www.jra.go.jp/JRADB/accessD.html?CNAME=pw01dde01082026050111{day}/AA","",opened)
+            self.assertIs(spec.validate(require_channels=("PC",)),spec)
+            legacy=replace(spec,pc_racecard_url=spec.pc_racecard_url.replace("www.jra.go.jp","jra.jp"))
+            self.assertIs(legacy.validate(require_channels=("PC",)),legacy)
+            for bad in (spec.pc_racecard_url.replace("www.jra.go.jp","www.jra.go.jp.evil.test"),
+                        spec.pc_racecard_url.replace("https:","http:"),
+                        spec.pc_racecard_url.replace("www.jra.go.jp","www.jra.go.jp:443"),
+                        spec.pc_racecard_url.replace("/JRADB/accessD.html","/JRADB/accessO.html"),
+                        spec.pc_racecard_url.replace(day,"20261121")):
+                with self.assertRaises(SourceChainError):
+                    replace(spec,pc_racecard_url=bad).validate(require_channels=("PC",))
+            with tempfile.TemporaryDirectory() as td:
+                root=Path(td)/"source";build(root)
+                file=root/"g03_receipt.json";doc=json.loads(file.read_text())
+                doc["day"]=day;doc["races"]["11"]["source_url"]=spec.pc_racecard_url
+                doc["races"]["11"]["captured_at_utc"]=iso+"T04:00:00Z"
+                file.write_text(json.dumps(doc))
+                self.assertIsNotNone(records_from_g03(root,day=day)[11])
+                doc["races"]["11"]["captured_at_utc"]=iso+"T07:00:00Z"
+                file.write_text(json.dumps(doc))
+                rejected={}
+                self.assertIsNone(records_from_g03(root,day=day,skip_invalid_races=True,rejections=rejected)[11])
+                self.assertEqual(rejected["11"]["reason_code"],"g03_original_not_before_start")
 if __name__=="__main__":unittest.main()
