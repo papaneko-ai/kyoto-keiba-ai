@@ -106,6 +106,7 @@ def parse(raw, day, race, url, utc):
              "profile_navigation":row["horse_profile_href"],
              "past_race_dates":row["past_race_dates"],
              "permanent_id":None,
+             **({"cancelled":True,"number_evidence":row["number_evidence"]} if row.get("cancelled") else {}),
              "current_jockey":assigned.get(row["horse_number"],(None,None))[0],
              "current_jockey_source_verified":bool(assigned.get(row["horse_number"],(None,None))[0]),
              "assigned_weight_kg":assigned.get(row["horse_number"],(None,None))[1]} for row in rows]
