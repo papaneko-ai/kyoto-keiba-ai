@@ -57,6 +57,30 @@ class NextDay(unittest.TestCase):
             self.assertEqual(recover(SOURCE_DAY,repo=REPO,collector_sha=SHA,key=KEY)[0],"BASELINE")
             r["day_source_coverage"]["totals"]["profile"]=1
             self.assertEqual(recover(TARGET_DAY,repo=REPO,collector_sha=SHA,key=KEY)[0],"BASELINE")
+    def test_exact_saturday_signer_survives_verified_sunday_upgrade(self):
+        from diagnostics.kyoto_impl30_nextday_adaptation import SATURDAY_HANDOFF_COLLECTOR
+        r=saturday(paired=2)
+        run={"id":101,"name":NAME,"created_at":"2026-11-28T12:00:00Z","event":"schedule","status":"completed","conclusion":"success","head_repository":{"full_name":REPO},"path":".github/workflows/"+WORKFLOW}
+        def api(args,**kw):
+            ep=args[-1]
+            if WORKFLOW in ep:return json.dumps({"total_count":1,"workflow_runs":[run]})
+            if "/artifacts?" in ep:return json.dumps({"total_count":1,"artifacts":[{"name":"kyoto-handoff-101-20261128","expired":False}]})
+            return json.dumps({"total_count":0,"workflow_runs":[]})
+        for signer,expected in ((SATURDAY_HANDOFF_COLLECTOR,"MARKET_OR_ROSTER_RECOVERY"),("c"*40,"BASELINE")):
+            doc=make(r,repo=REPO,run_id=101,collector_sha=signer,key=KEY)
+            def download(args,**kw):
+                root=Path(args[-1]);(root/"report.json").write_text(json.dumps(r));(root/"nextday_policy.json").write_text(json.dumps(doc))
+            with patch("diagnostics.kyoto_impl30_nextday_adaptation.subprocess.check_output",side_effect=api),patch("diagnostics.kyoto_impl30_nextday_adaptation.subprocess.run",side_effect=download):
+                self.assertEqual(recover(TARGET_DAY,repo=REPO,collector_sha=SHA,key=KEY)[0],expected)
+    def test_real_zero_coverage_incident_not_masked_by_green_job_status(self):
+        from diagnostics.kyoto_impl30_nextday_adaptation import recover_from_metadata,NOV28_INCIDENT_RUN_IDS,OBSERVER,OBSERVER_NAME
+        rows=[{"id":i,"name":OBSERVER_NAME,"created_at":"2026-11-28T03:00:00Z","event":"workflow_dispatch","head_branch":"main","status":"completed","conclusion":"success","head_repository":{"full_name":REPO},"path":".github/workflows/"+OBSERVER} for i in NOV28_INCIDENT_RUN_IDS]
+        def api(ep):
+            if "/workflows/" in ep:return {"total_count":len(rows),"workflow_runs":rows}
+            return {"total_count":0,"jobs":[]}
+        self.assertEqual(recover_from_metadata(api,REPO),("MARKET_OR_ROSTER_RECOVERY","NOV28_AUTHENTICATED_SOURCE_GAP_INCIDENT_141"))
+        rows.pop()
+        self.assertEqual(recover_from_metadata(api,REPO)[0],"BASELINE")
     def test_unavailable_github_does_not_veto(self):
         with patch("diagnostics.kyoto_impl30_nextday_adaptation.subprocess.check_output",side_effect=OSError):
             self.assertEqual(recover(TARGET_DAY,repo=REPO,collector_sha=SHA,key=KEY)[0],"BASELINE")
