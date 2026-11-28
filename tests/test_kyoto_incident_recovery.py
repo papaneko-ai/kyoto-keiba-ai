@@ -65,4 +65,37 @@ class IncidentRecoveryTests(unittest.TestCase):
   self.assertEqual(run_identity(r,7)[1:],(("pc","sp"),("20261128",)))
   for k,v in (("head_branch","other"),("head_repository",{"full_name":"other/repo"}),("created_at","2026-11-30T00:00:00Z"),("path",".github/workflows/other.yml")):
    with self.assertRaises(ValueError):run_identity({**r,k:v},7)
+ def test_real_skipped_cushion_producer_records_no_archive_loss(self):
+  from unittest.mock import patch
+  from diagnostics.kyoto_incident_recovery import diagnose_run,write_report
+  for rid,jid in ((46096556814,140829114593),(46100220249,140840732210),(46108030052,140865067475)):
+   run={"id":rid,"head_branch":"main","head_repository":{"full_name":REPO},"status":"completed","event":"workflow_run","path":".github/workflows/kyoto-20261128-29-cushion-source.yml","head_sha":"a"*40,"created_at":"2026-11-28T03:00:00Z"}
+   job={"id":jid,"run_id":rid,"name":"cushion-source-only","status":"completed","conclusion":"skipped","steps":None}
+   with self.subTest(run=rid),patch("diagnostics.kyoto_incident_recovery.gh",side_effect=[run,{"total_count":1,"jobs":[job]},{"total_count":0,"artifacts":[]}]),patch("diagnostics.kyoto_incident_recovery.subprocess.run") as download:
+    report=diagnose_run(rid,"unused","unused")
+    lane=report["lanes"]["cushion"]
+    self.assertEqual(lane["source_acquisition_state"],"PRODUCER_NOT_EXECUTED_SKIP_REASON_UNVERIFIED")
+    self.assertEqual(lane["artifact_evidence"]["job_id"],jid)
+    self.assertFalse(lane["artifact_evidence"]["skip_reason_verified"])
+    self.assertFalse(lane["artifact_authenticated"])
+    self.assertFalse(report["jobs"][0]["steps_available"])
+    self.assertEqual(lane["incidents"],[])
+    download.assert_not_called()
+    with tempfile.TemporaryDirectory() as td:
+     write_report(report,td)
+     summary=(Path(td)/"summary.md").read_text()
+     self.assertIn("スキップ",summary)
+     self.assertNotIn("欠落未検出",summary)
+ def test_non_skipped_missing_archive_still_reported(self):
+  from unittest.mock import patch
+  from diagnostics.kyoto_incident_recovery import diagnose_run
+  rid=46108030052
+  run={"id":rid,"head_branch":"main","head_repository":{"full_name":REPO},"status":"completed","event":"workflow_run","path":".github/workflows/kyoto-20261128-29-cushion-source.yml","head_sha":"a"*40,"created_at":"2026-11-28T03:00:00Z"}
+  for conclusion in ("success","failure","cancelled"):
+   job={"id":1,"run_id":rid,"name":"cushion-source-only","status":"completed","conclusion":conclusion,"steps":[]}
+   with self.subTest(conclusion=conclusion),patch("diagnostics.kyoto_incident_recovery.gh",side_effect=[run,{"total_count":1,"jobs":[job]},{"total_count":0,"artifacts":[]}]):
+    lane=diagnose_run(rid,"unused","unused")["lanes"]["cushion"]
+    self.assertFalse(lane["artifact_authenticated"])
+    self.assertEqual(lane["incidents"][0]["stage"],"ARCHIVE")
+    self.assertEqual(lane["artifact_evidence"]["job_conclusion"],conclusion)
 if __name__=="__main__":unittest.main()

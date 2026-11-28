@@ -7,6 +7,7 @@ published. Receipt observations do not certify JRA provenance or model readiness
 import argparse, hashlib, importlib.util, json, os, re, subprocess, tempfile
 from pathlib import Path
 from datetime import datetime, timezone
+from diagnostics.kyoto_job_artifact_state import classify_artifact, SKIPPED
 
 REPO="papaneko-ai/kyoto-keiba-ai"
 DAYS=("20261128","20261129")
@@ -254,12 +255,14 @@ def safe_jobs(doc):
     out=[]
     for j in rows:
         errors=[]
-        for s in j.get("steps",[]):
+        steps=j.get("steps")
+        if steps is not None and not isinstance(steps,list):raise ValueError("invalid_job_steps")
+        for s in steps or []:
             if s.get("conclusion") in ("failure","cancelled","timed_out"):
                 n=str(s.get("name","")).lower()
                 phase="ARCHIVE" if any(k in n for k in ("seal","upload","encrypt")) else "PRE_HTTP" if any(k in n for k in ("verify","checkout","install","guard")) else "CAPTURE_OR_OTHER"
                 errors.append({"number":small(s.get("number")),"phase":phase,"conclusion":s["conclusion"]})
-        out.append({"job_id":j["id"],"conclusion":j.get("conclusion") if j.get("conclusion") in ("success","failure","cancelled","skipped","timed_out","neutral") else "UNKNOWN","failed_steps":errors})
+        out.append({"job_id":j["id"],"conclusion":j.get("conclusion") if j.get("conclusion") in ("success","failure","cancelled","skipped","timed_out","neutral") else "UNKNOWN","steps_available":steps is not None,"failed_steps":errors})
     return out
 def read_aes(reader,cipher,raw,day,rid,key):
     os.environ["KYOTO_TARGET_DAY"]=day
@@ -269,15 +272,22 @@ def read_aes(reader,cipher,raw,day,rid,key):
 def diagnose_run(rid,reader,cushion_reader):
     run=gh(f"repos/{REPO}/actions/runs/{rid}")
     path,lanes,days=run_identity(run,rid)
-    jobs=safe_jobs(gh(f"repos/{REPO}/actions/runs/{rid}/jobs?per_page=100"))
+    job_doc=gh(f"repos/{REPO}/actions/runs/{rid}/jobs?per_page=100")
+    jobs=safe_jobs(job_doc)
     arts=gh(f"repos/{REPO}/actions/runs/{rid}/artifacts?per_page=100")
     if arts["total_count"]!=len(arts["artifacts"]) or len(arts["artifacts"])>100:raise ValueError("artifact_index_incomplete")
     result={"schema":"kyoto_incident_recovery.v1","repo":REPO,"source_run_id":rid,"workflow_path":path,"workflow_head_sha":run["head_sha"],"event":run["event"],"created_at":stamp(run.get("created_at")),"jobs":jobs,"lanes":{},"new_source_http_requests":0,"automatic_code_promotion":False}
     for lane in lanes:
-        found=[(a,d) for d in days for a in arts["artifacts"] if a.get("name")==f"kyoto-{lane}-{rid}-{d}" and a.get("expired") is False]
-        meta={"artifact_authenticated":False}
+        matches=[(a,d) for d in days for a in arts["artifacts"] if a.get("name")==f"kyoto-{lane}-{rid}-{d}"]
+        found=[(a,d) for a,d in matches if a.get("expired") is False]
+        evidence=classify_artifact(path[len(PATH_PREFIX):],lane,rid,[a for a,d in matches],job_doc)
+        meta={"artifact_authenticated":False,"artifact_evidence":evidence}
+        if evidence["state"]==SKIPPED:
+            meta.update(source_acquisition_state="PRODUCER_NOT_EXECUTED_SKIP_REASON_UNVERIFIED",incidents=[])
+            result["lanes"][lane]=meta
+            continue
         try:
-            if len(found)!=1:raise ValueError("artifact_missing_or_ambiguous")
+            if len(found)!=1 or len(matches)!=1:raise ValueError("artifact_missing_or_ambiguous")
             a,day=found[0];meta.update(artifact_id=a["id"],target_day=day)
             with tempfile.TemporaryDirectory(prefix="kyoto_incident_") as t:
                 root=Path(t);cipher=root/"cipher";cipher.mkdir();raw=root/"raw"
@@ -314,7 +324,9 @@ def write_report(report,out):
             lines.append(f"- 自動修復再検証: {r['stage']} / {r['state']} / 原本 {r.get('source_sha256','UNKNOWN')} / 規則 {r.get('rule_sha256','UNKNOWN')} / {r.get('error_code','')}")
         if m.get("adaptive_repair_replay_error"):
             lines.append("- 自動修復再検証自体が失敗: "+m["adaptive_repair_replay_error"])
-        if not m.get("incidents"):lines.append("- 診断対象の欠落未検出（全取得成功の認定ではない）")
+        if m.get("source_acquisition_state")=="PRODUCER_NOT_EXECUTED_SKIP_REASON_UNVERIFIED":
+            lines.append("- 対応取得ジョブはスキップ（理由・正当性は未確認）。取得試行後の原本消失と区別し、取得成功は認定しない。")
+        elif not m.get("incidents"):lines.append("- 診断対象の欠落未検出（全取得成功の認定ではない）")
     # The durable comment retains stage worklists plus exact archive references;
     # full per-item evidence stays in the separately uploaded JSON.
     lines.append("\n全項目の証拠・レース別状態・原本ハッシュは同診断実行の report.json。次回前に再現・修正・検証・本番再照合の証拠を追記する。")
