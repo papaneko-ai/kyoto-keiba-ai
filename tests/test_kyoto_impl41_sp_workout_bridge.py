@@ -59,3 +59,10 @@ class SPWorkoutBridge(unittest.TestCase):
         with patch("diagnostics.kyoto_impl33_workout_runtime.eligible_runs",return_value=[{"id":101}]),patch("diagnostics.kyoto_impl33_workout_runtime.decrypt_evidence"),patch("diagnostics.kyoto_impl33_workout_runtime.official",return_value={n:{} for n in range(1,13)}),patch("diagnostics.kyoto_impl33_workout_runtime.read_sp_rosters") as r:
             found,_,_=gather_official(DAY,KEY,p,aux_budget_factory=f,sp_reader="reader")
         self.assertEqual(len(found),12);r.assert_not_called();f.assert_not_called()
+    def test_later_sp_conflict_not_hidden_by_apparent_full_coverage(self):
+        primary=Mock();aux=Mock();pc={"roster":{1:"A"},"start":STAMP}
+        mobile={"roster":{1:"C"},"start":STAMP,"source_lane":"sp"}
+        def dec(src,dst,**kw):dst.mkdir()
+        with patch("diagnostics.kyoto_impl33_workout_runtime.eligible_runs",side_effect=[[{"id":101},{"id":102}],[]]),patch("diagnostics.kyoto_impl33_workout_runtime.decrypt_evidence",side_effect=dec),patch("diagnostics.kyoto_impl33_workout_runtime.official",return_value={n:pc for n in range(1,12)}),patch("diagnostics.kyoto_impl33_workout_runtime.read_sp_rosters",side_effect=[{12:mobile},{12:{**mobile,"roster":{1:"D"}}}]) as r:
+            found,conflicts,_=gather_official(DAY,KEY,primary,aux_budget_factory=lambda:aux,sp_reader="reader")
+        self.assertEqual(len(found),11);self.assertEqual(conflicts,[12]);self.assertEqual(r.call_count,2)

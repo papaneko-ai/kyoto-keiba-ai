@@ -183,7 +183,8 @@ def gather_official(day,key,budget,*,aux_budget_factory=lambda:Budget(35),sp_rea
     if day=='20261129' and sp_reader and b is not None and len(found)<12:
         mobile={};mobile_conflicts=set()
         for r in rows[:8]:
-            if len(found)+len(mobile)==12:break
+            # Continue within the same deadline: a later authenticated roster
+            # may conflict even if the apparent race coverage is already 12/12.
             rid=r['id']
             try:
                 with tempfile.TemporaryDirectory() as tmp:
