@@ -18,6 +18,7 @@ def parse_current_market(raw,market,registered,*,racecard=None,racecard_utc=None
         raise OddsMatrixError('registered_roster_invalid')
     active=registered
     cancelled=set()
+    mobile_cancellation=False
     if racecard is not None:
         soup=BeautifulSoup(racecard.decode('cp932',errors='strict'),'html.parser')
         tables=[t for t in soup.select('table') if all(t.select_one('th.'+x) for x in ('horse','num','waku'))]
@@ -39,6 +40,25 @@ def parse_current_market(raw,market,registered,*,racecard=None,racecard_utc=None
                     elif n.isascii() and n.isdigit():
                         cancelled.add(int(n))
                     else: raise OddsMatrixError('cancelled_row_number_invalid')
+        elif day=="20261129":
+            # Actual mobile cancellation cell is td.uban.keshi with a status
+            # instead of the horse number. Require the independent registered
+            # roster and strict row count/position, not an assumed missing pair.
+            tables=soup.select("table")
+            if tables:
+                mobile=[tr for tr in tables[0].select("tr") if tr.select_one("td.uban") is not None]
+                marked=[tr for tr in mobile if tr.select_one("td.uban").get_text(" ",strip=True) in CANCELLED]
+                if marked:
+                    from diagnostics.jra_pc_sp_benchmark import sp_rows
+                    from diagnostics.jra_market_source_chain import _html_race_identity
+                    if len(mobile)!=len(registered) or not all("keshi" in tr.select_one("td.uban").get("class",[]) for tr in marked):
+                        raise OddsMatrixError("mobile_cancellation_rows_unverified")
+                    try: rows=sp_rows(racecard)
+                    except ValueError as exc:raise OddsMatrixError("mobile_cancellation_roster_unverified") from exc
+                    if tuple((n,f) for n,f,_ in rows)!=registered or not _html_race_identity(racecard,day,"京都",race):
+                        raise OddsMatrixError("mobile_cancellation_identity_unverified")
+                    cancelled.update(n for n,tr in enumerate(mobile,1) if tr.select_one("td.uban").get_text(" ",strip=True) in CANCELLED)
+                    mobile_cancellation=True
     if not cancelled:
         data=parse_matrix(raw,market,expected_runners=len(registered)) if market=='quinella' else parse_bracket_with_roster(raw,registered)
         return data,active
@@ -46,9 +66,10 @@ def parse_current_market(raw,market,registered,*,racecard=None,racecard_utc=None
     from diagnostics.jra_multi_capture_20261106 import parse
     if not (utc(racecard_utc)<=utc(market_utc)<utc(start_utc)):
         raise OddsMatrixError('cancellation_evidence_time_invalid')
-    rows,errors=parse(racecard,race,meeting_date=f'{day[:4]}-{day[4:6]}-{day[6:]}')
-    if errors or tuple((x['horse_number'],x['frame_number']) for x in rows)!=registered or '京都' not in soup.get_text(' ',strip=True):
-        raise OddsMatrixError('cancellation_roster_not_verified')
+    if not mobile_cancellation:
+        rows,errors=parse(racecard,race,meeting_date=f'{day[:4]}-{day[4:6]}-{day[6:]}')
+        if errors or tuple((x['horse_number'],x['frame_number']) for x in rows)!=registered or '京都' not in soup.get_text(' ',strip=True):
+            raise OddsMatrixError('cancellation_roster_not_verified')
     active=tuple(x for x in registered if x[0] not in cancelled)
     if len(active)<2 or not cancelled.issubset({n for n,f in registered}): raise OddsMatrixError('insufficient_active_roster')
     if market=='quinella':
