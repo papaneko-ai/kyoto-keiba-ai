@@ -3,8 +3,9 @@ import copy, subprocess, unittest
 from datetime import datetime,timedelta,timezone
 from pathlib import Path
 import yaml
-from diagnostics.kyoto_impl30_collector_selection import DEPLOYED_RECEIPT,POSTRACE_RECEIPT
+from diagnostics.kyoto_impl30_collector_selection import DEPLOYED_RECEIPT,POSTRACE_RECEIPT,POSTRACE_RUNTIME_RECEIPT
 POSTRACE_PIN=POSTRACE_RECEIPT['source']
+POSTRACE_PRODUCER_PIN=POSTRACE_RUNTIME_RECEIPT['source']
 WORKOUT_PIN="0b66d5941b191af84a3d2f6d3682e00d21b525ad"
 WORKOUT_SP_READER="fed005c89fcfa940c479538ee983f211598a6640"
 SUNDAY_PIN=DEPLOYED_RECEIPT["override"]
@@ -90,14 +91,14 @@ class Isolation(unittest.TestCase):
                 elif n=="postrace-evidence":
                     j=expected["jobs"]["postrace-source-evidence"]
                     old_pin=j["steps"][0]["with"]["ref"]
-                    j["steps"][0]["with"]["ref"]=POSTRACE_PIN
+                    j["steps"][0]["with"]["ref"]=POSTRACE_PRODUCER_PIN
                     for step in j["steps"]:
                         if 'test "$(git rev-parse HEAD)"' in step.get("run",""):
-                            step["run"]=step["run"].replace(repr(old_pin),repr(POSTRACE_PIN))
+                            step["run"]=step["run"].replace(repr(old_pin),repr(POSTRACE_PRODUCER_PIN))
                 self.assertEqual(doc(n),expected)
                 self.assertNotIn("schedule",doc(n)["on"])
                 self.assertEqual(doc(n)["on"]["workflow_dispatch"],original["on"]["workflow_dispatch"])
-    def test_independent_closure_reader_matches_exact_evening_source(self):
+    def test_independent_closure_reader_retains_exact_verified_reader_source(self):
         path=".github/workflows/kyoto-weekend-closure-review.yml"
         # PR177 approved and independently verified the entire closure workflow.
         # Use its exact immutable text; keep the full-file protection, not a partial check.
