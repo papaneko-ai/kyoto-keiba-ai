@@ -69,6 +69,30 @@ class ObservationTests(unittest.TestCase):
       self.assertEqual(accept_observation(self.root)["state"],"TWO_ORIGINALS_MATCH_RECEIPT_ONLY")
       (self.root/"official_pc_navigation_home.html").write_bytes(b"tampered")
       with self.assertRaises(ObservationRejected):accept_observation(self.root)
+ def test_novel_pc_navigation_auto_repair_and_tamper_rejection(self):
+    import json
+    from datetime import datetime,timezone
+    from diagnostics.kyoto_nov29_public_forms import PC_HOME,PC_ENTRY
+    day="20261129"
+    form='<form id="unseen" method="post" action="/JRADB/accessD.html"><input type="hidden" name="cname"></form>'
+    home=(form+'<button onclick="doAction (\'/JRADB/accessD.html\',\'pw01dli00/F3\')">出馬表</button>').encode("cp932")
+    sel=(form+'<a href="javascript:doAction (\'/JRADB/accessD.html\',\'pw01drl00082026050820261129/6B\')">京都</a>').encode("cp932")
+    meet=b"<html>meeting source</html>"
+    class Forms:
+      def __init__(self):self.calls=[]
+      def open(self,req,timeout=12):
+        self.calls.append((req.full_url,req.get_method(),req.data))
+        return R(req.full_url,[home,sel,meet][len(self.calls)-1])
+    stub=Forms();mod="diagnostics.kyoto_nov15_two_original_observer"
+    with patch(mod+".DAY",day),patch(mod+".BEGIN",datetime(2026,11,28,tzinfo=timezone.utc)),patch(mod+".END",datetime(2026,11,30,tzinfo=timezone.utc)):
+      result=observe(self.root,now_utc="2026-11-29T00:15:00Z",opener=stub,allowed=True,public_form_navigation=True)
+      self.assertEqual(stub.calls,[(PC_HOME,"GET",None),(PC_ENTRY,"POST",b"cname=pw01dli00%2FF3"),(PC_ENTRY,"POST",b"cname=pw01drl00082026050820261129%2F6B")])
+      self.assertEqual(len(result["adaptive_navigation_repairs"]),2)
+      self.assertEqual(accept_observation(self.root)["state"],"TWO_ORIGINALS_MATCH_RECEIPT_ONLY")
+      result["adaptive_navigation_repairs"][0]["candidate_count"]=2
+      (self.root/"receipt.json").write_text(json.dumps(result))
+      with self.assertRaises(ObservationRejected):accept_observation(self.root)
+
  def test_optional_third_get_requires_observed_unique_race(self):
     race_anchor='<html><a href="/JRADB/accessD.html?CNAME=pw020aaa01%2F0120261115">京都 1R</a></html>'.encode("cp932")
     class Three(Stub):

@@ -60,6 +60,27 @@ class DiscoveryTests(unittest.TestCase):
         self.assertEqual(json.loads((self.root/"sp_discovery_receipt.json").read_text())["racecard_url"],RACE)
         self.assertFalse(r["prediction_ready"])
 
+    def test_novel_form_and_action_auto_repair_at_runtime(self):
+        from diagnostics.kyoto_adaptive_repair import recover_action
+        day="20261129"
+        endpoint="https://sp.jra.jp/JRADB/accessD.html"
+        form='<form id="new" method="post" action="/JRADB/accessD.html"><input type="hidden" name="cname"></form>'
+        home=html(form+'<button onclick="doAction (\'/JRADB/accessD.html\',\'sw01dli00/80\')">出馬表</button>')
+        selection=html(form+'<a href="javascript:doAction (\'/JRADB/accessD.html\',\'sw01drl00082026050820261129/F8\')">京都</a>')
+        urls={n:endpoint+f"?CNAME=sw01dde010820260508{n:02d}{day}/A1" for n in range(1,13)}
+        meeting=html("".join(f'<a href="{u}">京都 {n}R</a>' for n,u in urls.items()))
+        class Forms:
+            def __init__(self):self.calls=[]
+            def open(self,req,timeout=12):
+                self.calls.append((req.full_url,req.get_method(),req.data))
+                return Response(req.full_url,[home,selection,meeting][len(self.calls)-1])
+        stub=Forms();result=discover(self.root,day=day,opener=stub,pacer=self.pacer)
+        self.assertEqual(stub.calls,[(SEED,"GET",None),(endpoint,"POST",b"cname=sw01dli00%2F80"),(endpoint,"POST",b"cname=sw01drl00082026050820261129%2FF8")])
+        self.assertEqual(result["attempts"][0]["adaptive_navigation_repair"],recover_action(home,day,"SP","entry")[3])
+        self.assertEqual(result["attempts"][1]["adaptive_navigation_repair"],recover_action(selection,day,"SP","meeting")[3])
+        self.assertTrue(all(x["candidate_count"]==1 for x in result["per_race_observed_navigation_candidates"].values()))
+        self.assertFalse(result["prediction_ready"])
+
     def test_without_observed_anchor_never_invents_url(self):
         stub=Stub({SEED:html("<p>not published</p>")})
         r=discover(self.root,day=DAY,opener=stub,pacer=self.pacer)
