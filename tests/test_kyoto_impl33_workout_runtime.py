@@ -84,4 +84,45 @@ class Runtime(unittest.TestCase):
     def test_previous_workout_index_includes_pre_day(self):
         b=Mock();b.api.return_value={'total_count':0,'workflow_runs':[]};eligible_runs(b,DAY,WORKFLOW)
         self.assertIn('created=2026-11-27..2026-11-28',b.api.call_args.args[0])
+    def test_index_checkpoint_precedes_discovery_no_extra_http(self):
+        from diagnostics.kyoto_impl33_workout_runtime import append_primary_index,record_primary_discovery
+        raw=b'<a href="/race/20261128-kyoto-09/">Kyoto 9R</a>'
+        clock=lambda:datetime(2026,11,26,4,tzinfo=timezone.utc)
+        with tempfile.TemporaryDirectory() as tmp,patch('diagnostics.kyoto_impl33_workout_runtime.now',clock):
+            out=Path(tmp);r={'day':DAY,'run_id':123,'snapshots':[]};key=b'a'*32;calls=[]
+            def get(u):
+                calls.append(u)
+                return raw if u==PRIMARY_INDEX else sample()
+            def discover_observer(races):
+                self.assertTrue((out/'primary_index.aesgcm').exists())
+                self.assertEqual(r['primary_index']['discovery_state'],'NOT_EVALUATED')
+                record_primary_discovery(out,r,races)
+            items,_,err=collect_primary(DAY,[],{},get,clock,
+                on_index=lambda data,stamp:append_primary_index(out,r,key,data,stamp),
+                on_discovery=discover_observer)
+            self.assertEqual(len(calls),2);self.assertEqual(len(items),1);self.assertFalse(err)
+            self.assertEqual(r['primary_index']['discovered_races'],[9])
+            self.assertEqual(r['primary_index']['not_discovered_races'],[1,2,3,4,5,6,7,8,10,11,12])
+            m=json.loads((out/'receipt.json').read_bytes())['primary_index']
+            self.assertEqual(read_snapshot((out/m['filename']).read_bytes(),m,key,m['archive_aad'].encode()),raw)
+            with self.assertRaises(ValueError):
+                read_snapshot((out/m['filename']).read_bytes(),m,key,b'other-run')
+    def test_index_original_survives_parser_exception(self):
+        from diagnostics.kyoto_impl33_workout_runtime import append_primary_index
+        clock=lambda:datetime(2026,11,26,4,tzinfo=timezone.utc)
+        with tempfile.TemporaryDirectory() as tmp,patch('diagnostics.kyoto_impl33_workout_runtime.now',clock),patch('diagnostics.kyoto_impl33_workout_runtime.discover',side_effect=ValueError):
+            out=Path(tmp);r={'day':DAY,'run_id':123};key=b'a'*32;calls=[]
+            def get(url):calls.append(url);return b'<html>new layout</html>'
+            items,_,err=collect_primary(DAY,[],{},get,clock,on_index=lambda raw,stamp:append_primary_index(out,r,key,raw,stamp))
+            self.assertEqual(calls,[PRIMARY_INDEX]);self.assertEqual(items,[])
+            self.assertEqual(err,['INDEX_DISCOVERY:ValueError'])
+            self.assertEqual(r['primary_index']['discovery_state'],'NOT_EVALUATED')
+            self.assertTrue((out/'primary_index.aesgcm').exists())
+    def test_index_seal_failure_does_not_stop_race_capture(self):
+        clock=lambda:datetime(2026,11,26,4,tzinfo=timezone.utc)
+        def get(url):return b'<a href="/race/20261128-kyoto-09/">Kyoto 9R</a>' if url==PRIMARY_INDEX else sample()
+        def broken(*args):raise OSError()
+        with patch('diagnostics.kyoto_impl33_workout_runtime.now',clock):
+            items,_,err=collect_primary(DAY,[],{},get,clock,on_index=broken)
+        self.assertEqual(len(items),1);self.assertIn('INDEX_ARCHIVE:OSError',err)
 if __name__=='__main__':unittest.main()

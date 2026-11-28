@@ -258,10 +258,20 @@ def race_labels(index,day):
                 if 2<=len(label)<=40 and '未勝利' not in label and '新馬' not in label and '勝クラス' not in label:out[n]=label
     return out
 
-def collect_primary(day,items,rosters,fetch,clock=now,on_snapshot=lambda x:None):
+def collect_primary(day,items,rosters,fetch,clock=now,on_snapshot=lambda x:None,*,on_index=lambda raw,stamp:None,on_discovery=lambda races:None):
     errors=[];labels={}
-    try:index=fetch(PRIMARY_INDEX);urls=discover(index,day);labels=race_labels(index,day)
+    try:index=fetch(PRIMARY_INDEX)
     except Exception as e:return items,labels,[type(e).__name__]
+    # Reuse the exact already fetched bytes. Preserve before parsing so even
+    # an unfamiliar layout or a parser exception has a reproducible original.
+    try:on_index(index,clock().isoformat())
+    except Exception as e:errors.append('INDEX_ARCHIVE:'+type(e).__name__)
+    try:urls=discover(index,day)
+    except Exception as e:return items,labels,errors+['INDEX_DISCOVERY:'+type(e).__name__]
+    try:on_discovery(sorted(urls))
+    except Exception as e:errors.append('INDEX_RECEIPT:'+type(e).__name__)
+    try:labels=race_labels(index,day)
+    except Exception as e:errors.append('INDEX_LABELS:'+type(e).__name__)
     for n,url in sorted(urls.items()):
         if n in rosters and clock()>=utc(rosters[n]['start']):continue
         cached=[x for x in items if x['race']==n and x['kind']=='PRIMARY' and primary_final(x,day)]
@@ -399,6 +409,26 @@ def checkpoint(out,report):
     tmp.write_text(json.dumps(report,sort_keys=True,ensure_ascii=False,indent=2),encoding='utf8')
     tmp.replace(out/'receipt.json')
 
+def append_primary_index(out,report,key,raw,stamp):
+    if type(raw) is not bytes or not 0<len(raw)<=4_000_000:raise ValueError('primary_index_size')
+    captured=utc(stamp)
+    if captured>now()+timedelta(seconds=30):raise ValueError('primary_index_future')
+    aad=f"kyoto-workout-navigation-v1|{REPO}|{report['run_id']}|{report['day']}|PRIMARY_INDEX".encode()
+    sha=digest(raw);filename='primary_index.aesgcm'
+    meta={'state':'INDEX_SEALED','filename':filename,'captured_utc':captured.isoformat(),
+          'source_sha256':sha,'archive_aad':aad.decode(),'bytes':len(raw),
+          'ciphertext_sha256':seal(out,filename,raw,key,aad),'discovery_state':'NOT_EVALUATED'}
+    report['primary_index']=meta
+    checkpoint(out,report)
+
+def record_primary_discovery(out,report,races):
+    if any(type(n) is not int or not 1<=n<=12 for n in races) or list(races)!=sorted(set(races)):
+        raise ValueError('primary_index_race_inventory')
+    meta=report.setdefault('primary_index',{'state':'INDEX_NOT_SAVED'})
+    meta.update(discovery_state='PARSER_RETURNED_RACES',discovered_races=list(races),
+                not_discovered_races=sorted(set(range(1,13))-set(races)))
+    checkpoint(out,report)
+
 def append_snapshot(out,report,key,x):
     sha=digest(x['raw'])
     if any((m['kind'],m['race'],m['url'],m['source_sha256'])==(x['kind'],x['race'],x['url'],sha) for m in report['snapshots']):return
@@ -418,11 +448,13 @@ def run(day,out,key,rid):
     saved_budget=Budget(55)
     items=unique_snapshots(previews(day,key,Budget(30))+previous(day,key,saved_budget)+preday_saved(day,key,saved_budget))
     fetch=PublicFetch(Budget(160))
-    report={'day':day,'run_id':int(rid),'official_roster_conflicts':conflicts,'archive_errors':errors,'source_errors':[],'snapshots':[],'races':[],'jra_requests':0,'production_coverage_authorized':False,'status':'SOURCE_ONLY_IN_PROGRESS'}
+    report={'day':day,'run_id':int(rid),'official_roster_conflicts':conflicts,'archive_errors':errors,'source_errors':[],'snapshots':[],'races':[],'primary_index':{'state':'INDEX_NOT_SAVED','discovery_state':'NOT_EVALUATED'},'jra_requests':0,'production_coverage_authorized':False,'status':'SOURCE_ONLY_IN_PROGRESS'}
     checkpoint(out,report)
     save=lambda x:append_snapshot(out,report,key,x)
     for x in items:save(x)
-    items,labels,source_errors=collect_primary(day,items,roster,fetch,on_snapshot=save)
+    items,labels,source_errors=collect_primary(day,items,roster,fetch,on_snapshot=save,
+        on_index=lambda raw,stamp:append_primary_index(out,report,key,raw,stamp),
+        on_discovery=lambda races:record_primary_discovery(out,report,races))
     report['source_errors']=source_errors;checkpoint(out,report)
     attempted=set()
     # Current observed supplemental pages can be frozen before the official roster.
