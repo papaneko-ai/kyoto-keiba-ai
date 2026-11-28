@@ -62,4 +62,48 @@ class ClosureTests(unittest.TestCase):
  def test_incomplete_race_inventory(self):
   d=data();del d["races"]["12"]
   with self.assertRaises(ValueError):coverage_gaps(DAY,d,[1,2])
+ def test_producer_job_artifact_classification_counterexamples(self):
+  from diagnostics.kyoto_job_artifact_state import JOB,classify_artifact,SKIPPED
+  for (filename,lane),name in JOB.items():
+   j={"id":7,"run_id":1,"name":name,"status":"completed","conclusion":"skipped","steps":None}
+   def state(rows,matches=None,total=None):
+    return classify_artifact(filename,lane,1,matches or [],{"jobs":rows,"total_count":len(rows) if total is None else total})
+   self.assertEqual(state([j])["state"],SKIPPED)
+   self.assertFalse(state([j])["skip_reason_verified"])
+   for mutated in ({**j,"run_id":2},{**j,"name":"other"},{**j,"status":"in_progress"}):
+    self.assertEqual(state([mutated])["state"],"MISSING_JOB_STATE_UNVERIFIED")
+   self.assertEqual(state([j],total=2)["state"],"MISSING_JOB_STATE_UNVERIFIED")
+   self.assertEqual(state([j,{**j,"id":8}])["state"],"MISSING_JOB_STATE_UNVERIFIED")
+   self.assertEqual(state([j],[{"id":9,"expired":True}])["state"],"MISSING_EXPIRED_OR_AMBIGUOUS")
+   self.assertEqual(state([j],[{"id":9,"expired":False},{"id":10,"expired":False}])["state"],"MISSING_EXPIRED_OR_AMBIGUOUS")
+   self.assertEqual(state([j],[{"id":9,"expired":False}])["state"],"PRESENT")
+   self.assertEqual(state([{**j,"conclusion":"success"}])["state"],"MISSING_AFTER_JOB_SUCCESS")
+   self.assertEqual(state([{**j,"conclusion":"failure"}])["state"],"MISSING_AFTER_JOB_UNSUCCESSFUL")
+ def test_collect_metadata_uses_job_index_for_missing_artifact(self):
+  from unittest.mock import patch
+  from diagnostics.kyoto_weekend_closure_review import collect_metadata
+  file="cushion-source.yml";rid=46108030052;jid=140865067475
+  row={**run(rid,"workflow_run","workflow_run"),"path":PREFIX+file}
+  job={"id":jid,"run_id":rid,"name":"cushion-source-only","status":"completed","conclusion":"skipped"}
+  def api(path,trace):
+   if "/runs?created=" in path:
+    rows=[row] if file in path else []
+    return {"total_count":len(rows),"workflow_runs":rows}
+   if "/artifacts?" in path:return {"total_count":0,"artifacts":[]}
+   if "/jobs?" in path:return {"total_count":1,"jobs":[job]}
+   raise AssertionError(path)
+  with patch("diagnostics.kyoto_weekend_closure_review.gh",side_effect=api):
+   metadata,errors=collect_metadata(DAY,NOW)
+   self.assertFalse(errors)
+   self.assertEqual(metadata[file]["runs"][0]["artifacts"]["cushion"],{"state":"JOB_SKIPPED_NO_ARTIFACT","ids":[],"job_id":jid,"job_conclusion":"skipped","skip_reason_verified":False})
+   self.assertTrue(any(x["scope"]=="job_index" and x["run_id"]==rid for x in metadata[file]["metadata_recovery"]))
+  def failed_api(path,trace):
+   if "/jobs?" in path:raise TimeoutError()
+   return api(path,trace)
+  with patch("diagnostics.kyoto_weekend_closure_review.gh",side_effect=failed_api):
+   metadata,errors=collect_metadata(DAY,NOW)
+   self.assertFalse(errors)
+   result=metadata[file]["runs"][0]
+   self.assertEqual(result["job_index_error"],"TimeoutError")
+   self.assertEqual(result["artifacts"]["cushion"]["state"],"MISSING_JOB_STATE_UNVERIFIED")
 if __name__=="__main__":unittest.main()
