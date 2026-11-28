@@ -162,6 +162,25 @@ def combine(day,slots,*,sp_slots=()):
         row={"state":"NO_VERIFIED_ROSTER","horses":{},"track":{},"markets":{},"paired_same_slot":False,
              "missing":[]}
         races[key]=row
+        standalone=False
+        if not rows and day=="20261129":
+            # Only fully proved SP-only rows, never structural-only observations.
+            for slot in sp_slots:
+                p=slot.get("races",{}).get(key)
+                if slot.get("day")!=day or not str(slot.get("run_id","")).isdigit() or not p:continue
+                try:
+                    nums=p["numbers"];card=p["racecard"]
+                    if (card.get("channel")!="SP" or card.get("source_kind")!="INDEPENDENT_SP_PRESTART_ROSTER"
+                        or not 2<=len(nums)<=18 or nums!=list(range(1,len(nums)+1))
+                        or not re.fullmatch(r"[0-9a-f]{64}",p["named_roster_digest"])
+                        or p["roster_digest"]!=digest({"kind":"INDEPENDENT_SP_PRESTART_ROSTER","named_digest":p["named_roster_digest"]})
+                        or card["value_digest"]!=digest(p["roster_digest"]) or not re.fullmatch(r"[0-9a-f]{64}",card["sha256"])
+                        or set(p["horses"])!={str(x) for x in nums} or any(p["horses"].values())
+                        or p.get("track")!={}
+                        or _utc(card["utc"])>=_utc(p["start_utc"]) or _utc(card["utc"]).strftime("%Y%m%d")!=day):continue
+                    rows.append((slot["run_id"],p))
+                except (KeyError,ValueError,TypeError,AttributeError):continue
+            standalone=bool(rows)
         if not rows:
             row["missing"]=["racecard","roster",*TRACK,*MARKETS,"horse_denominator_unknown","official_result","official_payout"]
             continue
@@ -188,6 +207,7 @@ def combine(day,slots,*,sp_slots=()):
             _,rid,p=max(simultaneous,key=lambda x:(x[1],x[2]["sha256"]))
             return {"state":"SOURCE_VERIFIED","run_id":rid,**p}
         row.update(state="ROSTER_VERIFIED",roster_digest=ident,named_roster_digest=named,start_utc=start,racecard=choose([(r,x["racecard"]) for r,x in rows]))
+        if standalone:row["roster_source_channel"]="SP"
         totals["racecards"]+=int(row["racecard"]["state"]=="SOURCE_VERIFIED")
         totals["registered_horses_known"]+=len(numbers)
         for h in numbers:
@@ -198,7 +218,7 @@ def combine(day,slots,*,sp_slots=()):
                 totals[f]+=int(result["state"]=="SOURCE_VERIFIED")
                 if result["state"]!="SOURCE_VERIFIED":row["missing"].append(f"horse_{h}:{f}:{result['state']}")
         mobile=[]
-        if day=='20261129':
+        if day=='20261129' and not standalone:
             for s in sp_slots:
                 p=s.get('races',{}).get(key)
                 if s.get('day')==day and str(s.get('run_id','')).isdigit() and p and (p.get('roster_digest'),p.get('named_roster_digest'),p.get('start_utc'))==(ident,named,start):mobile.append((s['run_id'],p))

@@ -1,4 +1,4 @@
-"""Independent SP market originals can fill PC-bound day gaps, never roster denominators."""
+"""Independent SP market originals fill PC-bound gaps or separately proved SP-only source rosters."""
 from hashlib import sha256
 from datetime import datetime,timezone
 from pathlib import Path
@@ -29,15 +29,56 @@ def context(slots,day):
                 if utc(x["racecard"]["utc"])>=utc(row["start_utc"]):continue
                 found.append(row)
             except (KeyError,TypeError,ValueError,AttributeError):continue
-        if found and all(x==found[0] for x in found):result[n]=found[0]
+        if found:
+            result[n]=found[0] if all(x==found[0] for x in found) else {"conflict":True}
     return result
+
+def standalone_roster(raw,day,number,stamp,sha):
+    """A source-only SP roster needs its own declared count and start.
+    Never infer an absent cancellation number, runner count or cutoff.
+    """
+    from bs4 import BeautifulSoup
+    import re
+    from datetime import timedelta
+    from diagnostics.kyoto_impl31_sp_saved_roster_audit import inspect_heading
+    named=inspect_heading(raw,day,number)
+    try:text=raw.decode("utf8")
+    except UnicodeDecodeError:text=raw.decode("cp932")
+    soup=BeautifulSoup(text,"html.parser")
+    table=soup.find("table")
+    cells=[]
+    for tr in table.select("tr"):
+        nums=[c for c in tr.find_all("td",recursive=False) if "uban" in c.get("class",[])]
+        if not nums:continue
+        if len(nums)!=1:raise ValueError("sp_number_ambiguous")
+        n=nums[0].get_text(" ",strip=True)
+        if not n.isascii() or not n.isdigit():raise ValueError("sp_number_not_explicit")
+        cells.append(int(n))
+    if cells!=list(range(1,len(named)+1)):raise ValueError("sp_roster_incomplete")
+    before=" ".join(str(t).strip() for t in reversed(list(table.previous_elements))
+                    if isinstance(t,str) and t.strip())
+    colon=re.findall(r"発走(?:予定)?(?:時刻)?\s*[:：]?\s*([01]?\d|2[0-3]):([0-5]\d)",before)
+    japanese=re.findall(r"発走(?:予定)?(?:時刻)?\s*[:：]?\s*([01]?\d|2[0-3])\s*時\s*([0-5]?\d)\s*分",before)
+    times={(int(h),int(m)) for h,m in colon+japanese}
+    if len(times)!=1:raise ValueError("sp_start_unverified")
+    h,m=next(iter(times))
+    start=datetime(int(day[:4]),int(day[4:6]),int(day[6:]),h,m,tzinfo=timezone(timedelta(hours=9))).astimezone(timezone.utc)
+    if stamp.strftime("%Y%m%d")!=day or stamp>=start:raise ValueError("sp_poststart")
+    named_digest=digest(named)
+    ident=digest({"kind":"INDEPENDENT_SP_PRESTART_ROSTER","named_digest":named_digest})
+    return {"roster_digest":ident,"named_roster_digest":named_digest,"start_utc":start.isoformat(),
+            "numbers":[n for n,_,_ in named],
+            "racecard":{**proof(sha,stamp.isoformat(),ident),"channel":"SP","source_kind":"INDEPENDENT_SP_PRESTART_ROSTER"},
+            "horses":{str(n):{} for n,_,_ in named},"track":{}}
 
 def assess(root,day,run_id,post,rosters,pc_context):
     root=Path(root)
     out={"day":day,"run_id":str(run_id),"races":{},"network_requests":0}
     if day!="20261129" or post.get("day")!=day or post.get("channel")!="SP":return out
     verified={x["filename"]:x for x in post.get("source_rows",[])}
-    for n,pc in pc_context.items():
+    for n in map(str,range(1,13)):
+        pc=pc_context.get(n)
+        if pc and pc.get('conflict'):continue
         try:
             number=int(n)
             if n!=str(number) or not 1<=number<=12:continue
@@ -49,6 +90,16 @@ def assess(root,day,run_id,post,rosters,pc_context):
             url=rec["observed_sp_source_url"]
             if not exact_mobile_race(url,day,number):continue
             host=urlsplit(url).hostname
+            standalone=None
+            if pc is None:
+                name=prefix+"official_sp_racecard.html";p=root/name;meta=verified[name]
+                if p.is_symlink() or not p.is_file() or not 0<p.stat().st_size<=1500000:continue
+                raw=p.read_bytes();stamp=utc(meta["captured_at_utc"])
+                if sha256(raw).hexdigest()!=meta["sha256"] or meta["sha256"]!=observed["source_sha256"] or stamp!=utc(observed["captured_at_utc"]):continue
+                standalone=standalone_roster(raw,day,number,stamp,meta["sha256"])
+                pc=standalone
+                # Preserve the verified roster even if an odds page is missing.
+                out["races"][n]={**standalone,"markets":{},"paired_same_slot":False}
             start=utc(pc["start_utc"])
             def raw_at(name):
                 p=root/(prefix+name);m=verified[p.name]
@@ -58,7 +109,9 @@ def assess(root,day,run_id,post,rosters,pc_context):
                 return raw,stamp,m["sha256"]
             card,card_time,card_sha=raw_at("official_sp_racecard.html")
             if card_sha!=observed["source_sha256"] or card_time!=utc(observed["captured_at_utc"]):continue
-            named=sp_rows(card)
+            try: decoded=card.decode("utf8")
+            except UnicodeDecodeError: decoded=card.decode("cp932")
+            named=sp_rows(decoded.encode("cp932"))
             if digest(named)!=pc["named_roster_digest"] or [x[0] for x in named]!=pc["numbers"]:continue
             registered=tuple((n,f) for n,f,_ in named)
             token=exact_odds_action(card,"SP")
@@ -93,6 +146,7 @@ def assess(root,day,run_id,post,rosters,pc_context):
                 except (KeyError,ValueError,TypeError,OSError,AttributeError,IndexError):continue
             a,b=(row["markets"].get(m) for m in MARKETS)
             row["paired_same_slot"]=bool(a and b and a["cancelled_horses"]==b["cancelled_horses"])
-            if row["markets"]:out["races"][n]=row
+            if standalone is not None:row={**standalone,**row}
+            if row["markets"] or standalone is not None:out["races"][n]=row
         except (KeyError,ValueError,TypeError,OSError,AttributeError,IndexError):continue
     return out

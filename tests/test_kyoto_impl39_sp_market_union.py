@@ -52,4 +52,42 @@ class SPUnion(unittest.TestCase):
                 rec["sp_quinella_captured_at_utc"]=START;emit()
                 self.assertEqual(replay()["races"],{})
                 self.assertEqual(combine(DAY,[],sp_slots=[result])["totals"]["racecards"],0)
+                # PC absence must not discard an independently complete prestart SP card.
+                rec["sp_bracket_quinella_action"]=t2
+                rec["sp_quinella_captured_at_utc"]=STAMP
+                full=card.replace("</h2>".encode("cp932")," 発走時刻：15時45分</h2>".encode("cp932"))
+                save("official_sp_racecard.html","racecard",full);emit()
+                def independent():
+                    post=check_originals(p,day=DAY,channel="SP")
+                    return assess(p,DAY,2,post,assess_checked(p,DAY,post),{})
+                mobile=independent()
+                recovered=combine(DAY,[],sp_slots=[mobile])
+                self.assertEqual(recovered["totals"]["racecards"],1)
+                self.assertEqual(recovered["totals"]["registered_horses_known"],6)
+                self.assertEqual(recovered["totals"]["paired_same_slot_races"],1)
+                self.assertEqual(recovered["authenticated_pc_slots"],0)
+                self.assertEqual(recovered["races"]["11"]["roster_source_channel"],"SP")
+                self.assertFalse(recovered["prediction_ready"])
+                self.assertEqual(recovered["totals"]["profile"],0)
+                self.assertEqual(recovered,combine(DAY,[],sp_slots=[mobile]))
+                for bad in (card,full.replace("6頭".encode("cp932"),"7頭".encode("cp932")),full.replace("15時45分".encode("cp932"),"10時00分".encode("cp932")),full.replace("</h2>".encode("cp932")," 発走16:00</h2>".encode("cp932")),full.replace(b'class="uban">1',b'class="uban keshi">'+ "取消".encode("cp932"))):
+                    save("official_sp_racecard.html","racecard",bad);emit()
+                    self.assertEqual(combine(DAY,[],sp_slots=[independent()])["totals"]["racecards"],0)
+                # Different source rosters cannot be silently joined.
+                import copy
+                save("official_sp_racecard.html","racecard",full);emit()
+                conflict=copy.deepcopy(pc);conflict["run_id"]="3";conflict["races"]["11"]["roster_digest"]="c"*64
+                self.assertEqual(combine(DAY,[pc,conflict],sp_slots=[mobile])["races"]["11"]["state"],"ROSTER_OR_START_CONFLICT")
+                post=check_originals(p,day=DAY,channel="SP")
+                self.assertEqual(assess(p,DAY,2,post,assess_checked(p,DAY,post),context([pc,conflict],DAY))["races"],{})
+                # Different SP names with independently valid originals remain a conflict.
+                different=full.replace("馬1".encode("cp932"),"別馬".encode("cp932"))
+                save("official_sp_racecard.html","racecard",different);emit()
+                other=independent();other["run_id"]="4"
+                self.assertEqual(combine(DAY,[],sp_slots=[mobile,other])["races"]["11"]["state"],"ROSTER_OR_START_CONFLICT")
+                # Card-only evidence remains available even if market navigation fails.
+                rec["sp_odds_menu_action"]="swBad/A0";emit()
+                only=combine(DAY,[],sp_slots=[independent()])
+                self.assertEqual(only["totals"]["racecards"],1)
+                self.assertEqual(only["totals"]["paired_same_slot_races"],0)
 if __name__=="__main__":unittest.main()
