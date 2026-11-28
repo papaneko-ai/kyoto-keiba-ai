@@ -437,6 +437,18 @@ def replay_postrace(root,day,reader):
     if len({(r["stage"],r["race"]) for r in accepted})!=len(accepted):raise ValueError("postrace_replay_duplicate")
     return accepted
 
+def forensic_job_log(run_id,job_id,*,read_raw=None):
+    """Fallback is explicitly rendered; never feed it to raw-byte guard proof."""
+    if type(run_id) is not int or run_id<=0 or type(job_id) is not int or job_id<=0:
+        raise ValueError("invalid_forensic_log_identity")
+    try:return ( (read_raw or job_log)(job_id), "JOB_API_RAW")
+    except (subprocess.SubprocessError,OSError,ValueError):
+        with tempfile.TemporaryFile() as f:
+            subprocess.run(["gh","run","view",str(run_id),"--repo",REPO,"--job",str(job_id),"--log"],
+                           stdout=f,stderr=subprocess.DEVNULL,timeout=12,check=True)
+            if not 0<f.tell()<=LOG_LIMIT:raise ValueError("rendered_job_log_size")
+            f.seek(0);return (f.read(LOG_LIMIT+1),"GH_RUN_VIEW_RENDERED")
+
 def diagnose_run(rid,reader,cushion_reader,postrace_reader=None,*,evidence_out=None):
     run=gh(f"repos/{REPO}/actions/runs/{rid}")
     path,lanes,days=run_identity(run,rid)
@@ -449,7 +461,7 @@ def diagnose_run(rid,reader,cushion_reader,postrace_reader=None,*,evidence_out=N
     if evidence_out is not None:
         from diagnostics.kyoto_forensic_continuity import capture
         try:
-            forensic,cached_logs=capture(run,job_doc,arts,evidence_out,os.environ.get("ARCHIVE_KEY",""),job_log)
+            forensic,cached_logs=capture(run,job_doc,arts,evidence_out,os.environ.get("ARCHIVE_KEY",""),lambda jid:forensic_job_log(rid,jid))
             result["forensic_evidence"]=forensic
         except Exception as exc:
             result["forensic_evidence"]={"state":"FORENSIC_CAPSULE_UNAVAILABLE","error_class":type(exc).__name__,"next_action":"RECOVER_EXACT_SOURCE_RUN_AND_JOB_LOGS"}

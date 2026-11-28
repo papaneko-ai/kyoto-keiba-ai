@@ -39,33 +39,36 @@ def capture(run,jobs,arts,out,key,read_log,*,clock=time.monotonic):
     if jobs["total_count"]!=len(rows) or len({j["id"] for j in rows})!=len(rows) or any(type(j["id"]) is not int or j["id"]<=0 or j.get("run_id")!=run["id"] for j in rows):
         raise ValueError("forensic_job_identity")
     if arts["total_count"]!=len(arts["artifacts"]):raise ValueError("forensic_artifact_index")
-    logs={};index=[];size=0;end=clock()+60
+    logs={};raw_cache={};index=[];size=0;end=clock()+60
     for i,j in enumerate(sorted(rows,key=lambda x:x["id"])):
         jid=j["id"];row={"job_id":jid}
         if j.get("conclusion")=="skipped":
             row.update(state="SKIPPED_NO_LOG_EXPECTED",next_action="REOPEN_EXACT_JOB_CONDITION")
-        elif i>=MAX_JOBS or size>=MAX_TOTAL or clock()+12>end:
+        elif i>=MAX_JOBS or size>=MAX_TOTAL or clock()+24>end:
             row.update(state="LOG_BUDGET_EXHAUSTED",next_action="FETCH_EXACT_JOB_LOG_BEFORE_EXPIRY")
         else:
             try:
-                raw=read_log(jid)
+                fetched=read_log(jid)
+                raw,fmt=fetched if isinstance(fetched,tuple) else (fetched,"JOB_API_RAW")
+                if fmt not in ("JOB_API_RAW","GH_RUN_VIEW_RENDERED"):raise ValueError("forensic_log_format")
                 if type(raw) is not bytes or not 0<len(raw)<=MAX_LOG:raise ValueError("forensic_log_size")
                 if size+len(raw)>MAX_TOTAL:raise ValueError("forensic_total_log_size")
                 logs[jid]=raw;size+=len(raw)
-                row.update(state="LOG_BYTES_PRESERVED",bytes=len(raw),sha256=sha(raw),exception_line_refs=log_index(raw))
+                if fmt=="JOB_API_RAW":raw_cache[jid]=raw
+                row.update(state="LOG_BYTES_PRESERVED",log_format=fmt,bytes=len(raw),sha256=sha(raw),exception_line_refs=log_index(raw))
             except Exception as exc:
                 row.update(state="LOG_UNAVAILABLE",error_class=type(exc).__name__,next_action="RECOVER_LOG_OR_RUNNER_PROVIDER_EVIDENCE")
         index.append(row)
     doc={"identity":bind,"run":run,"jobs":jobs,"artifacts":arts,"log_index":index,"logs":{str(j):base64.b64encode(v).decode("ascii") for j,v in logs.items()}}
     payload=canon(doc);nonce=os.urandom(12)
     sealed=AESGCM(k).encrypt(nonce,gzip.compress(payload,mtime=0),canon(bind))
-    manifest={**bind,"nonce_hex":nonce.hex(),"ciphertext_sha256":sha(sealed),"payload_sha256":sha(payload),"log_index":index,"source_artifact_ids":sorted(a["id"] for a in arts["artifacts"]),"state":"SEALED_COMPLETE_LOG_SET" if index and all(x["state"] in ("LOG_BYTES_PRESERVED","SKIPPED_NO_LOG_EXPECTED") for x in index) else "SEALED_WITH_EVIDENCE_GAPS","new_source_http_requests":0}
+    manifest={**bind,"nonce_hex":nonce.hex(),"ciphertext_sha256":sha(sealed),"payload_sha256":sha(payload),"log_index":index,"source_artifact_ids":sorted(a["id"] for a in arts["artifacts"]),"state":("SEALED_WITH_RENDERED_LOGS" if any(x.get("log_format")=="GH_RUN_VIEW_RENDERED" for x in index) else "SEALED_COMPLETE_LOG_SET") if index and all(x["state"] in ("LOG_BYTES_PRESERVED","SKIPPED_NO_LOG_EXPECTED") for x in index) else "SEALED_WITH_EVIDENCE_GAPS","new_source_http_requests":0}
     (out/"forensic.aesgcm.tmp").write_bytes(sealed)
     (out/"forensic.json.tmp").write_bytes(canon(manifest)+b"\n")
     (out/"forensic.aesgcm.tmp").replace(out/"forensic.aesgcm")
     (out/"forensic.json.tmp").replace(out/"forensic.json")
     if restore(out,key,run)!=doc:raise ValueError("forensic_roundtrip")
-    return manifest,logs
+    return manifest,raw_cache
 
 def restore(out,key,run):
     out=Path(out);bind=identity(run);m=json.loads((out/"forensic.json").read_bytes());sealed=(out/"forensic.aesgcm").read_bytes()
@@ -79,7 +82,7 @@ def restore(out,key,run):
     for row in m["log_index"]:
         val=doc["logs"].get(str(row["job_id"]))
         if row["state"]=="LOG_BYTES_PRESERVED":
-            if val is None:raise ValueError("forensic_log_missing")
+            if val is None or row.get("log_format") not in ("JOB_API_RAW","GH_RUN_VIEW_RENDERED"):raise ValueError("forensic_log_missing_or_format")
             raw=base64.b64decode(val,validate=True)
             if sha(raw)!=row["sha256"] or len(raw)!=row["bytes"]:raise ValueError("forensic_log_mismatch")
         elif val is not None:raise ValueError("forensic_index_mismatch")
