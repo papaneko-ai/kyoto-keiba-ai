@@ -45,6 +45,7 @@ def canonical(x):
 def digest(x):return hashlib.sha256(x).hexdigest()
 def label(x):
     if not isinstance(x,str):return "UNKNOWN"
+    if x=="G05TrackRejected":return x  # exact known local parser class, not arbitrary text
     if re.fullmatch(r"(?:[A-Z][A-Z0-9]*(?:_[A-Z0-9]+)+|[a-z][a-z0-9]*(?:_[a-z0-9]+)+|[A-Za-z]{1,60}(?:Error|Rejected|Exception)|GET|POST|FAILED|STARTED|DEADLINE)",x) and len(x)<=120:
         return x
     m=re.fullmatch(r"HTTP Error ([1-5][0-9]{2})(?::[^\r\n]*)?",x)
