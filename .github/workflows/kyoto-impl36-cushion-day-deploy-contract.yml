@@ -6,6 +6,7 @@ on:
     branches: [main]
     paths:
       - '.github/workflows/kyoto-20261128-29-result-handoff.yml'
+      - '.github/workflows/kyoto-20261128-29-postrace-evidence.yml'
       - 'tests/test_kyoto_impl36_cushion_day_deploy.py'
 permissions:
   contents: read
@@ -54,6 +55,11 @@ jobs:
                   assert old.count(b"ref: '"+saturday+b"'")==1
                   expected=old.replace(b"ref: '"+saturday+b"'",b"ref: $"+b"{{ env.KYOTO_TARGET_DAY == '20261129' && '"+new_pin+b"' || '"+saturday+b"' }}")
                   expected=expected.replace(b"test \"$(git rev-parse HEAD)\" = '"+saturday+b"'",b'test "$(git rev-parse HEAD)" = "$(if [ "$KYOTO_TARGET_DAY" = 20261129 ]; then echo '+new_pin+b'; else echo '+saturday+b'; fi)"')
+              elif name=='postrace-evidence':
+                  prior=b'1fa2a43fcd17f5100b0b9b9b3dde43dec5a2981f'
+                  repaired=b'4dc34085eb9d9e10c88329ddf7d2933aec5e9958'
+                  assert old.count(prior)==2
+                  expected=old.replace(prior,repaired)
               assert new==expected,(name,'unexpected production delta')
           print('SIX_WORKFLOWS_EXACT_BASE_DELTA; CUSHION_SIDECAR_UNCHANGED')
           PY
