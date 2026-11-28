@@ -22,13 +22,20 @@ def parse(raw,race,*,meeting_date=DAY):
  text=soup.get_text(" ",strip=True)
  tables=[t for t in soup.select("table") if all(t.select_one("th."+x) for x in ("horse","num","waku"))]
  if len(tables)!=1:return [],["racecard_table_missing_or_ambiguous"]
- rows=[];errors=[]
+ rows=[];errors=[];ordinal=0;position_inferred=False
  for index,tr in enumerate(tables[0].select("tr")):
   h=tr.select_one("td.horse");n=tr.select_one("td.num")
   if h is None and n is None:continue
+  ordinal+=1
   if h is None or n is None:errors.append("missing_row_fields");continue
   a=h.select_one('a[href*="/JRADB/accessU.html"]')
   num=n.get_text(" ",strip=True)
+  # Actual official Nov29 PC cancellation cell replaces the printed
+  # number with <span class="cap">取消</span>. Use the ordered registered
+  # row only when ALL other rows independently confirm their positions.
+  inferred=(num in ("取消","出走取消","除外","競走除外") and n.select_one("span.cap") is not None and n.select_one("span.cap").get_text(strip=True)==num)
+  if inferred:
+   num=str(ordinal);position_inferred=True
   if not num.isascii() or not num.isdigit() or a is None or not 1<=int(num)<=18:
    errors.append("invalid_horse_number_or_link");continue
   link=a.get("href","");name=a.get_text(" ",strip=True)
@@ -50,9 +57,10 @@ def parse(raw,race,*,meeting_date=DAY):
    else:prior.append(d.isoformat())
   rows.append({"horse_number":int(num),"frame_number":frame,"horse_name":name,
    "horse_profile_href":link,"past_race_dates":prior,
-   "permanent_horse_id":None,"permanent_id_verified":False})
+   "permanent_horse_id":None,"permanent_id_verified":False,**({"cancelled":True,"number_evidence":"ORDERED_REGISTERED_ROW_POSITION"} if inferred else {})})
  nums=[r["horse_number"] for r in rows]
  if sorted(nums)!=list(range(1,len(rows)+1)):errors.append("non_contiguous_numbers")
+ if position_inferred and (len(rows)!=ordinal or nums!=list(range(1,ordinal+1)) or len([r for r in rows if not r.get("cancelled")])<2):errors.append("cancellation_position_not_verified")
  frames=[r["frame_number"] for r in rows]
  if any(x is None for x in frames) or frames!=sorted(x for x in frames if x is not None):errors.append("invalid_frames")
  if not re.search(rf"{meeting_date.year}年\s*{meeting_date.month}月\s*{meeting_date.day}日",text):errors.append("date_not_confirmed")
