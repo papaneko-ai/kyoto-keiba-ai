@@ -8,6 +8,7 @@ on:
       - '.github/workflows/kyoto-20261128-29-result-handoff.yml'
       - '.github/workflows/kyoto-20261128-29-postrace-evidence.yml'
       - '.github/workflows/kyoto-20261128-29-auxiliary-refresh.yml'
+      - '.github/workflows/kyoto-20261128-29-workout-source.yml'
       - '.github/workflows/kyoto-impl36-cushion-day-deploy-contract.yml'
       - 'tests/test_kyoto_impl36_cushion_day_deploy.py'
 permissions:
@@ -64,6 +65,11 @@ jobs:
                   new_postrace=b'b66249fbef412f76befba022f406ff422fbd3ffd'
                   assert old.count(old_postrace)==2
                   expected=old.replace(old_postrace,new_postrace)
+              elif name=='workout-source':
+                  old_workout=b'3274283595eac679f6a5e5fb9d658c2080149f62'
+                  new_workout=b'5855874f3f6dc9711d9b6f0444786ea2be0e05e7'
+                  assert old.count(old_workout)==2
+                  expected=old.replace(old_workout,new_workout)
               assert new==expected,(name,'unexpected production delta')
           print('SIX_WORKFLOWS_EXACT_BASE_DELTA; CUSHION_SIDECAR_UNCHANGED')
           PY
