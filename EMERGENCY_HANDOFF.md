@@ -297,3 +297,8 @@
 - A06 P0 夜間結果/払戻/署名handoff実動作。#165 origin、#167 metadata fallback、#168 SP feedbackは反映済み。19:02/20:32/21:02/22:02/22:40の実取得・認証・訂正照合は未確認。未到来を失敗としない。
 - A07 P1 runner強制喪失時の保存・90日artifact長期保全・共有Turso実証。GAP08/11/16未認定。未知障害自己修正・標準予約原因究明は必須後続工程、診断と自動修復を混同しない。
 - 暫定判定: 全対策終了を否定。A01/A02/A03を優先しA04/A05/A06を続ける。外部直接ログ・全対象原本バイト不足、署名case/validator未実施により正式IETAP v4.0.2 auditはBLOCK（署名状態未開始、RELEASEDなし）、今回の所見はGitHub実ログ・固定コードによる暫定判定。正式監査合格を主張しない。main/取得器/予約/Secrets/Turso/Cloudflare変更なし、追加JRA通信なし。今回記録処理の変数定義漏れで初回書込前停止、mainと正本確認後再開。修正候補は既存exact HEAD承認手順を維持。
+
+## 48. E39-FIX-18 午後救済・市場再読込修正の隔離checkpoint（11/28 JST）
+- main 457fcf075143b7f80a769b259fa1b9f5d2987abf 不変。source branch fix/impl30-nov29-impl39-aux-gap-recovery-20261128、現HEAD d530fb4e8199d190cdb56367eb66ad193e7e3779。A01: 日曜午後のみ既存15通信/180秒の原本収集後、未発走・未認証市場/プロフィールを既存G06/G04で救済。追加最大20通信、合計35、総300秒、共有pacer/拒否フラグ、個別締切、profile予約、既存原本の暗号化失敗時保全。追加予算は候補のみで未承認・未本番。A02関連の同根PC公式host両日不整合をitem-level/missing-market retryで修正。独立SP日次結合は未完。
+- 2850c77282160a61ddc9c28a544c48167ea01312 は46130351293/job140933893789 827試験成功。55e3bf2b11b9340c4364b9840e3f780d43f533f3 の46130535682/job140934461673 は先行7群808試験成功、FMEA末尾20件中2件エラー（変更source blobの再開要求）。検査器を緩めず d530fb4 で旧/新blobと未解消25件を維持して再開登録、11/28・29市場原本正規host/異常host回帰追加。46130734716 は確認時in_progress、未合格扱い。
+- A03 Cloudflare接続候補なし・手動fallback維持。A04/A05/A06/A07の§47所見維持。今夜のsigner、夜間pin、26枠、設定、mainに未変更。合格後に既存のexact HEAD承認手順で本番候補へ。
