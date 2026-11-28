@@ -3,7 +3,7 @@
 Use existing authenticated source replays. Detect missing executions as well as
 data gaps. Never convert a workflow success or receipt flag into data credit.
 """
-import argparse,hashlib,json,os,re,subprocess,tempfile,sys,time
+import argparse,copy,hashlib,json,os,re,subprocess,tempfile,sys,time
 from datetime import datetime,timezone,timedelta
 from pathlib import Path
 if __package__:
@@ -383,6 +383,100 @@ def load_checkpoint(day,out):
         raise ValueError("closure_continuity_checkpoint_identity")
     return doc
 
+def replay_postrace_isolated(day,metadata,coverage,roster,starts,key,*,download=None,decrypt=None,replay=None,include=None,clock=time.monotonic):
+    """Recover an older authenticated original when the newest is unreadable.
+    Never let a result/payout replay failure erase verified daytime evidence.
+    The existing full-history and finality gates still govern result credit.
+    """
+    baseline=copy.deepcopy(coverage)
+    baseline["postrace_history_index_complete"]=False
+    for row in baseline["races"].values():row["postrace"]={"state":"MISSING_OR_UNVERIFIED"}
+    for f in ("official_result","official_payout","dual_page_published_source","official_published_payout"):
+        if f in baseline.get("totals",{}):baseline["totals"][f]=0
+    status={"state":"NO_PRESENT_POSTRACE_ORIGINAL","attempts":[],"history_index_complete":False,
+            "daytime_evidence_preserved":True,"new_source_http_requests":0}
+    runs=metadata["runs"]
+    ids=[r["id"] for r in runs]
+    if any(type(n) is not int or n<=0 for n in ids) or len(ids)!=len(set(ids)):
+        return baseline,{**status,"state":"POSTRACE_RUN_INDEX_REJECTED"}
+    candidates=sorted((r for r in runs if r.get("status")=="completed" and r.get("event") in ("schedule","workflow_dispatch")
+        and r.get("artifacts",{}).get("postrace",{}).get("state")=="PRESENT"),key=lambda r:r["id"],reverse=True)
+    if not candidates:return baseline,status
+    end=clock()+45
+    if download is None:
+        def download(rid,name,target,repo,timeout):
+            subprocess.run(["gh","run","download",str(rid),"--repo",repo,"--name",name,"--dir",str(target)],
+                stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL,check=True,timeout=timeout)
+    if decrypt is None:
+        from diagnostics.kyoto_nov15_encrypted_evidence import decrypt_evidence as decrypt
+    if replay is None:
+        from diagnostics.kyoto_impl30_postrace_replay import replay_history as replay
+    if include is None:
+        from diagnostics.kyoto_impl30_day_coverage import include_postrace as include
+    with tempfile.TemporaryDirectory(prefix="kyoto_postrace_isolated_") as td:
+        root=Path(td)
+        for r in candidates[:4]:
+            rid=r["id"]
+            row={"run_id":rid,"artifact_ids":r["artifacts"]["postrace"].get("ids",[]),"head_sha":r.get("head_sha")}
+            status["attempts"].append(row)
+            try:
+                if (len(row["artifact_ids"])!=1 or type(row["artifact_ids"][0]) is not int or row["artifact_ids"][0]<=0):raise ValueError("postrace_artifact_identity")
+                left=end-clock()
+                if left<=0:raise TimeoutError("postrace_archive_budget")
+                base=root/str(rid);base.mkdir();cipher=base/"cipher";cipher.mkdir();raw=base/"raw"
+                download(rid,f"kyoto-postrace-{rid}-{day}",cipher,REPO,min(25,left))
+                decrypt(cipher,raw,key_hex=key,repo=REPO,run_id=str(rid))
+                row["state"]="ORIGINAL_AUTHENTICATED"
+            except Exception as exc:
+                row.update(state="ORIGINAL_REOPEN_FAILED",error_class=type(exc).__name__)
+                continue
+            # Exactly one full-history replay. It independently reopens the
+            # other runs, including a newer original if the first error was
+            # transient. Never suppress the earlier failure record.
+            try:
+                history=replay(raw,day=day,repo=REPO,key=key,current_run=str(rid),roster=roster,starts=starts)
+                if history.get("schema")!="kyoto_impl30_postrace_replay.v1" or history.get("day")!=day:raise ValueError("postrace_replay_identity")
+                evidence=history.get("run_evidence",[])
+                if not isinstance(evidence,list):raise ValueError("postrace_evidence_inventory")
+                verified={str(x["run_id"]) for x in evidence if isinstance(x,dict) and "run_id" in x
+                    and type(x.get("recomputed_races")) is int and 0<=x["recomputed_races"]<=12 and not x.get("error_class")}
+                if str(rid) not in verified:raise ValueError("postrace_current_replay_unverified")
+                failures={str(x["run_id"]) for x in status["attempts"] if x["state"]=="ORIGINAL_REOPEN_FAILED"}
+                complete=history.get("prior_artifact_index_complete") is True and failures<=verified
+                # An earlier candidate cannot hide a missing latest revision.
+                history={**history,"prior_artifact_index_complete":complete}
+                combined=include(copy.deepcopy(baseline),history,roster=roster,starts=starts)
+                if combined.get("day")!=day or combined.get("schema")!=baseline.get("schema") or set(combined.get("races",{}))!=set(RACES):
+                    raise ValueError("postrace_combined_identity")
+                status.update(state="HISTORY_REPLAYED" if complete else "HISTORY_REPLAYED_INCOMPLETE",
+                    current_archive_run_id=rid,history_index_complete=complete,
+                    recovered_prior_failed_runs=sorted(int(n) for n in failures&verified),
+                    history_evidence=[{"run_id":x.get("run_id"),"recomputed_races":x.get("recomputed_races"),
+                        "explicit_final_matches":x.get("explicit_final_matches"),"error_class":x.get("error_class")} for x in evidence if isinstance(x,dict)])
+                if not complete:
+                    # Preserve observed revision status from the pinned
+                    # reader, but the existing final-history condition must
+                    # remain false in the coverage object as well.
+                    combined["postrace_history_index_complete"]=False
+                return combined,status
+            except Exception as exc:
+                status.update(state="POSTRACE_REPLAY_FAILED_DAYTIME_RETAINED",current_archive_run_id=rid,error_class=type(exc).__name__)
+                return baseline,status
+    status["state"]="ALL_POSTRACE_ORIGINAL_REOPENS_FAILED_DAYTIME_RETAINED"
+    return baseline,status
+
+def write_daytime_checkpoint(day,out,coverage,allowed,sp_allowed,sp_roster_slots):
+    # Public output contains only independently counted cells and hashes,
+    # never decrypted names, odds or other source values.
+    observed=coverage_gaps(day,coverage,allowed,allowed_sp_market_run_ids=sp_allowed,verified_sp_roster_slots=sp_roster_slots)
+    doc={"schema":"kyoto_daytime_coverage_checkpoint.v1","day":day,
+         "review_run_id":os.environ.get("GITHUB_RUN_ID"),"coverage":observed,
+         "postrace_evaluated":False,"full_acquisition_certified":False}
+    raw=canon(doc)
+    (out/"daytime_coverage_checkpoint.json").write_bytes(raw+b"\n")
+    (out/"daytime_coverage_checkpoint.sha256").write_text(digest(raw)+"\n",encoding="ascii")
+    return observed
+
 def review(day,now,out,*,use_checkpoint=False):
     doc=load_checkpoint(day,out) if use_checkpoint else write_checkpoint(day,now,out)
     metadata,errors=doc["workflows"],doc["errors"]
@@ -394,12 +488,11 @@ def review(day,now,out,*,use_checkpoint=False):
     sp_attempted=False
     sp_allowed=[]
     sp_roster_slots=[]
+    daytime_checkpoint=None
     # Reuse production's authenticated PC/auxiliary/market/result replay, not
     # unverified handoff totals. Same-day correction chain is reopened.
     try:
         from diagnostics.kyoto_impl30_postrace_runtime import recover_inputs
-        from diagnostics.kyoto_impl30_postrace_replay import replay_history,prior_archives
-        from diagnostics.kyoto_impl30_day_coverage import include_postrace
         key=os.environ["ARCHIVE_KEY"]
         roster,starts,_,proof=recover_inputs(day,REPO,key,include_coverage=True,allow_missing_seed=True,**({"return_coverage_slots":True} if day=="20261129" else {}))
         report["roster_verified_races"]=[n for n in range(1,13) if roster.get(n) and starts.get(n)]
@@ -425,21 +518,23 @@ def review(day,now,out,*,use_checkpoint=False):
                 report["sp_market_replay"]={"authenticated_run_ids":sp_allowed,"source_http_requests":0}
                 report["independent_sp_only_roster_races"]=[int(n) for n,r in coverage["races"].items() if r.get("roster_source_channel")=="SP"]
             except Exception as exc:report["independent_sp_market_replay_error"]=type(exc).__name__
-        # Existing replay_history includes the current run. For day close
-        # use the latest actual postrace archive as current (not this workflow).
-        post=[r for r in metadata["postrace-evidence.yml"]["runs"] if r.get("artifacts",{}).get("postrace",{}).get("state")=="PRESENT"]
-        if post:
-            rid=max(post,key=lambda r:r["id"])["id"]
-            from diagnostics.kyoto_nov15_encrypted_evidence import decrypt_evidence
-            from diagnostics.kyoto_impl25_c12_all_runs_handoff import _download
-            with tempfile.TemporaryDirectory(prefix="kyoto_closure_") as tmp:
-                root=Path(tmp);cipher=root/"cipher";cipher.mkdir()
-                _download(rid,f"kyoto-postrace-{rid}-{day}",cipher,REPO)
-                raw=root/"raw";decrypt_evidence(cipher,raw,key_hex=key,repo=REPO,run_id=str(rid))
-                history=replay_history(raw,day=day,repo=REPO,key=key,current_run=str(rid),roster=roster,starts=starts)
-                coverage=include_postrace(coverage,history,roster=roster,starts=starts)
-                report["postrace_history_index_complete"]=history["prior_artifact_index_complete"]
         allowed={r["id"] for filename,lane in (("two-source-production-observer.yml","pc"),("auxiliary-refresh.yml","auxiliary"),("postrace-evidence.yml","postrace")) for r in metadata[filename]["runs"] if r.get("artifacts",{}).get(lane,{}).get("state")=="PRESENT"}
+        # Save verified daytime cells before opening the independent evening
+        # chain. The always-upload step preserves this even on process error.
+        try:
+            daytime=copy.deepcopy(coverage)
+            daytime["postrace_history_index_complete"]=False
+            daytime_checkpoint=write_daytime_checkpoint(day,out,daytime,allowed,sp_allowed,sp_roster_slots)
+        except Exception as exc:report["daytime_coverage_checkpoint_error"]=type(exc).__name__
+        try:
+            coverage,postrace_status=replay_postrace_isolated(day,metadata["postrace-evidence.yml"],coverage,roster,starts,key)
+            report["postrace_isolated_replay"]=postrace_status
+            report["postrace_history_index_complete"]=postrace_status["history_index_complete"]
+        except Exception as exc:
+            # A failure even before the isolated replayer runs must not
+            # clear unrelated verified daytime rows or grant stale finality.
+            coverage["postrace_history_index_complete"]=False
+            report["postrace_isolated_replay"]={"state":"POSTRACE_REPLAY_UNAVAILABLE_DAYTIME_RETAINED","error_class":type(exc).__name__,"history_index_complete":False,"daytime_evidence_preserved":True,"new_source_http_requests":0}
         # Workout replay is independently authenticated, linked to the same
         # roster, and never allowed to erase other source evidence on failure.
         wr=None;workout_allowed=[]
@@ -459,7 +554,11 @@ def review(day,now,out,*,use_checkpoint=False):
         except Exception as exc:report["independent_cushion_day_replay_error"]=type(exc).__name__
     except Exception as exc:
         report["coverage_replay_error"]=type(exc).__name__
-        report["coverage"]={"counts":{},"races":[{"race":n,"state":"NOT_EVALUATED","missing":[{"family":"day_coverage_unavailable"}],"unknown_horse_families":list(HORSE)} for n in range(1,13)],"all_reviewed_cells_present":False,"full_acquisition_certified":False}
+        if daytime_checkpoint is not None:
+            report["coverage"]=daytime_checkpoint
+            report["coverage_state"]="DAYTIME_CHECKPOINT_RECOVERED_NOT_COMPLETE"
+        else:
+            report["coverage"]={"counts":{},"races":[{"race":n,"state":"NOT_EVALUATED","missing":[{"family":"day_coverage_unavailable"}],"unknown_horse_families":list(HORSE)} for n in range(1,13)],"all_reviewed_cells_present":False,"full_acquisition_certified":False}
     if not sp_attempted:
         try:report["independent_sp_source_coverage"]=review_sp(day,metadata["two-source-production-observer.yml"])
         except Exception as exc:report["independent_sp_source_coverage_error"]=type(exc).__name__
@@ -480,6 +579,10 @@ def review(day,now,out,*,use_checkpoint=False):
     summary.extend(continuity_summary(report["continuity_obligations"]))
     if "sp_market_replay" in report:summary.append("- SP市場原本の独立照合: "+str(report["sp_market_replay"]))
     if "independent_sp_market_replay_error" in report:summary.append("- SP市場照合未完: "+report["independent_sp_market_replay_error"])
+    if "postrace_isolated_replay" in report:
+        p=report["postrace_isolated_replay"]
+        summary.append(f"- 結果・払戻の独立復旧: {p['state']} / 履歴完全性={p['history_index_complete']} / archive試行={p.get('attempts',[])} / 昼間証拠を維持")
+    if daytime_checkpoint is not None:summary.append("- 昼間の独立取得証拠をdaytime_coverage_checkpoint.jsonとSHA256へ保存済み。夜間完全取得の認定ではない。")
     if "coverage_replay_error" in report:summary.append("- 原本再検証未完: "+report["coverage_replay_error"])
     if "workout_day_replay" in report:
         w=report["workout_day_replay"]

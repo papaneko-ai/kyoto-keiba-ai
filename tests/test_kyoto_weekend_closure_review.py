@@ -241,4 +241,75 @@ class ClosureTests(unittest.TestCase):
   with self.assertRaises(ValueError):replay_cushions(DAY,d,[(1,"a"),(1,"b")],read,combine)
   def bad(day,c,obs):return {**combine(day,c,obs),"prediction_ready":True}
   with self.assertRaises(ValueError):replay_cushions(DAY,d,[(1,"a")],read,bad)
+class PostraceIsolationTests(unittest.TestCase):
+ def candidates(self):
+  return {"index_complete":True,"runs":[{"id":i,"head_sha":"a"*40,"event":"workflow_dispatch","status":"completed","artifacts":{"postrace":{"state":"PRESENT","ids":[100+i]}}} for i in (1,2)]}
+ def history(self,complete=True):
+  return {"schema":"kyoto_impl30_postrace_replay.v1","day":DAY,"prior_artifact_index_complete":complete,"run_evidence":[{"run_id":1,"recomputed_races":12},{"run_id":2,"error_class":"TimeoutError"}],"races":{}}
+ def invoke(self,history=None,*,fail_decrypt=False,fail_replay=False,fail_include=False):
+  from diagnostics.kyoto_weekend_closure_review import replay_postrace_isolated
+  before=data();orig=copy.deepcopy(before);calls=[]
+  def download(rid,name,path,repo,timeout):
+   self.assertEqual(repo,REPO);self.assertLessEqual(timeout,25)
+   calls.append(("download",rid))
+   if rid==2:raise TimeoutError()
+  def decrypt(src,raw,**kw):
+   calls.append(("decrypt",int(kw["run_id"])))
+   if fail_decrypt:raise ValueError()
+   raw.mkdir()
+  def replay(raw,**kw):
+   calls.append(("replay",int(kw["current_run"])))
+   if fail_replay:raise ValueError()
+   return self.history() if history is None else history
+  def include(c,h,**kw):
+   calls.append(("include",h["prior_artifact_index_complete"]))
+   if fail_include:
+    c["races"]["1"].clear();raise ValueError()
+   c["postrace_history_index_complete"]=h["prior_artifact_index_complete"]
+   return c
+  result,state=replay_postrace_isolated(DAY,self.candidates(),before,{},{},"key",download=download,decrypt=decrypt,replay=replay,include=include,clock=lambda:0)
+  self.assertEqual(before,orig)
+  self.assertEqual(result["races"]["1"]["racecard"],orig["races"]["1"]["racecard"])
+  self.assertEqual(result["races"]["1"]["markets"],orig["races"]["1"]["markets"])
+  self.assertEqual(coverage_gaps(DAY,result,[1,2])["counts"]["racecard"]["verified"],12)
+  self.assertEqual(coverage_gaps(DAY,result,[1,2])["counts"]["official_result"]["verified"],0)
+  return result,state,calls
+ def test_latest_archive_loss_falls_back_without_false_complete_history(self):
+  v,s,c=self.invoke()
+  self.assertEqual(s["state"],"HISTORY_REPLAYED_INCOMPLETE")
+  self.assertEqual(c,[("download",2),("download",1),("decrypt",1),("replay",1),("include",False)])
+  self.assertFalse(v["postrace_history_index_complete"])
+  self.assertEqual(s["attempts"][0]["error_class"],"TimeoutError")
+ def test_transient_latest_archive_loss_can_be_proved_recovered(self):
+  h=self.history();h["run_evidence"][1]={"run_id":2,"recomputed_races":12}
+  v,s,c=self.invoke(h)
+  self.assertEqual(s["state"],"HISTORY_REPLAYED");self.assertEqual(s["recovered_prior_failed_runs"],[2]);self.assertTrue(v["postrace_history_index_complete"])
+  self.assertEqual(c.count(("replay",1)),1)
+ def test_all_original_failures_do_not_erase_daytime(self):
+  v,s,c=self.invoke(fail_decrypt=True)
+  self.assertEqual(s["state"],"ALL_POSTRACE_ORIGINAL_REOPENS_FAILED_DAYTIME_RETAINED")
+  self.assertEqual(c,[("download",2),("download",1),("decrypt",1)])
+  self.assertFalse(v["postrace_history_index_complete"])
+ def test_replay_or_include_error_cannot_erase_verified_cells(self):
+  for args in ({"fail_replay":True},{"fail_include":True}):
+   v,s,c=self.invoke(**args)
+   self.assertEqual(s["state"],"POSTRACE_REPLAY_FAILED_DAYTIME_RETAINED")
+   self.assertFalse(v["postrace_history_index_complete"])
+ def test_daytime_checkpoint_has_independent_counts_and_digest(self):
+  import tempfile,json,hashlib,os
+  from pathlib import Path
+  from unittest.mock import patch
+  from diagnostics.kyoto_weekend_closure_review import write_daytime_checkpoint
+  d=data();d["postrace_history_index_complete"]=False
+  with tempfile.TemporaryDirectory() as tmp,patch.dict(os.environ,{"GITHUB_RUN_ID":"42"}):
+   out=Path(tmp);v=write_daytime_checkpoint(DAY,out,d,[1,2],[],[])
+   raw=(out/"daytime_coverage_checkpoint.json").read_bytes().rstrip(b"\n")
+   p=json.loads(raw)
+   self.assertEqual(p["review_run_id"],"42")
+   self.assertEqual(p["coverage"],v)
+   self.assertEqual(p["coverage"]["counts"]["racecard"]["verified"],12)
+   self.assertEqual(p["coverage"]["counts"]["official_result"]["verified"],0)
+   self.assertEqual(hashlib.sha256(raw).hexdigest(),(out/"daytime_coverage_checkpoint.sha256").read_text().strip())
+   self.assertFalse(p["full_acquisition_certified"])
+
 if __name__=="__main__":unittest.main()
