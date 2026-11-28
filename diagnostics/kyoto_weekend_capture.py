@@ -131,6 +131,11 @@ def capture(day: str, channel: str, output: str, *, live: bool,
             out = _no_claim(day, channel, result["state"],
                             observed_http_requests_started=result["http_requests_started"],
                             captured_originals=bool(result.get("selection_sha256")))
+            out["pc_observer_error_class"]=result.get("error_class")
+            code=result.get("error_code","")
+            out["pc_observer_error_code"]=code if isinstance(code,str) and re.fullmatch(r"[A-Za-z0-9_]{1,120}",code) else None
+            out["pc_selection_saved"]=bool(result.get("selection_sha256"))
+            out["pc_meeting_saved"]=bool(result.get("meeting_sha256"))
             # A failed G03 link acquisition does not invalidate independent
             # saved observer originals or the separately observed Kyoto track.
             try:
@@ -142,6 +147,7 @@ def capture(day: str, channel: str, output: str, *, live: bool,
                 out["g03_error_class"]=type(exc).__name__
             out["g03_all_race_originals_observed"]=bool(g03.get("complete"))
             out["g03_network_requests_started"]=g03.get("network_requests_started",0)
+            out["g03_bridge_state"]=g03.get("state")
             # Independently recheck valid G03 race originals before downstream
             # G04/G05. Full-12 certification is not weakened by this path.
             partial_verified=[]
@@ -153,6 +159,8 @@ def capture(day: str, channel: str, output: str, *, live: bool,
                 out["g03_partial_source_excluded"]=partial_proof["excluded_races"]
             except Exception as exc:
                 out["g03_partial_proof_error_class"]=type(exc).__name__
+                code=str(exc)
+                out["g03_partial_proof_error_code"]=code if re.fullmatch(r"[A-Za-z0-9_]{1,120}",code) else None
             # G06 starts from exact G03 saved official URLs, named rosters
             # and verified race times. Partial G03 does not cancel the rest.
             # Existing PC opener and pacer are reused; no synthetic SP link.
@@ -400,7 +408,10 @@ def capture(day: str, channel: str, output: str, *, live: bool,
                             sp_races_with_racecard=sum(x.get("racecard_fetched", False)
                                                        for x in multi["races"].values()),
                             sp_all12_source_proof="PER_RACE_EVIDENCE_NOT_FULL_CERTIFICATION",
-                            sp_gap_plan=plan)
+                            sp_gap_plan=plan,
+                            sp_discovery_state=found.get("state"),
+                            sp_discovery_attempts=[{k:a[k] for k in ("state","error_class","bytes") if k in a} for a in found.get("attempts",[])],
+                            sp_discovery_candidate_counts={str(k):v.get("candidate_count",0) for k,v in found.get("per_race_observed_navigation_candidates",{}).items()})
         except Exception as exc:
             out = _no_claim(day, channel, "SP_ALL12_CAPTURE_EXCEPTION",
                             error_class=type(exc).__name__)
