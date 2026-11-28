@@ -122,4 +122,31 @@ class G05Tests(unittest.TestCase):
         self.assertIsNone(result["races"]["2"]["horses"]["1"]["body_weight_kg"]["value"])
         self.assertEqual(result["races"]["3"]["horses"]["1"]["body_weight_kg"]["value"],441)
 
+    def test_actual_nested_current_weight_and_track_layout(self):
+        from diagnostics.kyoto_g05_conditions import _body_weights,_race_fields
+        def raw(horses,header='馬名 馬体重',going='芝：良'):
+            return (f'<html><div class="record_unit mt30"><div class="data"><div class="inner"><div class="cell date"><span>{going}</span></div></div></div></div>'
+                    '<table><tr><th class="waku">枠</th><th class="num">馬番</th>'
+                    f'<th class="horse">{header}</th><th class="jockey">斤量</th><th class="past">前走</th></tr>'
+                    +''.join(f'<tr><td class="waku">1</td><td class="num">{number}</td><td class="horse"><div class="name_line">馬名</div><div class="result_line">{nested}</div></td><td class="jockey">56kg</td><td class="past"><div class="result_line"><div class="cell weight">499kg (+9)</div></div><div class="record_unit mt30"><div class="data"><div class="inner"><div class="cell date"><span>芝：不良</span></div></div></div></div></td></tr>' for number,nested in horses)
+                    +'</table></html>').encode('cp932')
+        current='<div class="cell weight">480kg <span class="transition">(+4)</span></div>'
+        second='<div class="cell weight">501kg <span class="transition">(0)</span></div>'
+        r=raw([('1',current),('2',second),('3','')])
+        self.assertEqual(_body_weights(r,[1,2,3]),{1:(480,4),2:(501,0),3:(None,None)})
+        self.assertEqual(_race_fields(r)['turf_going'],'良')
+        self.assertIsNone(_race_fields(r)['dirt_going'])
+        # Unpublished, ambiguous, cancelled, wrong heading and lookalike
+        # previous-race markup must not produce a current weight.
+        for altered in (current+second,'<div class="past">'+current+'</div>',''):
+            a=raw([('1',altered),('2',second),('3','')])
+            self.assertEqual(_body_weights(a,[1,2,3])[1],(None,None))
+            self.assertEqual(_body_weights(a,[1,2,3])[2],(501,0))
+        self.assertEqual(_body_weights(raw([('1',current),('2',second)],header='馬名'),[1,2]),{1:(None,None),2:(None,None)})
+        cancel='<span class="cap">取消</span>'
+        self.assertEqual(_body_weights(raw([('1',current),(cancel,current),('3',second)]),[1,2,3],expected_cancelled=[2]),{1:(480,4),2:(None,None),3:(501,0)})
+        conflict=r.replace(b'<table>', '<section class="race-condition">芝：不良</section><table>'.encode("cp932"))
+        self.assertIsNone(_race_fields(conflict)['turf_going'])
+        self.assertIsNone(_race_fields(raw([('1',current),('2',second)],going='芝：未発表'))['turf_going'])
+
 if __name__=="__main__":unittest.main()

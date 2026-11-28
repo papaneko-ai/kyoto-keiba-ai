@@ -45,6 +45,12 @@ def _race_fields(raw):
             values={m.group(1) for m in matches}
             extracted[key]=next(iter(values)) if len(values)==1 else None
         else:
+            # Current official racecard header, independently observed on Nov28
+            # 10R and 11R. Do not scan past-performance rows or arbitrary text.
+            for item in soup.select("div.record_unit.mt30 > div.data > div.inner > div.cell.date > span"):
+                if item.find_parent("table") is None:
+                    match=pattern.fullmatch(item.get_text(" ",strip=True))
+                    if match:matches.append(match)
             for surface in ("turf_going","dirt_going"):
                 matches2={m.group(2) for m in matches
                     if (m.group(1)=="芝")== (surface=="turf_going")}
@@ -59,6 +65,8 @@ def _body_weights(raw,expected_numbers,*,expected_cancelled=()):
     table=tables[0]
     headings=[th.get_text(" ",strip=True) for th in table.select("tr")[0].find_all("th",recursive=False)]
     indices=[i for i,value in enumerate(headings) if "馬体重" in value]
+    horse_heading=table.select_one("th.horse")
+    composite_weight=horse_heading is not None and "馬体重" in horse_heading.get_text(" ",strip=True)
     result={}
     cancelled=set(expected_cancelled)
     expected=list(expected_numbers)
@@ -87,9 +95,16 @@ def _body_weights(raw,expected_numbers,*,expected_cancelled=()):
         value=None;change=None
         cells=tr.find_all("td",recursive=False)
         direct=tr.select("td.bodyweight, td.body-weight, td.batai, td.horse-weight")
-        candidate=direct[0] if len(direct)==1 else None
-        if candidate is None and len(indices)==1 and len(cells)==len(headings):
+        # The current card puts today's mass in a dedicated child of the
+        # horse-name cell. Never use the rest of the composite cell, odds,
+        # previous-race cells, or jockey assigned weight as today's mass.
+        nested=horse.select(":scope > div.result_line > div.cell.weight") if composite_weight else []
+        candidates=direct+nested
+        candidate=candidates[0] if len(candidates)==1 else None
+        if not candidates and len(indices)==1 and len(cells)==len(headings) and cells[indices[0]] is not horse:
             candidate=cells[indices[0]]
+        # Multiple candidate nodes are ambiguous; keep this horse missing
+        # instead of silently choosing one or erasing other horses.
         if candidate is not None:
             text=candidate.get_text(" ",strip=True)
             match=_MASS.fullmatch(text)
