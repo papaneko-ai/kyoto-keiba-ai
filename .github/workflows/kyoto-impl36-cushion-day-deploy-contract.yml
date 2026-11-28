@@ -37,7 +37,7 @@ jobs:
           # reviewed exact incident repair; cushion sidecar and schedules stay byte-identical.
           base='5a7378a9b0a6c078c65d0c9b51cb8d3b2852a46e'
           old_pin=b'15d66874903400e50c4a4350b34aed42133a3738'
-          new_pin=b'c3b15355ba5a184e22cd87c34bc645538ce33200'
+          new_pin=b'c289c5ec4e6ad322a7e08acf173da3352ed23dba'
           saturday=b'3f4b3d77357745ead05a9f78db34eb6ac2d78637'
           names=('two-source-production-observer','auxiliary-refresh','result-handoff','postrace-evidence','workout-source','cushion-source')
           for name in names:
@@ -56,18 +56,18 @@ jobs:
                   assert old.split(marker)[1]==new.split(marker)[1]
               elif name=='auxiliary-refresh':
                   assert old.count(b"ref: '"+saturday+b"'")==1
-                  aux_pin=b'c3b15355ba5a184e22cd87c34bc645538ce33200'
+                  aux_pin=b'c289c5ec4e6ad322a7e08acf173da3352ed23dba'
                   expected=old.replace(b"ref: '"+saturday+b"'",b"ref: '"+aux_pin+b"'")
                   assert old.count(b"test \"$(git rev-parse HEAD)\" = '"+saturday+b"'")==1
                   expected=expected.replace(b"test \"$(git rev-parse HEAD)\" = '"+saturday+b"'",b"test \"$(git rev-parse HEAD)\" = '"+aux_pin+b"'")
               elif name=='postrace-evidence':
                   old_postrace=b'1fa2a43fcd17f5100b0b9b9b3dde43dec5a2981f'
-                  new_postrace=b'c3b15355ba5a184e22cd87c34bc645538ce33200'
+                  new_postrace=b'c289c5ec4e6ad322a7e08acf173da3352ed23dba'
                   assert old.count(old_postrace)==2
                   expected=old.replace(old_postrace,new_postrace)
               elif name=='workout-source':
                   old_workout=b'3274283595eac679f6a5e5fb9d658c2080149f62'
-                  new_workout=b'5855874f3f6dc9711d9b6f0444786ea2be0e05e7'
+                  new_workout=b'bd800bc30db60919e274eadac419016c963e77de'
                   assert old.count(old_workout)==2
                   expected=old.replace(old_workout,new_workout)
               assert new==expected,(name,'unexpected production delta')
