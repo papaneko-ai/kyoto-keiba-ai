@@ -18,7 +18,8 @@ def links(original, parent, day):
     """
     if not re.fullmatch(r"20\d{6}",day): raise G03Error("invalid_day")
     parent_parts=urlsplit(parent)
-    if parent_parts.scheme!="https" or parent_parts.hostname!="jra.jp" or parent_parts.path!="/JRADB/accessD.html":
+    allowed_hosts=("jra.jp","www.jra.go.jp") if day=="20261129" else ("jra.jp",)
+    if parent_parts.scheme!="https" or parent_parts.hostname not in allowed_hosts or parent_parts.path!="/JRADB/accessD.html" or parent_parts.port is not None or parent_parts.username or parent_parts.password or parent_parts.fragment:
         raise G03Error("untrusted_meeting")
     soup=BeautifulSoup(original.decode("cp932",errors="replace"),"html.parser")
     observed={race:set() for race in range(1,13)}
@@ -32,7 +33,7 @@ def links(original, parent, day):
         url=urljoin(parent,a["href"])
         parts=urlsplit(url)
         q=parse_qs(parts.query)
-        if (parts.scheme!="https" or parts.hostname!="jra.jp" or
+        if (parts.scheme!="https" or parts.hostname!=parent_parts.hostname or parts.port is not None or parts.username or parts.password or
             parts.path!="/JRADB/accessD.html" or parts.fragment or
             set(q)!={"CNAME"} or len(q["CNAME"])!=1):
             continue
