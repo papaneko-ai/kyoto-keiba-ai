@@ -150,7 +150,12 @@ class SourceFirstCoverageTests(unittest.TestCase):
         row=receipt["sources"][0]
         self.assertEqual(row["source"],"diagnostics/jra_one_shot_market_capture.py")
         self.assertEqual(row["old_blob"],"9d3dfff82de4e5927b661de2d03df9db00e4d0fe")
-        self.assert_current_or_reopened(row["source"],row["old_blob"])
+        # The preceding historical-chain test traverses all earlier reopen
+        # edges. Here independently verify the final edge and actual bytes.
+        self.assertNotEqual(row["old_blob"],row["new_blob"])
+        self.assertEqual(row["review_status"],"UNREVIEWED_INDEPENDENT_FMEA")
+        self.assertEqual(row["closed_risks"],0)
+        self.assertEqual(row["new_blob"],self.doc["source_git_blob_sha1"][row["source"]])
         self.assertEqual(row["new_blob"],subprocess.check_output(["git","hash-object",row["source"]],cwd=ROOT,text=True).strip())
         self.assertEqual(len(self.doc["risks"]),25)
         self.assertTrue(all(not r["remediated"] and not r["test_proven"] for r in self.doc["risks"]))
