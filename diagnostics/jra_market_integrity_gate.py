@@ -63,7 +63,7 @@ def check(e,*,race_start_utc,source_bytes=None):
     if not e.official_verified or not e.race_identity_verified or not e.race_key:
         return block("unverified_race_or_origin")
     u=urlsplit(e.source_url)
-    if u.scheme!="https" or u.hostname not in ("jra.jp","www.jra.go.jp","sp.jra.jp") or u.path!="/JRADB/accessO.html":
+    if u.scheme!="https" or u.hostname not in ("jra.jp","www.jra.go.jp","sp.jra.jp","app.jra.jp") or u.path!="/JRADB/accessO.html":
         return block("source_not_official_odds_page")
     try:
         if utc(e.captured_at_utc)>=utc(race_start_utc):return block("after_start")

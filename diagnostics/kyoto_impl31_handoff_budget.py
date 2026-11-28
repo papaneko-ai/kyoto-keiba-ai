@@ -15,7 +15,7 @@ WORKERS = 6
 METADATA_CAP = 65
 ARTIFACT_CAP = 180
 
-def _worker(kind, day, repo, rid, lane):
+def _worker(kind, day, repo, rid, lane, sp_context=None):
     from diagnostics.kyoto_impl25_c12_all_runs_handoff import _gh, _download, WEEKENDS, _date
     if kind in ('index','metadata') and repo != 'papaneko-ai/kyoto-keiba-ai':raise ValueError('metadata_repo_mismatch')
     from diagnostics.kyoto_repair_control import recover_collection
@@ -42,7 +42,7 @@ def _worker(kind, day, repo, rid, lane):
         if kind == 'lane':
             from diagnostics.kyoto_weekend_day21_artifact_triage import assess_lane
             _download(rid, f'kyoto-{lane.lower()}-{rid}-{day}', cipher, repo)
-            return assess_lane(cipher, day=day, channel=lane, key=os.environ.get('ARCHIVE_KEY',''), repo=repo, run_id=str(rid))
+            return assess_lane(cipher, day=day, channel=lane, key=os.environ.get('ARCHIVE_KEY',''), repo=repo, run_id=str(rid),sp_context=sp_context)
         if kind == 'aux':
             from diagnostics.kyoto_nov15_encrypted_evidence import decrypt_evidence
             from diagnostics.kyoto_impl30_day_coverage import extract_slot
@@ -56,7 +56,8 @@ def _worker(kind, day, repo, rid, lane):
     raise ValueError('unknown_worker_kind')
 
 def _invoke(task, end, clock=time.monotonic):
-    kind, day, repo, rid, lane = task
+    kind, day, repo, rid, lane = task[:5]
+    context=task[5] if len(task)==6 else None
     cap = METADATA_CAP if kind in ('index','metadata') else ARTIFACT_CAP
     remaining = min(cap, end-clock())
     if remaining <= 0:
@@ -67,6 +68,8 @@ def _invoke(task, end, clock=time.monotonic):
         with tempfile.TemporaryDirectory(prefix='kyoto_handoff_result_') as tmp:
             out = Path(tmp)/'result.json'
             cmd = [sys.executable,'-m','diagnostics.kyoto_impl31_handoff_budget',kind,day,repo,str(rid),lane,str(out)]
+            if context is not None:
+                p=Path(tmp)/'sp_context.json';p.write_text(json.dumps(context,allow_nan=False),encoding='utf8');cmd.append(str(p))
             # When imported normally __name__ is the stable module name.
             with subprocess.Popen(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, start_new_session=True, env={**os.environ,"TMPDIR":tmp}) as proc:
                 try:
@@ -118,7 +121,7 @@ def gather_bounded(day, repo, *, invoke=_invoke, clock=time.monotonic, budget=BU
     entries=[{'run':r} for r in runs]
     active=[e for e in entries if e['run'].get('status')=='completed' and e['run'].get('event') in ('schedule','workflow_dispatch')]
     metadata=batch([task('metadata',e['run']['id']) for e in active])
-    work=[]; destinations=[]; aux_errors=[]; aux_slots=[]
+    work=[]; destinations=[]; aux_errors=[]; aux_slots=[]; sp_work=[];sp_dest=[]
     if not aux_complete: aux_errors.append({'error_class':'AUXILIARY_RUN_INDEX_INCOMPLETE'})
     for e,m in zip(active,metadata):
         if 'jobs' not in m or 'artifacts' not in m:
@@ -129,7 +132,8 @@ def gather_bounded(day, repo, *, invoke=_invoke, clock=time.monotonic, budget=BU
             found=[a for a in m['artifacts'] if a.get('name')==expected and a.get('expired') is False]
             if len(found)!=1:
                 e['source_assessment'][lane]={'state':'EXACT_ARTIFACT_NOT_FOUND_OR_AMBIGUOUS'};continue
-            work.append(task('lane',rid,lane));destinations.append((e,lane))
+            if day=='20261129' and lane=='SP':sp_work.append(task('lane',rid,lane));sp_dest.append(e)
+            else:work.append(task('lane',rid,lane));destinations.append((e,lane))
     for r in auxiliaries:
         if r.get('event') not in ('schedule','workflow_dispatch'):continue
         if r.get('status')!='completed':
@@ -142,6 +146,17 @@ def gather_bounded(day, repo, *, invoke=_invoke, clock=time.monotonic, budget=BU
         elif value.get('day')==day and value.get('run_id')==str(dest['id']) and isinstance(value.get('races'),dict):
             aux_slots.append(value)
         else: aux_errors.append({'run_id':dest['id'],'error_class':value.get('error_class','AUXILIARY_WORKER_INVALID')})
+    # Reuse the already reopened PC/auxiliary slots. SP originals are downloaded
+    # exactly once, with an independent authenticated cutoff/roster context.
+    if sp_work:
+        from diagnostics.kyoto_impl39_sp_market_union import context
+        pc_slots=[]
+        for e in entries:
+            v=e.get('source_assessment',{}).get('PC',{});s=v.get('day_coverage_slot')
+            if v.get('ciphertext_authenticated') is True and v.get('source_original_sha_utc_checked') is True and isinstance(s,dict) and s.get('day')==day and s.get('run_id')==str(e['run']['id']):pc_slots.append(s)
+        bound=context(pc_slots+aux_slots,day)
+        for dest,v in zip(sp_dest,batch([t+(bound,) for t in sp_work])):
+            dest['source_assessment']['SP']=v if 'state' in v else {'state':'ARTIFACT_DOWNLOAD_FAILED','error_class':v.get('error_class','INVALID_WORKER_RESULT')}
     report=summarize(day,entries,total_count=total,pagination_complete=complete)
     slots=[]; manual=[]
     for e in entries:
@@ -165,16 +180,23 @@ def gather_bounded(day, repo, *, invoke=_invoke, clock=time.monotonic, budget=BU
         report['independent_sp_source_coverage_error']=type(exc).__name__
     report['authenticated_applied_policies']=[{'run_id':e['run']['id'],'event':e['run']['event'],'channel':lane,'policy':v['applied_policy']} for e in entries for lane,v in e.get('source_assessment',{}).items() if v.get('ciphertext_authenticated') is True and v.get('source_original_sha_utc_checked') is True and isinstance(v.get('applied_policy'),dict)]
     report['metadata_recovery']={'main':main.get('metadata_recovery',[]) if isinstance(main,dict) else [],'auxiliary':aux.get('metadata_recovery',[]) if isinstance(aux,dict) else [],'runs':[{'run_id':e['run']['id'],'trace':e.get('metadata_recovery')} for e in entries if e.get('metadata_recovery')]}
-    report['handoff_budget']={'limit_seconds':budget,'worker_limit':WORKERS,'source_tasks':len(work),'main_index_complete':complete,'auxiliary_index_complete':aux_complete,'deadline_exhausted':clock()>=end}
+    report['handoff_budget']={'limit_seconds':budget,'worker_limit':WORKERS,'source_tasks':len(work)+len(sp_work),'main_index_complete':complete,'auxiliary_index_complete':aux_complete,'deadline_exhausted':clock()>=end}
     try:
-        coverage=combine(day,slots+aux_slots)
+        sp_slots=[]
+        for e in entries:
+            v=e.get('source_assessment',{}).get('SP',{});s=v.get('sp_market_slot')
+            if v.get('ciphertext_authenticated') is True and v.get('source_original_sha_utc_checked') is True and isinstance(s,dict) and s.get('day')==day and s.get('run_id')==str(e['run']['id']):sp_slots.append(s)
+        coverage=combine(day,slots+aux_slots,sp_slots=sp_slots)
+        if day=='20261129':report['sp_market_replay_slots']=len(sp_slots)
         coverage.update(authenticated_pc_slots=len(slots),authenticated_auxiliary_slots=len(aux_slots),auxiliary_errors=aux_errors,all_scheduled_run_metadata_screened=report['all_run_metadata_screened'],expected_scheduled_slots=report['expected_schedule_count'],unassessed_pc_slots=max(0,report['observed_schedule_count']-sum(1 for e in entries if e['run'].get('event')=='schedule' and any(s['run_id']==str(e['run']['id']) for s in slots))))
         report['day_source_coverage']=coverage
     except Exception as exc: report['day_source_coverage_error']=type(exc).__name__
     return report
 
 if __name__=='__main__':
-    kind,day,repo,rid,lane,out=sys.argv[1:]
-    try: result=_worker(kind,day,repo,int(rid),lane)
+    kind,day,repo,rid,lane,out=sys.argv[1:7]
+    try:
+        ctx=json.loads(Path(sys.argv[7]).read_text(encoding='utf8')) if len(sys.argv)==8 else None
+        result=_worker(kind,day,repo,int(rid),lane,ctx)
     except Exception as exc: result={'error_class':type(exc).__name__}
     Path(out).write_text(json.dumps(result,sort_keys=True,allow_nan=False),encoding='utf8')

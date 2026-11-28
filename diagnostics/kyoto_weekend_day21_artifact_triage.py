@@ -16,7 +16,7 @@ def _utc(s):
     except (ValueError,TypeError,AttributeError):
         return False
 
-def assess_lane(root,*,day,channel,key,repo,run_id):
+def assess_lane(root,*,day,channel,key,repo,run_id,sp_context=None):
     root=Path(root)
     result={"channel":channel,"day":day,"state":"NO_ARTIFACT",
             "ciphertext_authenticated":False,
@@ -96,6 +96,9 @@ def assess_lane(root,*,day,channel,key,repo,run_id):
                     try:
                         from diagnostics.kyoto_impl31_sp_saved_roster_audit import assess_checked
                         result["sp_saved_roster_audit"]=assess_checked(source,day,fresh)
+                        if day=="20261129" and isinstance(sp_context,dict):
+                            from diagnostics.kyoto_impl39_sp_market_union import assess
+                            result["sp_market_slot"]=assess(source,day,run_id,fresh,result["sp_saved_roster_audit"],sp_context)
                     except (OSError,ValueError,KeyError,TypeError,AttributeError):
                         result["sp_saved_roster_audit_error"]="CONTENT_AUDIT_UNAVAILABLE"
                     if isinstance(receipt.get("sp_gap_plan"),dict):

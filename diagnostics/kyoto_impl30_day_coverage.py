@@ -147,7 +147,7 @@ def extract_slot(root,day,run_id):
         except (ValueError,TypeError,KeyError,OSError,tarfile.TarError):pass
     return {"day":day,"run_id":str(run_id),"races":output,**({"independent_track":track} if track else {})}
 
-def combine(day,slots):
+def combine(day,slots,*,sp_slots=()):
     """Union by exact roster, never sum slot totals; latest bound observations."""
     if day not in DAYS:raise ValueError("day_identity")
     ids=set();accepted=[]
@@ -197,9 +197,14 @@ def combine(day,slots):
                 row["horses"][h][f]=result
                 totals[f]+=int(result["state"]=="SOURCE_VERIFIED")
                 if result["state"]!="SOURCE_VERIFIED":row["missing"].append(f"horse_{h}:{f}:{result['state']}")
+        mobile=[]
+        if day=='20261129':
+            for s in sp_slots:
+                p=s.get('races',{}).get(key)
+                if s.get('day')==day and str(s.get('run_id','')).isdigit() and p and (p.get('roster_digest'),p.get('named_roster_digest'),p.get('start_utc'))==(ident,named,start):mobile.append((s['run_id'],p))
         for section,fields in (("track",TRACK),("markets",MARKETS)):
             for f in fields:
-                result=choose([(r,x[section].get(f)) for r,x in rows])
+                result=choose([(r,x[section].get(f)) for r,x in rows]+([(r,x["markets"].get(f)) for r,x in mobile] if section=="markets" else []))
                 if section=="track" and result["state"]=="MISSING" and day in ("20261128","20261129"):
                     # Fill only a missing field; never override a racecard
                     # observation or suppress a same-timestamp conflict.
@@ -210,7 +215,7 @@ def combine(day,slots):
                 if result["state"]!="SOURCE_VERIFIED":row["missing"].append(f"{f}:{result['state']}")
         # Individual market coverage does not imply a coherent pair snapshot.
         a,b=(row["markets"][m] for m in MARKETS)
-        row["paired_same_slot"]=a["state"]==b["state"]=="SOURCE_VERIFIED" and a["run_id"]==b["run_id"] and a["cancelled_horses"]==b["cancelled_horses"] and any(str(r)==a["run_id"] and x.get("paired_same_slot") is True for r,x in rows)
+        row["paired_same_slot"]=a["state"]==b["state"]=="SOURCE_VERIFIED" and a["run_id"]==b["run_id"] and a["cancelled_horses"]==b["cancelled_horses"] and any(str(r)==a["run_id"] and x.get("paired_same_slot") is True for r,x in rows+mobile)
         totals["paired_same_slot_races"]+=int(row["paired_same_slot"])
         if not row["paired_same_slot"]:row["missing"].append("paired_market_same_slot")
         row["missing"]+=["official_result","official_payout"]
