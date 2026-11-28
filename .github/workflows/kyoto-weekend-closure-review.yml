@@ -1,0 +1,106 @@
+name: Kyoto independent weekend closure and recurrence review
+on:
+  schedule:
+    - cron: '40 13 28 11 *' # 22:40 JST after correction slot
+    - cron: '40 14 29 11 *' # 23:40 JST after correction slot
+  workflow_dispatch:
+    inputs:
+      day:
+        required: true
+        type: choice
+        options: ['20261128', '20261129']
+  push:
+    branches: ['fix/impl37-weekend-closure-review-20261128']
+  pull_request:
+    branches: [main]
+    paths:
+      - 'diagnostics/kyoto_weekend_closure_review.py'
+      - 'tests/test_kyoto_weekend_closure_review.py'
+      - '.github/workflows/kyoto-weekend-closure-review.yml'
+permissions:
+  contents: read
+  actions: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11.18'
+      - run: python -m unittest -v tests.test_kyoto_weekend_closure_review
+  review:
+    needs: test
+    if: ${{ github.repository == 'papaneko-ai/kyoto-keiba-ai' && ((github.ref == 'refs/heads/main' && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch')) || (github.event_name == 'push' && github.ref == 'refs/heads/fix/impl37-weekend-closure-review-20261128')) }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      GH_TOKEN: ${{ github.token }}
+      ARCHIVE_KEY: ${{ secrets.KYOTO_JRA_ARCHIVE_AES256_HEX }}
+      TARGET_DAY: ${{ github.event_name == 'push' && '20261128' || github.event.schedule == '40 13 28 11 *' && '20261128' || github.event.schedule == '40 14 29 11 *' && '20261129' || inputs.day }}
+      KYOTO_WEEKEND_HTTP_APPROVED: 'NO'
+      KYOTO_AUX_HTTP_APPROVED: 'NO'
+      KYOTO_POSTRACE_HTTP_APPROVED: 'NO'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          ref: 'e9658568ec157f369d66e4d20f45aa701edb321e'
+          path: trusted-reader
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11.18'
+      - run: python -m pip install --no-deps beautifulsoup4==4.15.0 soupsieve==4.1.3 typing-extensions==4.16.0 cryptography==46.0.7 cffi==2.1.1 pycparser==3.12
+      - name: Independent metadata and authenticated original replay
+        run: |
+          export KYOTO_TARGET_DAY="$TARGET_DAY"
+          cd trusted-reader
+          PYTHONPATH="$PWD" python ../diagnostics/kyoto_weekend_closure_review.py --day "$TARGET_DAY" --out ../review
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: kyoto-weekend-closure-review
+          path: review/
+          if-no-files-found: error
+          retention-days: 90
+  publish:
+    needs: review
+    if: ${{ github.ref == 'refs/heads/main' && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    permissions:
+      contents: read
+      actions: read
+      issues: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: kyoto-weekend-closure-review
+          path: review
+      - name: Publish day-specific immutable evidence reference
+        run: |
+          python - <<'PY'
+          import os,json,hashlib,subprocess
+          from pathlib import Path
+          repo=os.environ["GITHUB_REPOSITORY"]
+          assert repo=="papaneko-ai/kyoto-keiba-ai"
+          raw=Path("review/review.json").read_bytes().rstrip(b"\n")
+          data=json.loads(raw)
+          s=Path("review/summary.md").read_text()
+          marker=f"<!-- kyoto-day-review:{data['day']}:{hashlib.sha256(raw).hexdigest()} -->"
+          assert s.startswith(marker+"\n") and len(s.encode())<60000
+          pages=json.loads(subprocess.check_output(["gh","api","--paginate","--slurp",f"repos/{repo}/issues/141/comments?per_page=100"],text=True,timeout=30))
+          if not any(marker in c.get("body","") for page in pages for c in page):
+              with Path("review/summary.md").open("a") as f:f.write(f"\nEvidence: https://github.com/{repo}/actions/runs/{os.environ['GITHUB_RUN_ID']}\n")
+              subprocess.run(["gh","issue","comment","141","--repo",repo,"--body-file","review/summary.md"],check=True,timeout=30)
+          PY
