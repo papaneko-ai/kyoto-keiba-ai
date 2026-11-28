@@ -13,7 +13,13 @@ on:
         type: choice
         options: ['20261128', '20261129']
   push:
-    branches: ['fix/impl37-weekend-closure-review-20261128']
+    branches: ['fix/impl37-weekend-closure-review-20261128', 'fix/impl37-autonomous-repair-control-20261128', 'main']
+    paths:
+      - '.github/workflows/kyoto-weekend-closure-review.yml'
+      - 'diagnostics/kyoto_weekend_closure_review.py'
+      - 'diagnostics/kyoto_repair_control.py'
+      - 'tests/test_kyoto_weekend_closure_review.py'
+      - 'tests/test_kyoto_repair_control.py'
   pull_request:
     branches: [main]
     paths:
@@ -38,7 +44,7 @@ jobs:
       - run: python -m unittest -v tests.test_kyoto_weekend_closure_review
   review:
     needs: test
-    if: ${{ github.repository == 'papaneko-ai/kyoto-keiba-ai' && ((github.ref == 'refs/heads/main' && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch')) || (github.event_name == 'push' && github.ref == 'refs/heads/fix/impl37-weekend-closure-review-20261128')) }}
+    if: ${{ github.repository == 'papaneko-ai/kyoto-keiba-ai' && ((github.ref == 'refs/heads/main' && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch')) || (github.event_name == 'push' && (github.ref == 'refs/heads/fix/impl37-weekend-closure-review-20261128' || github.ref == 'refs/heads/fix/impl37-autonomous-repair-control-20261128' || github.ref == 'refs/heads/main'))) }}
     runs-on: ubuntu-latest
     timeout-minutes: 20
     env:
@@ -76,7 +82,7 @@ jobs:
           retention-days: 90
   publish:
     needs: review
-    if: ${{ always() && github.ref == 'refs/heads/main' && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') }}
+    if: ${{ always() && github.ref == 'refs/heads/main' && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || github.event_name == 'push') }}
     runs-on: ubuntu-latest
     timeout-minutes: 3
     permissions:
