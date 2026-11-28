@@ -28,8 +28,17 @@ def parse_current_market(raw,market,registered,*,racecard=None,racecard_utc=None
                 status=[s.get_text(' ',strip=True) for s in tr.select('td.status,td.horse > span,td.num > span')]
                 if any(s in CANCELLED for s in status):
                     n=num.get_text(strip=True)
-                    if not n.isascii() or not n.isdigit(): raise OddsMatrixError('cancelled_row_number_invalid')
-                    cancelled.add(int(n))
+                    if n in CANCELLED and num.select_one("span.cap") is not None:
+                        # Independently reparse the complete registered card;
+                        # exact cancellation marker and row-order evidence.
+                        from diagnostics.jra_multi_capture_20261106 import parse
+                        rows,errors=parse(racecard,race,meeting_date=f'{day[:4]}-{day[4:6]}-{day[6:]}')
+                        if errors or tuple((x["horse_number"],x["frame_number"]) for x in rows)!=registered:
+                            raise OddsMatrixError('cancellation_roster_not_verified')
+                        cancelled.update(x["horse_number"] for x in rows if x.get("cancelled") is True)
+                    elif n.isascii() and n.isdigit():
+                        cancelled.add(int(n))
+                    else: raise OddsMatrixError('cancelled_row_number_invalid')
     if not cancelled:
         data=parse_matrix(raw,market,expected_runners=len(registered)) if market=='quinella' else parse_bracket_with_roster(raw,registered)
         return data,active
