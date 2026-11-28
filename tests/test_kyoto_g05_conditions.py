@@ -76,4 +76,50 @@ class G05Tests(unittest.TestCase):
         with self.assertRaisesRegex(G05Rejected,"receipt_already_exists"):
             compile_saved(self.root,day=DAY)
 
+    def test_cancelled_runner_and_other_races_keep_observed_weight_and_track(self):
+        import hashlib
+        from diagnostics.kyoto_g03_all_races import parse
+        from diagnostics.kyoto_g05_conditions import _body_weights
+        from diagnostics.kyoto_impl30_day_coverage import extract_slot
+        report=json.loads((self.root/"g03_receipt.json").read_text())
+        path=self.root/"g03_official_racecard_02.html"
+        raw=path.read_bytes().replace(b'<td class="num">2</td>',
+              '<td class="num"><span class="cap">取消</span></td>'.encode("cp932"))
+        path.write_bytes(raw)
+        row=report["races"]["2"]
+        parsed=parse(raw,DAY,2,row["source_url"],row["captured_at_utc"])
+        self.assertTrue(parsed["runners"][1]["cancelled"])
+        row.update(original_sha256=hashlib.sha256(raw).hexdigest(),runners=parsed["runners"])
+        if "original_bytes" in row:row["original_bytes"]=len(raw)
+        (self.root/"g03_receipt.json").write_text(json.dumps(report))
+        result=compile_saved(self.root,day=DAY)
+        self.assertEqual(result["observed_field_values"],12*(3+4*2)-2)
+        h=result["races"]["2"]["horses"]
+        self.assertEqual(h["1"]["body_weight_kg"]["value"],441)
+        self.assertEqual(h["3"]["body_weight_change_kg"]["value"],2)
+        self.assertIsNone(h["2"]["body_weight_kg"]["value"])
+        self.assertEqual(h["2"]["body_weight_kg"]["missing_reason"],"CANCELLED_RUNNER_WEIGHT_NOT_OBSERVED")
+        self.assertEqual(result["races"]["3"]["horses"]["2"]["body_weight_kg"]["value"],442)
+        slot=extract_slot(self.root,DAY,101)
+        self.assertIn("body_weight_kg",slot["races"]["2"]["horses"]["1"])
+        self.assertNotIn("body_weight_kg",slot["races"]["2"]["horses"]["2"])
+        self.assertIn("body_weight_kg",slot["races"]["2"]["horses"]["3"])
+        for expected,changed in (((),raw),((3,),raw),((2,),raw.replace(b'class="cap"',b'class="other"')),
+            ((2,),raw.replace(b'<td class="num">3</td>',b'<td class="num">4</td>'))):
+            with self.assertRaises(G05Rejected):_body_weights(changed,[1,2,3,4],expected_cancelled=expected)
+    def test_weight_parser_failure_isolates_race_and_preserves_track(self):
+        from unittest.mock import patch
+        from diagnostics.kyoto_g05_conditions import _body_weights
+        def isolated(raw,*args,**kwargs):
+            if raw==source(2):raise G05Rejected("unverified_weight_number")
+            return _body_weights(raw,*args,**kwargs)
+        with patch("diagnostics.kyoto_g05_conditions._body_weights",side_effect=isolated):
+            result=compile_saved(self.root,day=DAY)
+        self.assertEqual(result["observed_field_values"],12*(3+4*2)-8)
+        self.assertEqual(result["body_weight_extraction_errors"],{"2":"unverified_weight_number"})
+        self.assertFalse(result["full_twelve_race_data_verified"])
+        self.assertEqual(result["races"]["2"]["track"]["weather"]["value"],"晴")
+        self.assertIsNone(result["races"]["2"]["horses"]["1"]["body_weight_kg"]["value"])
+        self.assertEqual(result["races"]["3"]["horses"]["1"]["body_weight_kg"]["value"],441)
+
 if __name__=="__main__":unittest.main()
