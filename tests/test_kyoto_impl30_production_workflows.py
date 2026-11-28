@@ -88,7 +88,9 @@ class ProductionWorkflowContract(unittest.TestCase):
         self.assertIn("kyoto-20261128-29-source-{0}",doc["concurrency"]["group"])
         job=doc["jobs"]["postrace-source-evidence"]
         pin=self.jobs["select-collector"]["env"]["DEFAULT_COLLECTOR_SHA"]
-        expected_postrace_pin="b800308169173d9e82cf93db9bf7b381e361cc76"
+        from diagnostics.kyoto_impl30_collector_selection import POSTRACE_RECEIPT
+        expected_postrace_pin=POSTRACE_RECEIPT["source"]
+        self.assertEqual(POSTRACE_RECEIPT["observed_repaired_candidates"],13)
         self.assertEqual(job["steps"][0]["with"]["ref"],expected_postrace_pin)
         self.assertNotEqual(expected_postrace_pin,pin)
         self.assertIn('test "$(git rev-parse HEAD)" = '+repr(expected_postrace_pin),raw)

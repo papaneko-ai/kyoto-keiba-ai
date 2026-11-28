@@ -72,7 +72,7 @@ jobs:
           persist-credentials: false
       - uses: actions/checkout@v4
         with:
-          ref: ${{ env.TARGET_DAY == '20261129' && 'fed005c89fcfa940c479538ee983f211598a6640' || 'c289c5ec4e6ad322a7e08acf173da3352ed23dba' }}
+          ref: '5a16e23d0f2148581dbe0b965d4672b22735602e'
           path: trusted-reader
           persist-credentials: false
       - uses: actions/checkout@v4

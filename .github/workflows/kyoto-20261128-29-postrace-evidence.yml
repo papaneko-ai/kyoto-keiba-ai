@@ -32,7 +32,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: 'b800308169173d9e82cf93db9bf7b381e361cc76'
+          ref: '5a16e23d0f2148581dbe0b965d4672b22735602e'
           persist-credentials: false
       - uses: actions/setup-python@v5
         with:
@@ -43,7 +43,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          test "$(git rev-parse HEAD)" = 'b800308169173d9e82cf93db9bf7b381e361cc76'
+          test "$(git rev-parse HEAD)" = '5a16e23d0f2148581dbe0b965d4672b22735602e'
           python -m diagnostics.kyoto_impl30_postrace_runtime --day "$KYOTO_TARGET_DAY" --out postrace_sealed
       - name: Upload encrypted original sources and revision history only
         id: upload_postrace_primary
