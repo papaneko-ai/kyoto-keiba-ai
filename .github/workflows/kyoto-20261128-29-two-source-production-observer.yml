@@ -1,15 +1,6 @@
 name: Kyoto Nov28-29 independent encrypted original collection
 run-name: ${{ github.event_name == 'schedule' && format('kyoto-native:{0}', github.event.schedule) || github.event_name }}
 on:
-  schedule:
-    - cron: '15 0 28 11 *' # 09:15 JST pre-race first capture
-    - cron: '15 1 28 11 *' # 10:15 JST official moisture/cushion publication hedge
-    - cron: '5 2 28 11 *'
-    - cron: '50 2 28 11 *' # pre-HTTP-failure-only backup
-    - cron: '15 0 29 11 *' # 09:15 JST pre-race first capture
-    - cron: '15 1 29 11 *' # 10:15 JST official moisture/cushion publication hedge
-    - cron: '10 2 29 11 *'
-    - cron: '55 2 29 11 *' # pre-HTTP-failure-only backup
   workflow_dispatch:
     inputs:
       race_day:
@@ -26,13 +17,13 @@ permissions:
   contents: read
   actions: read
 concurrency:
-  group: kyoto-20261128-29-source-${{ (github.event.schedule == '15 0 28 11 *' || github.event.schedule == '15 1 28 11 *' || github.event.schedule == '5 2 28 11 *' || github.event.schedule == '50 2 28 11 *' || inputs.race_day == '20261128') && '20261128' || '20261129' }}
+  group: ${{ github.event_name == 'workflow_dispatch' && format('kyoto-20261128-29-source-{0}', inputs.race_day == '20261128' && '20261128' || '20261129') || format('kyoto-native-isolated-{0}', github.run_id) }}
   cancel-in-progress: false
   queue: max # preserve pending recovery attempts instead of replacing them
 
 jobs:
   select-collector:
-    if: ${{ github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.confirmation == 'NOV28-29-OBSERVE-READ-ONLY') }}
+    if: ${{ (github.event_name == 'workflow_dispatch' && inputs.confirmation == 'NOV28-29-OBSERVE-READ-ONLY') }}
     runs-on: ubuntu-latest
     timeout-minutes: 3
     outputs:
@@ -59,7 +50,7 @@ jobs:
 
   pc-originals-independent:
     needs: select-collector
-    if: ${{ github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.confirmation == 'NOV28-29-OBSERVE-READ-ONLY') }}
+    if: ${{ (github.event_name == 'workflow_dispatch' && inputs.confirmation == 'NOV28-29-OBSERVE-READ-ONLY') }}
     runs-on: ubuntu-latest
     timeout-minutes: 20
     env:
@@ -175,7 +166,7 @@ jobs:
     # Source lanes remain independent, but network execution is serialized.
     # PC failure must NOT prevent SP fallback.
     needs: [select-collector, pc-originals-independent]
-    if: ${{ always() && needs.select-collector.result == 'success' && (github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.confirmation == 'NOV28-29-OBSERVE-READ-ONLY')) }}
+    if: ${{ always() && needs.select-collector.result == 'success' && ((github.event_name == 'workflow_dispatch' && inputs.confirmation == 'NOV28-29-OBSERVE-READ-ONLY')) }}
     runs-on: ubuntu-latest
     timeout-minutes: 12
     env:

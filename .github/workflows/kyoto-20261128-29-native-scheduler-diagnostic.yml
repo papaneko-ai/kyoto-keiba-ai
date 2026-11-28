@@ -1,0 +1,48 @@
+name: Kyoto Nov28-29 isolated native scheduler diagnostic (no source)
+run-name: ${{ format('kyoto-native-diagnostic:{0}', github.event.schedule) }}
+on:
+  schedule:
+    - cron: '15 0 28 11 *' # two-source-production-observer
+    - cron: '15 1 28 11 *' # two-source-production-observer
+    - cron: '5 2 28 11 *' # two-source-production-observer
+    - cron: '50 2 28 11 *' # two-source-production-observer
+    - cron: '15 0 29 11 *' # two-source-production-observer
+    - cron: '15 1 29 11 *' # two-source-production-observer
+    - cron: '10 2 29 11 *' # two-source-production-observer
+    - cron: '55 2 29 11 *' # two-source-production-observer
+    - cron: '30 3 28 11 *' # auxiliary-refresh
+    - cron: '30 4 28 11 *' # auxiliary-refresh
+    - cron: '30 5 28 11 *' # auxiliary-refresh
+    - cron: '30 6 28 11 *' # auxiliary-refresh
+    - cron: '30 3 29 11 *' # auxiliary-refresh
+    - cron: '30 4 29 11 *' # auxiliary-refresh
+    - cron: '30 5 29 11 *' # auxiliary-refresh
+    - cron: '30 6 29 11 *' # auxiliary-refresh
+    - cron: '0 10 28 11 *' # postrace-evidence
+    - cron: '0 13 28 11 *' # postrace-evidence
+    - cron: '0 10 29 11 *' # postrace-evidence
+    - cron: '0 13 29 11 *' # postrace-evidence
+    - cron: '0 12 28 11 *' # result-handoff
+    - cron: '0 12 29 11 *' # result-handoff
+    - cron: '30 11 27 11 *' # workout-source
+    - cron: '30 22 27 11 *' # workout-source
+    - cron: '30 11 28 11 *' # workout-source
+    - cron: '30 22 28 11 *' # workout-source
+permissions: {}
+jobs:
+  record-only:
+    runs-on: ubuntu-latest
+    timeout-minutes: 1
+    env:
+      NOMINAL_CRON: ${{ github.event.schedule }}
+    steps:
+      - name: Record scheduler arrival without source access
+        run: |
+          python3 - <<'PY'
+          import json, os
+          from datetime import datetime, timezone
+          minute,hour,dom,month,star=os.environ['NOMINAL_CRON'].split()
+          now=datetime.now(timezone.utc)
+          due=datetime(now.year,int(month),int(dom),int(hour),int(minute),tzinfo=timezone.utc)
+          print(json.dumps(dict(schema='kyoto_native_scheduler_diagnostic.v1',run_id=os.environ['GITHUB_RUN_ID'],cron=os.environ['NOMINAL_CRON'],nominal_utc=due.isoformat(),job_observed_utc=now.isoformat(),nominal_to_job_seconds=int((now-due).total_seconds()),source_http_requests=0,production_dispatch=False,source_success_certified=False),sort_keys=True))
+          PY

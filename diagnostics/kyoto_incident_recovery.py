@@ -387,7 +387,7 @@ def prehttp_evidence(run,path,lane,day,job_doc,*,read_log=None):
                       outside_window_verified=True,upstream_scheduler_root_cause_proved=False)
         if lane in OBSERVER_CAPTURE and run["event"]=="schedule":
             name=run.get("name","")
-            m=re.fullmatch(r"kyoto-native:(\\d{1,2}) (\\d{1,2}) (\\d{1,2}) 11 \\*",name)
+            m=re.fullmatch(r"kyoto-native:(\d{1,2}) (\d{1,2}) (\d{1,2}) 11 \*",name)
             if m:
                 minute,hour,dom=map(int,m.groups())
                 if dom==int(day[-2:]) and 0<=minute<60 and 0<=hour<4:

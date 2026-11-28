@@ -1,15 +1,6 @@
 name: Kyoto Nov28-29 afternoon auxiliary refresh
 run-name: ${{ github.event_name == 'schedule' && format('kyoto-native:{0}', github.event.schedule) || github.event_name }}
 on:
-  schedule:
-    - cron: '30 3 28 11 *' # 12:30 JST
-    - cron: '30 4 28 11 *' # 13:30 JST
-    - cron: '30 5 28 11 *' # 14:30 JST
-    - cron: '30 6 28 11 *' # 15:30 JST
-    - cron: '30 3 29 11 *' # 12:30 JST
-    - cron: '30 4 29 11 *' # 13:30 JST
-    - cron: '30 5 29 11 *' # 14:30 JST
-    - cron: '30 6 29 11 *' # 15:30 JST
   workflow_dispatch:
     inputs:
       race_day:
@@ -23,12 +14,12 @@ permissions:
   contents: read
   actions: read
 concurrency:
-  group: kyoto-20261128-29-source-${{ (github.event.schedule == '30 3 28 11 *' || github.event.schedule == '30 4 28 11 *' || github.event.schedule == '30 5 28 11 *' || github.event.schedule == '30 6 28 11 *' || inputs.race_day == '20261128') && '20261128' || '20261129' }}
+  group: ${{ github.event_name == 'workflow_dispatch' && format('kyoto-20261128-29-source-{0}', inputs.race_day == '20261128' && '20261128' || '20261129') || format('kyoto-native-isolated-{0}', github.run_id) }}
   cancel-in-progress: false
   queue: max
 jobs:
   afternoon-auxiliary-source:
-    if: ${{ github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.confirmation == 'NOV28-29-AUXILIARY-SOURCE-ONLY') }}
+    if: ${{ (github.event_name == 'workflow_dispatch' && inputs.confirmation == 'NOV28-29-AUXILIARY-SOURCE-ONLY') }}
     runs-on: ubuntu-latest
     timeout-minutes: 8
     env:
