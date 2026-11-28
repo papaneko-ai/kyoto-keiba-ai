@@ -268,3 +268,22 @@ class ForensicContinuityTests(unittest.TestCase):
   self.assertEqual(len(rows),1)
   self.assertEqual(rows[0]["stage"],"PRODUCER_SKIP")
   self.assertFalse(rows[0]["root_cause_proved"])
+
+ def test_rendered_fallback_kept_separate_from_raw_guard_evidence(self):
+  from diagnostics.kyoto_forensic_continuity import capture,restore
+  from diagnostics.kyoto_incident_recovery import forensic_job_log
+  from unittest.mock import patch
+  import subprocess
+  run={"id":101,"head_sha":"a"*40}
+  jobs={"total_count":1,"jobs":[{"id":1,"run_id":101,"conclusion":"failure"}]}
+  arts={"total_count":0,"artifacts":[]}
+  def unavailable(jid):raise subprocess.CalledProcessError(1,["gh","api"])
+  def rendered(args,**kw):
+   self.assertEqual(args,["gh","run","view","101","--repo","papaneko-ai/kyoto-keiba-ai","--job","1","--log"])
+   kw["stdout"].write(b"job step 2026-11-28T10:00:00Z NovelError: masked")
+  with tempfile.TemporaryDirectory() as tmp,patch("diagnostics.kyoto_incident_recovery.subprocess.run",side_effect=rendered):
+   m,cache=capture(run,jobs,arts,tmp,"a"*64,lambda jid:forensic_job_log(101,jid,read_raw=unavailable),clock=lambda:0)
+   self.assertEqual(m["state"],"SEALED_WITH_RENDERED_LOGS")
+   self.assertEqual(cache,{})
+   self.assertEqual(m["log_index"][0]["log_format"],"GH_RUN_VIEW_RENDERED")
+   self.assertIn("1",restore(tmp,"a"*64,run)["logs"])
