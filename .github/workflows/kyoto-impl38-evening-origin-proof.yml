@@ -1,0 +1,80 @@
+name: Impl38 evening observed seed origin check
+on:
+  push:
+    branches: ['repair/impl38-evening-origin-proof-20261128']
+    paths: ['.github/workflows/kyoto-impl38-evening-origin-proof.yml']
+permissions:
+  contents: read
+  actions: read
+jobs:
+  inspect:
+    if: github.repository == 'papaneko-ai/kyoto-keiba-ai' && github.ref == 'refs/heads/repair/impl38-evening-origin-proof-20261128'
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    env:
+      KYOTO_TARGET_DAY: '20261128'
+      KYOTO_WEEKEND_HTTP_APPROVED: 'NO'
+      KYOTO_POSTRACE_HTTP_APPROVED: 'NO'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: 'c289c5ec4e6ad322a7e08acf173da3352ed23dba'
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11.18'
+      - run: python -m pip install --no-deps beautifulsoup4==4.15.0 soupsieve==4.1.3 typing-extensions==4.16.0 cryptography==46.0.7 cffi==2.1.1 pycparser==3.12
+      - name: Bind and download exact already saved auxiliary archive
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          mkdir -p proof "$RUNNER_TEMP/aux"
+          gh api 'repos/papaneko-ai/kyoto-keiba-ai/actions/runs/46117060392/artifacts?per_page=100' > "$RUNNER_TEMP/index.json"
+          python - <<'PY'
+          import json,os
+          from pathlib import Path
+          d=json.loads((Path(os.environ["RUNNER_TEMP"])/"index.json").read_text())
+          assert d["total_count"]==len(d["artifacts"])
+          a=[x for x in d["artifacts"] if x["id"]==15252141771 and x["name"]=="kyoto-auxiliary-46117060392-20261128" and x["expired"] is False]
+          assert len(a)==1 and a[0]["digest"]=="sha256:e1d2c29a26b62adde8d743b9aee77aeae8cc071830f4fb586976fba0ebc44e1f"
+          PY
+          gh run download 46117060392 --repo papaneko-ai/kyoto-keiba-ai --name kyoto-auxiliary-46117060392-20261128 --dir "$RUNNER_TEMP/aux"
+      - name: Compare observed result menu origin against saved seed origin without source HTTP
+        env:
+          ARCHIVE_KEY: ${{ secrets.KYOTO_JRA_ARCHIVE_AES256_HEX }}
+        run: |
+          python - <<'PY'
+          import json,os,tempfile
+          from pathlib import Path
+          from urllib.parse import urlsplit
+          from unittest.mock import patch
+          from diagnostics.kyoto_nov15_encrypted_evidence import decrypt_evidence
+          from diagnostics.kyoto_g03_independent_partial import verify_partial
+          from diagnostics.kyoto_impl30_postrace_day import observed_actions,MENU
+          def denied(*a,**kw):raise AssertionError("network_forbidden")
+          result={"source_http_requests":0,"races":{}}
+          with tempfile.TemporaryDirectory() as td,patch("socket.socket.connect",side_effect=denied),patch("socket.create_connection",side_effect=denied):
+              root=Path(td)/"raw";day="20261128"
+              decrypt_evidence(Path(os.environ["RUNNER_TEMP"])/"aux",root,key_hex=os.environ["ARCHIVE_KEY"],repo="papaneko-ai/kyoto-keiba-ai",run_id="46117060392")
+              g=json.loads((root/"g03_receipt.json").read_text())
+              for n in verify_partial(root,expected_day=day)["verified_race_numbers"]:
+                  source=g["races"][str(n)]["source_url"]
+                  origin="https://"+urlsplit(source).netloc
+                  raw=(root/f"g03_official_racecard_{n:02d}.html").read_bytes()
+                  out={"observed_source_origin":origin,"old_origin":"https://jra.jp","menus":{}}
+                  for market,(path,label) in MENU.items():
+                      actions=[[x[2],urlsplit(x[3]).netloc] for x in observed_actions(raw,path,origin=origin) if x[0]==label]
+                      old=[[x[2],urlsplit(x[3]).netloc] for x in observed_actions(raw,path,origin="https://jra.jp") if x[0]==label]
+                      out["menus"][market]={"observed_origin_actions":actions,"old_origin_actions":old,"equal":old==actions}
+                  result["races"][str(n)]=out
+          Path("proof/report.json").write_text(json.dumps(result,sort_keys=True,indent=2)+"\n")
+          print(json.dumps(result,sort_keys=True))
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: impl38-evening-origin-proof
+          path: proof/
+          retention-days: 90
+          if-no-files-found: error
