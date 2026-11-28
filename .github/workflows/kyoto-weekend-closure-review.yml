@@ -19,12 +19,16 @@ on:
       - 'diagnostics/kyoto_weekend_closure_review.py'
       - 'diagnostics/kyoto_repair_control.py'
       - 'tests/test_kyoto_weekend_closure_review.py'
+      - 'diagnostics/kyoto_fixed_risk_worklist.py'
+      - 'tests/test_kyoto_fixed_risk_worklist.py'
       - 'tests/test_kyoto_repair_control.py'
   pull_request:
     branches: [main]
     paths:
       - 'diagnostics/kyoto_weekend_closure_review.py'
       - 'tests/test_kyoto_weekend_closure_review.py'
+      - 'diagnostics/kyoto_fixed_risk_worklist.py'
+      - 'tests/test_kyoto_fixed_risk_worklist.py'
       - '.github/workflows/kyoto-weekend-closure-review.yml'
 permissions:
   contents: read
@@ -41,7 +45,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11.18'
-      - run: python -m unittest -v tests.test_kyoto_weekend_closure_review
+      - run: python -m unittest -v tests.test_kyoto_weekend_closure_review tests.test_kyoto_repair_control tests.test_kyoto_fixed_risk_worklist
   review:
     needs: test
     if: ${{ github.repository == 'papaneko-ai/kyoto-keiba-ai' && ((github.ref == 'refs/heads/main' && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch')) || (github.event_name == 'push' && (github.ref == 'refs/heads/fix/impl37-weekend-closure-review-20261128' || github.ref == 'refs/heads/fix/impl37-autonomous-repair-control-20261128' || github.ref == 'refs/heads/main'))) }}
