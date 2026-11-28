@@ -11,7 +11,7 @@ from diagnostics.kyoto_g03_independent_partial import verify_partial
 from diagnostics.jra_pending_profile_plan import trusted_url
 from diagnostics.kyoto_g04_all_horse_profiles import _utc,MAX_PROFILE,MAX_HORSES
 from diagnostics.kyoto_nov15_encrypted_evidence import decrypt_evidence
-from diagnostics.kyoto_impl25_c12_all_runs_handoff import WEEKENDS,_date
+from diagnostics.kyoto_impl25_c12_all_runs_handoff import WEEKENDS,_date,run_name_matches
 
 def candidates(root,day,run_id):
     root=Path(root)
@@ -34,7 +34,7 @@ def candidates(root,day,run_id):
             seen.add(k)
             h=roster.get(k)
             if not h or row.get("profile_verified") is not True:continue
-            url=trusted_url(h["profile_navigation"])
+            url=trusted_url(h["profile_navigation"],parent_host="www.jra.go.jp" if day=="20261129" and g03["races"][str(race)].get("source_url","").startswith("https://www.jra.go.jp/") else "jra.jp")
             if row.get("horse_name")!=h["name"] or row.get("source_url")!=url:continue
             name=f"g04_profile_r{race:02d}_h{n:02d}.html"
             if row.get("raw_original_file")!=name:continue
@@ -70,7 +70,7 @@ def recover(day,repo,key,run_id,*,deadline,monotonic=time.monotonic):
         for run in sorted(runs,key=lambda r:r["id"],reverse=True):
             rid=run["id"]
             if monotonic()>=deadline:break
-            if run["name"]!=workflow or run["created_at"][:10]!=_date(day):raise ValueError("resume_wrong_workflow")
+            if not run_name_matches(run,workflow,file,day) or run["created_at"][:10]!=_date(day):raise ValueError("resume_wrong_workflow")
             if str(rid)==str(run_id) or run["status"]!="completed" or run["event"] not in ("schedule","workflow_dispatch"):continue
             try:
                 listing=api(f"repos/{repo}/actions/runs/{rid}/artifacts?per_page=100")
