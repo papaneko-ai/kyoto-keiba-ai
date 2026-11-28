@@ -1,0 +1,125 @@
+name: Impl38 final cancellation exact original proof
+on:
+  push:
+    branches: ['repair/impl38-final-cancel-proof-20261128']
+    paths: ['.github/workflows/kyoto-impl38-final-cancel-proof.yml']
+permissions:
+  contents: read
+  actions: read
+jobs:
+  replay:
+    if: github.repository == 'papaneko-ai/kyoto-keiba-ai' && github.ref == 'refs/heads/repair/impl38-final-cancel-proof-20261128'
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    env:
+      KYOTO_TARGET_DAY: '20261128'
+      KYOTO_WEEKEND_HTTP_APPROVED: 'NO'
+      KYOTO_AUX_HTTP_APPROVED: 'NO'
+      KYOTO_POSTRACE_HTTP_APPROVED: 'NO'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: '8d8a7e533215ee1e77da5bde22de6c5d86ca5022'
+          path: candidate
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          ref: 'c289c5ec4e6ad322a7e08acf173da3352ed23dba'
+          path: trusted-reader
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          ref: 'bd800bc30db60919e274eadac419016c963e77de'
+          path: trusted-workout-reader
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11.18'
+      - run: python -m pip install --no-deps beautifulsoup4==4.15.0 soupsieve==4.1.3 typing-extensions==4.16.0 cryptography==46.0.7 cffi==2.1.1 pycparser==3.12
+      - name: Lock and reuse actual encrypted sources only
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          test "$(git -C candidate rev-parse HEAD)" = '8d8a7e533215ee1e77da5bde22de6c5d86ca5022'
+          test "$(git -C trusted-reader rev-parse HEAD)" = 'c289c5ec4e6ad322a7e08acf173da3352ed23dba'
+          test "$(git -C trusted-workout-reader rev-parse HEAD)" = 'bd800bc30db60919e274eadac419016c963e77de'
+          mkdir -p proof "$RUNNER_TEMP/aux14" "$RUNNER_TEMP/aux15"
+          python - <<'PY'
+          import json,subprocess
+          repo="papaneko-ai/kyoto-keiba-ai"
+          for rid,aid,lane,digest,workflow in (
+              (46112551733,15250785307,"auxiliary","444a678b0c8a98f475b369bd3acd858b3be96e1adf64527bc8ca5f4adf780b2c","auxiliary-refresh"),
+              (46117060392,15252141771,"auxiliary","e1d2c29a26b62adde8d743b9aee77aeae8cc071830f4fb586976fba0ebc44e1f","auxiliary-refresh"),
+              (46122176100,15254361059,"workout","c8c032bd0825607d3528981a6d002847ab30f2a727505fc17a99ba805510c41d","workout-source")):
+              r=json.loads(subprocess.check_output(["gh","api",f"repos/{repo}/actions/runs/{rid}"]))
+              assert r["id"]==rid and r["head_branch"]=="main" and r["head_repository"]["full_name"]==repo and r["status"]=="completed" and r["path"]==f".github/workflows/kyoto-20261128-29-{workflow}.yml"
+              d=json.loads(subprocess.check_output(["gh","api",f"repos/{repo}/actions/runs/{rid}/artifacts?per_page=100"]))
+              assert d["total_count"]==len(d["artifacts"])
+              a=[x for x in d["artifacts"] if x["id"]==aid and x["name"]==f"kyoto-{lane}-{rid}-20261128" and x["expired"] is False]
+              assert len(a)==1 and a[0]["digest"]=="sha256:"+digest
+          PY
+          gh run download 46112551733 --repo papaneko-ai/kyoto-keiba-ai --name kyoto-auxiliary-46112551733-20261128 --dir "$RUNNER_TEMP/aux14"
+          gh run download 46117060392 --repo papaneko-ai/kyoto-keiba-ai --name kyoto-auxiliary-46117060392-20261128 --dir "$RUNNER_TEMP/aux15"
+      - name: Independently reconstruct official roster and daily workout evidence
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ARCHIVE_KEY: ${{ secrets.KYOTO_JRA_ARCHIVE_AES256_HEX }}
+        run: |
+          cd trusted-reader
+          PYTHONPATH="$PWD" python - <<'PY'
+          import os,sys,json,tempfile,importlib.util,copy
+          from pathlib import Path
+          from unittest.mock import patch
+          from diagnostics.kyoto_nov15_encrypted_evidence import decrypt_evidence
+          from diagnostics.kyoto_g03_independent_partial import verify_partial
+          from diagnostics.kyoto_g03_to_g06_input_adapter import records_from_g03
+          from diagnostics.kyoto_impl30_day_coverage import extract_slot,combine
+          root=Path("..").resolve()
+          sys.path.insert(0,str(root/"candidate"/"diagnostics"))
+          import kyoto_weekend_closure_review as closure
+          key=os.environ["ARCHIVE_KEY"];day="20261128";tmp=Path(os.environ["RUNNER_TEMP"])
+          roster={};starts={};slots=[]
+          with tempfile.TemporaryDirectory() as td:
+              for label,rid in (("aux14",46112551733),("aux15",46117060392)):
+                  raw=Path(td)/label
+                  decrypt_evidence(tmp/label,raw,key_hex=key,repo=closure.REPO,run_id=str(rid))
+                  verified=verify_partial(raw,expected_day=day)["verified_race_numbers"];rec=records_from_g03(raw,day=day,skip_invalid_races=True)
+                  for n in verified:
+                      item=rec[n]
+                      if not item:continue
+                      if n in roster:assert roster[n]==item["expected_named_runners"] and starts[n]==item["verified_start_utc"]
+                      roster[n]=item["expected_named_runners"];starts[n]=item["verified_start_utc"]
+                  slots.append(extract_slot(raw,day,rid))
+              cov=combine(day,slots)
+              meta={
+                  "two-source-production-observer.yml":{"runs":[]},
+                  "auxiliary-refresh.yml":{"runs":[{"id":46112551733,"artifacts":{"auxiliary":{"state":"PRESENT","ids":[15250785307]}}},{"id":46117060392,"artifacts":{"auxiliary":{"state":"PRESENT","ids":[15252141771]}}}]},
+                  "workout-source.yml":{"index_complete":True,"runs":[{"id":46122176100,"artifacts":{"workout":{"state":"PRESENT","ids":[15254361059]}}}]}}
+              # Reuse the independently opened original roster, exact selected card
+              # and prior successful workout proof. The new proof isolates the
+              # cancellation behavior, not a repeat of the workout experiment.
+              cr=closure.review_cancellations(day,meta,cov,key)
+              allowed=[46112551733,46117060392]
+              old=closure.coverage_gaps(day,cov,allowed)
+              new=closure.coverage_gaps(day,cov,allowed,cancellation_review=cr)
+              print(json.dumps({"old_weight":old["counts"]["body_weight_kg"],"new_weight":new["counts"]["body_weight_kg"],"new_change":new["counts"]["body_weight_change_kg"],"exemptions":new["weight_not_applicable_counts"],"races":sorted(cr["races"]),"cancelled_horses":{n:r["cancelled_horses"] for n,r in cr["races"].items()},"errors":cr["errors"],"source_http_requests":0},sort_keys=True))
+              (root/"proof"/"report.json").write_text(json.dumps({"candidate":"8d8a7e533215ee1e77da5bde22de6c5d86ca5022","cancellation_review":cr,"old_counts":old["counts"],"new_counts":new["counts"],"exemptions":new["weight_not_applicable_counts"]},sort_keys=True,indent=2)+"\n")
+              assert not cr["errors"] and set(cr["races"])=={"10","11"}
+              assert cr["races"]["10"]["cancelled_horses"]==[] and cr["races"]["11"]["cancelled_horses"]==[9]
+              for field in ("body_weight_kg","body_weight_change_kg"):
+                  assert old["counts"][field]["expected"]==26
+                  assert new["counts"][field]=={"expected":25,"verified":25,"unknown_denominator_races":10}
+                  assert new["weight_not_applicable_counts"][field]==1
+              assert all(new["counts"][k]==old["counts"][k] for k in old["counts"] if k not in ("body_weight_kg","body_weight_change_kg"))
+              assert new["full_acquisition_certified"] is False
+              bad=copy.deepcopy(cr);bad["races"]["11"]["sha256"]="0"*64
+              assert closure.coverage_gaps(day,cov,allowed,cancellation_review=bad)["counts"]["body_weight_kg"]["expected"]==26
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: impl38-final-cancellation-original-proof
+          path: proof/
+          retention-days: 90
+          if-no-files-found: error
