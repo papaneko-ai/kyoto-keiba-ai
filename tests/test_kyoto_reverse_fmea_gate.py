@@ -38,6 +38,28 @@ class SourceFirstCoverageTests(unittest.TestCase):
         self.assertEqual(result["top_level_functions_not_yet_independently_reviewed"],99)
         self.assertIs(result["completeness_demonstrated"],False)
 
+    def assert_current_or_reopened(self,source,prior):
+        rows=[r for r in self.doc["impl37_emergency_source_reopen"]["sources"] if r["source"]==source]
+        self.assertLessEqual(len(rows),1)
+        if rows:
+            self.assertEqual(rows[0]["old_blob"],prior)
+            self.assertNotEqual(rows[0]["new_blob"],prior)
+            self.assertEqual(rows[0]["review_status"],"UNREVIEWED_INDEPENDENT_FMEA")
+            self.assertEqual(rows[0]["closed_risks"],0)
+            prior=rows[0]["new_blob"]
+        self.assertEqual(self.doc["source_git_blob_sha1"][source],prior)
+
+    def test_emergency_source_reopen_keeps_exact_hash_and_unresolved_risks(self):
+        import subprocess
+        rows=self.doc["impl37_emergency_source_reopen"]["sources"]
+        self.assertEqual(len(rows),len({r["source"] for r in rows}))
+        self.assertIn("diagnostics/kyoto_weekend_sp_discovery.py",{r["source"] for r in rows})
+        self.assertIn("diagnostics/kyoto_weekend_capture.py",{r["source"] for r in rows})
+        for r in rows:
+            self.assert_current_or_reopened(r["source"],r["old_blob"])
+            self.assertEqual(subprocess.check_output(["git","hash-object",r["source"]],cwd=ROOT,text=True).strip(),r["new_blob"])
+        self.assertTrue(all(not r["test_proven"] and not r["remediated"] for r in self.doc["risks"]))
+
     def test_impl30_changed_source_reviews_reopened(self):
         self.assertEqual(len(self.doc["impl30_source_reopen"]),11)
         for record in self.doc["impl30_source_reopen"]:
@@ -59,26 +81,26 @@ class SourceFirstCoverageTests(unittest.TestCase):
                         newest=next(x for x in self.doc["impl32_no_source_certainty_reopen"]["sources"] if x["source"]==record["source"])
                         self.assertEqual(newest["old_blob"],latest["new_blob"])
                         self.assertEqual(newest["closed_risks"],0)
-                        self.assertEqual(self.doc["source_git_blob_sha1"][record["source"]],newest["new_blob"])
+                        self.assert_current_or_reopened(record["source"],newest["new_blob"])
                     else:
                         latest=self.doc["impl32_sp_actual_variant_reopen"]
                         if latest["source"]==record["source"]:
                             self.assertEqual(latest["old_blob"],final["new_blob"])
-                            self.assertEqual(self.doc["source_git_blob_sha1"][record["source"]],latest["new_blob"])
+                            self.assert_current_or_reopened(record["source"],latest["new_blob"])
                             self.assertEqual(latest["review_status"],"UNREVIEWED_INDEPENDENT_FMEA")
                             self.assertEqual(latest["closed_risks"],0)
                         else:
-                            self.assertEqual(self.doc["source_git_blob_sha1"][record["source"]],final["new_blob"])
+                            self.assert_current_or_reopened(record["source"],final["new_blob"])
                 else:
-                    self.assertEqual(self.doc["source_git_blob_sha1"][record["source"]],successor["new_blob"])
+                    self.assert_current_or_reopened(record["source"],successor["new_blob"])
             else:
                 newest=next((z for z in self.doc["impl32_no_source_certainty_reopen"]["sources"] if z["source"]==record["source"]),None)
                 if newest is not None:
                     self.assertEqual(newest["old_blob"],record["new_blob"])
                     self.assertEqual(newest["closed_risks"],0)
-                    self.assertEqual(self.doc["source_git_blob_sha1"][record["source"]],newest["new_blob"])
+                    self.assert_current_or_reopened(record["source"],newest["new_blob"])
                 else:
-                    self.assertEqual(self.doc["source_git_blob_sha1"][record["source"]],record["new_blob"])
+                    self.assert_current_or_reopened(record["source"],record["new_blob"])
             rows=[x for x in self.doc["surfaces"] if x["source"]==record["source"]]
             self.assertEqual({x["function"] for x in rows},set(record["reopened_functions"]))
             self.assertTrue(all(x["review_status"]=="UNREVIEWED_INDEPENDENT_FMEA" for x in rows))
@@ -106,11 +128,11 @@ class SourceFirstCoverageTests(unittest.TestCase):
                     newest=next(z for z in self.doc["impl32_no_source_certainty_reopen"]["sources"] if z["source"]==source)
                     self.assertEqual(newest["old_blob"],latest["new_blob"])
                     self.assertEqual(newest["closed_risks"],0)
-                    self.assertEqual(self.doc["source_git_blob_sha1"][source],newest["new_blob"])
+                    self.assert_current_or_reopened(source,newest["new_blob"])
                 else:
-                    self.assertEqual(self.doc["source_git_blob_sha1"][source],final["new_blob"])
+                    self.assert_current_or_reopened(source,final["new_blob"])
             else:
-                self.assertEqual(self.doc["source_git_blob_sha1"][source],x["new_blob"])
+                self.assert_current_or_reopened(source,x["new_blob"])
             self.assertEqual(x["review_status"],"UNREVIEWED_INDEPENDENT_FMEA")
             self.assertEqual(x["closed_risks"],0)
             surfaces=[s for s in self.doc["surfaces"] if s["source"]==source]
