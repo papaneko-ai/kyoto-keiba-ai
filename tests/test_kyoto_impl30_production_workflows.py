@@ -121,9 +121,10 @@ class ProductionWorkflowContract(unittest.TestCase):
         self.assertTrue(doc["concurrency"]["group"].startswith("kyoto-20261128-29-source-"))
         job=doc["jobs"]["afternoon-auxiliary-source"]
         pin=self.jobs["select-collector"]["env"]["DEFAULT_COLLECTOR_SHA"]
-        sunday=self.jobs["select-collector"]["env"]["SUNDAY_OVERRIDE_SHA"]
-        self.assertEqual(job["steps"][0]["with"]["ref"],"${{ env.KYOTO_TARGET_DAY == '20261129' && '"+sunday+"' || '"+pin+"' }}")
-        self.assertIn('if [ "$KYOTO_TARGET_DAY" = 20261129 ]; then echo '+sunday+'; else echo '+pin+'; fi',raw)
+        expected_aux_pin="28c4bc775984e9c19eb9aa0315bf8d8514f2d88f"
+        self.assertEqual(job["steps"][0]["with"]["ref"],expected_aux_pin)
+        self.assertNotEqual(expected_aux_pin,pin)
+        self.assertIn('test "$(git rev-parse HEAD)" = '+repr(expected_aux_pin),raw)
         self.assertEqual(job["env"]["KYOTO_WEEKEND_HTTP_APPROVED"],"NO")
         self.assertEqual(job["env"]["KYOTO_AUX_HTTP_APPROVED"],"YES")
         self.assertIn("kyoto_impl30_auxiliary_refresh --day",raw)

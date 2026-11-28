@@ -7,6 +7,7 @@ on:
     paths:
       - '.github/workflows/kyoto-20261128-29-result-handoff.yml'
       - '.github/workflows/kyoto-20261128-29-postrace-evidence.yml'
+      - '.github/workflows/kyoto-20261128-29-auxiliary-refresh.yml'
       - '.github/workflows/kyoto-impl36-cushion-day-deploy-contract.yml'
       - 'tests/test_kyoto_impl36_cushion_day_deploy.py'
 permissions:
@@ -54,8 +55,10 @@ jobs:
                   assert old.split(marker)[1]==new.split(marker)[1]
               elif name=='auxiliary-refresh':
                   assert old.count(b"ref: '"+saturday+b"'")==1
-                  expected=old.replace(b"ref: '"+saturday+b"'",b"ref: $"+b"{{ env.KYOTO_TARGET_DAY == '20261129' && '"+new_pin+b"' || '"+saturday+b"' }}")
-                  expected=expected.replace(b"test \"$(git rev-parse HEAD)\" = '"+saturday+b"'",b'test "$(git rev-parse HEAD)" = "$(if [ "$KYOTO_TARGET_DAY" = 20261129 ]; then echo '+new_pin+b'; else echo '+saturday+b'; fi)"')
+                  aux_pin=b'28c4bc775984e9c19eb9aa0315bf8d8514f2d88f'
+                  expected=old.replace(b"ref: '"+saturday+b"'",b"ref: '"+aux_pin+b"'")
+                  assert old.count(b"test \"$(git rev-parse HEAD)\" = '"+saturday+b"'")==1
+                  expected=expected.replace(b"test \"$(git rev-parse HEAD)\" = '"+saturday+b"'",b"test \"$(git rev-parse HEAD)\" = '"+aux_pin+b"'")
               elif name=='postrace-evidence':
                   old_postrace=b'1fa2a43fcd17f5100b0b9b9b3dde43dec5a2981f'
                   new_postrace=b'f88f55c46ec03749dc71329abddb5c75f79d68a1'
