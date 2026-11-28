@@ -107,6 +107,11 @@ def workout_proof_ok(v,cutoff,allowed):
         return (v["mode"]=="PRIMARY" and providers=={"white-green.jp"}) or (v["mode"]=="SECONDARY_CORROBORATED" and len(providers)>=2 and providers<={"umasiru.com","talmudic.net"})
     except (ValueError,KeyError,TypeError,AttributeError):return False
 
+def named_roster_digest(named):
+    # Use the exact UTF-8/non-ASCII canonicalization of the source roster
+    # reader, not the ASCII-only canonical format for public review reports.
+    return digest(json.dumps(named,ensure_ascii=False,sort_keys=True,separators=(",",":"),allow_nan=False).encode("utf8"))
+
 def read_sp_named_archive(day,rid,key,targets,timeout):
     """Reopen only selected authenticated SP card origins, once per run.
     Names stay in memory and are never included in a public report.
@@ -134,7 +139,7 @@ def read_sp_named_archive(day,rid,key,targets,timeout):
                 if digest(card)!=rec["source_sha256"]:continue
                 standalone=standalone_roster(card,day,n,stamp(rec["captured_at_utc"]),rec["source_sha256"])
                 named=inspect_heading(card,day,n)
-                if digest(canon(named))!=standalone["named_roster_digest"]:continue
+                if named_roster_digest(named)!=standalone["named_roster_digest"]:continue
                 out[n]={"named":named,"proof":standalone}
             except (KeyError,ValueError,TypeError,OSError,AttributeError,IndexError):continue
     return out
@@ -189,7 +194,7 @@ def bridge_sp_named_rosters(day,coverage,sp_slots,roster,starts,key,conflicts=()
                 if (not isinstance(named,(tuple,list)) or not 2<=len(named)<=18
                     or any(not isinstance(z,(tuple,list)) or len(z)!=3 or type(z[0]) is not int or type(z[1]) is not int or not 1<=z[1]<=8 or not isinstance(z[2],str) or not z[2].strip() for z in named)
                     or [z[0] for z in named]!=list(range(1,len(named)+1)) or len({z[2] for z in named})!=len(named)
-                    or digest(canon(named))!=p["named_roster_digest"]
+                    or named_roster_digest(named)!=p["named_roster_digest"]
                     or any(proof[k]!=p[k] for k in ("roster_digest","named_roster_digest","start_utc","racecard","horses","numbers"))
                     or set(p["horses"])!={str(z[0]) for z in named}):raise ValueError("sp_named_binding")
                 r[n]=tuple(tuple(z) for z in named);st[n]=p["start_utc"]

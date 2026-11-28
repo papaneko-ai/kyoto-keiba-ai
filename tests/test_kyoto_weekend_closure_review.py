@@ -314,10 +314,10 @@ class PostraceIsolationTests(unittest.TestCase):
 
 class SPNamedBridgeTests(unittest.TestCase):
  def fixture(self):
-  from diagnostics.kyoto_weekend_closure_review import canon,digest
+  from diagnostics.kyoto_weekend_closure_review import named_roster_digest
   names=((1,1,"馬A"),(2,2,"馬B"))
   card={"sha256":"a"*64,"utc":"2026-11-29T01:00:00+00:00","channel":"SP","source_kind":"INDEPENDENT_SP_PRESTART_ROSTER","value_digest":"c"*64}
-  p={"roster_digest":"d"*64,"named_roster_digest":digest(canon(names)),"start_utc":"2026-11-29T02:45:00+00:00","racecard":card,"horses":{"1":{},"2":{}},"numbers":[1,2],"track":{}}
+  p={"roster_digest":"d"*64,"named_roster_digest":named_roster_digest(names),"start_utc":"2026-11-29T02:45:00+00:00","racecard":card,"horses":{"1":{},"2":{}},"numbers":[1,2],"track":{}}
   d=data();d["races"]["1"]={**p,"state":"ROSTER_VERIFIED","roster_source_channel":"SP","racecard":{"state":"SOURCE_VERIFIED","run_id":"8",**card}}
   return d,[{"day":DAY,"run_id":"8","races":{"1":p}}],names,p
  def test_selected_sp_card_names_link_both_readers(self):

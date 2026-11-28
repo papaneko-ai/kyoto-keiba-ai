@@ -43,7 +43,7 @@ with tempfile.TemporaryDirectory() as tmp:
             reopened=m.read_sp_named_archive(DAY,42,KEY,[1],15)
             print("SP_REOPENED_RACES="+str(sorted(reopened)))
             if 1 in reopened:
-                print("SP_DIGEST_MATCH="+str(m.digest(m.canon(reopened[1]["named"]))==p["named_roster_digest"]))
+                print("SP_DIGEST_MATCH="+str(m.named_roster_digest(reopened[1]["named"])==p["named_roster_digest"]))
                 print("SP_PROOF_MATCH="+str(all(reopened[1]["proof"][k]==p[k] for k in ("roster_digest","named_roster_digest","start_utc","racecard","horses","numbers"))))
         assert r[1]==((1,1,"馬A"),(2,2,"馬B")) and st[1]==p["start_utc"]
         assert v["verified_races"]==[1] and "馬A" not in str(v)
