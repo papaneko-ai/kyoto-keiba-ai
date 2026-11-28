@@ -312,4 +312,50 @@ class PostraceIsolationTests(unittest.TestCase):
    self.assertEqual(hashlib.sha256(raw).hexdigest(),(out/"daytime_coverage_checkpoint.sha256").read_text().strip())
    self.assertFalse(p["full_acquisition_certified"])
 
+class SPNamedBridgeTests(unittest.TestCase):
+ def fixture(self):
+  from diagnostics.kyoto_weekend_closure_review import named_roster_digest
+  names=((1,1,"馬A"),(2,2,"馬B"))
+  card={"sha256":"a"*64,"utc":"2026-11-29T01:00:00+00:00","channel":"SP","source_kind":"INDEPENDENT_SP_PRESTART_ROSTER","value_digest":"c"*64}
+  p={"roster_digest":"d"*64,"named_roster_digest":named_roster_digest(names),"start_utc":"2026-11-29T02:45:00+00:00","racecard":card,"horses":{"1":{},"2":{}},"numbers":[1,2],"track":{}}
+  d=data();d["races"]["1"]={**p,"state":"ROSTER_VERIFIED","roster_source_channel":"SP","racecard":{"state":"SOURCE_VERIFIED","run_id":"8",**card}}
+  return d,[{"day":DAY,"run_id":"8","races":{"1":p}}],names,p
+ def test_selected_sp_card_names_link_both_readers(self):
+  from diagnostics.kyoto_weekend_closure_review import bridge_sp_named_rosters
+  d,slots,names,p=self.fixture();orig=copy.deepcopy(d);calls=[]
+  def read(day,rid,key,targets,timeout):
+   calls.append((day,rid,targets,timeout))
+   return {1:{"named":names,"proof":p}}
+  r,st,v=bridge_sp_named_rosters(DAY,d,slots,{1:None},{}, "key",read=read,clock=lambda:0)
+  self.assertEqual(r[1],names);self.assertEqual(st[1],p["start_utc"])
+  self.assertEqual(calls,[(DAY,8,[1],15)])
+  self.assertEqual(v["verified_races"],[1]);self.assertNotIn("馬A",str(v));self.assertEqual(d,orig)
+  self.assertFalse(v["raw_names_published"])
+ def test_conflicts_existing_and_wrong_slot_never_overwritten(self):
+  from diagnostics.kyoto_weekend_closure_review import bridge_sp_named_rosters
+  for conflict,existing,wrong in (([1],{},False),([],{1:((1,1,"other"),)},False),([],{},True)):
+   d,slots,names,p=self.fixture()
+   if wrong:slots[0]["run_id"]="9"
+   def denied(*a):raise AssertionError("no archive reopen")
+   r,st,v=bridge_sp_named_rosters(DAY,d,slots,existing,{},"key",conflict,read=denied)
+   self.assertEqual(r,existing);self.assertEqual(v["verified_races"],[])
+ def test_name_digest_and_source_mutations_rejected(self):
+  from diagnostics.kyoto_weekend_closure_review import bridge_sp_named_rosters
+  for change in ("names","card","start","numbers"):
+   d,slots,names,p=self.fixture();q=copy.deepcopy(p)
+   if change=="names":names=((1,1,"other"),names[1])
+   if change=="card":q["racecard"]["sha256"]="b"*64
+   if change=="start":q["start_utc"]="2026-11-29T03:00:00+00:00"
+   if change=="numbers":q["numbers"]=[1,3]
+   r,st,v=bridge_sp_named_rosters(DAY,d,slots,{},{},"key",read=lambda *a:{1:{"named":names,"proof":q}})
+   self.assertFalse(r);self.assertFalse(st);self.assertFalse(v["verified_races"])
+ def test_archive_failure_preserves_daytime_and_no_saturday_extra_read(self):
+  from diagnostics.kyoto_weekend_closure_review import bridge_sp_named_rosters
+  d,slots,names,p=self.fixture();before=copy.deepcopy(d);calls=[]
+  def bad(*a):calls.append(a);raise TimeoutError()
+  r,st,v=bridge_sp_named_rosters(DAY,d,slots,{},{},"key",read=bad)
+  self.assertFalse(r);self.assertEqual(v["archive_attempts"][0]["error_class"],"TimeoutError");self.assertEqual(d,before)
+  bridge_sp_named_rosters("20261128",d,slots,{},{},"key",read=bad)
+  self.assertEqual(len(calls),1)
+
 if __name__=="__main__":unittest.main()
