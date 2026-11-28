@@ -1,6 +1,6 @@
 """Fixed 25-risk obligations linked to actual source runs; no self-certification."""
 import hashlib,json
-REGISTER_BLOB="c9870837d6e2e8de39ba95236f4fc54b6a8f9fad"
+REGISTER_BLOB="fcc6e23e990d3953b9f7d4c988ca8d9885ea2a6c"
 IDS=tuple(f"GAP-{n:02d}" for n in range(1,26))
 ROLE={"O":"two-source-production-observer.yml","A":"auxiliary-refresh.yml","P":"postrace-evidence.yml","H":"result-handoff.yml","W":"workout-source.yml","C":"cushion-source.yml"}
 MAPPING=[

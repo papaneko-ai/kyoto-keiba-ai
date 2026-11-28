@@ -14,7 +14,7 @@ PATH_PREFIX=".github/workflows/kyoto-20261128-29-"
 KINDS={"two-source-production-observer.yml":("pc","sp"),
        "auxiliary-refresh.yml":("auxiliary",),"postrace-evidence.yml":("postrace",),
        "workout-source.yml":("workout",),"cushion-source.yml":("cushion",)}
-READER_SHA="4dc34085eb9d9e10c88329ddf7d2933aec5e9958"
+READER_SHA="b66249fbef412f76befba022f406ff422fbd3ffd"
 CUSHION_SHA="47cd7f9e881aa989b9f932373cfaf5278dea223a"
 SAFE_KEYS={"state","status","error","error_class","error_code","failure_class","failure_reason","reason","message",
            "sp_market_state","transport_stop_reason","racecard_error_class","track_error_class",
@@ -107,6 +107,12 @@ def inspect_source(root,day,lane):
         for k in ("error_code","error_class","failure_reason","reason","error"):
             if isinstance(d.get(k),str):return label(d[k])
         return None
+    if receipt.get("schema")=="kyoto_archive_salvage.v1":
+        saved=receipt.get("saved_originals")
+        rejected=receipt.get("rejected_members")
+        valid=isinstance(saved,dict) and bool(saved) and set(saved)==set(files)-{"receipt.json"} and all(isinstance(v,dict) and files[n].get("sha256")==v.get("sha256") and files[n].get("bytes")==v.get("bytes") for n,v in saved.items())
+        valid=valid and isinstance(rejected,list) and len(rejected)<=900 and all(isinstance(v,dict) and re.fullmatch(r"[0-9a-f]{64}",v.get("path_sha256","")) and v.get("reason") in {"NONREGULAR","UNRECOGNIZED","SYMLINK","UNSAFE_G06_MEMBER","UNKNOWN_STAGE","UNRECOGNIZED_DISCOVERY","COLLISION","UNREADABLE_OR_OVERSIZE","INVALID_G06_BUNDLE","G06_DUPLICATE_STAGE","UNREADABLE_G06_MEMBER","G06_BUNDLE_UNVERIFIED"} for v in rejected)
+        stage("ARCHIVE",False,{"roundtrip_receipt_matches_originals":bool(valid),"saved_member_count":len(saved) if isinstance(saved,dict) else None,"rejected_members":rejected if valid else [],"source_credit":False},code="STRICT_ARCHIVE_REJECTED_PARTIAL_RECOVERY" if valid else "SALVAGE_RECEIPT_MISMATCH",evidence=tuple(files))
     if lane=="pc":
         selection="official_selection.html" in files
         meeting="official_meeting.html" in files

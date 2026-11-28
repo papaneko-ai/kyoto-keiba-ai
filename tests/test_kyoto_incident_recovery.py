@@ -45,6 +45,17 @@ class IncidentRecoveryTests(unittest.TestCase):
    self.assertEqual(replay_adaptive(r,"20261129","pc",repair)[0]["state"],"RECORDED_REPAIR_MISMATCH")
    def reject(*args):raise ValueError("unknown_layout")
    self.assertEqual(replay_adaptive(r,"20261129","pc",reject)[0]["state"],"REPAIR_SEARCH_UNRESOLVED")
+ def test_salvage_receipt_is_preserved_without_success_credit(self):
+  import hashlib
+  with tempfile.TemporaryDirectory() as d:
+   r=Path(d);self.put(r,"official_meeting.html",b"original")
+   doc={"day":"20261129","schema":"kyoto_archive_salvage.v1","saved_originals":{"official_meeting.html":{"sha256":hashlib.sha256(b"original").hexdigest(),"bytes":8}},"rejected_members":[{"path_sha256":"a"*64,"reason":"UNRECOGNIZED"}]}
+   self.put(r,"receipt.json",doc)
+   v=inspect_source(r,"20261129","pc")
+   self.assertEqual(v["incidents"][0]["code"],"STRICT_ARCHIVE_REJECTED_PARTIAL_RECOVERY")
+   self.assertFalse(v["source_claims_independently_certified"])
+   doc["saved_originals"]["official_meeting.html"]["sha256"]="b"*64;self.put(r,"receipt.json",doc)
+   self.assertEqual(inspect_source(r,"20261129","pc")["incidents"][0]["code"],"SALVAGE_RECEIPT_MISMATCH")
  def test_wrong_day(self):
   with tempfile.TemporaryDirectory() as d:
    r=Path(d);self.put(r,"receipt.json",{"day":"20261128"})
