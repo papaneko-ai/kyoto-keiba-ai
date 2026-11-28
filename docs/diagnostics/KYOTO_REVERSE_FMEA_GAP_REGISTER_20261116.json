@@ -1232,17 +1232,17 @@
     "diagnostics/jra_benchmark_acceptance.py": "edbd6b5b9479fdbf3fc88c7450c0c7ae3260a76f",
     "diagnostics/jra_market_integrity_gate.py": "6f20257575d7c5aeb232512bb64700dee21c3e06",
     "diagnostics/jra_market_source_chain.py": "6f69226b1f1f16379681e7bd72b6720e3420f77c",
-    "diagnostics/jra_multi_capture_20261106.py": "a223f6d20beebd1852e071a44af89e1a98e9ca6d",
+    "diagnostics/jra_multi_capture_20261106.py": "1566aa2a10b215b267abcce0e37582ee8b36d9d2",
     "diagnostics/jra_odds_matrix_parser.py": "27f73b3be02a48c98d931b99217f9da4aa741a2f",
     "diagnostics/jra_odds_source_archive.py": "04ffb7982da138c611ff622a8fba0c0868b618e4",
     "diagnostics/jra_official_link_repair.py": "b6f451910e0052047bd884dacd99c01df800e715",
     "diagnostics/jra_official_market_navigation.py": "1f2f333a8ff86c0ce01a478dd9a8ce362479d105",
     "diagnostics/jra_one_shot_market_capture.py": "e6cd4202b09baa466e055c0e20e48f3da1550738",
-    "diagnostics/jra_pc_sp_benchmark.py": "a6c952bbaa128275efb010100f3c5e789c68451e",
+    "diagnostics/jra_pc_sp_benchmark.py": "68b93993c7c67b231153a4a6052d36a9ef3763eb",
     "diagnostics/jra_source_router.py": "d7eae104adecd60374ac0b6cc9ee622f9e47df95",
     "diagnostics/kyoto_p1_nov14_official_one_shot_nav.py": "0aa2e6e53cb78f317d77c001ce55e101f45b8c50",
     "diagnostics/kyoto_safe_stop_artifact.py": "01532bc0c3386039988f1430713fdf833544490b",
-    "diagnostics/kyoto_g03_all_races.py": "582f23a02126d27adf75db36478d5efc9d21590d",
+    "diagnostics/kyoto_g03_all_races.py": "95627b29dbb71e528a93008484914943ae918c74",
     "diagnostics/kyoto_g03_weekend_bridge.py": "5f3e4011f84738a057520434ad83351a7d3e0d27",
     "diagnostics/kyoto_g04_all_horse_profiles.py": "c3db006adc1d88353a55ea18ccaf8c965d42c92f",
     "diagnostics/jra_pending_profile_plan.py": "eab63366494467f5b52d070c1773436bdca2d398",
@@ -1728,5 +1728,32 @@
       }
     ],
     "reason": "Observed official public PC/SP form routes: all 12 unique Kyoto racecard links per channel and R12 HTTP 200; run 46102320045. No live odds or FMEA closure certified."
+  },
+  "impl37_cancelled_number_reopen": {
+    "prior_ledger_blob": "9ddfded632a16dc98b2eee690a216fb3263f48cd",
+    "sources": [
+      {
+        "source": "diagnostics/jra_multi_capture_20261106.py",
+        "old_blob": "a223f6d20beebd1852e071a44af89e1a98e9ca6d",
+        "new_blob": "1566aa2a10b215b267abcce0e37582ee8b36d9d2",
+        "review_status": "UNREVIEWED_INDEPENDENT_FMEA",
+        "closed_risks": 0
+      },
+      {
+        "source": "diagnostics/jra_pc_sp_benchmark.py",
+        "old_blob": "a6c952bbaa128275efb010100f3c5e789c68451e",
+        "new_blob": "68b93993c7c67b231153a4a6052d36a9ef3763eb",
+        "review_status": "UNREVIEWED_INDEPENDENT_FMEA",
+        "closed_risks": 0
+      },
+      {
+        "source": "diagnostics/kyoto_g03_all_races.py",
+        "old_blob": "582f23a02126d27adf75db36478d5efc9d21590d",
+        "new_blob": "95627b29dbb71e528a93008484914943ae918c74",
+        "review_status": "UNREVIEWED_INDEPENDENT_FMEA",
+        "closed_risks": 0
+      }
+    ],
+    "reason": "Actual PC span.cap and SP td.uban.keshi cancellation markers replace horse number; both independent registered sequences show 15, cancellation,17. Preserve explicit position-derived number evidence, require complete ordered registration; run 46102915944. No risk closure or live odds claim."
   }
 }
