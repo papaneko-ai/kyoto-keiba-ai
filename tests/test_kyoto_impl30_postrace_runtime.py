@@ -3,7 +3,7 @@ from pathlib import Path
 from datetime import datetime,timezone
 from unittest.mock import patch,Mock
 from urllib.error import HTTPError
-from diagnostics.kyoto_impl30_postrace_runtime import recover_inputs,official_fetcher
+from diagnostics.kyoto_impl30_postrace_runtime import recover_inputs,official_fetcher,auxiliary_inputs
 from diagnostics.kyoto_impl30_postrace_day import collect_day
 from diagnostics.kyoto_nov15_encrypted_evidence import encrypt_evidence,decrypt_evidence
 import diagnostics.kyoto_nov15_encrypted_evidence as crypto
@@ -51,7 +51,93 @@ class RuntimeTests(unittest.TestCase):
                         rr,ss,seed3,proof3=recover_inputs(DAY,REPO,KEY,include_coverage=True)
                     self.assertEqual((rr,ss,seed3),(roster,starts,seed))
                     self.assertEqual(proof3["day_source_coverage_error"],"ValueError")
-                    with self.assertRaisesRegex(ValueError,'no_verified'):recover_inputs(DAY,REPO,'b'*64)
+                    with patch('diagnostics.kyoto_impl30_postrace_runtime.auxiliary_inputs',return_value=({},None,{})):
+                        with self.assertRaisesRegex(ValueError,'no_verified'):recover_inputs(DAY,REPO,'b'*64)
+    def test_auxiliary_authenticated_originals_recover_postrace_when_pc_unavailable(self):
+        with tempfile.TemporaryDirectory() as d:
+            root=Path(d);saved=inputs(root/'fixture',DAY);cipher=root/'cipher'
+            (saved/'receipt.json').write_text(json.dumps({'day':DAY,'schema':'kyoto_impl30_auxiliary_refresh.v1'}))
+            with patch.object(crypto,'DAY',DAY):
+                encrypt_evidence(saved,cipher,key_hex=KEY,repo=REPO,run_id='201')
+                run={'id':201,'name':'Kyoto Nov28-29 afternoon auxiliary refresh','created_at':'2026-11-28T03:30:00Z','status':'completed','event':'workflow_dispatch','head_branch':'main','head_repository':{'full_name':REPO},'path':'.github/workflows/kyoto-20261128-29-auxiliary-refresh.yml'}
+                def api(endpoint):
+                    if '/runs?' in endpoint:return {'total_count':1,'workflow_runs':[run]}
+                    return {'total_count':1,'artifacts':[{'name':'kyoto-auxiliary-201-20261128','expired':False}]}
+                def download(rid,name,target,repo):
+                    self.assertEqual((rid,name,repo),(201,'kyoto-auxiliary-201-20261128',REPO))
+                    for f in cipher.iterdir():shutil.copyfile(f,target/f.name)
+                found,seed,proof=auxiliary_inputs(DAY,REPO,KEY,api=api,download=download)
+                self.assertEqual(len(found),12);self.assertIn(b'doAction',seed)
+                self.assertEqual(found[1]['source_lane'],'auxiliary');self.assertEqual(proof['examined_runs'],[201])
+                with patch('diagnostics.kyoto_impl30_postrace_runtime._gh',side_effect=TimeoutError),patch('diagnostics.kyoto_impl30_postrace_runtime.auxiliary_inputs',return_value=(found,seed,proof)):
+                    roster,starts,actual,report=recover_inputs(DAY,REPO,KEY)
+                    self.assertEqual(len(starts),12);self.assertEqual(actual,seed)
+                    self.assertEqual(report['sources']['1']['source_lane'],'auxiliary')
+                    self.assertTrue(report['auxiliary_fallback']['attempted'])
+                bad,none,_=auxiliary_inputs(DAY,REPO,'b'*64,api=api,download=download)
+                self.assertEqual(bad,{});self.assertIsNone(none)
+                for field,value in [('head_branch','not-main'),('created_at','2026-11-29T03:30:00Z'),('event','pull_request'),('head_repository',{'full_name':'other/repo'})]:
+                    with self.subTest(field=field):
+                        old=run[field];run[field]=value
+                        mock=Mock();bad,none,_=auxiliary_inputs(DAY,REPO,KEY,api=api,download=mock)
+                        self.assertEqual(bad,{});self.assertIsNone(none);mock.assert_not_called();run[field]=old
+                bad,none,_=auxiliary_inputs(DAY,REPO,KEY,api=api,download=download,monotonic=Mock(side_effect=[0,91,91,91]))
+                self.assertEqual(bad,{});self.assertIsNone(none)
+    def test_auxiliary_fallback_never_overwrites_verified_pc(self):
+        with tempfile.TemporaryDirectory() as d:
+            root=Path(d);saved=inputs(root/'fixture',DAY);cipher=root/'cipher'
+            receipt=json.loads((saved/'g03_receipt.json').read_text());receipt['races']['12']['state']='MISSING'
+            (saved/'g03_receipt.json').write_text(json.dumps(receipt))
+            with patch.object(crypto,'DAY',DAY):
+                encrypt_evidence(saved,cipher,key_hex=KEY,repo=REPO,run_id='101')
+                run={'id':101,'name':'Kyoto Nov28-29 independent encrypted original collection','created_at':'2026-11-28T00:15:00Z','status':'completed','event':'schedule'}
+                def api(endpoint):
+                    if '/runs?' in endpoint:return {'total_count':1,'workflow_runs':[run]}
+                    return {'total_count':1,'artifacts':[{'name':'kyoto-pc-101-20261128','expired':False}]}
+                def download(rid,name,target,repo):
+                    for f in cipher.iterdir():shutil.copyfile(f,target/f.name)
+                wrong={'named':((1,1,'WRONG'),),'start':'2026-11-28T04:00:00+00:00','run_id':201,'sha256':'a'*64,'source_lane':'auxiliary'}
+                with patch('diagnostics.kyoto_impl30_postrace_runtime._gh',side_effect=api),patch('diagnostics.kyoto_impl30_postrace_runtime._download',side_effect=download),patch('diagnostics.kyoto_impl30_postrace_runtime.auxiliary_inputs',return_value=({1:wrong,12:wrong},b'aux seed',{})):
+                    roster,starts,seed,proof=recover_inputs(DAY,REPO,KEY)
+                    self.assertNotEqual(roster[1],wrong['named']);self.assertEqual(proof['sources']['1']['run_id'],101)
+                    self.assertEqual(proof['sources']['12']['source_lane'],'auxiliary');self.assertIn(b'doAction',seed)
+    def test_missing_prestart_roster_no_longer_vetoes_postrace_originals(self):
+        with patch('diagnostics.kyoto_impl30_postrace_runtime._gh',side_effect=TimeoutError),patch('diagnostics.kyoto_impl30_postrace_runtime.auxiliary_inputs',return_value=({},None,{})):
+            roster,starts,seed,proof=recover_inputs(DAY,REPO,KEY,allow_missing_seed=True)
+        self.assertEqual(roster,{n:None for n in range(1,13)})
+        self.assertEqual(starts,{})
+        self.assertIsNone(seed)
+        self.assertTrue(proof['auxiliary_fallback']['attempted'])
+    def test_actual_run_name_recovers_existing_authenticated_artifact(self):
+        with tempfile.TemporaryDirectory() as d:
+            root=Path(d);saved=inputs(root/'fixture',DAY);cipher=root/'cipher'
+            with patch.object(crypto,'DAY',DAY):
+                encrypt_evidence(saved,cipher,key_hex=KEY,repo=REPO,run_id='101')
+                run={'id':101,'name':'workflow_dispatch','created_at':'2026-11-28T00:15:00Z','status':'completed','event':'workflow_dispatch','head_branch':'main','head_repository':{'full_name':REPO},'path':'.github/workflows/kyoto-20261128-29-two-source-production-observer.yml'}
+                def api(endpoint):
+                    if '/runs?' in endpoint:return {'total_count':1,'workflow_runs':[run]}
+                    return {'total_count':1,'artifacts':[{'name':'kyoto-pc-101-20261128','expired':False}]}
+                def download(rid,name,target,repo):
+                    for f in cipher.iterdir():shutil.copyfile(f,target/f.name)
+                with patch('diagnostics.kyoto_impl30_postrace_runtime._gh',side_effect=api),patch('diagnostics.kyoto_impl30_postrace_runtime._download',side_effect=download):
+                    roster,starts,seed,proof=recover_inputs(DAY,REPO,KEY)
+                    self.assertEqual(len(starts),12);self.assertEqual(proof['sources']['1']['run_id'],101)
+    def test_public_home_single_get_and_refusal_boundary(self):
+        from diagnostics.kyoto_nov29_public_forms import PC_HOME
+        from diagnostics.kyoto_impl30_postrace_day import observed_actions,MENU
+        opener=Mock();pacer=Mock()
+        response=opener.open.return_value.__enter__.return_value
+        response.geturl.return_value=PC_HOME;response.read.return_value=SEED
+        response.status=200;response.headers={'Content-Type':'text/html'}
+        fetch=official_fetcher(DAY,clock=lambda:datetime.fromisoformat(STAMP.replace('Z','+00:00')),opener=opener,pacer=pacer)
+        page=fetch('GET',PC_HOME,None)
+        self.assertEqual(page['raw'],SEED)
+        for path,label in MENU.values():
+            options=[a for a in observed_actions(page['raw'],path,origin='https://www.jra.go.jp') if a[0]==label]
+            self.assertEqual(len(options),1)
+            self.assertEqual(options[0][3],'https://www.jra.go.jp'+path)
+        with self.assertRaises(ValueError):fetch('GET',PC_HOME,None)
+        self.assertEqual(opener.open.call_count,1)
     def test_transport_refusal_stops_next_request_and_bad_targets_never_called(self):
         opener=Mock();pacer=Mock()
         fetch=official_fetcher(DAY,clock=lambda:datetime.fromisoformat(STAMP.replace('Z','+00:00')),opener=opener,pacer=pacer)
