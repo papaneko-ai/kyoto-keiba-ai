@@ -1,0 +1,32 @@
+name: Kyoto Impl41 authenticated SP workout bridge targeted proof
+on:
+  push:
+    branches: ['fix/impl41-workout-sp-roster-20261128']
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      PYTHONPATH: .:tests
+      KYOTO_TARGET_DAY: '20261129'
+      KYOTO_WEEKEND_HTTP_APPROVED: 'NO'
+      KYOTO_AUX_HTTP_APPROVED: 'NO'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          ref: 'fed005c89fcfa940c479538ee983f211598a6640'
+          path: trusted-sp-reader
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11.18'
+      - run: python -m pip install --no-deps beautifulsoup4==4.15.0 soupsieve==4.1.3 typing-extensions==4.16.0 cryptography==46.0.7 cffi==2.1.1 pycparser==3.12
+      - name: Test actual authenticated archive boundary and bounded SP fallback
+        env:
+          KYOTO_WORKOUT_SP_READER: trusted-sp-reader
+        run: python -m unittest -v tests.test_kyoto_impl41_sp_workout_bridge

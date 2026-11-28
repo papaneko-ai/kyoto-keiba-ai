@@ -1,7 +1,7 @@
 """Independent bounded workout capture and roster bridge. No official-source HTTP.
 Use existing authenticated PC originals; retain third-party originals separately.
 """
-import json, os, re, secrets, subprocess, tempfile, time
+import json, os, re, secrets, subprocess, tempfile, time, sys
 from datetime import datetime, timedelta, timezone
 from hashlib import sha256
 from pathlib import Path
@@ -28,6 +28,67 @@ SECONDARY={'umasiru.com':'https://umasiru.com/','talmudic.net':'https://talmudic
 # Observed current published link; not a hardcoded horse or fabricated URL.
 SEEDS={('20261128',11):['https://umasiru.com/archives/22515']}
 PREVIEW_RUN=45755377155
+SP_READER_SHA='fed005c89fcfa940c479538ee983f211598a6640'
+# Keep the established SP validator in its own immutable checkout; do not
+# import a second, divergent copy of the official roster parser.
+SP_READER_SCRIPT=r'''
+import hashlib,json,os,sys,tempfile
+from pathlib import Path
+from diagnostics.kyoto_nov15_encrypted_evidence import decrypt_evidence
+from diagnostics.kyoto_weekend_postflight import check_originals
+from diagnostics.kyoto_impl31_sp_saved_roster_audit import assess_checked,inspect_heading,utc
+from diagnostics.kyoto_impl39_sp_market_union import standalone_roster
+from diagnostics.kyoto_impl30_day_coverage import digest
+cipher,day,rid=sys.argv[1:4]
+repo="papaneko-ai/kyoto-keiba-ai"
+if day!="20261129" or not rid.isascii() or not rid.isdigit():raise ValueError("sp_bridge_identity")
+with tempfile.TemporaryDirectory() as tmp:
+    root=Path(tmp)/"raw"
+    decrypt_evidence(cipher,root,key_hex=os.environ["ARCHIVE_KEY"],repo=repo,run_id=rid)
+    post=check_originals(root,day=day,channel="SP")
+    observed=assess_checked(root,day,post)
+    found={}
+    for n in range(1,13):
+        try:
+            row=observed["races"][str(n)]
+            if row["state"]!="SP_STRUCTURAL_ROSTER_OBSERVED":continue
+            if post["sp_race_integrity"][str(n)]["state"]!="DIGEST_UTC_CHECKED_ONLY":continue
+            path=root/f"r{n:02d}_official_sp_racecard.html"
+            if path.is_symlink() or not path.is_file() or not 0<path.stat().st_size<=1500000:continue
+            raw=path.read_bytes();sha=hashlib.sha256(raw).hexdigest()
+            stamp=utc(row["captured_at_utc"])
+            if sha!=row["source_sha256"]:continue
+            v=standalone_roster(raw,day,n,stamp,sha)
+            named=inspect_heading(raw,day,n)
+            if digest(named)!=v["named_roster_digest"] or [i for i,_,_ in named]!=v["numbers"]:continue
+            found[str(n)]={"roster":{i:name for i,_,name in named},"start":v["start_utc"],
+                "source_sha256":sha,"captured_utc":stamp.isoformat(),"run_id":int(rid),"source_lane":"sp",
+                "named_roster_digest":v["named_roster_digest"]}
+        except (ValueError,KeyError,TypeError,OSError,AttributeError,IndexError):continue
+    print(json.dumps({"day":day,"run_id":int(rid),"races":found},ensure_ascii=True,sort_keys=True))
+'''
+def read_sp_rosters(cipher,day,rid,key,budget,reader):
+    if day!='20261129' or type(rid) is not int or rid<=0:raise ValueError('sp_bridge_identity')
+    root=Path(reader).resolve()
+    rev=subprocess.check_output(['git','rev-parse','HEAD'],cwd=root,text=True,stderr=subprocess.DEVNULL,timeout=budget.remaining(5)).strip()
+    if rev!=SP_READER_SHA:raise ValueError('sp_reader_revision')
+    env={'PATH':os.environ.get('PATH',''),'PYTHONPATH':str(root),'PYTHONUTF8':'1','KYOTO_TARGET_DAY':day,'ARCHIVE_KEY':key.hex(),'KYOTO_WEEKEND_HTTP_APPROVED':'NO','KYOTO_AUX_HTTP_APPROVED':'NO'}
+    raw=subprocess.check_output([sys.executable,'-c',SP_READER_SCRIPT,str(Path(cipher).resolve()),day,str(rid)],cwd=root,env=env,stderr=subprocess.DEVNULL,timeout=budget.remaining(20))
+    if len(raw)>100000:raise ValueError('sp_bridge_output_size')
+    d=json.loads(raw)
+    if d.get('day')!=day or d.get('run_id')!=rid or not isinstance(d.get('races'),dict) or len(d['races'])>12:raise ValueError('sp_bridge_output_identity')
+    found={}
+    for n,row in d['races'].items():
+        race=int(n);names={int(k):v for k,v in row['roster'].items()}
+        if (n!=str(race) or not 1<=race<=12 or row['run_id']!=rid or row['source_lane']!='sp'
+            or not 2<=len(names)<=18 or sorted(names)!=list(range(1,len(names)+1))
+            or any(not isinstance(v,str) or not v.strip() for v in names.values())
+            or not re.fullmatch(r'[a-f0-9]{64}',row['source_sha256'])
+            or not re.fullmatch(r'[a-f0-9]{64}',row['named_roster_digest'])
+            or utc(row['captured_utc']).strftime('%Y%m%d')!=day or utc(row['start']).strftime('%Y%m%d')!=day
+            or not utc(row['captured_utc'])<utc(row['start'])):raise ValueError('sp_bridge_output_roster')
+        found[race]={**row,'roster':names}
+    return found
 def digest(raw):return sha256(raw).hexdigest()
 def utc(s):
     t=datetime.fromisoformat(s.replace('Z','+00:00'))
@@ -82,8 +143,8 @@ def eligible_runs(budget,day,workflow):
         out.append(r)
     return sorted(out,key=lambda r:r['id'],reverse=True)
 
-def gather_official(day,key,budget,*,aux_budget_factory=lambda:Budget(35)):
-    found={};conflicts=set();issues=[]
+def gather_official(day,key,budget,*,aux_budget_factory=lambda:Budget(35),sp_reader=None):
+    found={};conflicts=set();issues=[];rows=[];b=None
     try:
         rows=eligible_runs(budget,day,OBSERVER)
         for r in rows[:8]:
@@ -117,6 +178,23 @@ def gather_official(day,key,budget,*,aux_budget_factory=lambda:Budget(35)):
                 except Exception as e:issues.append('AUX:'+type(e).__name__)
         except Exception as e:issues.append('AUX:'+type(e).__name__)
         found.update(auxiliary);conflicts.update(aux_conflicts)
+    # Use the existing auxiliary deadline, never an extra source HTTP request
+    # or a new time allowance. Only fill missing races; known conflicts remain.
+    if day=='20261129' and sp_reader and b is not None and len(found)<12:
+        mobile={};mobile_conflicts=set()
+        for r in rows[:8]:
+            if len(found)+len(mobile)==12:break
+            rid=r['id']
+            try:
+                with tempfile.TemporaryDirectory() as tmp:
+                    cipher=Path(tmp)/'cipher';cipher.mkdir()
+                    b.download(rid,f'kyoto-sp-{rid}-{day}',cipher)
+                    candidates=read_sp_rosters(cipher,day,rid,key,b,sp_reader)
+                    roster_union(mobile,{n:v for n,v in candidates.items() if n not in found and n not in conflicts},mobile_conflicts)
+            except Exception as e:
+                issues.append('SP:'+type(e).__name__)
+                if isinstance(e,TimeoutError):break
+        found.update(mobile);conflicts.update(mobile_conflicts)
     return found,sorted(conflicts),issues
 
 def seal(out,name,raw,key,aad):
@@ -444,12 +522,15 @@ def run(day,out,key,rid):
     today=now().astimezone(JST).date();target=datetime.fromisoformat(day_iso(day)).date()
     if not target-timedelta(days=1)<=today<=target:raise ValueError('runtime_date')
     out=Path(out);out.mkdir(exist_ok=True)
-    roster,conflicts,errors=gather_official(day,key,Budget(55)) if today==target else ({},[],[])
+    report={'day':day,'run_id':int(rid),'official_roster_conflicts':[],'archive_errors':[],'source_errors':[],'snapshots':[],'races':[],'primary_index':{'state':'INDEX_NOT_SAVED','discovery_state':'NOT_EVALUATED'},'jra_requests':0,'production_coverage_authorized':False,'status':'SOURCE_ONLY_IN_PROGRESS','roster_recovery_state':'NOT_EVALUATED'}
+    checkpoint(out,report)
+    roster,conflicts,errors=gather_official(day,key,Budget(55),sp_reader=os.environ.get('KYOTO_WORKOUT_SP_READER')) if today==target else ({},[],[])
+    report.update(official_roster_conflicts=conflicts,archive_errors=errors,roster_recovery_state='SAME_DAY_REPLAY_FINISHED' if today==target else 'PREDAY_WAIT',
+        roster_source_races={lane:sorted(n for n,v in roster.items() if v.get('source_lane','pc')==lane) for lane in ('pc','auxiliary','sp')})
+    checkpoint(out,report)
     saved_budget=Budget(55)
     items=unique_snapshots(previews(day,key,Budget(30))+previous(day,key,saved_budget)+preday_saved(day,key,saved_budget))
     fetch=PublicFetch(Budget(160))
-    report={'day':day,'run_id':int(rid),'official_roster_conflicts':conflicts,'archive_errors':errors,'source_errors':[],'snapshots':[],'races':[],'primary_index':{'state':'INDEX_NOT_SAVED','discovery_state':'NOT_EVALUATED'},'jra_requests':0,'production_coverage_authorized':False,'status':'SOURCE_ONLY_IN_PROGRESS'}
-    checkpoint(out,report)
     save=lambda x:append_snapshot(out,report,key,x)
     for x in items:save(x)
     items,labels,source_errors=collect_primary(day,items,roster,fetch,on_snapshot=save,
