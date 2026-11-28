@@ -143,14 +143,83 @@ def review_workouts(day,metadata,coverage,roster,starts,key,reader):
     doc["archive_index_complete"]=not doc["errors"] and len(archives)==len(candidates) and w["index_complete"]
     return doc
 
-def coverage_gaps(day,coverage,allowed_run_ids,workout_review=None,allowed_workout_run_ids=()):
+WEIGHT_FIELDS=("body_weight_kg","body_weight_change_kg")
+def cancellation_set(day,row,evidence,allowed):
+    """Exempt only the two weight fields of a positively verified cancellation.
+    A missing value, receipt total, result row or mismatched card is not proof.
+    """
+    try:
+        card=row["racecard"];cutoff=stamp(row["start_utc"])
+        if not proof_ok(card,cutoff,day,allowed):return None
+        if evidence["state"]!="CANCELLATION_STATUS_FROM_REPLAYED_CARD" or evidence["day"]!=day:return None
+        if any(evidence[k]!=card[k] for k in ("run_id","sha256","utc")):return None
+        if evidence["named_roster_digest"]!=row["named_roster_digest"] or evidence["roster_digest"]!=row["roster_digest"]:return None
+        if evidence["start_utc"]!=row["start_utc"] or evidence["registered_horse_count"]!=len(row["horses"]):return None
+        ns=evidence["cancelled_horses"]
+        if not isinstance(ns,list) or any(type(n) is not int or str(n) not in row["horses"] for n in ns) or len(set(ns))!=len(ns) or len(ns)==len(row["horses"]):return None
+        return set(map(str,ns))
+    except (TypeError,KeyError,ValueError,AttributeError):return None
+
+def replay_cancelled_card(raw,day,race,row,run_id):
+    # These are the existing exact G03 and adapter readers, not a second parser.
+    from diagnostics.kyoto_g03_independent_partial import verify_partial
+    from diagnostics.kyoto_g03_to_g06_input_adapter import records_from_g03
+    from diagnostics.kyoto_impl30_day_coverage import digest as source_digest
+    root=Path(raw)
+    if race not in verify_partial(root,expected_day=day)["verified_race_numbers"]:raise ValueError("race_not_verified")
+    rec=records_from_g03(root,day=day,skip_invalid_races=True)[race]
+    if rec is None:raise ValueError("adapter_unverified")
+    item=json.loads((root/"g03_receipt.json").read_text(encoding="utf8"))["races"][str(race)]
+    horses=item["runners"]
+    ident=source_digest([(h["number"],h["frame"],h["name"],h["profile_navigation"]) for h in horses])
+    named=source_digest(rec["expected_named_runners"])
+    e={"state":"CANCELLATION_STATUS_FROM_REPLAYED_CARD","day":day,"run_id":str(run_id),
+       "sha256":item["original_sha256"],"utc":stamp(item["captured_at_utc"]).isoformat(),
+       "roster_digest":ident,"named_roster_digest":named,"start_utc":rec["verified_start_utc"],
+       "registered_horse_count":len(horses),"cancelled_horses":sorted(h["number"] for h in horses if h.get("cancelled") is True)}
+    if cancellation_set(day,row,e,{str(run_id)}) is None:raise ValueError("cancellation_card_binding")
+    return e
+
+def review_cancellations(day,metadata,coverage,key):
+    from diagnostics.kyoto_nov15_encrypted_evidence import decrypt_evidence
+    lane_by_run={}
+    for filename,lane in (("two-source-production-observer.yml","pc"),("auxiliary-refresh.yml","auxiliary")):
+        for r in metadata[filename]["runs"]:
+            if r.get("artifacts",{}).get(lane,{}).get("state")=="PRESENT":
+                lane_by_run.setdefault(str(r["id"]),[]).append(lane)
+    by={}
+    for n,row in coverage["races"].items():
+        if row.get("state")!="ROSTER_VERIFIED":continue
+        card=row.get("racecard",{});rid=str(card.get("run_id"))
+        if card.get("state")=="SOURCE_VERIFIED":by.setdefault(rid,[]).append((int(n),row))
+    result={};errors=[];end=time.monotonic()+120
+    for rid,rows in sorted(by.items(),key=lambda x:x[0]):
+        try:
+            lanes=lane_by_run.get(rid,[])
+            if len(lanes)!=1:raise ValueError("missing_or_ambiguous_archive_lane")
+            left=end-time.monotonic()
+            if left<=0:raise TimeoutError("cancellation_replay_budget")
+            with tempfile.TemporaryDirectory(prefix="kyoto_cancel_review_") as td:
+                root=Path(td);cipher=root/"cipher";cipher.mkdir()
+                subprocess.run(["gh","run","download",rid,"--repo",REPO,"--name",f"kyoto-{lanes[0]}-{rid}-{day}","--dir",str(cipher)],check=True,stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL,timeout=min(25,left))
+                raw=root/"raw";decrypt_evidence(cipher,raw,key_hex=key,repo=REPO,run_id=rid)
+                for n,row in rows:
+                    try:result[str(n)]=replay_cancelled_card(raw,day,n,row,rid)
+                    except Exception as exc:errors.append({"run_id":rid,"race":n,"error_class":type(exc).__name__})
+        except Exception as exc:errors.append({"run_id":rid,"error_class":type(exc).__name__})
+    return {"schema":"kyoto_independent_cancellation_review.v1","day":day,"races":result,"errors":errors,"source_http_requests":0}
+
+def coverage_gaps(day,coverage,allowed_run_ids,workout_review=None,allowed_workout_run_ids=(),cancellation_review=None):
     """Compute missing cells from independently replayed aggregate, not totals."""
     if coverage.get("day")!=day or coverage.get("schema")!="kyoto_impl30_day_source_coverage.v1" or coverage.get("race_denominator")!=12 or set(coverage.get("races",{}))!=set(RACES):raise ValueError("coverage_identity_incomplete")
     allowed=set(map(str,allowed_run_ids))
     allowed_workout=set(map(str,allowed_workout_run_ids))
     workout_review=workout_review or {}
     workout_rows=workout_review.get("races",{}) if workout_review.get("day")==day and workout_review.get("schema")=="kyoto_independent_workout_day_replay.v1" else {}
+    cancellation_review=cancellation_review or {}
+    cancel_rows=cancellation_review.get("races",{}) if cancellation_review.get("day")==day and cancellation_review.get("schema")=="kyoto_independent_cancellation_review.v1" else {}
     totals={f:{"expected":0,"verified":0,"unknown_denominator_races":0} for f in FAMILIES}
+    exemptions={f:0 for f in WEIGHT_FIELDS}
     detail=[]
     for race in RACES:
         row=coverage["races"][race];missing=[];bound=[]
@@ -171,8 +240,14 @@ def coverage_gaps(day,coverage,allowed_run_ids,workout_review=None,allowed_worko
             continue
         card=row.get("racecard",{})
         check("racecard",proof_ok(card,cutoff,day,allowed),proof=card)
+        cancelled_weights=cancellation_set(day,row,cancel_rows.get(race,{}),allowed)
+        not_applicable=[]
         for h in sorted(horses,key=int):
             for f in HORSE:
+                if f in WEIGHT_FIELDS and cancelled_weights is not None and h in cancelled_weights:
+                    exemptions[f]+=1
+                    not_applicable.append({"family":f,"horse":h,"reason":"OFFICIAL_PRESTART_CANCELLATION"})
+                    continue
                 if f=="workout":
                     wr=workout_rows.get(race,{})
                     v=wr.get("horses",{}).get(h,{}) if wr.get("named_roster_digest")==row["named_roster_digest"] and wr.get("start")==row["start_utc"] else {}
@@ -196,8 +271,8 @@ def coverage_gaps(day,coverage,allowed_run_ids,workout_review=None,allowed_worko
             v=p.get(k,{})
             v={**v,"run_id":p.get("run_id")} if isinstance(v,dict) else {}
             check(f,p.get("state")=="DUAL_PAGE_FINAL_SOURCE_RECONCILED" and coverage.get("postrace_history_index_complete") is True and proof_ok(v,cutoff,day,allowed,True),proof=v)
-        detail.append({"race":int(race),"state":"GAPS" if missing else "ALL_REVIEWED_CELLS_PRESENT","registered_horses":len(horses),"missing":missing,"bound_evidence":bound,"postrace_publication_only":p.get("state")=="DUAL_PAGE_OFFICIAL_PUBLISHED_PAYOUT"})
-    return {"counts":totals,"races":detail,"all_reviewed_cells_present":all(t["expected"]==t["verified"] and not t["unknown_denominator_races"] for t in totals.values()),"full_acquisition_certified":False}
+        detail.append({"race":int(race),"state":"GAPS" if missing else "ALL_REVIEWED_CELLS_PRESENT","registered_horses":len(horses),"missing":missing,"bound_evidence":bound,"weight_not_applicable":not_applicable,"cancellation_status_verified":cancelled_weights is not None,"postrace_publication_only":p.get("state")=="DUAL_PAGE_OFFICIAL_PUBLISHED_PAYOUT"})
+    return {"counts":totals,"races":detail,"weight_not_applicable_counts":exemptions,"all_reviewed_cells_present":all(t["expected"]==t["verified"] and not t["unknown_denominator_races"] for t in totals.values()),"full_acquisition_certified":False}
 def collect_metadata(day,now):
     date=f"{day[:4]}-{day[4:6]}-{day[6:]}"
     reports={};errors=[]
@@ -282,7 +357,12 @@ def review(day,now,out):
             wr=review_workouts(day,metadata,coverage,roster,starts,key,os.environ["KYOTO_WORKOUT_READER"])
             report["workout_day_replay"]=wr
         except Exception as exc:report["workout_day_replay_error"]=type(exc).__name__
-        report["coverage"]=coverage_gaps(day,coverage,allowed,wr,workout_allowed)
+        cr=None
+        try:
+            cr=review_cancellations(day,metadata,coverage,key)
+            report["cancellation_review"]=cr
+        except Exception as exc:report["cancellation_review_error"]=type(exc).__name__
+        report["coverage"]=coverage_gaps(day,coverage,allowed,wr,workout_allowed,cr)
     except Exception as exc:
         report["coverage_replay_error"]=type(exc).__name__
         report["coverage"]={"counts":{},"races":[{"race":n,"state":"NOT_EVALUATED","missing":[{"family":"day_coverage_unavailable"}],"unknown_horse_families":list(HORSE)} for n in range(1,13)],"all_reviewed_cells_present":False,"full_acquisition_certified":False}
@@ -305,7 +385,11 @@ def review(day,now,out):
         w=report["workout_day_replay"]
         summary.append(f"- 調教原本独立再解析: archives={len(w['examined_archive_run_ids'])}, authenticated_snapshots={w['authenticated_snapshots']}, records={sum(x['canonical_records'] for x in w['races'].values())}, index_complete={w['archive_index_complete']}; source evidence only, no model promotion.")
     elif "workout_day_replay_error" in report:summary.append("- 調教原本独立再解析未完: "+report["workout_day_replay_error"])
+    if "cancellation_review" in report:
+        c=report["cancellation_review"]
+        summary.append(f"- 取消馬独立照合: races={len(c['races'])}, replay_errors={len(c['errors'])}; 馬体重・増減のみ対象外（登録馬・他項目の分母は維持）。")
     if "coverage" in report:
+        if report["coverage"].get("weight_not_applicable_counts"):summary.append("- 取消馬の対象外項目: "+str(report["coverage"]["weight_not_applicable_counts"]))
         for f,t in report["coverage"]["counts"].items():summary.append(f"- {f}: {t['verified']}/{t['expected']} (unknown denominator races={t['unknown_denominator_races']})")
         for r in report["coverage"]["races"]:
             families=sorted({m["family"] for m in r["missing"]})

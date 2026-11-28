@@ -126,4 +126,25 @@ class ClosureTests(unittest.TestCase):
    elif mutate=="secondary":p["mode"]="SECONDARY_CORROBORATED"
    else:p["source_proofs"][0]["provider"]="unknown.example"
    self.assertLess(coverage_gaps(DAY,d,[1,2],x,[3])["counts"]["workout"]["verified"],24)
+ def test_cancelled_weight_only_with_exact_card_proof(self):
+  d=data();r=d["races"]["1"]
+  for f in ("body_weight_kg","body_weight_change_kg"):r["horses"]["1"][f]={}
+  card=r["racecard"]
+  e={"state":"CANCELLATION_STATUS_FROM_REPLAYED_CARD","day":DAY,"run_id":card["run_id"],"sha256":card["sha256"],"utc":card["utc"],"roster_digest":r["roster_digest"],"named_roster_digest":r["named_roster_digest"],"start_utc":r["start_utc"],"registered_horse_count":2,"cancelled_horses":[1]}
+  cr={"schema":"kyoto_independent_cancellation_review.v1","day":DAY,"races":{"1":e}}
+  v=coverage_gaps(DAY,d,[1,2],workouts(d),[3],cr)
+  for f in ("body_weight_kg","body_weight_change_kg"):
+   self.assertEqual(v["counts"][f],{"expected":23,"verified":23,"unknown_denominator_races":0})
+   self.assertEqual(v["weight_not_applicable_counts"][f],1)
+  self.assertEqual(v["counts"]["profile"]["expected"],24)
+  self.assertEqual(v["counts"]["workout"]["verified"],24)
+  self.assertEqual(v["races"][0]["registered_horses"],2)
+  self.assertTrue(v["all_reviewed_cells_present"])
+  for k,val in (("sha256","f"*64),("run_id","2"),("utc","2026-11-29T05:01:00Z"),("named_roster_digest","f"*64),("roster_digest","f"*64),("day","20261128"),("registered_horse_count",3),("cancelled_horses",[1,1]),("cancelled_horses",[3]),("cancelled_horses",[1,2])):
+   bad=copy.deepcopy(cr);bad["races"]["1"][k]=val
+   q=coverage_gaps(DAY,d,[1,2],workouts(d),[3],bad)
+   self.assertEqual(q["counts"]["body_weight_kg"]["expected"],24,k)
+   self.assertEqual(q["counts"]["body_weight_kg"]["verified"],23,k)
+   self.assertFalse(q["all_reviewed_cells_present"],k)
+  self.assertEqual(assess(DAY,d,[1,2])["counts"]["body_weight_kg"]["expected"],24)
 if __name__=="__main__":unittest.main()
