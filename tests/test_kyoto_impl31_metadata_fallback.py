@@ -38,6 +38,18 @@ class Fallback(unittest.TestCase):
             self.assertEqual(recover(TARGET_DAY,repo=REPO,collector_sha=SHA,key=KEY,monotonic=lambda:next(clock))[0],'BASELINE')
             self.assertEqual(recover(TARGET_DAY,repo=REPO,collector_sha=SHA,key='bad')[0],'BASELINE')
             cli.assert_not_called()
+    def test_one_unavailable_job_does_not_erase_other_confirmed_failure(self):
+        old=run()
+        new=dict(old,id=43,created_at="2026-11-28T03:00:00Z")
+        def api(endpoint):
+            if "/workflows/" in endpoint:return {"total_count":2,"workflow_runs":[old,new]}
+            if "/runs/43/" in endpoint:raise TimeoutError("fixture unavailable")
+            return {"total_count":1,"jobs":[job()]}
+        self.assertEqual(recover_from_metadata(api,REPO),("MARKET_OR_ROSTER_RECOVERY","OBSERVER_FAILURE_METADATA_ONLY_42_PC"))
+        def unknown(endpoint):
+            if "/workflows/" in endpoint:return {"total_count":2,"workflow_runs":[old,new]}
+            raise OSError("fixture unavailable")
+        self.assertEqual(recover_from_metadata(unknown,REPO),("BASELINE","OBSERVER_JOB_METADATA_INCOMPLETE"))
     def test_duplicate_runs(self):
         with self.assertRaises(ValueError):recover_from_metadata(lambda _: {'total_count':2,'workflow_runs':[run(),run()]},REPO)
 if __name__=='__main__':unittest.main()

@@ -20,6 +20,9 @@ OBSERVER_NAME="Kyoto Nov28-29 independent encrypted original collection"
 # Exact source revision used by the fixed Saturday handoff workflow; the
 # policy is authenticated evidence, not executable code. Never accept arbitrary SHA.
 SATURDAY_HANDOFF_COLLECTOR="3f4b3d77357745ead05a9f78db34eb6ac2d78637"
+# The deployed Nov28 handoff is independently verified and pinned to this
+# reader. A Sunday-only repair must not invalidate its signed report.
+SATURDAY_HANDOFF_UPDATED_COLLECTOR="c289c5ec4e6ad322a7e08acf173da3352ed23dba"
 # Independently decrypted four actual Nov28 dispatch artifacts proved no G03
 # or SP racecard link discovery (incident #141; runs 46100456028, 46100842649).
 NOV28_INCIDENT_REPO="papaneko-ai/kyoto-keiba-ai"
@@ -63,27 +66,33 @@ def recover_from_metadata(api, repo):
               and r.get("status")=="completed"
               and r.get("head_repository",{}).get("full_name")==repo
               and r.get("path","").split("@",1)[0]==".github/workflows/"+OBSERVER]
-    # Most recent completed failure first. A positive failure observation
-    # does not require every other run to have been inspected.
+    # Exact authenticated incidents already prove the need for this same
+    # bounded recovery mode. Do not depend on additional per-job API calls
+    # (which may fail or exhaust the shared deadline) to reuse that proof.
+    if repo==NOV28_INCIDENT_REPO:
+        incident={r["id"] for r in eligible if r["id"] in NOV28_INCIDENT_RUN_IDS
+                  and r.get("event")=="workflow_dispatch" and r.get("head_branch")=="main"}
+        if incident==set(NOV28_INCIDENT_RUN_IDS):
+            return "MARKET_OR_ROSTER_RECOVERY","NOV28_AUTHENTICATED_SOURCE_GAP_INCIDENT_141"
+    # For new incidents, isolate unavailable job metadata from other runs.
+    # A timeout/malformed result is not itself positive failure evidence.
+    incomplete=False
     for r in sorted(eligible,key=lambda r:(r["created_at"],r["id"]),reverse=True)[:4]:
         rid=r["id"]
-        jobs_doc=api(f"repos/{repo}/actions/runs/{rid}/jobs?per_page=100")
-        jobs=jobs_doc["jobs"]
-        if not isinstance(jobs,list) or jobs_doc["total_count"]!=len(jobs) or len(jobs)>100:
+        try:
+            jobs_doc=api(f"repos/{repo}/actions/runs/{rid}/jobs?per_page=100")
+            jobs=jobs_doc["jobs"]
+            if not isinstance(jobs,list) or jobs_doc["total_count"]!=len(jobs) or len(jobs)>100:
+                raise ValueError("incomplete_job_index")
+            failures=confirmed_failure_lanes(r,jobs)
+        except (OSError,ValueError,TypeError,KeyError,AttributeError,subprocess.SubprocessError):
+            incomplete=True
             continue
-        failures=confirmed_failure_lanes(r,jobs)
         if failures:
             f=failures[0]
             prefix="OBSERVER_DISPATCH_FAILURE_METADATA_ONLY" if r["event"]=="workflow_dispatch" else "OBSERVER_FAILURE_METADATA_ONLY"
             return "MARKET_OR_ROSTER_RECOVERY",f"{prefix}_{rid}_{f['lane']}"
-    # A successful Actions job is not a successful acquisition. These exact
-    # known runs were independently authenticated and investigated on Nov28.
-    # Verify their presence in the same official workflow before using the
-    # incident as a bounded fallback. This never grants source/model credit.
-    if repo==NOV28_INCIDENT_REPO:
-        incident={r["id"] for r in eligible if r["id"] in NOV28_INCIDENT_RUN_IDS}
-        if incident==set(NOV28_INCIDENT_RUN_IDS):
-            return "MARKET_OR_ROSTER_RECOVERY","NOV28_AUTHENTICATED_SOURCE_GAP_INCIDENT_141"
+    if incomplete:return "BASELINE","OBSERVER_JOB_METADATA_INCOMPLETE"
     return "BASELINE","NO_CONFIRMED_OBSERVER_FAILURE"
 
 
@@ -260,8 +269,8 @@ def recover(day,*,repo,collector_sha,key,monotonic=time.monotonic):
                 # collector. Authenticate and recompute against that exact
                 # source, then apply only the bounded policy table.
                 signer=doc.get("body",{}).get("collector_sha")
-                if signer==SATURDAY_HANDOFF_COLLECTOR and repo==NOV28_INCIDENT_REPO:
-                    mode=accept(doc,report,repo=repo,run_id=rid,collector_sha=SATURDAY_HANDOFF_COLLECTOR,key=key)
+                if signer in (SATURDAY_HANDOFF_COLLECTOR,SATURDAY_HANDOFF_UPDATED_COLLECTOR) and repo==NOV28_INCIDENT_REPO:
+                    mode=accept(doc,report,repo=repo,run_id=rid,collector_sha=signer,key=key)
                 else:
                     mode=accept(doc,report,repo=repo,run_id=rid,collector_sha=collector_sha,key=key)
                 prefix="AUTHENTICATED_SATURDAY_HANDOFF_" if r["event"]=="schedule" else "AUTHENTICATED_SATURDAY_DISPATCH_HANDOFF_"
