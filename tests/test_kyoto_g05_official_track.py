@@ -60,4 +60,73 @@ class KyotoTrackTests(unittest.TestCase):
                                     lambda:"2026-11-21T01:00:00Z",allowed=False)
             self.assertEqual(called,[])
 
+    def test_current_canonical_url_single_request_and_four_moisture_fields(self):
+        day="20261129";stamp="2026-11-29T01:05:00Z"
+        self.assertEqual(KYOTO_TRACK_PAGE,"https://www.jra.go.jp/keiba/baba/index2.html")
+        table='<table><caption>ゴール前と4コーナーの含水率</caption><tr><th></th><th>ゴール前</th><th>4コーナー</th></tr><tr><th>芝</th><td>10.1</td><td>9.2</td></tr><tr><th>ダート</th><td>7.4</td><td>7.1</td></tr></table>'
+        raw=html(day).replace(b'</main>',table.encode("utf8")+b'</main>')
+        from diagnostics.kyoto_impl30_day_coverage import independent_track
+        with tempfile.TemporaryDirectory() as td:
+            root=Path(td);calls=[]
+            def fetch(url):calls.append(url);return raw
+            result=capture_kyoto_track(root,day,fetch,lambda:stamp,allowed=True)
+            self.assertEqual(calls,[KYOTO_TRACK_PAGE])
+            self.assertEqual(result["turf_moisture_finish_pct"],10.1)
+            self.assertEqual(result["turf_moisture_turn4_pct"],9.2)
+            self.assertEqual(result["dirt_moisture_finish_pct"],7.4)
+            self.assertEqual(result["dirt_moisture_turn4_pct"],7.1)
+            self.assertIn("turf_moisture_finish_pct",independent_track(root,day))
+    def test_legacy_receipt_replay_and_wrong_origin_rejection(self):
+        import json
+        from diagnostics.kyoto_g05_official_track import LEGACY_KYOTO_TRACK_PAGE
+        from diagnostics.kyoto_impl30_day_coverage import independent_track
+        day="20261129";stamp="2026-11-29T01:05:00+00:00"
+        raw=html(day)
+        with tempfile.TemporaryDirectory() as td:
+            root=Path(td)
+            (root/"g05_official_kyoto_track.html").write_bytes(raw)
+            receipt=parse_kyoto_track(raw,day,LEGACY_KYOTO_TRACK_PAGE,stamp)
+            receipt["requested_at_utc"]=stamp
+            p=root/"g05_track_receipt.json";p.write_text(json.dumps(receipt))
+            self.assertIn("weather",independent_track(root,day))
+            for bad in ("https://www.jra.go.jp.evil.test/keiba/baba/index2.html","https://www.jra.go.jp/keiba/baba/index.html","https://www.jra.go.jp/keiba/baba/index2.html?x=1"):
+                receipt["source_url"]=bad;p.write_text(json.dumps(receipt))
+                self.assertEqual(independent_track(root,day),{})
+    def test_http_failure_receipt_preserves_status_without_retry_or_data_credit(self):
+        import json
+        from urllib.error import HTTPError
+        from diagnostics.kyoto_impl30_day_coverage import independent_track
+        day="20261129";stamp="2026-11-29T01:05:00Z"
+        for status in (301,403,404,429,503):
+            with self.subTest(status=status),tempfile.TemporaryDirectory() as td:
+                root=Path(td);calls=[]
+                def fetch(url):
+                    calls.append(url);raise HTTPError(url,status,"DO_NOT_PERSIST_EXCEPTION_TEXT",{},None)
+                with self.assertRaises(HTTPError):capture_kyoto_track(root,day,fetch,lambda:stamp,allowed=True)
+                self.assertEqual(calls,[KYOTO_TRACK_PAGE])
+                p=root/"g05_track_receipt.json";result=json.loads(p.read_text())
+                self.assertEqual(result["http_status"],status)
+                self.assertEqual(result["error_code"],"HTTP_STATUS_"+str(status))
+                self.assertEqual(result["state"],"TRACK_FETCH_FAILED")
+                self.assertNotIn("DO_NOT_PERSIST_EXCEPTION_TEXT",p.read_text())
+                self.assertFalse((root/"g05_official_kyoto_track.html").exists())
+                self.assertEqual(independent_track(root,day),{})
+    def test_parse_rejection_preserves_original_and_failure_receipt(self):
+        import json,hashlib
+        from diagnostics.kyoto_impl30_day_coverage import independent_track
+        day="20261129";stamp="2026-11-29T01:05:00Z";raw=b"\x81"
+        with tempfile.TemporaryDirectory() as td:
+            root=Path(td)
+            with self.assertRaises(G05TrackRejected):capture_kyoto_track(root,day,lambda _:raw,lambda:stamp,allowed=True)
+            result=json.loads((root/"g05_track_receipt.json").read_text())
+            self.assertEqual(result["state"],"TRACK_PARSE_FAILED")
+            self.assertEqual(result["source_sha256"],hashlib.sha256(raw).hexdigest())
+            self.assertEqual((root/"g05_official_kyoto_track.html").read_bytes(),raw)
+            self.assertEqual(independent_track(root,day),{})
+    def test_same_calendar_day_but_next_meeting_eve_is_not_current_measurement(self):
+        raw=html("20261129").replace("第5日".encode("utf8"),"第6日前日".encode("utf8"))
+        r=parse_kyoto_track(raw,"20261129",KYOTO_TRACK_PAGE,"2026-11-29T01:05:00Z")
+        self.assertFalse(r["same_day_official_meeting_heading_verified"])
+        self.assertIsNone(r["weather"])
+
 if __name__=="__main__":unittest.main()

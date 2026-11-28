@@ -33,7 +33,7 @@ def proof(sha,utc,value=None):
 
 def independent_track(root,day):
     """Replay the independent official track original, not its summary flags."""
-    from diagnostics.kyoto_g05_official_track import parse_kyoto_track,KYOTO_TRACK_PAGE,MAX_HTML
+    from diagnostics.kyoto_g05_official_track import parse_kyoto_track,MAX_HTML
     original=root/"g05_official_kyoto_track.html"
     receipt=root/"g05_track_receipt.json"
     if any(p.is_symlink() or not p.is_file() or not 0<p.stat().st_size<=MAX_HTML for p in (original,receipt)):
@@ -43,7 +43,7 @@ def independent_track(root,day):
         stamp=_utc(stored["captured_at_utc"])
         requested=_utc(stored["requested_at_utc"])
         if stamp.strftime("%Y%m%d")!=day or requested.strftime("%Y%m%d")!=day or requested>stamp:return {}
-        replay=parse_kyoto_track(original.read_bytes(),day,KYOTO_TRACK_PAGE,stamp.isoformat())
+        replay=parse_kyoto_track(original.read_bytes(),day,stored["source_url"],stamp.isoformat())
         if stored!={**replay,"requested_at_utc":requested.isoformat()} or replay["same_day_official_meeting_heading_verified"] is not True:return {}
         return {k:{**proof(replay["source_sha256"],stamp.isoformat(),replay[k]),
                    "source_kind":"OFFICIAL_INDEPENDENT_TRACK_PAGE","publication_time_independently_verified":False}

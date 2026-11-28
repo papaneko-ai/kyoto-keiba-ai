@@ -20,7 +20,7 @@ on:
       - 'fix/impl32-truthful-no-source-20261125'
       - 'fix/impl33-dispatch-handoff-recovery-20261126'
   pull_request:
-    branches: ['fix/impl29-weekend-20261128-29', 'fix/impl30-day-coverage-20261124', 'fix/impl30-auxiliary-refresh-20261124', 'fix/impl30-nextday-adaptation-20261124', 'repair/impl37-g05-cancelled-weight-base-20261128']
+    branches: ['fix/impl29-weekend-20261128-29', 'fix/impl30-day-coverage-20261124', 'fix/impl30-auxiliary-refresh-20261124', 'fix/impl30-nextday-adaptation-20261124', 'repair/impl37-g05-cancelled-weight-base-20261128', 'repair/impl37-track-canonical-base-20261128']
   workflow_dispatch:
 permissions:
   contents: read

@@ -15,7 +15,7 @@ DAY="20261121"
 PC_SELECTION="https://jra.jp/JRADB/accessD.html?CNAME=pw01dli00%2FF3"
 PC_MEETING="https://jra.jp/JRADB/accessD.html?CNAME=pw01meet20261121%2FA1"
 SP_RACE="https://sp.jra.jp/JRADB/accessD.html?CNAME=sw01race1220261121%2FBB"
-KYOTO_TRACK="https://jra.jp/keiba/baba/index2.html"
+KYOTO_TRACK="https://www.jra.go.jp/keiba/baba/index2.html"
 
 class FixedDate(datetime):
     @classmethod
