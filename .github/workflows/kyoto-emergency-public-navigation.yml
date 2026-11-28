@@ -1,4 +1,4 @@
-name: Kyoto final cancellation roster smoke
+name: Kyoto exact preday all-race source readiness
 on:
   push:
     branches: ['fix/impl30-nov29-source-diagnostics-20261128']
@@ -6,43 +6,83 @@ on:
 permissions:
   contents: read
 jobs:
-  navigation:
+  actual-preday-source:
     runs-on: ubuntu-latest
-    timeout-minutes: 3
+    timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: '15d66874903400e50c4a4350b34aed42133a3738'
+          ref: 'df00cdf77e8962de2195c81f19ef0f148a8dcf14'
           persist-credentials: false
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11.18'
-      - run: python -m pip install --no-deps beautifulsoup4==4.15.0 soupsieve==4.1.3 typing-extensions==4.16.0
-      - name: Verify corrected parser on both previously observed public R12 cards
+      - run: python -m pip install --no-deps beautifulsoup4==4.15.0 soupsieve==4.1.3 typing-extensions==4.16.0 cryptography==46.0.7 cffi==2.1.1 pycparser==3.12
+      - name: Validate all observed racecard links and actual postrace home seed
         env:
           PYTHONPATH: .
           KYOTO_TARGET_DAY: '20261129'
         run: |
           python - <<'PY'
+          import json,tempfile,hashlib
+          from pathlib import Path
           from datetime import datetime,timezone
           from urllib.request import build_opener,HTTPCookieProcessor
           from http.cookiejar import CookieJar
-          from diagnostics.kyoto_nov15_two_original_observer import _read
+          from diagnostics.kyoto_nov15_two_original_observer import observe,accept_observation
+          from diagnostics.kyoto_g03_weekend_bridge import collect_after_observer
+          from diagnostics.kyoto_g03_independent_partial import verify_partial
+          from diagnostics.kyoto_weekend_sp_discovery import discover
+          from diagnostics.kyoto_impl30_postrace_day import observed_actions,MENU
           from diagnostics.kyoto_p1_nov14_official_one_shot_nav import NoRedirect
-          from diagnostics.jra_one_shot_market_capture import RequestPacer
+          from diagnostics.jra_one_shot_market_capture import RequestPacer,http_fetch
           from diagnostics.jra_pc_sp_benchmark import sp_rows
-          from diagnostics.kyoto_g03_all_races import parse
-          client=build_opener(NoRedirect(),HTTPCookieProcessor(CookieJar()))
+          day='20261129'
           pacer=RequestPacer(min_gap_seconds=2.0)
-          p="https://www.jra.go.jp/JRADB/accessD.html?CNAME=pw01dde0108202605081220261129/1B"
-          s="https://sp.jra.jp/JRADB/accessD.html?CNAME=sw01dde0108202605081220261129/A8"
-          pacer.before_request()
-          pc=parse(_read(client,p),"20261129",12,p,datetime.now(timezone.utc).isoformat())
-          pacer.before_request()
-          sp=sp_rows(_read(client,s))
-          roster=tuple((r["number"],r["frame"],r["name"]) for r in pc["runners"])
-          cancelled=[r["number"] for r in pc["runners"] if r.get("cancelled") is True]
-          print("PC_ROSTER_COUNT",len(roster),"SP_ROSTER_COUNT",len(sp),"PC_CANCELLED",cancelled,"PC_START",pc["start_time_jst"])
-          assert len(roster)==18 and roster==sp and cancelled==[16]
-          print("REAL_TWO_SOURCE_CANCELLATION_ROSTER_MATCH")
+          with tempfile.TemporaryDirectory() as tmp:
+              base=Path(tmp)
+              pc_client=build_opener(NoRedirect(),HTTPCookieProcessor(CookieJar()))
+              pc=observe(base/'pc',now_utc=datetime.now(timezone.utc).isoformat(),allowed=True,opener=pc_client,pacer=pacer,public_form_navigation=True,include_observed_racecard=True)
+              print('PC_ENTRY',pc['state'],pc.get('error_code'))
+              if pc.get('racecard_original_fetched'):
+                  print('PC_PROVENANCE',accept_observation(base/'pc')['state'])
+              home=base/'pc/official_pc_navigation_home.html'
+              if home.is_file():
+                  home_raw=home.read_bytes()
+                  seed_counts={name:len([a for a in observed_actions(home_raw,path,origin='https://www.jra.go.jp') if a[0]==label]) for name,(path,label) in MENU.items()}
+                  print('PUBLIC_POSTRACE_HOME',json.dumps(seed_counts),hashlib.sha256(home_raw).hexdigest())
+              else:seed_counts={}
+              pc_rosters={}
+              if pc.get('meeting_sha256'):
+                  g03=collect_after_observer(original_root=base/'pc',day=day,opener=pc_client,pacer=pacer)
+                  proof=verify_partial(base/'pc',expected_day=day)
+                  print('PC_PREDAY_ROSTER_PROOF',json.dumps(proof,ensure_ascii=False))
+                  pc_rosters={int(n):tuple((h['number'],h['frame'],h['name']) for h in v['runners']) for n,v in g03['races'].items() if v.get('state')=='ROSTER_AND_START_VERIFIED_OFFLINE'}
+                  print('PC_PREDAY_SOURCE_HASHES',json.dumps({n:{'sha256':v.get('original_sha256'),'utc':v.get('captured_at_utc'),'state':v.get('state'),'reason':v.get('reason')} for n,v in g03['races'].items()}))
+              sp_client=build_opener(NoRedirect(),HTTPCookieProcessor(CookieJar()))
+              sp=discover(base/'sp',day=day,opener=sp_client,pacer=pacer)
+              candidates=sp['per_race_observed_navigation_candidates']
+              print('SP_PREDAY_LINK_COUNTS',json.dumps({n:v['candidate_count'] for n,v in candidates.items()}))
+              matches=[];records={}
+              if not sp.get('stop_followup_http'):
+                  for n in range(1,13):
+                      urls=candidates[str(n)]['candidate_urls']
+                      if len(urls)!=1:continue
+                      try:
+                          page=http_fetch(sp_client,'SP',urls[0],pacer=pacer)
+                      except Exception as exc:
+                          records[n]={'error_class':type(exc).__name__,'reason':str(exc)[:100]}
+                          break
+                      row={'sha256':page['sha256'],'utc':page['captured_at_utc']}
+                      try:
+                          rows=sp_rows(page['raw'])
+                          row['registered']=len(rows)
+                          row['matches_pc']=rows==pc_rosters.get(n)
+                          if row['matches_pc']:matches.append(n)
+                      except Exception as exc:
+                          row['parse_error']=str(exc)[:100]
+                      records[n]=row
+              print('SP_PREDAY_SOURCE_HASHES',json.dumps(records,ensure_ascii=False))
+              print('PREDAY_PARITY_COUNT',len(matches),'PC_COUNT',len(pc_rosters),'PREDAY_ONLY')
+              assert len(matches)==12 and len(pc_rosters)==12 and seed_counts=={'results':1,'payout':1}
           PY
