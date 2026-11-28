@@ -1,0 +1,188 @@
+{
+  "schema": "kyoto_impl37_preday_source_readiness.v1",
+  "target_day": "20261129",
+  "observed_date": "20261128",
+  "run_id": 46104526918,
+  "job_id": 140854185782,
+  "workflow_sha": "baaa7bdf632c096a90bd35bd51f6ce4987ffe1cd",
+  "tested_source_sha": "df00cdf77e8962de2195c81f19ef0f148a8dcf14",
+  "production_candidate_sha": "4dc34085eb9d9e10c88329ddf7d2933aec5e9958",
+  "scope": "preday public racecard sources; not live collection, odds, payout or prediction readiness",
+  "pc_proof": {
+    "schema": "kyoto_g03_racewise_partial_evidence.v1",
+    "day": "20261129",
+    "verified_race_numbers": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ],
+    "verified_race_count": 12,
+    "excluded_races": [],
+    "all_12_races_verified": true,
+    "prediction_ready": false,
+    "live_jra_network_observed": false
+  },
+  "pc": {
+    "1": {
+      "sha256": "c573e75c0354d0e375f50ebe0897b75c04358257f51b7e44be4ee24a9a8d3b9e",
+      "utc": "2026-11-28T03:47:52.316951+00:00",
+      "state": "ROSTER_AND_START_VERIFIED_OFFLINE",
+      "reason": null
+    },
+    "2": {
+      "sha256": "7107960296944bfb7ce14b050986e563be214646a5c9a2dbef8443a5c6e17c6d",
+      "utc": "2026-11-28T03:47:54.055325+00:00",
+      "state": "ROSTER_AND_START_VERIFIED_OFFLINE",
+      "reason": null
+    },
+    "3": {
+      "sha256": "692f137b7109357583f4baa83576709d8c3363fbff1cb1761ff39836309c772f",
+      "utc": "2026-11-28T03:47:56.192239+00:00",
+      "state": "ROSTER_AND_START_VERIFIED_OFFLINE",
+      "reason": null
+    },
+    "4": {
+      "sha256": "b2f99a537a97b0b5eb09a53a9296d36d1bac714680debcfa0aed88c2ea586c73",
+      "utc": "2026-11-28T03:47:58.318295+00:00",
+      "state": "ROSTER_AND_START_VERIFIED_OFFLINE",
+      "reason": null
+    },
+    "5": {
+      "sha256": "ff93f6db11ad8f17a14d5c2572ea50e9c534fb9ef11ba38c5cc85aae050dc356",
+      "utc": "2026-11-28T03:48:00.335691+00:00",
+      "state": "ROSTER_AND_START_VERIFIED_OFFLINE",
+      "reason": null
+    },
+    "6": {
+      "sha256": "597b8785c3e241229907f70cafb4bc6204556f3f22630e25a4195e1e18963d58",
+      "utc": "2026-11-28T03:48:02.608315+00:00",
+      "state": "ROSTER_AND_START_VERIFIED_OFFLINE",
+      "reason": null
+    },
+    "7": {
+      "sha256": "a298971d7099a580db51cf15de4a80fe72e7463ad85067485c855801be85cab6",
+      "utc": "2026-11-28T03:48:04.297957+00:00",
+      "state": "ROSTER_AND_START_VERIFIED_OFFLINE",
+      "reason": null
+    },
+    "8": {
+      "sha256": "426b79ba2a06b0b1124632cd2e7d67bc0bc20220e118436f5d9deb7d22eaa895",
+      "utc": "2026-11-28T03:48:06.244007+00:00",
+      "state": "ROSTER_AND_START_VERIFIED_OFFLINE",
+      "reason": null
+    },
+    "9": {
+      "sha256": "186a2aeb208f4313987a7e77b3a42c44e362ca503b8734797b3bdbd64209c4c8",
+      "utc": "2026-11-28T03:48:08.067870+00:00",
+      "state": "ROSTER_AND_START_VERIFIED_OFFLINE",
+      "reason": null
+    },
+    "10": {
+      "sha256": "0bca5baca128ab6f14772d44a8bdddd86a0feae69337e860f0dd2eadaa599b87",
+      "utc": "2026-11-28T03:48:10.693109+00:00",
+      "state": "ROSTER_AND_START_VERIFIED_OFFLINE",
+      "reason": null
+    },
+    "11": {
+      "sha256": "564bb654abd0ba02e43f97997768cb15032870e66e83be4922ff1c805348e5d9",
+      "utc": "2026-11-28T03:48:12.322696+00:00",
+      "state": "ROSTER_AND_START_VERIFIED_OFFLINE",
+      "reason": null
+    },
+    "12": {
+      "sha256": "2fd4b90d9065b69f503b436358f8a23943cacd19cd601d2a1c1ef0bba9f8ceb6",
+      "utc": "2026-11-28T03:47:50.257195+00:00",
+      "state": "ROSTER_AND_START_VERIFIED_OFFLINE",
+      "reason": null
+    }
+  },
+  "sp": {
+    "1": {
+      "sha256": "b5e275fc3cb3790d10d157d66fab4a5f3449dff104d19678ea18d2b7fd52c667",
+      "utc": "2026-11-28T03:48:21.915932+00:00",
+      "registered": 12,
+      "matches_pc": true
+    },
+    "2": {
+      "sha256": "a7d352a8522ccab73c5678d3805ff2437976ea27486ccbddda5486d261820c14",
+      "utc": "2026-11-28T03:48:23.950595+00:00",
+      "registered": 10,
+      "matches_pc": true
+    },
+    "3": {
+      "sha256": "384e56ce2a1084713e72acb69eeecc121977720db638ab2aac2744785df013fa",
+      "utc": "2026-11-28T03:48:25.898787+00:00",
+      "registered": 13,
+      "matches_pc": true
+    },
+    "4": {
+      "sha256": "f28e65b1c0634081343a9183a7957f74b3fadeb7a5436afdb428a75ca301fb6c",
+      "utc": "2026-11-28T03:48:28.003073+00:00",
+      "registered": 14,
+      "matches_pc": true
+    },
+    "5": {
+      "sha256": "48e6e7615aafb5f0023626e8e482c99c702adf839f0f1315c2b4b40441d26bb3",
+      "utc": "2026-11-28T03:48:29.573904+00:00",
+      "registered": 9,
+      "matches_pc": true
+    },
+    "6": {
+      "sha256": "d6bf772e0b20f498905f03006b02dcfed830875919bd2d88752869886fcb6e68",
+      "utc": "2026-11-28T03:48:31.886020+00:00",
+      "registered": 14,
+      "matches_pc": true
+    },
+    "7": {
+      "sha256": "e1fcd6f72efb6f6e4b9130cfcef8f1c97847690687e9858052d012f91b88a099",
+      "utc": "2026-11-28T03:48:34.033860+00:00",
+      "registered": 15,
+      "matches_pc": true
+    },
+    "8": {
+      "sha256": "ef2f83bef5465714c167f6134013bf06a8fbbb1fff210553f25c42cb321e9131",
+      "utc": "2026-11-28T03:48:35.731343+00:00",
+      "registered": 13,
+      "matches_pc": true
+    },
+    "9": {
+      "sha256": "e35eb5c813299e727efbc17d963aab245fde8278808431a203a9c8e79916212e",
+      "utc": "2026-11-28T03:48:38.179106+00:00",
+      "registered": 8,
+      "matches_pc": true
+    },
+    "10": {
+      "sha256": "a21d2ad54c1abce4b95463b09975a3e29ccd042590ba87205701a6ef565bca63",
+      "utc": "2026-11-28T03:48:39.947127+00:00",
+      "registered": 13,
+      "matches_pc": true
+    },
+    "11": {
+      "sha256": "a6c0269f4605357d5188d18f3307b19ae2f6a30a5002e6ff81818ca6cbb667b1",
+      "utc": "2026-11-28T03:48:42.126266+00:00",
+      "registered": 12,
+      "matches_pc": true
+    },
+    "12": {
+      "sha256": "d70a943fb3b11f85e05136a4cb0d452eb54f0f251f163e9424190c62c204f6d5",
+      "utc": "2026-11-28T03:48:43.897851+00:00",
+      "registered": 18,
+      "matches_pc": true
+    }
+  },
+  "registered_rows": 151,
+  "public_home_sha256": "cf0385bd0ee437bde9a3fdc25f088f7cf363b22f148ab39404868039f900360c",
+  "result_menu_count": 1,
+  "payout_menu_count": 1,
+  "regression_run": 46104549862,
+  "regression_tests": 787
+}
