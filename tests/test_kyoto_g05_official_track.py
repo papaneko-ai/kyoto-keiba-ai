@@ -8,7 +8,7 @@ DAY="20261121"
 def html(day=DAY,venue="京都"):
     iso=f"{int(day[:4])}年{int(day[4:6])}月{int(day[6:])}日"
     return (f'<html><main><h2>第5回{venue}競馬第5日（{iso}（土曜））</h2>'
-        '<section><h3>馬場状態（11月21日（土曜）9時30分現在）</h3>'
+        f'<section><h3>馬場状態（{int(day[4:6])}月{int(day[6:])}日9時30分現在）</h3>'
         '<p>天候：晴</p><h4>芝</h4><p>良</p>'
         '<h4>ダート</h4><p>稍重</p></section>'
         '<h3>芝のクッション値</h3><p>10.1</p>'
@@ -64,7 +64,8 @@ class KyotoTrackTests(unittest.TestCase):
         day="20261129";stamp="2026-11-29T01:05:00Z"
         self.assertEqual(KYOTO_TRACK_PAGE,"https://www.jra.go.jp/keiba/baba/index2.html")
         table='<table><caption>ゴール前と4コーナーの含水率</caption><tr><th></th><th>ゴール前</th><th>4コーナー</th></tr><tr><th>芝</th><td>10.1</td><td>9.2</td></tr><tr><th>ダート</th><td>7.4</td><td>7.1</td></tr></table>'
-        raw=html(day).replace(b'</main>',table.encode("utf8")+b'</main>')
+        measurement=f'<div class="line moist"><div class="grid">測定時刻 {int(day[4:6])}月{int(day[6:])}日9時30分</div>{table}</div>'
+        raw=html(day).replace(b'</main>',measurement.encode("utf8")+b'</main>')
         from diagnostics.kyoto_impl30_day_coverage import independent_track
         with tempfile.TemporaryDirectory() as td:
             root=Path(td);calls=[]
@@ -128,5 +129,31 @@ class KyotoTrackTests(unittest.TestCase):
         r=parse_kyoto_track(raw,"20261129",KYOTO_TRACK_PAGE,"2026-11-29T01:05:00Z")
         self.assertFalse(r["same_day_official_meeting_heading_verified"])
         self.assertIsNone(r["weather"])
+
+    def test_actual_stale_header_and_undated_measurements(self):
+        day="20261128";stamp="2026-11-28T06:33:00Z"
+        meeting='<h2>第5回京都競馬第5日（2026年11月28日）</h2>'
+        condition='<div class="line condition"><div class="block_header"><h3>馬場状態（11月27日（金曜）正午現在）</h3></div><div class="grid">天候： 晴 芝 良 ダート 稍重</div></div>'
+        table='<div class="line moist"><div class="grid">測定時刻 変更</div><table><caption>ゴール前と4コーナーの含水率</caption><tr><th></th><th>ゴール前</th><th>4コーナー</th></tr><tr><th>芝</th><td>10.1</td><td>9.2</td></tr><tr><th>ダート</th><td>7.4</td><td>7.1</td></tr></table></div>'
+        raw=(meeting+condition+table).encode("utf8")
+        stale=parse_kyoto_track(raw,day,KYOTO_TRACK_PAGE,stamp)
+        self.assertTrue(stale["same_day_official_meeting_heading_verified"])
+        for k in ("weather","turf_going","dirt_going","condition_observation_utc","moisture_observation_utc","turf_moisture_finish_pct"):
+            self.assertIsNone(stale[k])
+        self.assertEqual(len(stale["undated_moisture_observations"]),4)
+        fresh=raw.decode("utf8").replace("11月27日（金曜）正午","11月28日（土曜）正午").replace("測定時刻 変更","測定時刻 11月28日9時")
+        r=parse_kyoto_track(fresh.encode(),day,KYOTO_TRACK_PAGE,stamp)
+        self.assertEqual((r["weather"],r["turf_going"],r["dirt_going"]),("晴","良","稍重"))
+        self.assertEqual(r["condition_observation_utc"],"2026-11-28T03:00:00+00:00")
+        self.assertEqual(r["turf_moisture_finish_pct"],10.1)
+        self.assertEqual(r["undated_moisture_observations"],{})
+        for bad in (fresh.replace("正午","18時"),fresh.replace("11月28日（土曜）正午","時刻未定"),fresh+condition):
+            self.assertIsNone(parse_kyoto_track(bad.encode(),day,KYOTO_TRACK_PAGE,stamp)["turf_going"])
+        future=fresh.replace("11月28日9時","11月28日18時")
+        self.assertIsNone(parse_kyoto_track(future.encode(),day,KYOTO_TRACK_PAGE,stamp)["turf_moisture_finish_pct"])
+        detached=fresh.replace("<table>","</div><table>").replace("</table></div>","</table>")
+        self.assertIsNone(parse_kyoto_track(detached.encode(),day,KYOTO_TRACK_PAGE,stamp)["turf_moisture_finish_pct"])
+        ambiguous=fresh.replace("11月28日9時","11月28日9時 11月27日9時")
+        self.assertIsNone(parse_kyoto_track(ambiguous.encode(),day,KYOTO_TRACK_PAGE,stamp)["turf_moisture_finish_pct"])
 
 if __name__=="__main__":unittest.main()

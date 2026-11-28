@@ -35,7 +35,12 @@ def _race_fields(raw):
     soup=BeautifulSoup(raw.decode("cp932",errors="replace"),"html.parser")
     # Only dedicated condition blocks count, never prior-performance text.
     sections=soup.select(".weather, .tenkou, .track-condition, .baba, .race-condition, #weather, #baba, #raceCondition")
-    strings=[x.get_text(" ",strip=True) for x in sections if x.get_text(" ",strip=True)]
+    # The actual record_unit contains historical conditions, not current going.
+    strings=[x.get_text(" ",strip=True) for x in sections
+             if x.get_text(" ",strip=True) and x.find_parent("table") is None
+             and not any("record_unit" in p.get("class",[]) for p in [x,*x.parents]
+                         if getattr(p,"name",None))
+             and x.select_one(".record_unit, table") is None]
     extracted={}
     for key,pattern in (("weather",_WX),("ground",_GOING)):
         matches=[]
@@ -45,12 +50,6 @@ def _race_fields(raw):
             values={m.group(1) for m in matches}
             extracted[key]=next(iter(values)) if len(values)==1 else None
         else:
-            # Current official racecard header, independently observed on Nov28
-            # 10R and 11R. Do not scan past-performance rows or arbitrary text.
-            for item in soup.select("div.record_unit.mt30 > div.data > div.inner > div.cell.date > span"):
-                if item.find_parent("table") is None:
-                    match=pattern.fullmatch(item.get_text(" ",strip=True))
-                    if match:matches.append(match)
             for surface in ("turf_going","dirt_going"):
                 matches2={m.group(2) for m in matches
                     if (m.group(1)=="芝")== (surface=="turf_going")}
