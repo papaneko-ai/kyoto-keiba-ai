@@ -39,14 +39,15 @@ class SourceFirstCoverageTests(unittest.TestCase):
         self.assertIs(result["completeness_demonstrated"],False)
 
     def assert_current_or_reopened(self,source,prior):
-        rows=[r for r in self.doc["impl37_emergency_source_reopen"]["sources"] if r["source"]==source]
-        self.assertLessEqual(len(rows),1)
-        if rows:
-            self.assertEqual(rows[0]["old_blob"],prior)
-            self.assertNotEqual(rows[0]["new_blob"],prior)
-            self.assertEqual(rows[0]["review_status"],"UNREVIEWED_INDEPENDENT_FMEA")
-            self.assertEqual(rows[0]["closed_risks"],0)
-            prior=rows[0]["new_blob"]
+        for key in ("impl37_emergency_source_reopen","impl37_public_form_reopen"):
+            rows=[r for r in self.doc[key]["sources"] if r["source"]==source]
+            self.assertLessEqual(len(rows),1)
+            if rows:
+                self.assertEqual(rows[0]["old_blob"],prior)
+                self.assertNotEqual(rows[0]["new_blob"],prior)
+                self.assertEqual(rows[0]["review_status"],"UNREVIEWED_INDEPENDENT_FMEA")
+                self.assertEqual(rows[0]["closed_risks"],0)
+                prior=rows[0]["new_blob"]
         self.assertEqual(self.doc["source_git_blob_sha1"][source],prior)
 
     def test_emergency_source_reopen_keeps_exact_hash_and_unresolved_risks(self):
@@ -57,7 +58,7 @@ class SourceFirstCoverageTests(unittest.TestCase):
         self.assertIn("diagnostics/kyoto_weekend_capture.py",{r["source"] for r in rows})
         for r in rows:
             self.assert_current_or_reopened(r["source"],r["old_blob"])
-            self.assertEqual(subprocess.check_output(["git","hash-object",r["source"]],cwd=ROOT,text=True).strip(),r["new_blob"])
+            self.assertEqual(subprocess.check_output(["git","hash-object",r["source"]],cwd=ROOT,text=True).strip(),self.doc["source_git_blob_sha1"][r["source"]])
         self.assertTrue(all(not r["test_proven"] and not r["remediated"] for r in self.doc["risks"]))
 
     def test_impl30_changed_source_reviews_reopened(self):
