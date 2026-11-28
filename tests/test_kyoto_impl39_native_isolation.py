@@ -47,6 +47,24 @@ class Isolation(unittest.TestCase):
                     j["if"]=j["if"].replace("(github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch'","((github.event_name == 'workflow_dispatch'").replace("(github.event.workflow_run.event == 'schedule' || github.event.workflow_run.event == 'workflow_dispatch')","(github.event.workflow_run.event == 'workflow_dispatch')")
                 elif n=="cushion-source":
                     expected["jobs"]["cushion-source-only"]["if"]=CUSHION_IF
+                    expected["jobs"]["trigger-evidence"]=yaml.load("""  trigger-evidence:
+    if: ${{ github.repository == 'papaneko-ai/kyoto-keiba-ai' && github.ref == 'refs/heads/main' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - name: Preserve exact parent event without source requests
+        run: python3 -m diagnostics.kyoto_cushion_trigger_evidence --out trigger_evidence
+      - uses: actions/upload-artifact@v4
+        with:
+          name: kyoto-cushion-trigger-${{ github.run_id }}
+          path: trigger_evidence/
+          if-no-files-found: error
+          retention-days: 90
+""",Loader=yaml.BaseLoader)["trigger-evidence"]
                 # Separately verified daytime and evening source selections only.
                 if n=="two-source-production-observer":
                     expected["jobs"]["select-collector"]["env"]["SUNDAY_OVERRIDE_SHA"]=SUNDAY_PIN

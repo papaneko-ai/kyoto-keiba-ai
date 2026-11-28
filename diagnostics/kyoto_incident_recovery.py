@@ -598,6 +598,17 @@ def diagnose_run(rid,reader,cushion_reader,postrace_reader=None,*,evidence_out=N
         meta={"artifact_authenticated":False,"artifact_evidence":evidence}
         if evidence["state"]==SKIPPED:
             meta.update(source_acquisition_state="PRODUCER_NOT_EXECUTED_SKIP_REASON_UNVERIFIED",incidents=[])
+            if lane=="cushion" and run["event"]=="workflow_run":
+                from diagnostics.kyoto_cushion_trigger_evidence import read_and_verify
+                try:
+                    proof=read_and_verify(run,job_doc,arts,gh)
+                    if proof:
+                        meta["trigger_evidence"]=proof
+                        if proof["state"]=="DIRECT_SKIP_CONDITION_VERIFIED":
+                            meta["source_acquisition_state"]="PRODUCER_SKIP_CONDITION_VERIFIED"
+                        else:
+                            meta["incidents"].append({"stage":"PRODUCER_SKIP","code":"ELIGIBLE_BUT_PRODUCER_SKIPPED","cause_status":"ROOT_CAUSE_NOT_YET_PROVED","root_cause_closed":False,"diagnostic_action":"RECONCILE_EXACT_JOB_CONDITION_AND_RUNNER","repair_direction":"RECOVER_GITHUB_TRIGGER_EXECUTION_EVIDENCE","required_regression":"TEST_ELIGIBLE_PARENT_AND_PRODUCER_START"})
+                except Exception as exc:meta["trigger_evidence_error"]=label(type(exc).__name__)
             result["lanes"][lane]=meta
             continue
         stop=prehttp_evidence(run,path,lane,days[0],job_doc,read_log=cached_log if cached_logs is not None else None) if len(days)==1 else None
@@ -671,7 +682,12 @@ def write_report(report,out):
             lines.append("- 夜間原本の再解析失敗: "+m["postrace_navigation_replay_error"])
         if m.get("adaptive_repair_replay_error"):
             lines.append("- 自動修復再検証自体が失敗: "+m["adaptive_repair_replay_error"])
-        if m.get("source_acquisition_state")=="PRODUCER_NOT_EXECUTED_SKIP_REASON_UNVERIFIED":
+        if m.get("trigger_evidence"):
+            q=m["trigger_evidence"]
+            lines.append(f"- 親起動証拠: {q['state']} / 親run {q['parent_run_id']} / UTC {q['parent_created_utc']} / 条件 {q['gate_reasons']} / artifact {q['artifact_id']} / 提供者内部原因未認定")
+        if m.get("source_acquisition_state")=="PRODUCER_SKIP_CONDITION_VERIFIED":
+            lines.append("- 取得ジョブのスキップ条件は独立照合済み。取得成功は認定しない。")
+        elif m.get("source_acquisition_state")=="PRODUCER_NOT_EXECUTED_SKIP_REASON_UNVERIFIED":
             lines.append("- 対応取得ジョブはスキップ（理由・正当性は未確認）。取得試行後の原本消失と区別し、取得成功は認定しない。")
         elif not m.get("incidents"):lines.append("- 診断対象の欠落未検出（全取得成功の認定ではない）")
     # The durable comment retains stage worklists plus exact archive references;
