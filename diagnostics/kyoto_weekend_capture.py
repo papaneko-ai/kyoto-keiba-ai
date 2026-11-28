@@ -513,7 +513,7 @@ def _preserve_interrupted_originals(src: Path, day: str) -> None:
 
 
 def seal(day: str, source: str, destination: str, *, key: str, repo: str,
-         run_id: str):
+         run_id: str, salvage_partial=False):
     """Encrypt all gathered bytes, including a failed capture receipt.
 
     No plaintext originals are uploaded. A source-less preflight stop is a
@@ -534,9 +534,14 @@ def seal(day: str, source: str, destination: str, *, key: str, repo: str,
     # The existing crypto's day binding derives from target-day environment.
     if os.getenv("KYOTO_TARGET_DAY") != day:
         raise ValueError("crypto_day_binding_invalid")
-    _preserve_interrupted_originals(src,day)
     from diagnostics.kyoto_nov15_encrypted_evidence import encrypt_evidence
-    result = encrypt_evidence(src,dst,key_hex=key,repo=repo,run_id=run_id)
+    try:
+        _preserve_interrupted_originals(src,day)
+        result = encrypt_evidence(src,dst,key_hex=key,repo=repo,run_id=run_id)
+    except (ValueError,OSError) as exc:
+        if not salvage_partial or day not in ("20261128","20261129"):raise
+        from diagnostics.kyoto_archive_salvage import salvage
+        return salvage(src,dst,day=day,key=key,repo=repo,run_id=run_id,strict_error=type(exc).__name__)
     shutil.rmtree(src)
     return result
 
@@ -552,7 +557,7 @@ def main():
     if args.seal_only:
         seal(args.day,args.source,args.destination,
              key=os.getenv("ARCHIVE_KEY",""),repo=os.getenv("GITHUB_REPOSITORY",""),
-             run_id=os.getenv("GITHUB_RUN_ID",""))
+             run_id=os.getenv("GITHUB_RUN_ID",""),salvage_partial=args.day in ("20261128","20261129"))
         print("SOURCE_EVIDENCE_SEALED_OR_PRE_HTTP_STOP_RECORDED")
     else:
         rec=capture(args.day,args.channel,args.source,live=True,

@@ -1222,13 +1222,13 @@
   },
   "notes": "Reverse FMEA explicitly finds risk modes not enumerated by the original 30 cases. Counting passing tests is not an independent proof of completeness.",
   "source_git_blob_sha1": {
-    "diagnostics/kyoto_weekend_capture.py": "073da06e328f5b4578bec4f003c3e3584183f942",
+    "diagnostics/kyoto_weekend_capture.py": "ffe4f40494b10d2453bf32ff6eb1af1d6b9d4f3a",
     "diagnostics/kyoto_weekend_sp_discovery.py": "82fb8293d674ad816a126e60993ed1d26799f1da",
     "diagnostics/kyoto_weekend_postflight.py": "390d205ed60dc9b0ded7590598d2db11042f1e3b",
     "diagnostics/kyoto_weekend_day21_triage.py": "a6639d5cab211d37d1eddefaa9bfc5b23901368d",
     "diagnostics/kyoto_nov15_two_original_observer.py": "62053f01c926f722c27f225a5e102654c824555b",
     "diagnostics/kyoto_sp_observed_source.py": "5f5804e15d4c7af8b16a78663a0634965e16014f",
-    "diagnostics/kyoto_nov15_encrypted_evidence.py": "2dbe7572fee81e50ff6b67473ff51d4ec1c9cf48",
+    "diagnostics/kyoto_nov15_encrypted_evidence.py": "9442376e481e47667ed3668778ca23adea286925",
     "diagnostics/jra_benchmark_acceptance.py": "edbd6b5b9479fdbf3fc88c7450c0c7ae3260a76f",
     "diagnostics/jra_market_integrity_gate.py": "6f20257575d7c5aeb232512bb64700dee21c3e06",
     "diagnostics/jra_market_source_chain.py": "6f69226b1f1f16379681e7bd72b6720e3420f77c",
@@ -1794,5 +1794,25 @@
         "closed_risks": 0
       }
     ]
+  },
+  "impl37_archive_salvage_reopen": {
+    "prior_ledger_blob": "c9870837d6e2e8de39ba95236f4fc54b6a8f9fad",
+    "sources": [
+      {
+        "source": "diagnostics/kyoto_weekend_capture.py",
+        "old_blob": "073da06e328f5b4578bec4f003c3e3584183f942",
+        "new_blob": "ffe4f40494b10d2453bf32ff6eb1af1d6b9d4f3a",
+        "review_status": "UNREVIEWED_INDEPENDENT_FMEA",
+        "closed_risks": 0
+      },
+      {
+        "source": "diagnostics/kyoto_nov15_encrypted_evidence.py",
+        "old_blob": "2dbe7572fee81e50ff6b67473ff51d4ec1c9cf48",
+        "new_blob": "9442376e481e47667ed3668778ca23adea286925",
+        "review_status": "UNREVIEWED_INDEPENDENT_FMEA",
+        "closed_risks": 0
+      }
+    ],
+    "reason": "Recover known safe originals after strict archive rejection without granting provenance credit. Retain independent FMEA obligations."
   }
 }

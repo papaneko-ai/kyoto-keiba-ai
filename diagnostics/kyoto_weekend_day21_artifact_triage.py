@@ -59,6 +59,11 @@ def assess_lane(root,*,day,channel,key,repo,run_id):
             if receipt.get("day")!=day:
                 result["state"]="RAW_RECEIPT_DAY_MISMATCH"
                 return result
+            if receipt.get("schema")=="kyoto_archive_salvage.v1":
+                result["state"]="PARTIAL_ARCHIVE_SALVAGED_NOT_SOURCE_VERIFIED"
+                result["salvage_saved_originals"]=receipt.get("saved_originals",{})
+                result["salvage_rejected_members"]=receipt.get("rejected_members",[])
+                return result
             verification=source/"source_verification.json"
             if not verification.is_file():
                 result["state"]="DECRYPTED_WITHOUT_POSTFLIGHT_RECORD"
