@@ -37,6 +37,14 @@ with tempfile.TemporaryDirectory() as tmp:
     slots=[{"day":DAY,"run_id":"42","races":{"1":p}}]
     with patch.object(m.subprocess,"run",side_effect=fake_download):
         r,st,v=m.bridge_sp_named_rosters(DAY,coverage,slots,{1:None},{},KEY)
+        print("SP_BRIDGE_STATUS="+json.dumps(v,sort_keys=True))
+        if not v["verified_races"]:
+            # Distinguish reader failure from the binding layer without exposing names.
+            reopened=m.read_sp_named_archive(DAY,42,KEY,[1],15)
+            print("SP_REOPENED_RACES="+str(sorted(reopened)))
+            if 1 in reopened:
+                print("SP_DIGEST_MATCH="+str(m.digest(m.canon(reopened[1]["named"]))==p["named_roster_digest"]))
+                print("SP_PROOF_MATCH="+str(all(reopened[1]["proof"][k]==p[k] for k in ("roster_digest","named_roster_digest","start_utc","racecard","horses","numbers"))))
         assert r[1]==((1,1,"馬A"),(2,2,"馬B")) and st[1]==p["start_utc"]
         assert v["verified_races"]==[1] and "馬A" not in str(v)
         r,st,v=m.bridge_sp_named_rosters(DAY,coverage,slots,{},{},"62"*32)
