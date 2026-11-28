@@ -125,7 +125,8 @@ def capture(day: str, channel: str, output: str, *, live: bool,
             result = observe(
                 root / "pc_originals", now_utc=datetime.now(timezone.utc).isoformat(),
                 opener=pc_client, allowed=True, include_observed_racecard=True,
-                include_observed_odds_menu=True, pacer=pc_pacer)
+                include_observed_odds_menu=not (live and day=="20261129"), pacer=pc_pacer,
+                **({"public_form_navigation":True} if live and day=="20261129" else {}))
             # Preserve the full observer receipt with every actual SHA, URL and
             # UTC timestamp. A separate summary is returned to the job log only.
             out = _no_claim(day, channel, result["state"],
