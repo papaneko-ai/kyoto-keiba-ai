@@ -6,6 +6,12 @@ data gaps. Never convert a workflow success or receipt flag into data credit.
 import argparse,hashlib,json,os,re,subprocess,tempfile
 from datetime import datetime,timezone,timedelta
 from pathlib import Path
+if __package__:
+    from .kyoto_repair_control import recover_collection
+    from .kyoto_fixed_risk_worklist import worklist
+else:
+    from kyoto_repair_control import recover_collection
+    from kyoto_fixed_risk_worklist import worklist
 
 REPO="papaneko-ai/kyoto-keiba-ai"
 DAYS=("20261128","20261129")
@@ -34,12 +40,14 @@ def stamp(x):
     if t.utcoffset()!=timedelta(0):raise ValueError("not_utc")
     return t
 def is_sha(v):return isinstance(v,str) and re.fullmatch(r"[a-f0-9]{64}",v) is not None
-def gh(path):
-    return json.loads(subprocess.check_output(["gh","api",f"repos/{REPO}/{path}"],text=True,stderr=subprocess.DEVNULL,timeout=25))
+def gh(path,trace=None):
+    field="workflow_runs" if "/runs?created=" in path else "artifacts" if "/artifacts?" in path else "jobs" if "/jobs?" in path else None
+    if field is None:raise ValueError("unsupported_metadata_scope")
+    return recover_collection(path,field,trace=trace)
 def index(day,filename,doc):
     if filename not in LANES or (day not in DAYS and not (filename=="workout-source.yml" and day=="20261127")):raise ValueError("invalid_index_scope")
     rows=doc["workflow_runs"]
-    if type(doc["total_count"]) is not int or doc["total_count"]!=len(rows) or len(rows)>100:raise ValueError("incomplete_run_index")
+    if type(doc["total_count"]) is not int or doc["total_count"]!=len(rows) or len(rows)>400:raise ValueError("incomplete_run_index")
     date=f"{day[:4]}-{day[4:6]}-{day[6:]}"
     seen=set();out=[]
     for r in rows:
@@ -120,17 +128,22 @@ def collect_metadata(day,now):
     date=f"{day[:4]}-{day[4:6]}-{day[6:]}"
     reports={};errors=[]
     for filename,lanes in LANES.items():
+        recovery_trace=[]
         try:
             days=(str(int(day)-1),day) if filename=="workout-source.yml" else (day,)
             runs=[]
             for index_day in days:
                 iso=f"{index_day[:4]}-{index_day[4:6]}-{index_day[6:]}"
-                runs.extend(index(index_day,filename,gh(f"actions/workflows/kyoto-20261128-29-{filename}/runs?created={iso}&per_page=100")))
+                attempt=[]
+                try:runs.extend(index(index_day,filename,gh(f"actions/workflows/kyoto-20261128-29-{filename}/runs?created={iso}&per_page=100",attempt)))
+                finally:recovery_trace.append({"scope":"run_index","date":iso,"attempts":attempt})
             if len({r["id"] for r in runs})!=len(runs):raise ValueError("duplicate_run_id")
             for r in runs:
                 if r["status"]!="completed":continue
                 try:
-                    d=gh(f"actions/runs/{r['id']}/artifacts?per_page=100")
+                    attempt=[]
+                    try:d=gh(f"actions/runs/{r['id']}/artifacts?per_page=100",attempt)
+                    finally:recovery_trace.append({"scope":"artifact_index","run_id":r["id"],"attempts":attempt})
                     if d["total_count"]!=len(d["artifacts"]):raise ValueError("artifact_index_incomplete")
                     # Preview and next-day workout artifacts must not be
                     # mistaken for the requested meeting or missing originals.
@@ -145,9 +158,9 @@ def collect_metadata(day,now):
                         a=[x for x in d["artifacts"] if x.get("name")==name]
                         r["artifacts"][lane]={"state":"PRESENT" if len(a)==1 and a[0].get("expired") is False else "MISSING_EXPIRED_OR_AMBIGUOUS","ids":[x["id"] for x in a]}
                 except Exception as exc:r["artifact_index_error"]=type(exc).__name__
-            reports[filename]={"index_complete":True,"runs":runs,"native_slots":slots(day,filename,runs,now)}
+            reports[filename]={"index_complete":True,"runs":runs,"native_slots":slots(day,filename,runs,now),"metadata_recovery":recovery_trace}
         except Exception as exc:
-            reports[filename]={"index_complete":False,"error_class":type(exc).__name__,"runs":[],"native_slots":[]}
+            reports[filename]={"index_complete":False,"error_class":type(exc).__name__,"runs":[],"native_slots":[],"metadata_recovery":recovery_trace}
             errors.append(filename)
     return reports,errors
 def review(day,now,out):
@@ -186,6 +199,11 @@ def review(day,now,out):
     except Exception as exc:
         report["coverage_replay_error"]=type(exc).__name__
         report["coverage"]={"counts":{},"races":[{"race":n,"state":"NOT_EVALUATED","missing":[{"family":"day_coverage_unavailable"}],"unknown_horse_families":list(HORSE)} for n in range(1,13)],"all_reviewed_cells_present":False,"full_acquisition_certified":False}
+    try:
+        register=Path(os.environ.get("KYOTO_FIXED_RISK_REGISTER","docs/diagnostics/KYOTO_REVERSE_FMEA_GAP_REGISTER_20261116.json"))
+        report["fixed_risks"]=worklist(report,register.read_bytes())
+        (out/"fixed_risk_worklist.json").write_bytes(canon(report["fixed_risks"])+b"\n")
+    except Exception as exc:report["fixed_risk_worklist_error"]=type(exc).__name__
     report["release_state"]="REPAIR_REQUIRED_OR_INDEPENDENT_CERTIFICATION_PENDING"
     out=Path(out);out.mkdir(parents=True,exist_ok=True)
     raw=canon(report);(out/"review.json").write_bytes(raw+b"\n")
@@ -201,9 +219,15 @@ def review(day,now,out):
             families=sorted({m["family"] for m in r["missing"]})
             if families or r.get("unknown_horse_families"):summary.append(f"- R{r['race']:02d}: {r['state']}: {', '.join(families)}")
     else:summary.append("- 原本再検証未完: "+report.get("coverage_replay_error","UNKNOWN"))
+    if "fixed_risks" in report:
+        summary.append("- 固定25リスク: 25件の根拠・実行ID・必要証拠をfixed_risk_worklist.jsonへ収録。独立解消認定0/25。")
+    else:summary.append("- 固定リスク照合失敗: "+report.get("fixed_risk_worklist_error","UNKNOWN"))
+    for name,v in metadata.items():
+        for a in v.get("metadata_recovery",[]):
+            if any(x["state"]!="COMPLETE" for x in a["attempts"]):summary.append(f"- 自動メタデータ復旧: {name} {a}")
     summary.append("次回前に欠落原本・実行IDから原因再現、同根探索、隔離修正、反例試験、本番SHA照合を行う。独立証明のない欠落を完了扱いしない。")
     (out/"summary.md").write_text("\n".join(summary)+"\n",encoding="utf8")
-    print("CLOSURE_REVIEW",json.dumps({"day":day,"index_errors":errors,"source_runs":sum(len(x["runs"]) for x in metadata.values()),"native_slots":sum(len(x["native_slots"]) for x in metadata.values()),"coverage_counts":report.get("coverage",{}).get("counts",{}),"coverage_replay_error":report.get("coverage_replay_error"),"full_acquisition_certified":False},sort_keys=True))
+    print("CLOSURE_REVIEW",json.dumps({"day":day,"index_errors":errors,"source_runs":sum(len(x["runs"]) for x in metadata.values()),"native_slots":sum(len(x["native_slots"]) for x in metadata.values()),"coverage_counts":report.get("coverage",{}).get("counts",{}),"coverage_replay_error":report.get("coverage_replay_error"),"fixed_risk_rows":len(report.get("fixed_risks",{}).get("rows",[])),"fixed_risk_worklist_error":report.get("fixed_risk_worklist_error"),"full_acquisition_certified":False},sort_keys=True))
 def main():
     p=argparse.ArgumentParser();p.add_argument("--day",choices=DAYS,required=True);p.add_argument("--out",required=True);a=p.parse_args()
     if os.environ.get("GITHUB_REPOSITORY")!=REPO:raise ValueError("repo_identity")
