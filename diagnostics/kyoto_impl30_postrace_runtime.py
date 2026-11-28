@@ -20,6 +20,22 @@ from diagnostics.kyoto_nov29_public_forms import PC_HOME
 
 DAYS=('20261128','20261129')
 
+def seed_evidence(raw,source_url,rid,race):
+    # This URL is from a G03 receipt already independently verified against
+    # the original meeting and racecard. Never synthesize an alternate host.
+    u=urlsplit(source_url)
+    if u.scheme!="https" or u.netloc not in ("jra.jp","www.jra.go.jp") or u.fragment or u.path!="/JRADB/accessD.html":return None
+    origin="https://"+u.netloc
+    if not all(any(a[0]==label for a in observed_actions(raw,path,origin=origin)) for path,label in MENU.values()):return None
+    return {"origin":origin,"source_url":source_url,"sha256":sha256(raw).hexdigest(),"run_id":str(rid),"race":race}
+
+def saved_seed_origin(seed,proof):
+    if seed is None:return None
+    try:
+        evidence=proof["saved_seed"]
+        return evidence["origin"] if seed_evidence(seed,evidence["source_url"],evidence["run_id"],evidence["race"])==evidence else None
+    except (KeyError,ValueError,TypeError,AttributeError):return None
+
 def auxiliary_inputs(day,repo,key,*,api=None,download=None,monotonic=time.monotonic):
     """Re-use independently authenticated afternoon cards, without source HTTP.
 
@@ -42,7 +58,7 @@ def auxiliary_inputs(day,repo,key,*,api=None,download=None,monotonic=time.monoto
         def download(rid,name,target,repo):
             subprocess.run(['gh','run','download',str(rid),'--repo',repo,'--name',name,'--dir',str(target)],
                 stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL,check=True,timeout=remaining(20))
-    rows=[];errors=[];seed=None;conflicts=set();found={}
+    rows=[];errors=[];seed=None;seed_proof=None;conflicts=set();found={}
     try:
         index=api(f'repos/{repo}/actions/workflows/{WORKFLOW}/runs?created={_date(day)}&per_page=100')
         runs=index['workflow_runs']
@@ -67,12 +83,15 @@ def auxiliary_inputs(day,repo,key,*,api=None,download=None,monotonic=time.monoto
                     if receipt.get('day')!=day or receipt.get('schema')!='kyoto_impl30_auxiliary_refresh.v1':raise ValueError('auxiliary_identity')
                     verified=verify_partial(raw,expected_day=day)['verified_race_numbers']
                     records=records_from_g03(raw,day=day,skip_invalid_races=True)
+                    g03=json.loads((raw/'g03_receipt.json').read_text(encoding='utf8'))
                     for race in verified:
                         item=records[race]
                         if item is None:continue
                         original=(raw/f'g03_official_racecard_{race:02d}.html').read_bytes()
                         named=item['expected_named_runners'];start=item['verified_start_utc']
-                        if seed is None and all(any(a[0]==label for a in observed_actions(original,p)) for p,label in MENU.values()):seed=original
+                        if seed is None:
+                            candidate=seed_evidence(original,g03['races'][str(race)]['source_url'],rid,race)
+                            if candidate is not None:seed=original;seed_proof=candidate
                         if race in conflicts:continue
                         if race in found and (found[race]['named'],found[race]['start'])!=(named,start):
                             conflicts.add(race);found.pop(race);continue
@@ -81,11 +100,11 @@ def auxiliary_inputs(day,repo,key,*,api=None,download=None,monotonic=time.monoto
             except Exception as exc:errors.append({'run_id':rid,'error_class':type(exc).__name__})
             if monotonic()>=end:break
     except Exception as exc:errors.append({'error_class':type(exc).__name__})
-    return found,seed,{'examined_runs':rows,'conflicting_races':sorted(conflicts),'errors':errors,'deadline_exhausted':monotonic()>=end}
+    return found,seed,{'examined_runs':rows,'conflicting_races':sorted(conflicts),'errors':errors,'deadline_exhausted':monotonic()>=end,'saved_seed':seed_proof}
 def recover_inputs(day,repo,key,*,include_coverage=False,allow_missing_seed=False):
     if day not in DAYS or not re.fullmatch(r'[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+',repo):raise ValueError('bad_day_or_repository')
     workflow,file,_=WEEKENDS[day]
-    roster={r:None for r in range(1,13)};starts={};seed=None;sources={};rejected=[];conflicts=set()
+    roster={r:None for r in range(1,13)};starts={};seed=None;seed_proof=None;sources={};rejected=[];conflicts=set()
     try:
         index=_gh(f'repos/{repo}/actions/workflows/{file}/runs?created={_date(day)}&per_page=100')
         runs=index['workflow_runs']
@@ -116,6 +135,7 @@ def recover_inputs(day,repo,key,*,include_coverage=False,allow_missing_seed=Fals
                         coverage_errors.append({"run_id":rid,"error_class":type(exc).__name__})
                 verified=verify_partial(raw,expected_day=day)['verified_race_numbers']
                 records=records_from_g03(raw,day=day,skip_invalid_races=True)
+                g03=json.loads((raw/'g03_receipt.json').read_text(encoding='utf8'))
                 for race in verified:
                     item=records[race]
                     if item is None:continue
@@ -127,21 +147,23 @@ def recover_inputs(day,repo,key,*,include_coverage=False,allow_missing_seed=Fals
                     original=path.read_bytes()
                     if roster[race] is None:
                         roster[race]=named;starts[race]=start;sources[str(race)]={'run_id':rid,'sha256':sha256(original).hexdigest()}
-                    if seed is None and all(any(a[0]==label for a in observed_actions(original,p)) for p,label in MENU.values()):
-                        seed=original
+                    if seed is None:
+                        candidate=seed_evidence(original,g03['races'][str(race)]['source_url'],rid,race)
+                        if candidate is not None:seed=original;seed_proof=candidate
         except Exception as exc:rejected.append({'run_id':rid,'error_class':type(exc).__name__})
     aux_proof={'attempted':False}
     if seed is None or len(starts)<12:
         found,aux_seed,aux_proof=auxiliary_inputs(day,repo,key)
         aux_proof['attempted']=True
-        if seed is None:seed=aux_seed
+        if seed is None and saved_seed_origin(aux_seed,aux_proof) is not None:
+            seed=aux_seed;seed_proof=aux_proof['saved_seed']
         for race,item in found.items():
             # Do not overwrite verified PC facts or silently resolve PC conflicts.
             if roster[race] is not None or race in conflicts:continue
             roster[race]=item['named'];starts[race]=item['start']
             sources[str(race)]={k:item[k] for k in ('run_id','sha256','source_lane')}
     if seed is None and not allow_missing_seed:raise ValueError('no_verified_observed_postrace_menu_seed')
-    proof={'sources':sources,'rejected_runs':rejected,'conflicting_races':sorted(conflicts),'auxiliary_fallback':aux_proof}
+    proof={'sources':sources,'rejected_runs':rejected,'conflicting_races':sorted(conflicts),'auxiliary_fallback':aux_proof,'saved_seed':seed_proof}
     if include_coverage:
         # Day aggregation is not a hard prerequisite for official result GETs.
         # Preserve the already verified roster even when this diagnostic fails.
@@ -216,8 +238,8 @@ def main():
             # Nov28 failures may leave no pre-race seed; retain post-race source
             # independently without certifying missing registered rosters.
             # Sunday uses the actual public www origin verified by incident #141.
-            seed_origin='https://jra.jp'
-            if seed is None or day=='20261129':
+            seed_origin=saved_seed_origin(seed,proof)
+            if seed_origin is None or day=='20261129':
                 observed=fetch('GET',PC_HOME,None)
                 seed=observed['raw']
                 seed_origin='https://www.jra.go.jp'
