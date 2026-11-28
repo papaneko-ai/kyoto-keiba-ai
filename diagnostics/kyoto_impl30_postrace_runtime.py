@@ -225,11 +225,13 @@ def official_fetcher(day,*,clock=None,opener=None,pacer=None):
 
 def recover_prior_navigation(day,repo,key,current_run,root,*,monotonic=time.monotonic):
     """Bounded read-only previous-run feedback, no extra JRA requests.
-    Cache the reopened archive for correction replay; unavailable feedback
-    never prevents capture. Only independently reparsed rule evidence is used.
+    Try older exact captures only when newer evidence cannot be reopened.
+    A valid empty latest report is authoritative for feedback, not a failure.
+    Independent history replay still checks every eligible capture.
     """
     from diagnostics.kyoto_impl30_postrace_replay import WORKFLOW,NAME,saved_navigation_recovery
     end=monotonic()+25
+    attempts=[]
     def remaining(cap):
         left=end-monotonic()
         if left<=0:raise TimeoutError('prior_navigation_budget')
@@ -240,19 +242,28 @@ def recover_prior_navigation(day,repo,key,current_run,root,*,monotonic=time.mono
         idx=api(f'repos/{repo}/actions/workflows/{WORKFLOW}/runs?created={_date(day)}&per_page=100')
         rows=idx['workflow_runs']
         if idx['total_count']!=len(rows) or len(rows)>100 or len({r['id'] for r in rows})!=len(rows):raise ValueError('prior_navigation_index')
-        eligible=[r for r in rows if str(r['id'])!=str(current_run) and r.get('head_branch')=='main' and r.get('head_repository',{}).get('full_name')==repo and r.get('path','').split('@',1)[0]=='.github/workflows/'+WORKFLOW and r.get('created_at','')[:10]==_date(day) and r.get('status')=='completed' and r.get('event') in ('schedule','workflow_dispatch') and run_name_matches(r,NAME,WORKFLOW,day)]
+        eligible=[r for r in rows if type(r['id']) is int and r['id']>0 and str(r['id'])!=str(current_run) and r.get('head_branch')=='main' and r.get('head_repository',{}).get('full_name')==repo and r.get('path','').split('@',1)[0]=='.github/workflows/'+WORKFLOW and r.get('created_at','')[:10]==_date(day) and r.get('status')=='completed' and r.get('event') in ('schedule','workflow_dispatch') and run_name_matches(r,NAME,WORKFLOW,day)]
         if not eligible:return [],{}, {'state':'NO_PRIOR_COMPLETED_CAPTURE'}
-        rid=max(eligible,key=lambda r:(r['created_at'],r['id']))['id']
-        arts=api(f'repos/{repo}/actions/runs/{rid}/artifacts?per_page=100')
-        name=f'kyoto-postrace-{rid}-{day}'
-        if arts['total_count']!=len(arts['artifacts']) or len([a for a in arts['artifacts'] if a['name']==name and a['expired'] is False])!=1:raise ValueError('prior_navigation_archive')
-        root=Path(root);cipher=root/'prior_cipher';cipher.mkdir();raw=root/'prior_raw'
-        subprocess.run(['gh','run','download',str(rid),'--repo',repo,'--name',name,'--dir',str(cipher)],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL,check=True,timeout=remaining(15))
-        decrypt_evidence(cipher,raw,key_hex=key,repo=repo,run_id=str(rid))
-        report=saved_navigation_recovery(raw,day)
-        return report['recovery_candidates'],{str(rid):raw},{'state':'AUTHENTICATED_PRIOR_REPLAY','run_id':rid,**report}
+        for run in sorted(eligible,key=lambda r:(r['created_at'],r['id']),reverse=True)[:4]:
+            rid=run['id']
+            try:
+                arts=api(f'repos/{repo}/actions/runs/{rid}/artifacts?per_page=100')
+                name=f'kyoto-postrace-{rid}-{day}'
+                if arts['total_count']!=len(arts['artifacts']) or len([a for a in arts['artifacts'] if a['name']==name and a['expired'] is False])!=1:raise ValueError('prior_navigation_archive')
+                attempt_root=Path(root)/f'prior_{rid}'
+                cipher=attempt_root/'cipher';cipher.mkdir(parents=True);raw=attempt_root/'raw'
+                subprocess.run(['gh','run','download',str(rid),'--repo',repo,'--name',name,'--dir',str(cipher)],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL,check=True,timeout=remaining(15))
+                remaining(25)
+                decrypt_evidence(cipher,raw,key_hex=key,repo=repo,run_id=str(rid))
+                report=saved_navigation_recovery(raw,day)
+                attempts.append({'run_id':rid,'state':'AUTHENTICATED'})
+                return report['recovery_candidates'],{str(rid):raw},{'state':'AUTHENTICATED_PRIOR_REPLAY','run_id':rid,**report,'attempts':attempts,'fallback_used':len(attempts)>1}
+            except Exception as exc:
+                attempts.append({'run_id':rid,'state':'REOPEN_FAILED','error_class':type(exc).__name__})
+                if monotonic()>=end:break
+        return [],{}, {'state':'PRIOR_REPLAY_UNAVAILABLE_FRESH_NAVIGATION_CONTINUES','attempts':attempts,'error_class':attempts[-1]['error_class'] if attempts else 'NoEligibleArchive'}
     except Exception as exc:
-        return [],{}, {'state':'PRIOR_REPLAY_UNAVAILABLE_FRESH_NAVIGATION_CONTINUES','error_class':type(exc).__name__}
+        return [],{}, {'state':'PRIOR_REPLAY_UNAVAILABLE_FRESH_NAVIGATION_CONTINUES','error_class':type(exc).__name__,'attempts':attempts}
 
 def main():
     p=argparse.ArgumentParser();p.add_argument('--day',choices=DAYS,required=True);p.add_argument('--out',type=Path,required=True);a=p.parse_args()

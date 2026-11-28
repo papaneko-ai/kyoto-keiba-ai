@@ -154,6 +154,35 @@ class RuntimeTests(unittest.TestCase):
         with self.assertRaises(HTTPError):fetch('POST','https://jra.jp/JRADB/accessS.html','pw01sli00/AF')
         with self.assertRaisesRegex(ValueError,'prior_access_refusal'):fetch('POST','https://jra.jp/JRADB/accessH.html','pw01hli00/03')
         self.assertEqual(opener.open.call_count,1)
+    def test_prior_navigation_falls_back_only_after_failed_reopen(self):
+        from diagnostics.kyoto_impl30_postrace_runtime import recover_prior_navigation
+        from diagnostics.kyoto_impl30_postrace_replay import WORKFLOW
+        rows=[{'id':rid,'name':'workflow_dispatch','created_at':f'2026-11-28T{hour}:02:00Z',
+               'status':'completed','event':'workflow_dispatch','head_branch':'main',
+               'head_repository':{'full_name':REPO},'path':'.github/workflows/'+WORKFLOW}
+              for rid,hour in [(101,'10'),(102,'13')]]
+        def api(args,**kwargs):
+            endpoint=args[-1]
+            if '/runs?' in endpoint:return json.dumps({'total_count':2,'workflow_runs':rows})
+            rid=int(endpoint.split('/runs/')[1].split('/')[0])
+            return json.dumps({'total_count':1,'artifacts':[{'name':f'kyoto-postrace-{rid}-{DAY}','expired':False}]})
+        report={'recovery_candidates':[{'rule':'OBSERVED_MODE_01_RECOVERY'}],'missing_originals':[]}
+        with tempfile.TemporaryDirectory() as tmp, patch('diagnostics.kyoto_impl30_postrace_runtime.subprocess.check_output',side_effect=api), patch('diagnostics.kyoto_impl30_postrace_runtime.subprocess.run') as download, patch('diagnostics.kyoto_impl30_postrace_runtime.decrypt_evidence',side_effect=[ValueError('bad key or archive'),None]), patch('diagnostics.kyoto_impl30_postrace_replay.saved_navigation_recovery',return_value=report) as replay:
+            candidates,cached,proof=recover_prior_navigation(DAY,REPO,KEY,103,tmp,monotonic=lambda:0)
+            self.assertEqual(candidates,report['recovery_candidates']);self.assertEqual(list(cached),['101'])
+            self.assertEqual([x['run_id'] for x in proof['attempts']],[102,101])
+            self.assertEqual(proof['attempts'][0]['state'],'REOPEN_FAILED')
+            self.assertTrue(proof['fallback_used']);self.assertEqual(download.call_count,2);replay.assert_called_once()
+            self.assertTrue(all(c.kwargs['timeout']<=15 for c in download.call_args_list))
+        with tempfile.TemporaryDirectory() as tmp, patch('diagnostics.kyoto_impl30_postrace_runtime.subprocess.check_output',side_effect=api), patch('diagnostics.kyoto_impl30_postrace_runtime.subprocess.run') as download, patch('diagnostics.kyoto_impl30_postrace_runtime.decrypt_evidence'), patch('diagnostics.kyoto_impl30_postrace_replay.saved_navigation_recovery',return_value={'recovery_candidates':[],'missing_originals':[]}):
+            candidates,cached,proof=recover_prior_navigation(DAY,REPO,KEY,103,tmp,monotonic=lambda:0)
+            self.assertEqual(candidates,[]);self.assertEqual(list(cached),['102'])
+            self.assertFalse(proof['fallback_used']);download.assert_called_once()
+        with tempfile.TemporaryDirectory() as tmp, patch('diagnostics.kyoto_impl30_postrace_runtime.subprocess.check_output',side_effect=api), patch('diagnostics.kyoto_impl30_postrace_runtime.subprocess.run',side_effect=TimeoutError) as download, patch('diagnostics.kyoto_impl30_postrace_runtime.decrypt_evidence') as decrypt:
+            candidates,cached,proof=recover_prior_navigation(DAY,REPO,KEY,103,tmp,monotonic=lambda:0)
+            self.assertEqual((candidates,cached),([],{}));self.assertEqual(len(proof['attempts']),2)
+            self.assertEqual(proof['state'],'PRIOR_REPLAY_UNAVAILABLE_FRESH_NAVIGATION_CONTINUES')
+            self.assertEqual(download.call_count,2);decrypt.assert_not_called()
     def test_exact_postrace_allowlist_and_authentication(self):
         with tempfile.TemporaryDirectory() as d:
             root=Path(d);raw=root/'raw';raw.mkdir()
