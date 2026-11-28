@@ -11,6 +11,8 @@ from datetime import datetime, timezone, timedelta
 from urllib.request import Request,build_opener,HTTPCookieProcessor
 from http.cookiejar import CookieJar
 from pathlib import Path
+from urllib.parse import urlsplit
+from diagnostics.kyoto_nov29_public_forms import PC_HOME,PC_ENTRY,observed_action,post_form
 from diagnostics.kyoto_p1_nov14_official_one_shot_nav import (
     SOURCE,LIMIT,NoRedirect
 )
@@ -108,7 +110,8 @@ def _single_observed_racecard(meeting_original, meeting_url):
     return race,next(iter(choices[race]))
 
 def observe(selection_root, *, now_utc, opener=None, allowed=False,
-            include_observed_racecard=False, include_observed_odds_menu=False, pacer=None):
+            include_observed_racecard=False, include_observed_odds_menu=False, pacer=None,
+            public_form_navigation=False):
     root=Path(selection_root)
     if root.is_symlink() or root.exists() or not root.parent.is_dir():
         raise ObservationRejected("one_shot_output_existing_or_invalid")
@@ -119,6 +122,8 @@ def observe(selection_root, *, now_utc, opener=None, allowed=False,
         raise ObservationRejected("outside_observation_window_zero_http")
     if allowed is not True:
         raise ObservationRejected("live_http_not_explicitly_authorized")
+    if public_form_navigation and DAY!="20261129":
+        raise ObservationRejected("public_form_day_not_authorized")
     root.mkdir()
     receipt={"schema":"kyoto_nov15_observed_link_capture.v1",
              "day":DAY,"selection_source":SOURCE,"state":"STARTED",
@@ -135,20 +140,41 @@ def observe(selection_root, *, now_utc, opener=None, allowed=False,
         request_pacer=pacer if pacer is not None else RequestPacer(min_gap_seconds=2.0)
         if not callable(getattr(request_pacer,"before_request",None)):
             raise ObservationRejected("request_pacer_invalid")
-        receipt["http_requests_started"]=1
-        request_pacer.before_request()
-        selection=_read(client,SOURCE)
+        if public_form_navigation:
+            receipt["navigation_mode"]="PUBLIC_FORM_POST"
+            receipt["selection_source"]=PC_ENTRY
+            receipt["http_requests_started"]+=1
+            request_pacer.before_request()
+            home=_read(client,PC_HOME)
+            (root/"official_pc_navigation_home.html").write_bytes(home)
+            receipt["navigation_home_sha256"]=hashlib.sha256(home).hexdigest()
+            receipt["navigation_home_bytes"]=len(home)
+            receipt["navigation_home_captured_at_utc"]=datetime.now(timezone.utc).isoformat()
+            token,_=observed_action(home,DAY,"entry")
+            receipt["selection_action"]=token
+            receipt["http_requests_started"]+=1
+            request_pacer.before_request()
+            selection=post_form(client,token,PC_HOME)
+        else:
+            receipt["http_requests_started"]+=1
+            request_pacer.before_request()
+            selection=_read(client,SOURCE)
         receipt["selection_captured_at_utc"]=datetime.now(timezone.utc).isoformat()
         (root/"official_selection.html").write_bytes(selection)
         receipt["selection_sha256"]=hashlib.sha256(selection).hexdigest()
         receipt["selection_bytes"]=len(selection)
         _validate_saved_html_encoding(selection)
-        meeting_url,meeting_label=_parse_kyoto(selection,SOURCE)
+        if public_form_navigation:
+            token,meeting_label=observed_action(selection,DAY,"meeting")
+            meeting_url=PC_ENTRY
+            receipt["meeting_action"]=token
+        else:
+            meeting_url,meeting_label=_parse_kyoto(selection,SOURCE)
         receipt["observed_meeting_url"]=meeting_url
         receipt["meeting_label"]=meeting_label
-        receipt["http_requests_started"]=2
+        receipt["http_requests_started"]+=1
         request_pacer.before_request()
-        meeting=_read(client,meeting_url)
+        meeting=post_form(client,token,PC_ENTRY) if public_form_navigation else _read(client,meeting_url)
         receipt["meeting_captured_at_utc"]=datetime.now(timezone.utc).isoformat()
         (root/"official_meeting.html").write_bytes(meeting)
         receipt["meeting_sha256"]=hashlib.sha256(meeting).hexdigest()
@@ -166,7 +192,7 @@ def observe(selection_root, *, now_utc, opener=None, allowed=False,
                 # Local composite identity, not an official JRA race-ID claim.
                 receipt["local_observed_race_key"]=f"KYOTO:{DAY}:{race_number:02d}"
                 receipt["observed_racecard_url"]=race_url
-                receipt["http_requests_started"]=3
+                receipt["http_requests_started"]+=1
                 request_pacer.before_request()
                 race_start=time.monotonic()
                 racecard=_read(client,race_url)
@@ -182,18 +208,20 @@ def observe(selection_root, *, now_utc, opener=None, allowed=False,
                 # contains exactly one official odds POST action. This is
                 # raw menu evidence, NOT a certified pre-race price matrix.
                 if include_observed_odds_menu is True:
+                    market_host=urlsplit(race_url).hostname
+                    market_url=f"https://{market_host}/JRADB/accessO.html"
                     try:
                         token=exact_odds_action(racecard,"PC")
                     except SourceChainError as exc:
                         receipt["odds_menu_observation"]="NO_UNIQUE_OFFICIAL_ACTION"
                         receipt["odds_menu_error"]=type(exc).__name__
                     else:
-                        receipt["http_requests_started"]=4
+                        receipt["http_requests_started"]+=1
                         try:
                             # Reuse existing POST, no redirect, host, size,
                             # SHA256 and shared 2-second pacing.
                             page=http_fetch(
-                                client,"PC","https://jra.jp/JRADB/accessO.html",
+                                client,"PC",market_url,
                                 cname=token,referer=race_url,pacer=request_pacer)
                             menu=page["raw"]
                             (root/"official_odds_menu.html").write_bytes(menu)
@@ -222,7 +250,7 @@ def observe(selection_root, *, now_utc, opener=None, allowed=False,
                                     links=find_market_links(
                                         current_menu,expected_race_day=DAY,
                                         expected_race_number=race_number,
-                                        expected_host="jra.jp")
+                                        expected_host=market_host)
                                     if links["source_final_odds_detected"]:
                                         links=None
                                         receipt["market_observation"]="FINAL_OR_UNPUBLISHED_NO_MORE_HTTP"
@@ -247,9 +275,9 @@ def observe(selection_root, *, now_utc, opener=None, allowed=False,
                                     stage=nav_step+1
                                     try:
                                         page=http_fetch(
-                                            client,"PC","https://jra.jp/JRADB/accessO.html",
+                                            client,"PC",market_url,
                                             cname=action,
-                                            referer="https://jra.jp/JRADB/accessO.html",
+                                            referer=market_url,
                                             pacer=request_pacer)
                                         current_menu=page["raw"]
                                         filename="official_odds_navigation_"+str(stage)+".html"
@@ -277,7 +305,7 @@ def observe(selection_root, *, now_utc, opener=None, allowed=False,
                                         page=http_fetch(
                                             client,"PC",rec["official_post_url"],
                                             cname=rec["cname"],
-                                            referer="https://jra.jp/JRADB/accessO.html",
+                                            referer=market_url,
                                             pacer=request_pacer)
                                         raw_market=page["raw"]
                                         name="official_"+market+"_odds.html"
@@ -335,6 +363,9 @@ def accept_observation(folder):
                          +receipt.get("market_requests_started",0))
                        if menu_attempted else 3
                        if receipt.get("racecard_original_fetched") is True else 2)
+    form_mode=receipt.get("navigation_mode")=="PUBLIC_FORM_POST"
+    if form_mode:
+        expected_requests+=1
     if (type(receipt.get("market_requests_started",0)) is not int
         or not 0<=receipt.get("market_requests_started",0)<=2
         or type(receipt.get("navigation_requests_started",0)) is not int
@@ -346,8 +377,12 @@ def accept_observation(folder):
     if type(receipt.get("http_requests_started")) is not int or (
         receipt["http_requests_started"] != expected_requests):
         raise ObservationRejected("observation_http_count_inconsistent")
-    for filename,prefix in (("official_selection.html","selection"),
-                            ("official_meeting.html","meeting")):
+    originals=[("official_selection.html","selection"),("official_meeting.html","meeting")]
+    if form_mode:
+        originals.append(("official_pc_navigation_home.html","navigation_home"))
+    elif (root/"official_pc_navigation_home.html").exists() or any(k in receipt for k in ("selection_action","meeting_action","navigation_mode")):
+        raise ObservationRejected("unclaimed_navigation_original")
+    for filename,prefix in originals:
         path=root/filename
         if path.is_symlink() or not path.is_file():
             raise ObservationRejected("observed_original_missing")
@@ -356,12 +391,19 @@ def accept_observation(folder):
             raise ObservationRejected("observed_original_digest_mismatch")
     # Verify the actual selection-to-meeting provenance chain, not merely
     # separately hashed originals paired with a claimed meeting URL.
-    if receipt.get("selection_source")!=SOURCE or receipt.get("day")!=DAY:
+    if receipt.get("selection_source")!=(PC_ENTRY if form_mode else SOURCE) or receipt.get("day")!=DAY or (form_mode and DAY!="20261129"):
         raise ObservationRejected("selection_source_or_date_invalid")
     try:
-        observed_meeting_url,observed_meeting_label=_parse_kyoto(
-            (root/"official_selection.html").read_bytes(),SOURCE)
-    except ObservationRejected as exc:
+        if form_mode:
+            selection_action,_=observed_action((root/"official_pc_navigation_home.html").read_bytes(),DAY,"entry")
+            meeting_action,observed_meeting_label=observed_action((root/"official_selection.html").read_bytes(),DAY,"meeting")
+            observed_meeting_url=PC_ENTRY
+            if (selection_action,meeting_action)!=(receipt.get("selection_action"),receipt.get("meeting_action")):
+                raise ObservationRejected("public_form_action_not_bound")
+        else:
+            observed_meeting_url,observed_meeting_label=_parse_kyoto(
+                (root/"official_selection.html").read_bytes(),SOURCE)
+    except ValueError as exc:
         raise ObservationRejected("selection_meeting_original_link_invalid") from exc
     if (receipt.get("observed_meeting_url")!=observed_meeting_url or
         receipt.get("meeting_label")!=observed_meeting_label):
@@ -373,7 +415,9 @@ def accept_observation(folder):
     # a UTC timestamp for that exact HTTP response.
     # Independently check provenance of the two mandatory saved originals.
     # These timestamps must be parseable UTC instants, not merely present.
-    for field in ("selection_captured_at_utc", "meeting_captured_at_utc"):
+    fields=["selection_captured_at_utc","meeting_captured_at_utc"]
+    if form_mode:fields.append("navigation_home_captured_at_utc")
+    for field in fields:
         stamp=receipt.get(field)
         try:
             parsed=datetime.fromisoformat(stamp.replace("Z","+00:00"))
@@ -482,7 +526,7 @@ def accept_observation(folder):
                 final_menu_original,
                 expected_race_day=DAY,
                 expected_race_number=receipt["racecard_number"],
-                expected_host="jra.jp")
+                expected_host=urlsplit(receipt["observed_racecard_url"]).hostname)
         except (MarketNavigationError,KeyError):
             observed_market_links=None
         for market in ("quinella","bracket_quinella"):
