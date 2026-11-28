@@ -2,6 +2,14 @@ import copy,unittest
 from datetime import datetime,timezone
 from diagnostics.kyoto_weekend_closure_review import index,slots,coverage_gaps,REPO,PREFIX,FAMILIES,HORSE,TRACK,MARKETS,EXTRA
 DAY="20261129";FILE="two-source-production-observer.yml";NOW=datetime(2026,11,29,14,tzinfo=timezone.utc)
+def workouts(d):
+ w={"schema":"kyoto_independent_workout_day_replay.v1","day":DAY,"races":{}}
+ for n,r in d["races"].items():
+  if r.get("state")!="ROSTER_VERIFIED":continue
+  w["races"][n]={"named_roster_digest":r["named_roster_digest"],"start":r["start_utc"],"horses":{h:{"state":"INDEPENDENT_WORKOUT_SOURCE_REPLAYED","mode":"PRIMARY","value_digest":"c"*64,"record_count":2,"source_proofs":[{"run_id":"3","sha256":"d"*64,"utc":"2026-11-28T11:00:00+00:00","provider":"white-green.jp"}]} for h in r["horses"] if r["horses"][h].get("workout")}}
+ return w
+def assess(day,d,allowed):
+ return coverage_gaps(day,d,allowed,workouts(d),[3])
 def run(rid=1,event="schedule",title="kyoto-native:15 0 29 11 *"):
  return {"id":rid,"event":event,"name":title,"head_repository":{"full_name":REPO},"head_branch":"main","path":PREFIX+FILE,"head_sha":"a"*40,"created_at":"2026-11-29T00:17:00Z","status":"completed","conclusion":"success"}
 def data():
@@ -21,7 +29,7 @@ class ClosureTests(unittest.TestCase):
   for bad in ({"total_count":3,"workflow_runs":rs},{"total_count":2,"workflow_runs":[run(),run()]},{"total_count":1,"workflow_runs":[{**run(),"head_branch":"other"}]}):
    with self.assertRaises(ValueError):index(DAY,FILE,bad)
  def test_every_required_family_mutation(self):
-  d=data();v=coverage_gaps(DAY,d,[1,2]);self.assertTrue(v["all_reviewed_cells_present"]);self.assertFalse(v["full_acquisition_certified"])
+  d=data();v=assess(DAY,d,[1,2]);self.assertTrue(v["all_reviewed_cells_present"]);self.assertFalse(v["full_acquisition_certified"])
   for f in FAMILIES:
    d=data();r=d["races"]["1"]
    if f=="racecard":r[f]={}
@@ -31,25 +39,25 @@ class ClosureTests(unittest.TestCase):
    elif f in EXTRA:r["supplementary_track_observations"][f]={}
    elif f=="paired_market_same_slot":r["paired_same_slot"]=False
    else:r["postrace"]["result" if f=="official_result" else "payout"]={}
-   v=coverage_gaps(DAY,d,[1,2]);self.assertFalse(v["all_reviewed_cells_present"],f);self.assertLess(v["counts"][f]["verified"],v["counts"][f]["expected"],f)
+   v=assess(DAY,d,[1,2]);self.assertFalse(v["all_reviewed_cells_present"],f);self.assertLess(v["counts"][f]["verified"],v["counts"][f]["expected"],f)
  def test_green_summary_not_accepted_unknown_denominator_and_conflict(self):
   d=data();d["full_data_acquisition_certified"]=True;d["races"]["1"]={"state":"ROSTER_OR_START_CONFLICT"}
-  v=coverage_gaps(DAY,d,[1,2]);self.assertEqual(v["counts"]["profile"]["unknown_denominator_races"],1);self.assertFalse(v["all_reviewed_cells_present"])
+  v=assess(DAY,d,[1,2]);self.assertEqual(v["counts"]["profile"]["unknown_denominator_races"],1);self.assertFalse(v["all_reviewed_cells_present"])
  def test_wrong_day_and_poststart_source(self):
   for utc in ("2026-11-28T00:00:00Z","2026-11-29T05:00:00Z","2026-11-29T05:01:00Z"):
    d=data();d["races"]["1"]["racecard"]["utc"]=utc
-   self.assertFalse(coverage_gaps(DAY,d,[1,2])["all_reviewed_cells_present"])
+   self.assertFalse(assess(DAY,d,[1,2])["all_reviewed_cells_present"])
  def test_pair_different_run(self):
   d=data();d["races"]["1"]["markets"]["quinella"]["run_id"]="2"
-  self.assertEqual(coverage_gaps(DAY,d,[1,2])["counts"]["paired_market_same_slot"]["verified"],11)
+  self.assertEqual(assess(DAY,d,[1,2])["counts"]["paired_market_same_slot"]["verified"],11)
  def test_missing_origin_and_cancellation_proof(self):
   for bad in ("99",None):
    d=data();d["races"]["1"]["racecard"]["run_id"]=bad
-   self.assertEqual(coverage_gaps(DAY,d,[1,2])["counts"]["racecard"]["verified"],11)
+   self.assertEqual(assess(DAY,d,[1,2])["counts"]["racecard"]["verified"],11)
   d=data();del d["races"]["1"]["markets"]["quinella"]["cancelled_horses"];del d["races"]["1"]["markets"]["bracket_quinella"]["cancelled_horses"]
-  self.assertEqual(coverage_gaps(DAY,d,[1,2])["counts"]["paired_market_same_slot"]["verified"],11)
+  self.assertEqual(assess(DAY,d,[1,2])["counts"]["paired_market_same_slot"]["verified"],11)
   d=data();d["postrace_history_index_complete"]=False
-  self.assertEqual(coverage_gaps(DAY,d,[1,2])["counts"]["official_payout"]["verified"],0)
+  self.assertEqual(assess(DAY,d,[1,2])["counts"]["official_payout"]["verified"],0)
  def test_workout_two_previous_utc_date_slots_and_failed_run(self):
   v=slots(DAY,"workout-source.yml",[],NOW)
   old={**run(),"path":PREFIX+"workout-source.yml","created_at":"2026-11-27T11:32:00Z","name":"kyoto-native:30 11 27 11 *"}
@@ -61,7 +69,7 @@ class ClosureTests(unittest.TestCase):
   self.assertEqual(v[0]["state"],"NATIVE_RUN_UNSUCCESSFUL")
  def test_incomplete_race_inventory(self):
   d=data();del d["races"]["12"]
-  with self.assertRaises(ValueError):coverage_gaps(DAY,d,[1,2])
+  with self.assertRaises(ValueError):assess(DAY,d,[1,2])
  def test_producer_job_artifact_classification_counterexamples(self):
   from diagnostics.kyoto_job_artifact_state import JOB,classify_artifact,SKIPPED
   for (filename,lane),name in JOB.items():
@@ -106,4 +114,16 @@ class ClosureTests(unittest.TestCase):
    result=metadata[file]["runs"][0]
    self.assertEqual(result["job_index_error"],"TimeoutError")
    self.assertEqual(result["artifacts"]["cushion"]["state"],"MISSING_JOB_STATE_UNVERIFIED")
+ def test_workout_wrong_source_run_roster_and_poststart_are_not_credited(self):
+  d=data();w=workouts(d)
+  self.assertEqual(coverage_gaps(DAY,d,[1,2],w,[3])["counts"]["workout"]["verified"],24)
+  self.assertEqual(coverage_gaps(DAY,d,[1,2],w,[4])["counts"]["workout"]["verified"],0)
+  self.assertEqual(coverage_gaps(DAY,d,[1,2])["counts"]["workout"]["verified"],0)
+  for mutate in ("roster","future","secondary","source"):
+   x=copy.deepcopy(w);r=x["races"]["1"];p=r["horses"]["1"]
+   if mutate=="roster":r["named_roster_digest"]="f"*64
+   elif mutate=="future":p["source_proofs"][0]["utc"]="2026-11-29T05:00:00+00:00"
+   elif mutate=="secondary":p["mode"]="SECONDARY_CORROBORATED"
+   else:p["source_proofs"][0]["provider"]="unknown.example"
+   self.assertLess(coverage_gaps(DAY,d,[1,2],x,[3])["counts"]["workout"]["verified"],24)
 if __name__=="__main__":unittest.main()
