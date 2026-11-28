@@ -1237,7 +1237,7 @@
     "diagnostics/jra_odds_source_archive.py": "04ffb7982da138c611ff622a8fba0c0868b618e4",
     "diagnostics/jra_official_link_repair.py": "b6f451910e0052047bd884dacd99c01df800e715",
     "diagnostics/jra_official_market_navigation.py": "1f2f333a8ff86c0ce01a478dd9a8ce362479d105",
-    "diagnostics/jra_one_shot_market_capture.py": "9d3dfff82de4e5927b661de2d03df9db00e4d0fe",
+    "diagnostics/jra_one_shot_market_capture.py": "4e579514ec52ed8c7a52aa69bd9c38f1fd22884a",
     "diagnostics/jra_pc_sp_benchmark.py": "68b93993c7c67b231153a4a6052d36a9ef3763eb",
     "diagnostics/jra_source_router.py": "d7eae104adecd60374ac0b6cc9ee622f9e47df95",
     "diagnostics/kyoto_p1_nov14_official_one_shot_nav.py": "0aa2e6e53cb78f317d77c001ce55e101f45b8c50",
@@ -1937,5 +1937,22 @@
       }
     ],
     "reason": "Accept independently observed official app.jra.jp odds origin only through source/race/market integrity gate; no risk closure."
+  },
+  "impl39_aux_sp_transport_reopen": {
+    "prior_ledger_blob": "71d29a00e61f9fc80cc2381ff27dd86c6786584a",
+    "sources": [
+      {
+        "source": "diagnostics/jra_one_shot_market_capture.py",
+        "old_blob": "9d3dfff82de4e5927b661de2d03df9db00e4d0fe",
+        "new_blob": "4e579514ec52ed8c7a52aa69bd9c38f1fd22884a",
+        "review_status": "UNREVIEWED_INDEPENDENT_FMEA",
+        "closed_risks": 0
+      }
+    ],
+    "dynamic_scope": [
+      "diagnostics/kyoto_impl31_sp_saved_roster_audit.py",
+      "diagnostics/kyoto_impl39_aux_gap_recovery.py"
+    ],
+    "reason": "Reopen exact weekend SP host guard and independently observed prior discovery input; no closed risk, no live certification."
   }
 }

@@ -7,6 +7,7 @@ the original receipt and G06 bundle. No source request in prior-archive replay.
 import json,subprocess,tempfile,time
 from pathlib import Path
 from datetime import timedelta
+from dataclasses import replace
 from urllib.error import HTTPError
 from urllib.parse import urlsplit
 from diagnostics.kyoto_g04_all_horse_profiles import _utc
@@ -27,7 +28,7 @@ MARKETS=("quinella","bracket_quinella")
 def load_prior(day,repo,key,run_id,*,monotonic=time.monotonic):
     from diagnostics.kyoto_impl25_c12_all_runs_handoff import WEEKENDS,_date,run_name_matches
     from diagnostics.kyoto_impl30_auxiliary_refresh import WORKFLOW,NAME
-    result={"starts":{},"profiles":{},"slots":[],"errors":[]}
+    result={"starts":{},"profiles":{},"slots":[],"errors":[],"sp_links":{}}
     if day!=DAY or repo!=REPO or not str(run_id).isdigit():
         raise ValueError("aux_recovery_identity")
     end=monotonic()+45
@@ -51,9 +52,12 @@ def load_prior(day,repo,key,run_id,*,monotonic=time.monotonic):
                     and run_name_matches(r,name,wf,day) and r.get("created_at","")[:10]==_date(day)
                     and r.get("status")=="completed" and r.get("event") in ("schedule","workflow_dispatch")):
                     observed.append((r["id"],lane))
+                    if lane=="pc":observed.append((r["id"],"sp"))
         except Exception as exc:result["errors"].append({"lane":lane,"error_class":type(exc).__name__})
     conflicts=set()
-    for rid,lane in sorted(observed,reverse=True):
+    # Existing PC/auxiliary evidence first; optional SP discovery uses only
+    # remaining time in the same 45-second archive budget.
+    for rid,lane in sorted(observed,key=lambda x:(x[1]=="sp",-x[0])):
         if monotonic()>=end:break
         try:
             arts=api(f"repos/{repo}/actions/runs/{rid}/artifacts?per_page=100")
@@ -63,6 +67,17 @@ def load_prior(day,repo,key,run_id,*,monotonic=time.monotonic):
                 base=Path(tmp);cipher=base/"cipher";cipher.mkdir();raw=base/"raw"
                 subprocess.run(["gh","run","download",str(rid),"--repo",repo,"--name",name,"--dir",str(cipher)],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL,check=True,timeout=timeout(12))
                 decrypt_evidence(cipher,raw,key_hex=key,repo=repo,run_id=str(rid))
+                if lane=="sp":
+                    from diagnostics.kyoto_weekend_postflight import check_originals
+                    from diagnostics.kyoto_impl31_sp_saved_roster_audit import assess_checked
+                    post=check_originals(raw,day=day,channel="SP")
+                    links={}
+                    assess_checked(raw,day,post,observed_links=links)
+                    for race,urls in links.items():
+                        known=result["sp_links"].setdefault(race,{})
+                        for url,stamp in urls.items():
+                            if url not in known or _utc(stamp)<_utc(known[url]):known[url]=stamp
+                    continue
                 slot=extract_slot(raw,day,rid)
                 if slot["day"]!=day or slot["run_id"]!=str(rid):raise ValueError("prior_slot_identity")
                 result["slots"].append(slot)
@@ -93,7 +108,8 @@ class RecoveryTransport:
     def check(self,url,*,profile=False):
         u=urlsplit(url)
         paths=("/JRADB/accessU.html",) if profile else ("/JRADB/accessD.html","/JRADB/accessO.html")
-        if (u.scheme!="https" or u.netloc not in ("jra.jp","www.jra.go.jp") or u.path not in paths or u.fragment):
+        hosts=("jra.jp","www.jra.go.jp") if profile else ("jra.jp","www.jra.go.jp","sp.jra.jp","app.jra.jp")
+        if (u.scheme!="https" or u.netloc not in hosts or u.path not in paths or u.fragment):
             raise ValueError("aux_recovery_origin")
         if (self.refused or self.state["refused"] or not self.within()
             or self.state["requests"]>=MAX_TOTAL or self.state["requests"]-self.initial>=MAX_EXTRA
@@ -145,6 +161,34 @@ def missing_records(records,current,prior,roster,clock):
         result[n]=None if any(same(s["races"].get(str(n))) for s in prior["slots"]) else item
     return result
 
+def bind_observed_sp(records,prior,clock):
+    """Attach only same-day, unambiguous archived SP discovery evidence.
+
+    The live existing capture still rechecks the fresh SP page and PC roster.
+    No SP route is synthesized from the PC link.
+    """
+    from diagnostics.kyoto_impl31_sp_saved_roster_audit import exact_mobile_race
+    from diagnostics.jra_one_shot_market_capture import SourceChainError
+    result=dict(records)
+    for n,item in records.items():
+        if not item:continue
+        try:
+            spec=item["race_spec"]
+            cutoff=_utc(item["verified_start_utc"]);now=_utc(clock())
+            if spec.race_day!=DAY or spec.race_number!=n or now>=cutoff:continue
+            links=prior.get("sp_links",{}).get(str(n),{})
+            eligible=[]
+            for url,stamp in links.items():
+                try:
+                    t=_utc(stamp)
+                    if t.strftime("%Y%m%d")==DAY and t<=now and t<cutoff and exact_mobile_race(url,DAY,n):eligible.append(url)
+                except (ValueError,TypeError,AttributeError):continue
+            if len(eligible)!=1:continue
+            bound=replace(spec,sp_racecard_url=eligible[0]).validate(require_channels=("PC","SP"))
+            result[n]={**item,"race_spec":bound}
+        except (SourceChainError,ValueError,TypeError,KeyError,AttributeError):continue
+    return result
+
 def repair(root,*,day,prior,transport,clock):
     from diagnostics.kyoto_g06_all12_capture import run_twelve
     from diagnostics.kyoto_g06_nested_bundle import bundle_g06,bundle_interrupted_g06,BundleError
@@ -158,8 +202,9 @@ def repair(root,*,day,prior,transport,clock):
         current=extract_slot(root,day,0)
         records=records_from_g03(root,day=day,skip_invalid_races=True)
         roster=json.loads((root/"g03_receipt.json").read_text())["races"]
-        missing=missing_records(records,current["races"],prior,roster,clock)
+        missing=bind_observed_sp(missing_records(records,current["races"],prior,roster,clock),prior,clock)
         out["market_target_races"]=[n for n,v in missing.items() if v is not None]
+        out["sp_link_bound_races"]=[n for n,v in missing.items() if v is not None and v["race_spec"].sp_racecard_url]
         # Bind each exact, independently verified profile link to its race
         # cutoff. Duplicates use the earlier cutoff, never a guessed URL.
         for n,item in records.items():

@@ -23,6 +23,17 @@ class SPProof(unittest.TestCase):
         with patch('socket.socket.connect',side_effect=AssertionError('no network')):
             a=assess(self.root,DAY)
         self.assertEqual(a['structural_roster_races'],12);self.assertTrue(a['all12_structural_rosters_observed']);self.assertFalse(a['live_acquisition_certified']);self.assertEqual(a,assess(self.root,DAY))
+    def test_optional_discovery_links_are_byte_verified_not_pc_derived(self):
+        from diagnostics.kyoto_weekend_postflight import check_originals
+        from diagnostics.kyoto_impl31_sp_saved_roster_audit import assess_checked
+        self.setup_sources([1,2]);links={}
+        post=check_originals(self.root,day=DAY,channel="SP")
+        normal=assess_checked(self.root,DAY,post,observed_links=links)
+        self.assertEqual(normal,assess(self.root,DAY))
+        self.assertEqual(set(links),{"1","2"});self.assertEqual(set(links["1"]),{link(1)})
+        p=self.root/"official_sp_discovery_1.html";p.write_bytes(p.read_bytes()+b"x")
+        invalid={};assess_checked(self.root,DAY,check_originals(self.root,day=DAY,channel="SP"),observed_links=invalid)
+        self.assertEqual(invalid,{})
     def test_partial_and_hash_mismatch(self):
         self.setup_sources([1,2]);p=self.root/'r02_official_sp_racecard.html';p.write_bytes(p.read_bytes()+b'x');a=assess(self.root,DAY);self.assertEqual(a['structural_roster_races'],1)
     def test_encrypted_reopen_preserves_independent_structural_audit(self):

@@ -118,7 +118,7 @@ def assess(root,day):
     root=Path(root)
     return assess_checked(root,day,check_originals(root,day=day,channel='SP'))
 
-def assess_checked(root,day,post):
+def assess_checked(root,day,post,*,observed_links=None):
     # Caller must supply the freshly recomputed postflight result, not a receipt.
     root=Path(root)
     if day not in DAYS or post.get('day')!=day or post.get('channel')!='SP':raise ValueError('postflight_identity')
@@ -141,6 +141,11 @@ def assess_checked(root,day,post):
                         if exact_mobile_race(v,day,int(n)):
                             stamp=utc(row['captured_at_utc'])
                             anchors[n][v]=min(stamp,anchors[n].get(v,stamp))
+    # Optional local-only navigation evidence from the same authenticated
+    # discovery originals. This is not a roster or market certificate.
+    if observed_links is not None and post.get("state")!="SP_PROVENANCE_REJECTED":
+        for n,links in anchors.items():
+            if links:observed_links[n]={url:stamp.isoformat() for url,stamp in links.items()}
     results={}
     for n in range(1,13):
         key=str(n);r={'state':'NO_VERIFIED_RAW_RACECARD','runner_count':None};results[key]=r
