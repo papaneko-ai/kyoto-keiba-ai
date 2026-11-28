@@ -10,10 +10,12 @@ if __package__:
     from .kyoto_repair_control import recover_collection
     from .kyoto_fixed_risk_worklist import worklist
     from .kyoto_job_artifact_state import classify_artifact, SKIPPED
+    from .kyoto_day_supplemental_replay import review_sp, review_cushion
 else:
     from kyoto_repair_control import recover_collection
     from kyoto_fixed_risk_worklist import worklist
     from kyoto_job_artifact_state import classify_artifact, SKIPPED
+    from kyoto_day_supplemental_replay import review_sp, review_cushion
 
 REPO="papaneko-ai/kyoto-keiba-ai"
 DAYS=("20261128","20261129")
@@ -363,9 +365,15 @@ def review(day,now,out):
             report["cancellation_review"]=cr
         except Exception as exc:report["cancellation_review_error"]=type(exc).__name__
         report["coverage"]=coverage_gaps(day,coverage,allowed,wr,workout_allowed,cr)
+        try:
+            report["independent_cushion_day_replay"]=review_cushion(day,metadata["cushion-source.yml"],coverage,key,os.environ["KYOTO_CUSHION_READER"])
+        except Exception as exc:report["independent_cushion_day_replay_error"]=type(exc).__name__
     except Exception as exc:
         report["coverage_replay_error"]=type(exc).__name__
         report["coverage"]={"counts":{},"races":[{"race":n,"state":"NOT_EVALUATED","missing":[{"family":"day_coverage_unavailable"}],"unknown_horse_families":list(HORSE)} for n in range(1,13)],"all_reviewed_cells_present":False,"full_acquisition_certified":False}
+    try:
+        report["independent_sp_source_coverage"]=review_sp(day,metadata["two-source-production-observer.yml"])
+    except Exception as exc:report["independent_sp_source_coverage_error"]=type(exc).__name__
     try:
         register=Path(os.environ.get("KYOTO_FIXED_RISK_REGISTER","docs/diagnostics/KYOTO_REVERSE_FMEA_GAP_REGISTER_20261116.json"))
         report["fixed_risks"]=worklist(report,register.read_bytes())
@@ -385,6 +393,14 @@ def review(day,now,out):
         w=report["workout_day_replay"]
         summary.append(f"- 調教原本独立再解析: archives={len(w['examined_archive_run_ids'])}, authenticated_snapshots={w['authenticated_snapshots']}, records={sum(x['canonical_records'] for x in w['races'].values())}, index_complete={w['archive_index_complete']}; source evidence only, no model promotion.")
     elif "workout_day_replay_error" in report:summary.append("- 調教原本独立再解析未完: "+report["workout_day_replay_error"])
+    if "independent_sp_source_coverage" in report:
+        s=report["independent_sp_source_coverage"]
+        summary.append(f"- SP独立構造証拠: audited_runs={s['audited_sp_runs']}, native={s['scheduled']['structural_roster_races']}/12, dispatch={s['manual']['structural_roster_races']}/12; separate ledger, no PC/prestart/market credit.")
+    elif "independent_sp_source_coverage_error" in report:summary.append("- SP独立証拠未完: "+report["independent_sp_source_coverage_error"])
+    if "independent_cushion_day_replay" in report:
+        c=report["independent_cushion_day_replay"]
+        summary.append(f"- クッション値独立原本: authenticated={len(c['authenticated_observations'])}, prestart={c['prestart_verified_races']}/12, replay_errors={len(c['replay_errors'])}; separate ledger, no full acquisition credit.")
+    elif "independent_cushion_day_replay_error" in report:summary.append("- クッション値独立照合未完: "+report["independent_cushion_day_replay_error"])
     if "cancellation_review" in report:
         c=report["cancellation_review"]
         summary.append(f"- 取消馬独立照合: races={len(c['races'])}, replay_errors={len(c['errors'])}; 馬体重・増減のみ対象外（登録馬・他項目の分母は維持）。")
