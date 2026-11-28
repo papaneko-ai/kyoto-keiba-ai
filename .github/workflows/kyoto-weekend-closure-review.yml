@@ -6,6 +6,9 @@ on:
     - cron: '15 7 29 11 *' # 16:15 JST after afternoon slots
     - cron: '40 14 29 11 *' # 23:40 JST after correction slot
     - cron: '10 23 29 11 *' # Nov30 08:10 JST final retry/reconciliation
+  workflow_run:
+    workflows: ['Kyoto Nov28-29 postrace result and payout evidence']
+    types: [completed]
   workflow_dispatch:
     inputs:
       day:
@@ -48,13 +51,13 @@ jobs:
       - run: python -m unittest -v tests.test_kyoto_weekend_closure_review tests.test_kyoto_repair_control tests.test_kyoto_fixed_risk_worklist
   review:
     needs: test
-    if: ${{ github.repository == 'papaneko-ai/kyoto-keiba-ai' && ((github.ref == 'refs/heads/main' && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch')) || (github.event_name == 'push' && (github.ref == 'refs/heads/fix/impl37-weekend-closure-review-20261128' || github.ref == 'refs/heads/fix/impl37-autonomous-repair-control-20261128' || github.ref == 'refs/heads/main'))) }}
+    if: ${{ github.repository == 'papaneko-ai/kyoto-keiba-ai' && ((github.ref == 'refs/heads/main' && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || (github.event_name == 'workflow_run' && github.event.workflow_run.head_branch == 'main' && github.event.workflow_run.head_repository.full_name == github.repository && (startsWith(github.event.workflow_run.created_at, '2026-11-28') || startsWith(github.event.workflow_run.created_at, '2026-11-29'))))) || (github.event_name == 'push' && (github.ref == 'refs/heads/fix/impl37-weekend-closure-review-20261128' || github.ref == 'refs/heads/fix/impl37-autonomous-repair-control-20261128' || github.ref == 'refs/heads/main'))) }}
     runs-on: ubuntu-latest
     timeout-minutes: 20
     env:
       GH_TOKEN: ${{ github.token }}
       ARCHIVE_KEY: ${{ secrets.KYOTO_JRA_ARCHIVE_AES256_HEX }}
-      TARGET_DAY: ${{ github.event_name == 'push' && '20261128' || (github.event.schedule == '15 7 28 11 *' || github.event.schedule == '40 13 28 11 *') && '20261128' || (github.event.schedule == '15 7 29 11 *' || github.event.schedule == '40 14 29 11 *' || github.event.schedule == '10 23 29 11 *') && '20261129' || inputs.day }}
+      TARGET_DAY: ${{ (github.event_name == 'push' && '20261128') || (github.event_name == 'workflow_run' && startsWith(github.event.workflow_run.created_at, '2026-11-28') && '20261128') || (github.event_name == 'workflow_run' && startsWith(github.event.workflow_run.created_at, '2026-11-29') && '20261129') || (github.event.schedule == '15 7 28 11 *' || github.event.schedule == '40 13 28 11 *') && '20261128' || (github.event.schedule == '15 7 29 11 *' || github.event.schedule == '40 14 29 11 *' || github.event.schedule == '10 23 29 11 *') && '20261129' || inputs.day }}
       KYOTO_WEEKEND_HTTP_APPROVED: 'NO'
       KYOTO_AUX_HTTP_APPROVED: 'NO'
       KYOTO_POSTRACE_HTTP_APPROVED: 'NO'
@@ -86,7 +89,7 @@ jobs:
           retention-days: 90
   publish:
     needs: review
-    if: ${{ always() && github.ref == 'refs/heads/main' && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || github.event_name == 'push') }}
+    if: ${{ always() && github.ref == 'refs/heads/main' && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || github.event_name == 'push' || (github.event_name == 'workflow_run' && github.event.workflow_run.head_branch == 'main' && github.event.workflow_run.head_repository.full_name == github.repository && (startsWith(github.event.workflow_run.created_at, '2026-11-28') || startsWith(github.event.workflow_run.created_at, '2026-11-29')))) }}
     runs-on: ubuntu-latest
     timeout-minutes: 3
     permissions:
