@@ -359,3 +359,7 @@
 ## 58. 再開作業の重複候補 #173 の整理（2026-11-28 18:55 JST）
 - #172（18:55:02 JST、HEAD 55c2db926d07525048e0dd62935e4990e0f7edfa、CI7/7成功）に続き再開作業の重複で#173（18:55:12 JST、HEAD 5838a4633deb653e43165b9d4ba14b5cbe43baf6）が作成された。双方同じ最新取得器8f61e33e2d18d88faba2b3cd69734f9aadaac651・共通base 1a73f263a76e759ddb34edd6a7046bc6c0ac02c4・5ファイル変更。4 workflow blob完全一致、残るcollector_selectionの差はvalidation_scope説明文字列1行のみ。実行ロジック・source/検証証拠・予算同一。#173には新たな機能修正なし。#172だけを採用候補とし、#173と#170は反映不要。無断close/mergeしない。作成時刻だけで後発を採用せず、実装版と検証結果を優先する。書込競合409は最新HEADの取得と既済修正の再利用で回避、上書きなし。
 - #172の明示承認を待つ。mainは#171の反映済み版のまま。§57の全条件と今夜の取得計画を維持。
+
+## 59. E39-RELEASE-27 #172 承認・本番反映と完全一致確認（2026-11-28 18:56:47 JST）
+- ユーザー明示承認: exact HEAD 55c2db926d07525048e0dd62935e4990e0f7edfa の本番main反映・反映後独立検証・11/29全取得準備。反映直前main 1a73f263a76e759ddb34edd6a7046bc6c0ac02c4、PR open/mergeable/exact head一致、source exact 8f61e33e2d18d88faba2b3cd69734f9aadaac651 run46132590492 SUCCESS、最新PR CI7/7 SUCCESS、#173未merge確認。expected_head_sha付きmerge成功、新main e1a682fd0d185830751508448e444c80eaca5567、PR #172 merged=true/main/merge SHA一致。Git API tree fe755d93da3933b41bcec95616ded39d45a1d86c が承認head treeと完全一致。parents=[1a73f263a76e759ddb34edd6a7046bc6c0ac02c4,55c2db926d07525048e0dd62935e4990e0f7edfa]。承認head→main変更0、旧main→新main変更5ファイルのみ（日曜pin4 workflow・exact receipt1）。#173/#170反映不要、再merge禁止。
+- 既承認の20追加/35総/300秒維持。新規JRA通信・Secrets/Turso/Cloudflare設定・外部枠変更なし。次は新mainの4日曜pin、土曜夜間等の保護blob、今夜の起動台帳、main push closure結果を独立照合。固定25正式0/25・実開催完全取得・実SP補完・外部起動保証は未認定。
