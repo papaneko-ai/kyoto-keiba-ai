@@ -3,7 +3,8 @@ import copy, subprocess, unittest
 from datetime import datetime,timedelta,timezone
 from pathlib import Path
 import yaml
-from diagnostics.kyoto_impl30_collector_selection import DEPLOYED_RECEIPT
+from diagnostics.kyoto_impl30_collector_selection import DEPLOYED_RECEIPT,POSTRACE_RECEIPT
+POSTRACE_PIN=POSTRACE_RECEIPT['source']
 SUNDAY_PIN=DEPLOYED_RECEIPT["override"]
 SATURDAY_READER="c289c5ec4e6ad322a7e08acf173da3352ed23dba"
 DAY_REF="${{ inputs.race_day == '20261129' && '"+SUNDAY_PIN+"' || '"+SATURDAY_READER+"' }}"
@@ -44,7 +45,7 @@ class Isolation(unittest.TestCase):
                     j["if"]=j["if"].replace("(github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch'","((github.event_name == 'workflow_dispatch'").replace("(github.event.workflow_run.event == 'schedule' || github.event.workflow_run.event == 'workflow_dispatch')","(github.event.workflow_run.event == 'workflow_dispatch')")
                 elif n=="cushion-source":
                     expected["jobs"]["cushion-source-only"]["if"]=CUSHION_IF
-                # Only the separately verified Sunday source selection may change.
+                # Separately verified daytime and evening source selections only.
                 if n=="two-source-production-observer":
                     expected["jobs"]["select-collector"]["env"]["SUNDAY_OVERRIDE_SHA"]=SUNDAY_PIN
                 elif n=="auxiliary-refresh":
@@ -55,13 +56,20 @@ class Isolation(unittest.TestCase):
                             s["run"]=s["run"].replace('test "$(git rev-parse HEAD)" = '+repr(SATURDAY_READER),'test "$(git rev-parse HEAD)" = "'+DAY_REF+'"')
                 elif n=="result-handoff":
                     expected["jobs"]["authenticated-handoff"]["steps"][0]["with"]["ref"]=DAY_REF
+                elif n=="postrace-evidence":
+                    j=expected["jobs"]["postrace-source-evidence"]
+                    old_pin=j["steps"][0]["with"]["ref"]
+                    j["steps"][0]["with"]["ref"]=POSTRACE_PIN
+                    for step in j["steps"]:
+                        if 'test "$(git rev-parse HEAD)"' in step.get("run",""):
+                            step["run"]=step["run"].replace(repr(old_pin),repr(POSTRACE_PIN))
                 self.assertEqual(doc(n),expected)
                 self.assertNotIn("schedule",doc(n)["on"])
                 self.assertEqual(doc(n)["on"]["workflow_dispatch"],original["on"]["workflow_dispatch"])
-    def test_independent_closure_reader_only_sunday_changes(self):
+    def test_independent_closure_reader_matches_exact_evening_source(self):
         path=".github/workflows/kyoto-weekend-closure-review.yml"
         previous=subprocess.check_output(["git","show","457fcf075143b7f80a769b259fa1b9f5d2987abf:"+path],cwd=ROOT,text=True)
-        expected=previous.replace("ref: '"+SATURDAY_READER+"'","ref: ${{ env.TARGET_DAY == '20261129' && '"+SUNDAY_PIN+"' || '"+SATURDAY_READER+"' }}")
+        expected=previous.replace("ref: '"+SATURDAY_READER+"'","ref: '"+POSTRACE_PIN+"'")
         self.assertEqual((ROOT/path).read_text(),expected)
     def test_native_probe(self):
         d=doc("native-scheduler-diagnostic")

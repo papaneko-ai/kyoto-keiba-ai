@@ -41,6 +41,22 @@ DEPLOYED_RECEIPT={
     "validation_scope":"Impl39 B01 saved SP origins and B02 independent source roster exact isolated preflight; validation_pr is prior approved baseline",
 }
 
+# Independently verified evening source and exact original replay.
+# This receipt does not alter the previously approved daytime collector.
+POSTRACE_RECEIPT={
+    "source":"5a16e23d0f2148581dbe0b965d4672b22735602e",
+    "preflight_run":46135448305,
+    "preflight_job":140949630915,
+    "artifact_id":15258839742,
+    "artifact_sha256":"b400f4ad591c6df594289d31f1ea7c0a066b11c2e1b8729580ccb90bc784b3b7",
+    "original_probe_run":46135477388,
+    "original_probe_job":140949714589,
+    "original_source_run":46133297877,
+    "original_source_artifact":15258294810,
+    "observed_repaired_candidates":13,
+    "validation_pr":174,
+}
+
 def choose_deployed(day,baseline,override,verified,*,repo):
     selected,reason=choose(day,baseline,override,verified)
     receipt=DEPLOYED_RECEIPT

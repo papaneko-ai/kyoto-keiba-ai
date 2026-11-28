@@ -45,6 +45,9 @@ def canonical(x):
 def digest(x):return hashlib.sha256(x).hexdigest()
 def label(x):
     if not isinstance(x,str):return "UNKNOWN"
+    # Preserve only exact locally defined postrace exception signatures.
+    known={"PostraceRejected:missing_or_ambiguous_observed_navigation":"POSTRACE_OBSERVED_NAVIGATION_REJECTED","PostraceRejected:result_meeting_not_available":"POSTRACE_RESULT_MEETING_MISSING","PostraceRejected:independent_registered_roster_missing":"POSTRACE_PRERACE_ROSTER_MISSING"}
+    if x in known:return known[x]
     if x=="G05TrackRejected":return x  # exact known local parser class, not arbitrary text
     if re.fullmatch(r"(?:[A-Z][A-Z0-9]*(?:_[A-Z0-9]+)+|[a-z][a-z0-9]*(?:_[a-z0-9]+)+|[A-Za-z]{1,60}(?:Error|Rejected|Exception)|GET|POST|FAILED|STARTED|DEADLINE)",x) and len(x)<=120:
         return x
@@ -222,7 +225,10 @@ def inspect_source(root,day,lane,field_review=None):
         r=rows(receipt)
         present={str(n):f"r{n:02d}_result.html" in files for n in range(1,13)}
         reconciliation={str(n):fields(receipt.get("races",{}).get(str(n),{}).get("independent_reconciliation",{})) for n in range(1,13)}
-        stage("POSTRACE",all(present.values()) and "payout_meeting.html" in files and all(x.get("state")=="DUAL_PAGE_EXPLICIT_FINAL" for x in reconciliation.values()),{"receipt":fields(receipt),"raw_results_present":present,"race_states":r,"reconciliation":reconciliation},code(receipt),evidence=("receipt.json","postrace_seed.html","results_menu.html","results_meeting.html","payout_menu.html","payout_meeting.html","postrace_revision_history.json"))
+        rejected=[int(n) for n in r if r[n].get("reason")=="POSTRACE_OBSERVED_NAVIGATION_REJECTED" and not present[n]]
+        payout_rejected=fields(receipt).get("payout_meeting_state")=="POSTRACE_OBSERVED_NAVIGATION_REJECTED" and "payout_meeting.html" not in files
+        signature="POSTRACE_OBSERVED_NAVIGATION_REJECTED" if rejected or payout_rejected else code(receipt)
+        stage("POSTRACE",all(present.values()) and "payout_meeting.html" in files and all(x.get("state")=="DUAL_PAGE_EXPLICIT_FINAL" for x in reconciliation.values()),{"receipt":fields(receipt),"raw_results_present":present,"race_states":r,"reconciliation":reconciliation,"navigation_rejected_races":rejected,"payout_navigation_rejected":payout_rejected},signature,evidence=("receipt.json","postrace_seed.html","results_menu.html","results_meeting.html","payout_menu.html","payout_meeting.html","postrace_revision_history.json"))
     elif lane=="cushion":
         stage("CUSHION",receipt.get("state")=="OFFICIAL_ORIGINAL_PARSED" and "g05_official_cushion_fragment.html" in files,fields(receipt),code(receipt),evidence=("receipt.json","g05_official_cushion_fragment.html"))
     else:raise ValueError("unsupported_lane")
@@ -410,7 +416,27 @@ def read_aes(reader,cipher,raw,day,rid,key):
     spec=importlib.util.spec_from_file_location("trusted_archive_reader",Path(reader)/"diagnostics/kyoto_nov15_encrypted_evidence.py")
     mod=importlib.util.module_from_spec(spec);spec.loader.exec_module(mod)
     mod.decrypt_evidence(cipher,raw,key_hex=key,repo=REPO,run_id=str(rid))
-def diagnose_run(rid,reader,cushion_reader):
+def replay_postrace(root,day,reader):
+    """Use the exact separately verified evening reader; publish proof fields only."""
+    script="import json,sys; from diagnostics.kyoto_impl30_postrace_replay import saved_navigation_recovery; print(json.dumps(saved_navigation_recovery(sys.argv[1],sys.argv[2]),ensure_ascii=True))"
+    cwd=Path(reader).resolve()
+    env={**os.environ,"PYTHONPATH":str(cwd),"KYOTO_TARGET_DAY":day,"KYOTO_WEEKEND_HTTP_APPROVED":"NO","KYOTO_POSTRACE_HTTP_APPROVED":"NO"}
+    # No archive credentials are required by this already-decrypted replay.
+    for k in ("ARCHIVE_KEY","GH_TOKEN","GITHUB_TOKEN"):env.pop(k,None)
+    value=json.loads(subprocess.check_output([sys.executable,"-c",script,str(Path(root).resolve()),day],cwd=cwd,env=env,stderr=subprocess.DEVNULL,timeout=25,text=True))
+    if (value.get("schema")!="kyoto_postrace_navigation_recovery.v1" or value.get("day")!=day or value.get("new_source_http_requests")!=0 or value.get("automatic_code_promotion") is not False):raise ValueError("postrace_replay_identity")
+    rows=value["recovery_candidates"]
+    if not isinstance(rows,list) or len(rows)>14:raise ValueError("postrace_replay_count")
+    accepted=[]
+    for row in rows:
+        if (row.get("stage") not in ("results_meeting","payout_meeting","result_race") or row.get("day")!=day or row.get("mode")!="01" or row.get("rule")!="OBSERVED_MODE_01_RECOVERY" or row.get("state")!="PRIOR_FAILURE_REPRODUCED_RECOVERY_CANDIDATE" or row.get("candidate_count")!=1 or row.get("legacy_candidate_count")!=0 or row.get("independent_field_agreement") is not True or not all(re.fullmatch(r"[0-9a-f]{64}",row.get(k,"")) for k in ("source_sha256","action_sha256"))):raise ValueError("postrace_replay_candidate")
+        race=row.get("race")
+        if (row["stage"]=="result_race" and (type(race) is not int or not 1<=race<=12)) or (row["stage"]!="result_race" and race is not None):raise ValueError("postrace_replay_race")
+        accepted.append({k:row[k] for k in ("stage","race","day","rule","mode","state","source_sha256","action_sha256")})
+    if len({(r["stage"],r["race"]) for r in accepted})!=len(accepted):raise ValueError("postrace_replay_duplicate")
+    return accepted
+
+def diagnose_run(rid,reader,cushion_reader,postrace_reader=None):
     run=gh(f"repos/{REPO}/actions/runs/{rid}")
     path,lanes,days=run_identity(run,rid)
     job_doc=gh(f"repos/{REPO}/actions/runs/{rid}/jobs?per_page=100")
@@ -441,6 +467,9 @@ def diagnose_run(rid,reader,cushion_reader):
                     read_aes(cushion_reader if lane=="cushion" else reader,cipher,raw,day,rid,key)
                     field_review=review_g05_originals(raw,day,reader) if lane in ("pc","auxiliary") else None
                     meta.update(inspect_source(raw,day,lane,field_review=field_review))
+                    if lane=="postrace" and postrace_reader is not None:
+                        try:meta["postrace_navigation_replay"]=replay_postrace(raw,day,postrace_reader)
+                        except Exception as exc:meta["postrace_navigation_replay_error"]=label(type(exc).__name__)
                     if lane in ("pc","sp","auxiliary"):
                         try:
                             spec=importlib.util.spec_from_file_location("trusted_adaptive_repair",Path(reader)/"diagnostics/kyoto_adaptive_repair.py")
@@ -485,6 +514,10 @@ def write_report(report,out):
             lines.append(f"  - 再現: {i['diagnostic_action']} → 修正: {i['repair_direction']} → 検証: {i['required_regression']}")
         for r in m.get("adaptive_repair_replay",[]):
             lines.append(f"- 自動修復再検証: {r['stage']} / {r['state']} / 原本 {r.get('source_sha256','UNKNOWN')} / 規則 {r.get('rule_sha256','UNKNOWN')} / {r.get('error_code','')}")
+        if "postrace_navigation_replay" in m:
+            lines.append(f"- 夜間原本の自動修復候補: {len(m['postrace_navigation_replay'])} 件（実原本再解析・次回は新規ページで再照合、取得成功認定なし）")
+        if m.get("postrace_navigation_replay_error"):
+            lines.append("- 夜間原本の再解析失敗: "+m["postrace_navigation_replay_error"])
         if m.get("adaptive_repair_replay_error"):
             lines.append("- 自動修復再検証自体が失敗: "+m["adaptive_repair_replay_error"])
         if m.get("source_acquisition_state")=="PRODUCER_NOT_EXECUTED_SKIP_REASON_UNVERIFIED":
@@ -495,7 +528,7 @@ def write_report(report,out):
     lines.append("\n全項目の証拠・レース別状態・原本ハッシュは同診断実行の report.json。次回前に再現・修正・検証・本番再照合の証拠を追記する。")
     (out/"summary.md").write_text("\n".join(lines)+"\n",encoding="utf-8")
 def main():
-    p=argparse.ArgumentParser();p.add_argument("--run-id",type=int,required=True);p.add_argument("--reader",required=True);p.add_argument("--cushion-reader",required=True);p.add_argument("--out",required=True);a=p.parse_args()
+    p=argparse.ArgumentParser();p.add_argument("--run-id",type=int,required=True);p.add_argument("--reader",required=True);p.add_argument("--cushion-reader",required=True);p.add_argument("--postrace-reader");p.add_argument("--out",required=True);a=p.parse_args()
     if a.run_id<=0 or os.environ.get("GITHUB_REPOSITORY")!=REPO:raise ValueError("repository_or_run_invalid")
-    write_report(diagnose_run(a.run_id,a.reader,a.cushion_reader),a.out)
+    write_report(diagnose_run(a.run_id,a.reader,a.cushion_reader,a.postrace_reader),a.out)
 if __name__=="__main__":main()

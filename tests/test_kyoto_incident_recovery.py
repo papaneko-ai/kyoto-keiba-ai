@@ -25,6 +25,19 @@ class IncidentRecoveryTests(unittest.TestCase):
    r=Path(d);self.put(r,"receipt.json",{"day":"20261129","state":"SOURCE_ONLY_FINISHED"})
    v=inspect_source(r,"20261129","postrace")
    self.assertFalse(v["source_claims_independently_certified"]);self.assertEqual(len(v["incidents"]),1)
+ def test_postrace_navigation_rejection_is_not_unknown_or_success(self):
+  with tempfile.TemporaryDirectory() as d:
+   root=Path(d);reason="PostraceRejected:missing_or_ambiguous_observed_navigation"
+   self.put(root,"receipt.json",{"day":"20261128","results_meeting_state":"ORIGINAL_OBSERVED_NOT_FINAL_PROOF","payout_meeting_state":reason,"races":{str(n):{"state":"RESULT_SOURCE_OR_PARSE_FAILED","reason":reason} for n in range(1,13)}})
+   self.put(root,"results_meeting.html",b"original")
+   self.put(root,"payout_menu.html",b"original")
+   v=inspect_source(root,"20261128","postrace")
+   self.assertEqual(v["incidents"][0]["code"],"POSTRACE_OBSERVED_NAVIGATION_REJECTED")
+   self.assertEqual(v["stages"][0]["observations"]["navigation_rejected_races"],list(range(1,13)))
+   self.assertTrue(v["stages"][0]["observations"]["payout_navigation_rejected"])
+   self.assertFalse(v["incidents"][0]["root_cause_closed"])
+   self.assertFalse(v["source_claims_independently_certified"])
+   self.assertTrue(label(reason+":private").startswith("UNCLASSIFIED_TEXT_SHA256_"))
  def test_no_secret_or_url_in_error(self):
   for x in ("https://private.invalid/key","A"*64,"token=private"):
    self.assertNotIn(x,label(x));self.assertTrue(label(x).startswith("UNCLASSIFIED_TEXT_SHA256_"))

@@ -70,12 +70,17 @@ jobs:
           ref: '47cd7f9e881aa989b9f932373cfaf5278dea223a'
           path: trusted-cushion-reader
           persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          ref: '5a16e23d0f2148581dbe0b965d4672b22735602e'
+          path: trusted-postrace-reader
+          persist-credentials: false
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11.18'
       - run: python -m pip install --no-deps beautifulsoup4==4.15.0 soupsieve==4.1.3 typing-extensions==4.16.0 cryptography==46.0.7 cffi==2.1.1 pycparser==3.12
       - name: Reopen exact authenticated source artifacts without source HTTP
-        run: python -m diagnostics.kyoto_incident_recovery --run-id "$SOURCE_RUN_ID" --reader trusted-reader --cushion-reader trusted-cushion-reader --out incident
+        run: python -m diagnostics.kyoto_incident_recovery --run-id "$SOURCE_RUN_ID" --reader trusted-reader --cushion-reader trusted-cushion-reader --postrace-reader trusted-postrace-reader --out incident
       - uses: actions/upload-artifact@v4
         with:
           name: kyoto-incident-recovery
