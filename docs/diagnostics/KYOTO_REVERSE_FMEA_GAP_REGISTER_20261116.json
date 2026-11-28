@@ -1242,7 +1242,7 @@
     "diagnostics/jra_source_router.py": "d7eae104adecd60374ac0b6cc9ee622f9e47df95",
     "diagnostics/kyoto_p1_nov14_official_one_shot_nav.py": "0aa2e6e53cb78f317d77c001ce55e101f45b8c50",
     "diagnostics/kyoto_safe_stop_artifact.py": "01532bc0c3386039988f1430713fdf833544490b",
-    "diagnostics/kyoto_g03_all_races.py": "95627b29dbb71e528a93008484914943ae918c74",
+    "diagnostics/kyoto_g03_all_races.py": "8a297f07cdc42efd86f59124ed315f414c48ae7a",
     "diagnostics/kyoto_g03_weekend_bridge.py": "5f3e4011f84738a057520434ad83351a7d3e0d27",
     "diagnostics/kyoto_g04_all_horse_profiles.py": "c3db006adc1d88353a55ea18ccaf8c965d42c92f",
     "diagnostics/jra_pending_profile_plan.py": "eab63366494467f5b52d070c1773436bdca2d398",
@@ -1782,5 +1782,17 @@
       }
     ],
     "reason": "Unseen literal navigation recovery: bounded candidate search, independent lexical/structural agreement, immutable raw evidence and recomputation. No certification of unresolved risks."
+  },
+  "impl37_both_days_aux_reopen": {
+    "prior_ledger_blob": "f2520385b3c77f5a45c0f9de7115f3482ebf9d0d",
+    "sources": [
+      {
+        "source": "diagnostics/kyoto_g03_all_races.py",
+        "old_blob": "95627b29dbb71e528a93008484914943ae918c74",
+        "new_blob": "8a297f07cdc42efd86f59124ed315f414c48ae7a",
+        "review_status": "UNREVIEWED_INDEPENDENT_FMEA",
+        "closed_risks": 0
+      }
+    ]
   }
 }

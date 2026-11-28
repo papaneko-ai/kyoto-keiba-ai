@@ -18,7 +18,7 @@ def links(original, parent, day):
     """
     if not re.fullmatch(r"20\d{6}",day): raise G03Error("invalid_day")
     parent_parts=urlsplit(parent)
-    allowed_hosts=("jra.jp","www.jra.go.jp") if day=="20261129" else ("jra.jp",)
+    allowed_hosts=("jra.jp","www.jra.go.jp") if day in ("20261128","20261129") else ("jra.jp",)
     if parent_parts.scheme!="https" or parent_parts.hostname not in allowed_hosts or parent_parts.path!="/JRADB/accessD.html" or parent_parts.port is not None or parent_parts.username or parent_parts.password or parent_parts.fragment:
         raise G03Error("untrusted_meeting")
     soup=BeautifulSoup(original.decode("cp932",errors="replace"),"html.parser")
