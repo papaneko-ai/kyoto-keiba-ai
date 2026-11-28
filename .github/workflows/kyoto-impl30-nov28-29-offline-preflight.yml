@@ -71,7 +71,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          python -m unittest -v tests.test_kyoto_impl32_auxiliary_track_reserve tests.test_kyoto_impl31_auxiliary_priority tests.test_kyoto_impl31_independent_track_union tests.test_kyoto_impl31_incident_triage tests.test_kyoto_impl31_launch_monitor tests.test_kyoto_impl31_launch_slot_contract tests.test_kyoto_impl31_sp_saved_roster_audit tests.test_kyoto_impl32_sp_handoff tests.test_kyoto_impl32_real_sp_variants tests.test_kyoto_impl32_interrupted_stages tests.test_kyoto_impl32_no_source_certainty 2>&1 | tee impl30_preflight/impl31_32_delta.log
+          python -m unittest -v tests.test_kyoto_impl39_aux_gap_recovery tests.test_kyoto_impl32_auxiliary_track_reserve tests.test_kyoto_impl31_auxiliary_priority tests.test_kyoto_impl31_independent_track_union tests.test_kyoto_impl31_incident_triage tests.test_kyoto_impl31_launch_monitor tests.test_kyoto_impl31_launch_slot_contract tests.test_kyoto_impl31_sp_saved_roster_audit tests.test_kyoto_impl32_sp_handoff tests.test_kyoto_impl32_real_sp_variants tests.test_kyoto_impl32_interrupted_stages tests.test_kyoto_impl32_no_source_certainty 2>&1 | tee impl30_preflight/impl31_32_delta.log
       - name: Existing foreseeable failure and reverse FMEA gates
         shell: bash
         run: |

@@ -3,7 +3,7 @@
 Existing morning 8 slots, PC/SP collector and database remain unchanged.
 Only observed current-day official links. Previously authenticated schedule
 evidence prioritizes races approaching start; missing schedule is not a veto.
-No profile or historical-result re-fetch. Encrypted originals, not model inputs.
+Nov29: bounded missing-market/profile recovery after the existing refresh. Encrypted originals, not model inputs.
 """
 import argparse,json,os,re,tempfile,time,subprocess
 from datetime import datetime,timedelta,timezone
@@ -177,11 +177,20 @@ def main():
         raise ValueError("auxiliary_live_window_or_authorization")
     # Use the latest authenticated morning slot, but do not block live work
     # merely because it was not available. All HTTP still follows fresh links.
-    starts=prior_starts(day,repo,key)
+    from diagnostics.kyoto_impl39_aux_gap_recovery import load_prior,RecoveryTransport,repair
+    recovery_enabled=day=="20261129"
+    prior=load_prior(day,repo,key,rid) if recovery_enabled else None
+    starts=prior["starts"] if recovery_enabled else prior_starts(day,repo,key)
     client=build_opener(NoRedirect(),HTTPCookieProcessor(CookieJar()))
-    fetch,state=bounded_auxiliary_fetch(client,within)
+    pacer=RequestPacer(min_gap_seconds=2.0)
+    start=time.monotonic()
+    fetch,state=bounded_auxiliary_fetch(client,within,pacer=pacer)
     with tempfile.TemporaryDirectory(prefix="kyoto_aux_refresh_") as d:
         root=Path(d)/"raw";report=collect(root,day=day,starts=starts,fetch=fetch,clock=lambda:now().isoformat(),public_form_navigation=day in DAYS)
+        if recovery_enabled:
+            transport=RecoveryTransport(client,within,pacer,state,start=start)
+            report["gap_recovery"]=repair(root,day=day,prior=prior,transport=transport,clock=lambda:now().isoformat())
+            (root/"receipt.json").write_text(json.dumps(report,ensure_ascii=False,sort_keys=True,indent=2)+"\n",encoding="utf8")
         encrypt_evidence(root,a.out,key_hex=key,repo=repo,run_id=rid)
     print(json.dumps({"verified_races":report["verified_races"],"observed_field_values":report.get("observed_field_values",0),"http_requests":state["requests"],"source_only":True},sort_keys=True))
 
