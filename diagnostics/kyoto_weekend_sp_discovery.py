@@ -10,7 +10,7 @@ import re
 import time
 from datetime import datetime, timezone
 from pathlib import Path
-from urllib.parse import parse_qs, urljoin, urlsplit
+from urllib.parse import parse_qs, urljoin, urlsplit, urlencode
 from urllib.request import Request, build_opener
 from urllib.error import HTTPError, URLError
 
@@ -117,6 +117,7 @@ def discover(root, *, day, opener=None, pacer=None):
     # saved official page anchor bytes; no guessed CNAME or PC-derived URL.
     queue=[SEED]
     visited=set()
+    post_actions={}
     log=[]
     matched=set()
     stop_followup=False
@@ -140,8 +141,13 @@ def discover(root, *, day, opener=None, pacer=None):
         visited.add(url)
         throttle.before_request()
         stamp=datetime.now(timezone.utc).isoformat()
-        request=Request(url,method="GET",headers={
-            "Accept":"text/html","User-Agent":"KyotoRaceAI-Private-ReadOnly/0.1"})
+        action=post_actions.get(url)
+        headers={"Accept":"text/html","User-Agent":"KyotoRaceAI-Private-ReadOnly/0.1"}
+        if action:
+            headers.update({"Content-Type":"application/x-www-form-urlencoded","Referer":action[1]})
+        request=Request(action[0] if action else url,
+            data=urlencode({"cname":action[2]}).encode("ascii") if action else None,
+            method="POST" if action else "GET",headers=headers)
         try:
             with client.open(request,timeout=12) as response:
                 raw=response.read(LIMIT+1)
@@ -166,7 +172,7 @@ def discover(root, *, day, opener=None, pacer=None):
                 queue=[OFFICIAL_OBSERVED_NOV22_R1]
                 continue
             break
-        if status!=200 or actual!=url or "html" not in ctype.lower() or not 0<len(raw)<=LIMIT:
+        if status!=200 or actual!=(action[0] if action else url) or "html" not in ctype.lower() or not 0<len(raw)<=LIMIT:
             log.append({"url":url,"request_started_at_utc":stamp,
                         "state":"HTTP_RESPONSE_REJECTED"})
             if day in ("20261128","20261129"):
@@ -183,8 +189,23 @@ def discover(root, *, day, opener=None, pacer=None):
         (root/name).write_bytes(raw)
         digest=hashlib.sha256(raw).hexdigest()
         log.append({"url":url,"captured_at_utc":datetime.now(timezone.utc).isoformat(),
-                    "sha256":digest,"bytes":len(raw),"file":name})
+                    "sha256":digest,"bytes":len(raw),"file":name,**({"request_method":"POST","observed_action_path":action[0]} if action else {})})
         anchors=official_sp_anchors(raw,url,day)
+        # Nov28 authenticated homepage contains a POST form and literal
+        # doAction('/JRADB/accessD.html','sw01dli00/80'). Follow only the
+        # exact observed entry action, never execute JavaScript or guess tokens.
+        if day in ("20261128","20261129") and url==SEED:
+            soup=BeautifulSoup(raw,"html.parser")
+            forms=[f for f in soup.select("form") if str(f.get("method","")).lower()=="post" and f.select_one('input[name="cname"]')]
+            if len(forms)==1:
+                for a in soup.select("a[onclick]"):
+                    m=re.fullmatch(r"\s*return\s+doAction\(\s*['\"](/JRADB/accessD\.html)['\"]\s*,\s*['\"](sw01dli00/[A-Za-z0-9]{2})['\"]\s*\)\s*;?\s*",a["onclick"])
+                    if not m or "出馬表" not in a.get_text(" ",strip=True): continue
+                    target=urljoin(SEED,m.group(1))
+                    # The internal queue key is not sent as a GET.
+                    key=target+"?"+urlencode({"CNAME":m.group(2)})
+                    post_actions[key]=(target,SEED,m.group(2))
+                    if key not in visited and key not in queue: queue.append(key)
         # Record every independently observed Kyoto race anchor, including
         # ambiguous races, without fetching or certifying it.
         for number,urls in observed_kyoto_race_candidates(raw,url,day).items():
