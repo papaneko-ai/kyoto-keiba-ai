@@ -7,6 +7,7 @@ Missing or inconsistent evidence preserves baseline; no acquisition veto.
 """
 import argparse,hashlib,hmac,json,os,re,subprocess,tempfile,time
 from pathlib import Path
+from diagnostics.kyoto_impl25_c12_all_runs_handoff import run_name_matches
 
 SOURCE_DAY="20261128"
 TARGET_DAY="20261129"
@@ -56,7 +57,7 @@ def recover_from_metadata(api, repo):
     ids=[r["id"] for r in runs]
     if any(type(i) is not int or i<=0 for i in ids) or len(set(ids))!=len(ids):
         raise ValueError("invalid_observer_run_identity")
-    eligible=[r for r in runs if r.get("name")==OBSERVER_NAME
+    eligible=[r for r in runs if run_name_matches(r,OBSERVER_NAME,OBSERVER,SOURCE_DAY)
               and r.get("created_at","")[:10]=="2026-11-28"
               and (r.get("event")=="schedule" or (r.get("event")=="workflow_dispatch" and r.get("head_branch")=="main"))
               and r.get("status")=="completed"
@@ -226,7 +227,7 @@ def recover(day,*,repo,collector_sha,key,monotonic=time.monotonic):
         if index["total_count"]!=len(runs) or len(runs)>100 or len({r["id"] for r in runs})!=len(runs):raise ValueError("incomplete_run_index")
         def same_workflow(r):
             return (type(r.get("id")) is int and r["id"]>0
-                    and r.get("name")==NAME and r.get("created_at","")[:10]=="2026-11-28"
+                    and run_name_matches(r,NAME,WORKFLOW,SOURCE_DAY) and r.get("created_at","")[:10]=="2026-11-28"
                     and r.get("head_repository",{}).get("full_name")==repo
                     and r.get("path","").split("@",1)[0]==".github/workflows/"+WORKFLOW)
         scheduled=[r for r in runs if same_workflow(r) and r.get("event")=="schedule"]
