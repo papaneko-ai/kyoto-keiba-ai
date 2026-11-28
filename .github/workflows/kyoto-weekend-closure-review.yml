@@ -68,7 +68,7 @@ jobs:
           persist-credentials: false
       - uses: actions/checkout@v4
         with:
-          ref: '39b9d79c39b986b1b01775957e6a6f93adc29dbc'
+          ref: 'ba7d5bb4c05698dfb92119460b45e730b5eb512b'
           path: trusted-reader
           persist-credentials: false
       - uses: actions/setup-python@v5

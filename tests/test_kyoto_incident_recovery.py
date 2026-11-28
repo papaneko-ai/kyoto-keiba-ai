@@ -98,4 +98,37 @@ class IncidentRecoveryTests(unittest.TestCase):
     self.assertFalse(lane["artifact_authenticated"])
     self.assertEqual(lane["incidents"][0]["stage"],"ARCHIVE")
     self.assertEqual(lane["artifact_evidence"]["job_conclusion"],conclusion)
+ def test_track_failure_receipt_does_not_count_as_observed(self):
+  import hashlib
+  with tempfile.TemporaryDirectory() as d:
+   root=Path(d);day="20261129";raw=b"original"
+   self.put(root,"receipt.json",{"day":day,"verified_races":[10,11],"observed_field_values":0})
+   self.put(root,"g05_receipt.json",{"day":day})
+   self.put(root,"g05_official_kyoto_track.html",raw)
+   track={"day":day,"schema":"kyoto_g05_track_failure.v1","state":"TRACK_PARSE_FAILED","error_class":"G05TrackRejected","source_sha256":hashlib.sha256(raw).hexdigest(),"bytes":len(raw)}
+   for lane,name in (("pc","G05"),("auxiliary","AUXILIARY")):
+    self.put(root,"g05_track_receipt.json",track)
+    result=inspect_source(root,day,lane)
+    self.assertEqual(next(i for i in result["incidents"] if i["stage"]==name)["code"],"G05TrackRejected")
+    self.assertFalse(next(i for i in result["stages"] if i["stage"]==name)["observations"]["track_original_bound_observation"])
+    self.put(root,"g05_track_receipt.json",{**track,"state":"TRACK_FETCH_FAILED","error_code":"HTTP_STATUS_403","http_status":403})
+    result=inspect_source(root,day,lane)
+    self.assertEqual(next(i for i in result["incidents"] if i["stage"]==name)["code"],"HTTP_STATUS_403")
+    self.assertFalse(result["source_claims_independently_certified"])
+ def test_track_original_bound_observation_still_distinct_from_certification(self):
+  import hashlib
+  with tempfile.TemporaryDirectory() as d:
+   root=Path(d);day="20261129";raw=b"original"
+   self.put(root,"receipt.json",{"day":day,"verified_races":[10,11]})
+   self.put(root,"g05_receipt.json",{"day":day})
+   self.put(root,"g05_official_kyoto_track.html",raw)
+   doc={"schema":"kyoto_g05_kyoto_track.v1","day":day,"source_url":"https://www.jra.go.jp/keiba/baba/index2.html","source_sha256":hashlib.sha256(raw).hexdigest(),"bytes":len(raw),"same_day_official_meeting_heading_verified":True,"weather":"晴"}
+   self.put(root,"g05_track_receipt.json",doc)
+   for lane,name in (("pc","G05"),("auxiliary","AUXILIARY")):
+    v=inspect_source(root,day,lane)
+    self.assertEqual(next(i for i in v["stages"] if i["stage"]==name)["state"],"OBSERVED_NOT_CERTIFIED")
+    self.assertFalse(v["source_claims_independently_certified"])
+   for bad in ({**doc,"same_day_official_meeting_heading_verified":False},{**doc,"source_sha256":"a"*64},{**doc,"weather":None}):
+    self.put(root,"g05_track_receipt.json",bad)
+    self.assertEqual(inspect_source(root,day,"auxiliary")["incidents"][0]["stage"],"AUXILIARY")
 if __name__=="__main__":unittest.main()
