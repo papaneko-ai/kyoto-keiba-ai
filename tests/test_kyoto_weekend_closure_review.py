@@ -1,14 +1,14 @@
 import copy,unittest
 from datetime import datetime,timezone
-from diagnostics.kyoto_weekend_closure_review import index,slots,coverage_gaps,REPO,PREFIX,FAMILIES,HORSE,TRACK,MARKETS
+from diagnostics.kyoto_weekend_closure_review import index,slots,coverage_gaps,REPO,PREFIX,FAMILIES,HORSE,TRACK,MARKETS,EXTRA
 DAY="20261129";FILE="two-source-production-observer.yml";NOW=datetime(2026,11,29,14,tzinfo=timezone.utc)
 def run(rid=1,event="schedule",title="kyoto-native:15 0 29 11 *"):
  return {"id":rid,"event":event,"name":title,"head_repository":{"full_name":REPO},"head_branch":"main","path":PREFIX+FILE,"head_sha":"a"*40,"created_at":"2026-11-29T00:17:00Z","status":"completed","conclusion":"success"}
 def data():
  def proof(after=False):
   return {"state":"SOURCE_VERIFIED","run_id":"1","utc":"2026-11-29T10:00:00Z" if after else "2026-11-29T00:00:00Z","sha256":"a"*64,"value_digest":"b"*64}
- r={"state":"ROSTER_VERIFIED","roster_digest":"a"*64,"named_roster_digest":"b"*64,"start_utc":"2026-11-29T05:00:00Z","racecard":proof(),"horses":{str(n):{f:proof() for f in HORSE} for n in (1,2)},"track":{f:proof() for f in TRACK},"markets":{f:{**proof(),"cancelled_horses":[]} for f in MARKETS},"paired_same_slot":True,"postrace":{"state":"DUAL_PAGE_FINAL_SOURCE_RECONCILED","result":proof(True),"payout":proof(True)}}
- return {"schema":"kyoto_impl30_day_source_coverage.v1","day":DAY,"races":{str(n):copy.deepcopy(r) for n in range(1,13)}}
+ r={"state":"ROSTER_VERIFIED","roster_digest":"a"*64,"named_roster_digest":"b"*64,"start_utc":"2026-11-29T05:00:00Z","racecard":proof(),"horses":{str(n):{f:proof() for f in HORSE} for n in (1,2)},"track":{f:proof() for f in TRACK},"supplementary_track_observations":{f:proof() for f in EXTRA},"markets":{f:{**proof(),"cancelled_horses":[]} for f in MARKETS},"paired_same_slot":True,"postrace":{"state":"DUAL_PAGE_FINAL_SOURCE_RECONCILED","run_id":"1","result":proof(True),"payout":proof(True)}}
+ return {"schema":"kyoto_impl30_day_source_coverage.v1","day":DAY,"race_denominator":12,"postrace_history_index_complete":True,"races":{str(n):copy.deepcopy(r) for n in range(1,13)}}
 class ClosureTests(unittest.TestCase):
  def test_exact_native_slots_not_inferred_from_dispatch_count(self):
   rs=[run()]+[run(i,"workflow_dispatch","workflow_dispatch") for i in (2,3,4)]
@@ -21,27 +21,42 @@ class ClosureTests(unittest.TestCase):
   for bad in ({"total_count":3,"workflow_runs":rs},{"total_count":2,"workflow_runs":[run(),run()]},{"total_count":1,"workflow_runs":[{**run(),"head_branch":"other"}]}):
    with self.assertRaises(ValueError):index(DAY,FILE,bad)
  def test_every_required_family_mutation(self):
-  d=data();v=coverage_gaps(DAY,d);self.assertTrue(v["all_reviewed_cells_present"]);self.assertFalse(v["full_acquisition_certified"])
+  d=data();v=coverage_gaps(DAY,d,[1,2]);self.assertTrue(v["all_reviewed_cells_present"]);self.assertFalse(v["full_acquisition_certified"])
   for f in FAMILIES:
    d=data();r=d["races"]["1"]
    if f=="racecard":r[f]={}
    elif f in HORSE:r["horses"]["1"][f]={}
    elif f in TRACK:r["track"][f]={}
    elif f in MARKETS:r["markets"][f]={}
+   elif f in EXTRA:r["supplementary_track_observations"][f]={}
    elif f=="paired_market_same_slot":r["paired_same_slot"]=False
    else:r["postrace"]["result" if f=="official_result" else "payout"]={}
-   v=coverage_gaps(DAY,d);self.assertFalse(v["all_reviewed_cells_present"],f);self.assertLess(v["counts"][f]["verified"],v["counts"][f]["expected"],f)
+   v=coverage_gaps(DAY,d,[1,2]);self.assertFalse(v["all_reviewed_cells_present"],f);self.assertLess(v["counts"][f]["verified"],v["counts"][f]["expected"],f)
  def test_green_summary_not_accepted_unknown_denominator_and_conflict(self):
   d=data();d["full_data_acquisition_certified"]=True;d["races"]["1"]={"state":"ROSTER_OR_START_CONFLICT"}
-  v=coverage_gaps(DAY,d);self.assertEqual(v["counts"]["profile"]["unknown_denominator_races"],1);self.assertFalse(v["all_reviewed_cells_present"])
+  v=coverage_gaps(DAY,d,[1,2]);self.assertEqual(v["counts"]["profile"]["unknown_denominator_races"],1);self.assertFalse(v["all_reviewed_cells_present"])
  def test_wrong_day_and_poststart_source(self):
   for utc in ("2026-11-28T00:00:00Z","2026-11-29T05:00:00Z","2026-11-29T05:01:00Z"):
    d=data();d["races"]["1"]["racecard"]["utc"]=utc
-   self.assertFalse(coverage_gaps(DAY,d)["all_reviewed_cells_present"])
+   self.assertFalse(coverage_gaps(DAY,d,[1,2])["all_reviewed_cells_present"])
  def test_pair_different_run(self):
   d=data();d["races"]["1"]["markets"]["quinella"]["run_id"]="2"
-  self.assertEqual(coverage_gaps(DAY,d)["counts"]["paired_market_same_slot"]["verified"],11)
+  self.assertEqual(coverage_gaps(DAY,d,[1,2])["counts"]["paired_market_same_slot"]["verified"],11)
+ def test_missing_origin_and_cancellation_proof(self):
+  for bad in ("99",None):
+   d=data();d["races"]["1"]["racecard"]["run_id"]=bad
+   self.assertEqual(coverage_gaps(DAY,d,[1,2])["counts"]["racecard"]["verified"],11)
+  d=data();del d["races"]["1"]["markets"]["quinella"]["cancelled_horses"];del d["races"]["1"]["markets"]["bracket_quinella"]["cancelled_horses"]
+  self.assertEqual(coverage_gaps(DAY,d,[1,2])["counts"]["paired_market_same_slot"]["verified"],11)
+  d=data();d["postrace_history_index_complete"]=False
+  self.assertEqual(coverage_gaps(DAY,d,[1,2])["counts"]["official_payout"]["verified"],0)
+ def test_workout_two_previous_utc_date_slots_and_failed_run(self):
+  v=slots(DAY,"workout-source.yml",[],NOW)
+  self.assertEqual([x["due_utc"] for x in v],["2026-11-28T11:30:00+00:00","2026-11-28T22:30:00+00:00"])
+  r=run();r["conclusion"]="failure"
+  v=slots(DAY,FILE,index(DAY,FILE,{"total_count":1,"workflow_runs":[r]}),NOW)
+  self.assertEqual(v[0]["state"],"NATIVE_RUN_UNSUCCESSFUL")
  def test_incomplete_race_inventory(self):
   d=data();del d["races"]["12"]
-  with self.assertRaises(ValueError):coverage_gaps(DAY,d)
+  with self.assertRaises(ValueError):coverage_gaps(DAY,d,[1,2])
 if __name__=="__main__":unittest.main()

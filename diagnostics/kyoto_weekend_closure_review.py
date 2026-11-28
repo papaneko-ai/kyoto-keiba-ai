@@ -14,7 +14,8 @@ SCHEDULE={
  "two-source-production-observer.yml":lambda d:("15 0","15 1","5 2","50 2") if d=="20261128" else ("15 0","15 1","10 2","55 2"),
  "auxiliary-refresh.yml":lambda d:("30 3","30 4","30 5","30 6"),
  "postrace-evidence.yml":lambda d:("0 10","0 13"),
- "result-handoff.yml":lambda d:("0 12",)}
+ "result-handoff.yml":lambda d:("0 12",),
+ "workout-source.yml":lambda d:("30 11","30 22")}
 LANES={"two-source-production-observer.yml":("pc","sp"),"auxiliary-refresh.yml":("auxiliary",),
  "postrace-evidence.yml":("postrace",),"result-handoff.yml":("handoff","cushion-day"),
  "workout-source.yml":("workout",),"cushion-source.yml":("cushion",)}
@@ -23,6 +24,8 @@ FAMILIES=("racecard","profile","prior_form","body_weight_kg","body_weight_change
 HORSE=FAMILIES[1:6]
 TRACK=FAMILIES[6:9]
 MARKETS=FAMILIES[9:11]
+EXTRA=("turf_moisture_finish_pct","turf_moisture_turn4_pct","dirt_moisture_finish_pct","dirt_moisture_turn4_pct")
+FAMILIES=FAMILIES+EXTRA
 RACES=tuple(str(n) for n in range(1,13))
 def canon(obj):return json.dumps(obj,sort_keys=True,ensure_ascii=True,separators=(",",":"),allow_nan=False).encode()
 def digest(raw):return hashlib.sha256(raw).hexdigest()
@@ -55,28 +58,31 @@ def slots(day,filename,runs,now):
     for cron in SCHEDULE[filename](day):
         minute,hour=map(int,cron.split())
         due=datetime(int(day[:4]),int(day[4:6]),int(day[6:]),hour,minute,tzinfo=timezone.utc)
-        title=f"kyoto-native:{cron} {day[-2:]} 11 *"
+        if filename=="workout-source.yml":due-=timedelta(days=1)
+        title=f"kyoto-native:{cron} {due.day} 11 *"
         exact=[r for r in runs if r["event"]=="schedule" and r["native_title"]==title]
         # Dispatches cannot be guessed to correspond to an exact slot.
-        state="NOT_DUE" if now<due else "NATIVE_SLOT_NOT_OBSERVED" if not exact else "NATIVE_SLOT_AMBIGUOUS" if len(exact)!=1 else "NATIVE_RUN_UNFINISHED" if exact[0]["status"]!="completed" else "NATIVE_RUN_COMPLETED"
+        state="NOT_DUE" if now<due else ("NATIVE_SLOT_GRACE" if now<due+timedelta(minutes=25) else "NATIVE_SLOT_NOT_OBSERVED") if not exact else "NATIVE_SLOT_AMBIGUOUS" if len(exact)!=1 else "NATIVE_RUN_UNFINISHED" if exact[0]["status"]!="completed" else "NATIVE_RUN_COMPLETED" if exact[0]["conclusion"]=="success" else "NATIVE_RUN_UNSUCCESSFUL"
         out.append({"cron":title[13:],"due_utc":due.isoformat(),"state":state,"run_ids":[r["id"] for r in exact],
                     "late_seconds":max(0,int((stamp(exact[0]["created_at"])-due).total_seconds())) if len(exact)==1 else None})
     return out
-def proof_ok(value,cutoff,day,after=False):
+def proof_ok(value,cutoff,day,allowed,after=False):
     try:
         utc=stamp(value["utc"])
-        return value.get("state") in (None,"SOURCE_VERIFIED") and is_sha(value["sha256"]) and is_sha(value["value_digest"]) and str(value.get("run_id","1")).isdigit() and utc.strftime("%Y%m%d")==day and (utc>cutoff if after else utc<cutoff)
+        return (after or value.get("state")=="SOURCE_VERIFIED") and is_sha(value["sha256"]) and is_sha(value["value_digest"]) and str(value.get("run_id")) in allowed and utc.strftime("%Y%m%d")==day and (utc>cutoff if after else utc<cutoff)
     except (TypeError,KeyError,ValueError,AttributeError):return False
-def coverage_gaps(day,coverage):
+def coverage_gaps(day,coverage,allowed_run_ids):
     """Compute missing cells from independently replayed aggregate, not totals."""
-    if coverage.get("day")!=day or coverage.get("schema")!="kyoto_impl30_day_source_coverage.v1" or set(coverage.get("races",{}))!=set(RACES):raise ValueError("coverage_identity_incomplete")
+    if coverage.get("day")!=day or coverage.get("schema")!="kyoto_impl30_day_source_coverage.v1" or coverage.get("race_denominator")!=12 or set(coverage.get("races",{}))!=set(RACES):raise ValueError("coverage_identity_incomplete")
+    allowed=set(map(str,allowed_run_ids))
     totals={f:{"expected":0,"verified":0,"unknown_denominator_races":0} for f in FAMILIES}
     detail=[]
     for race in RACES:
-        row=coverage["races"][race];missing=[]
-        def check(f,good,horse=None):
+        row=coverage["races"][race];missing=[];bound=[]
+        def check(f,good,horse=None,proof=None):
             t=totals[f];t["expected"]+=1;t["verified"]+=int(bool(good))
             if not good:missing.append({"family":f,**({"horse":horse} if horse else {})})
+            elif proof is not None:bound.append({"family":f,**({"horse":horse} if horse else {}),**{k:proof[k] for k in ("run_id","utc","sha256")}})
         try:
             cutoff=stamp(row["start_utc"])
             horses=row["horses"]
@@ -88,29 +94,50 @@ def coverage_gaps(day,coverage):
                 else:check(f,False)
             detail.append({"race":int(race),"state":"ROSTER_OR_START_UNPROVED","missing":missing,"unknown_horse_families":list(HORSE)})
             continue
-        check("racecard",proof_ok(row.get("racecard",{}),cutoff,day))
+        card=row.get("racecard",{})
+        check("racecard",proof_ok(card,cutoff,day,allowed),proof=card)
         for h in sorted(horses,key=int):
-            for f in HORSE:check(f,proof_ok(horses[h].get(f,{}),cutoff,day),h)
-        for f in TRACK:check(f,proof_ok(row.get("track",{}).get(f,{}),cutoff,day))
+            for f in HORSE:
+                v=horses[h].get(f,{})
+                check(f,proof_ok(v,cutoff,day,allowed),h,v)
+        for section,keys in (("track",TRACK),("supplementary_track_observations",EXTRA)):
+            for f in keys:
+                v=row.get(section,{}).get(f,{})
+                check(f,proof_ok(v,cutoff,day,allowed),proof=v)
         a,b=(row.get("markets",{}).get(f,{}) for f in MARKETS)
-        for f,v in zip(MARKETS,(a,b)):check(f,proof_ok(v,cutoff,day))
-        check("paired_market_same_slot",row.get("paired_same_slot") is True and proof_ok(a,cutoff,day) and proof_ok(b,cutoff,day) and bool(a.get("run_id")) and a.get("run_id")==b.get("run_id") and a.get("cancelled_horses")==b.get("cancelled_horses"))
+        for f,v in zip(MARKETS,(a,b)):check(f,proof_ok(v,cutoff,day,allowed),proof=v)
+        cancelled=a.get("cancelled_horses")
+        valid_cancel=isinstance(cancelled,list) and all(type(n) is int and str(n) in horses for n in cancelled) and len(set(cancelled))==len(cancelled)
+        check("paired_market_same_slot",row.get("paired_same_slot") is True and proof_ok(a,cutoff,day,allowed) and proof_ok(b,cutoff,day,allowed) and a.get("run_id")==b.get("run_id") and valid_cancel and cancelled==b.get("cancelled_horses"))
         p=row.get("postrace",{})
         for f,k in (("official_result","result"),("official_payout","payout")):
-            check(f,p.get("state")=="DUAL_PAGE_FINAL_SOURCE_RECONCILED" and proof_ok(p.get(k,{}),cutoff,day,True))
-        detail.append({"race":int(race),"state":"GAPS" if missing else "ALL_REVIEWED_CELLS_PRESENT","missing":missing})
+            v=p.get(k,{})
+            v={**v,"run_id":p.get("run_id")} if isinstance(v,dict) else {}
+            check(f,p.get("state")=="DUAL_PAGE_FINAL_SOURCE_RECONCILED" and coverage.get("postrace_history_index_complete") is True and proof_ok(v,cutoff,day,allowed,True),proof=v)
+        detail.append({"race":int(race),"state":"GAPS" if missing else "ALL_REVIEWED_CELLS_PRESENT","registered_horses":len(horses),"missing":missing,"bound_evidence":bound,"postrace_publication_only":p.get("state")=="DUAL_PAGE_OFFICIAL_PUBLISHED_PAYOUT"})
     return {"counts":totals,"races":detail,"all_reviewed_cells_present":all(t["expected"]==t["verified"] and not t["unknown_denominator_races"] for t in totals.values()),"full_acquisition_certified":False}
 def collect_metadata(day,now):
     date=f"{day[:4]}-{day[4:6]}-{day[6:]}"
     reports={};errors=[]
     for filename,lanes in LANES.items():
         try:
-            runs=index(day,filename,gh(f"actions/workflows/kyoto-20261128-29-{filename}/runs?created={date}&per_page=100"))
+            days=(str(int(day)-1),day) if filename=="workout-source.yml" else (day,)
+            runs=[]
+            for index_day in days:
+                iso=f"{index_day[:4]}-{index_day[4:6]}-{index_day[6:]}"
+                runs.extend(index(index_day,filename,gh(f"actions/workflows/kyoto-20261128-29-{filename}/runs?created={iso}&per_page=100")))
+            if len({r["id"] for r in runs})!=len(runs):raise ValueError("duplicate_run_id")
             for r in runs:
                 if r["status"]!="completed":continue
                 try:
                     d=gh(f"actions/runs/{r['id']}/artifacts?per_page=100")
                     if d["total_count"]!=len(d["artifacts"]):raise ValueError("artifact_index_incomplete")
+                    # Preview and next-day workout artifacts must not be
+                    # mistaken for the requested meeting or missing originals.
+                    if filename=="workout-source.yml":
+                        other=[x for x in d["artifacts"] if re.fullmatch(r"kyoto-workout-"+str(r["id"])+r"-20[0-9]{6}",x.get("name","")) and x["name"]!=f"kyoto-workout-{r['id']}-{day}"]
+                        if other and not any(x.get("name")==f"kyoto-workout-{r['id']}-{day}" for x in d["artifacts"]):
+                            r["other_target_day_artifact_ids"]=[x["id"] for x in other];continue
                     # Include exact artifact IDs even for expired or missing originals.
                     r["artifacts"]={}
                     for lane in lanes:
@@ -125,6 +152,8 @@ def collect_metadata(day,now):
     return reports,errors
 def review(day,now,out):
     metadata,errors=collect_metadata(day,now)
+    out=Path(out);out.mkdir(parents=True,exist_ok=True)
+    (out/"metadata_checkpoint.json").write_bytes(canon({"day":day,"workflows":metadata,"errors":errors})+b"\n")
     report={"schema":"kyoto_weekend_closure_review.v1","day":day,"observed_utc":now.isoformat(),"workflow_index_errors":errors,"workflows":metadata,
        "new_source_http_requests":0,"full_acquisition_certified":False,"all_risks_closed":False}
     # Reuse production's authenticated PC/auxiliary/market/result replay, not
@@ -152,9 +181,11 @@ def review(day,now,out):
                 history=replay_history(raw,day=day,repo=REPO,key=key,current_run=str(rid),roster=roster,starts=starts)
                 coverage=include_postrace(coverage,history,roster=roster,starts=starts)
                 report["postrace_history_index_complete"]=history["prior_artifact_index_complete"]
-        report["coverage"]=coverage_gaps(day,coverage)
+        allowed={r["id"] for filename,lane in (("two-source-production-observer.yml","pc"),("auxiliary-refresh.yml","auxiliary"),("postrace-evidence.yml","postrace")) for r in metadata[filename]["runs"] if r.get("artifacts",{}).get(lane,{}).get("state")=="PRESENT"}
+        report["coverage"]=coverage_gaps(day,coverage,allowed)
     except Exception as exc:
         report["coverage_replay_error"]=type(exc).__name__
+        report["coverage"]={"counts":{},"races":[{"race":n,"state":"NOT_EVALUATED","missing":[{"family":"day_coverage_unavailable"}],"unknown_horse_families":list(HORSE)} for n in range(1,13)],"all_reviewed_cells_present":False,"full_acquisition_certified":False}
     report["release_state"]="REPAIR_REQUIRED_OR_INDEPENDENT_CERTIFICATION_PENDING"
     out=Path(out);out.mkdir(parents=True,exist_ok=True)
     raw=canon(report);(out/"review.json").write_bytes(raw+b"\n")
@@ -163,6 +194,7 @@ def review(day,now,out):
         missing=[s for s in v["native_slots"] if s["state"] not in ("NOT_DUE","NATIVE_RUN_COMPLETED")]
         gaps=[(r["id"],k) for r in v["runs"] for k,a in r.get("artifacts",{}).items() if a["state"]!="PRESENT"]
         summary.append(f"- {name}: index={v['index_complete']}, runs={len(v['runs'])}, native gaps={[(s['cron'],s['state']) for s in missing]}, artifact gaps={gaps}")
+    if "coverage_replay_error" in report:summary.append("- 原本再検証未完: "+report["coverage_replay_error"])
     if "coverage" in report:
         for f,t in report["coverage"]["counts"].items():summary.append(f"- {f}: {t['verified']}/{t['expected']} (unknown denominator races={t['unknown_denominator_races']})")
         for r in report["coverage"]["races"]:
