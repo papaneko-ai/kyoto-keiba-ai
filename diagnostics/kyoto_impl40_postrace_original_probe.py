@@ -45,5 +45,13 @@ def main():
                     b=re.split(r"/|%2[Ff]",token)[0]
                     if DAY in b:shapes.append({"tag":node.name,"body":b,"has_kyoto":"京都" in node.get_text(" ",strip=True)})
             result["files"][name]={"sha256":meta["sha256"],"origin":origin,"actions":rows[:80],"other_token_shapes":shapes[:100],"count":len(rows)}
-        print("POSTRACE_ORIGINAL_PROBE="+json.dumps(result,ensure_ascii=True,sort_keys=True,separators=(",",":")))
+        from diagnostics.kyoto_impl30_postrace_replay import saved_navigation_recovery
+        recovery=saved_navigation_recovery(raw,DAY)
+        assert len(recovery["recovery_candidates"])==13
+        assert {x["race"] for x in recovery["recovery_candidates"] if x["stage"]=="result_race"}==set(range(1,13))
+        assert sum(x["stage"]=="payout_meeting" for x in recovery["recovery_candidates"])==1
+        assert all(x["legacy_candidate_count"]==0 and x["candidate_count"]==1 and x["independent_field_agreement"] is True for x in recovery["recovery_candidates"])
+        result["candidate_source"]="5a16e23d0f2148581dbe0b965d4672b22735602e"
+        result["recovery"]=recovery
+        print("POSTRACE_REPAIR_REPLAY="+json.dumps(result,ensure_ascii=True,sort_keys=True,separators=(",",":")))
 if __name__=="__main__":main()
