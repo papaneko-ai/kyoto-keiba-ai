@@ -139,6 +139,37 @@ class DiscoveryTests(unittest.TestCase):
         self.assertFalse(result["unique_observed_racecard"])
         self.assertEqual(result["racecard_url"],"")
 
+    def test_actual_nov28_homepage_post_navigation(self):
+        day="20261129"
+        endpoint="https://sp.jra.jp/JRADB/accessD.html"
+        race=endpoint+"?CNAME=sw01dde0108202605061220261129%2FA1"
+        home=html('<form method="POST" action=""><input name="cname"></form>'
+                  '<a href="#" onclick="return doAction(\'/JRADB/accessD.html\',\'sw01dli00/80\')">出馬表</a>')
+        class PostStub(Stub):
+            def open(self,request,timeout=12):
+                if request.full_url==endpoint:
+                    self.assert_post(request)
+                return super().open(request,timeout)
+            def assert_post(self,request):
+                assert request.get_method()=="POST"
+                assert request.data==b"cname=sw01dli00%2F80"
+        stub=PostStub({SEED:home,endpoint:html(f'<a href="{race}">京都 12R</a>'),race:html("<p>racecard</p>")})
+        r=discover(self.root,day=day,opener=stub,pacer=self.pacer)
+        self.assertEqual(stub.calls[:2],[SEED,endpoint])
+        self.assertEqual(r["attempts"][1]["request_method"],"POST")
+        self.assertEqual(r["attempts"][1]["url"],endpoint)
+        self.assertEqual(r["per_race_observed_navigation_candidates"]["12"]["candidate_urls"],[race])
+        self.assertFalse(r["prediction_ready"])
+
+    def test_untrusted_post_action_is_never_followed(self):
+        day="20261129"
+        home=html('<form method="POST" action=""><input name="cname"></form>'
+                  '<a href="#" onclick="return doAction(\'https://evil.invalid/JRADB/accessD.html\',\'sw01dli00/80\')">出馬表</a>')
+        stub=Stub({SEED:home})
+        r=discover(self.root,day=day,opener=stub,pacer=self.pacer)
+        self.assertEqual(stub.calls,[SEED])
+        self.assertFalse(r["prediction_ready"])
+
     def test_wrong_day_rejected_without_requests(self):
         with self.assertRaisesRegex(SPDiscoveryError,"discovery_day_invalid"):
             discover(self.root,day="20261115",opener=Stub({}),pacer=self.pacer)
