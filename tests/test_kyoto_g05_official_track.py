@@ -151,5 +151,9 @@ class KyotoTrackTests(unittest.TestCase):
             self.assertIsNone(parse_kyoto_track(bad.encode(),day,KYOTO_TRACK_PAGE,stamp)["turf_going"])
         future=fresh.replace("11月28日9時","11月28日18時")
         self.assertIsNone(parse_kyoto_track(future.encode(),day,KYOTO_TRACK_PAGE,stamp)["turf_moisture_finish_pct"])
+        detached=fresh.replace("<table>","</div><table>").replace("</table></div>","</table>")
+        self.assertIsNone(parse_kyoto_track(detached.encode(),day,KYOTO_TRACK_PAGE,stamp)["turf_moisture_finish_pct"])
+        ambiguous=fresh.replace("11月28日9時","11月28日9時 11月27日9時")
+        self.assertIsNone(parse_kyoto_track(ambiguous.encode(),day,KYOTO_TRACK_PAGE,stamp)["turf_moisture_finish_pct"])
 
 if __name__=="__main__":unittest.main()

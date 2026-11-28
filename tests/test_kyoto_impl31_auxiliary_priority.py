@@ -9,7 +9,8 @@ from tests.test_kyoto_g05_official_track import html
 DAY='20261128'; STAMP='2026-11-28T04:00:00Z'
 PARENT='https://jra.jp/JRADB/accessD.html?CNAME=pw01meeting20261128%2FAA'
 TABLE='<table><caption>ゴール前と4コーナーの含水率</caption><tr><th></th><th>ゴール前</th><th>4コーナー</th></tr><tr><th>芝</th><td>10.1</td><td>9.2</td></tr><tr><th>ダート</th><td>7.4</td><td>7.1</td></tr></table>'
-RAW=html(DAY).replace(b'</main>',TABLE.encode()+b'</main>')
+MEASUREMENT='<div class="line moist"><div class="grid">測定時刻 11月28日9時30分</div>'+TABLE+'</div>'
+RAW=html(DAY).replace(b'</main>',MEASUREMENT.encode()+b'</main>')
 class Aux(unittest.TestCase):
     def test_observed_priority_and_real_roster(self):
         calls=[]
@@ -62,6 +63,10 @@ class Aux(unittest.TestCase):
     def test_exact_moisture_table_only(self):
         r=parse_kyoto_track(RAW,DAY,KYOTO_TRACK_PAGE,STAMP)
         self.assertEqual([r[k] for k in ('turf_moisture_finish_pct','turf_moisture_turn4_pct','dirt_moisture_finish_pct','dirt_moisture_turn4_pct')],[10.1,9.2,7.4,7.1])
+        undated=RAW.replace('11月28日9時30分'.encode(),'時刻不明'.encode())
+        r=parse_kyoto_track(undated,DAY,KYOTO_TRACK_PAGE,STAMP)
+        self.assertIsNone(r['turf_moisture_finish_pct'])
+        self.assertEqual(r['undated_moisture_observations']['turf_moisture_finish_pct'],10.1)
         for raw in (RAW.replace(TABLE.encode(),(TABLE+TABLE).encode()),RAW.replace(b'10.1',b'101'),RAW.replace('ゴール前と4コーナーの含水率'.encode(),'参考値'.encode())):
             self.assertIsNone(parse_kyoto_track(raw,DAY,KYOTO_TRACK_PAGE,STAMP)['turf_moisture_finish_pct'])
     def test_track_attempt_even_if_selector_fails(self):

@@ -59,8 +59,9 @@ def parse_kyoto_track(raw,day,source_url,captured_at_utc):
     # A matching meeting heading does not date the individual observations.
     jst=timezone(timedelta(hours=9))
     def asof(value):
-        t=re.search(r"(?:(\d{4})年\s*)?(\d{1,2})月\s*(\d{1,2})日(?:\s*[（(][月火水木金土日]曜(?:日)?[）)])?\s*(正午|\d{1,2}時(?:\s*\d{1,2}分)?)",value)
-        if not t:return None
+        times=list(re.finditer(r"(?:(\d{4})年\s*)?(\d{1,2})月\s*(\d{1,2})日(?:\s*[（(][月火水木金土日]曜(?:日)?[）)])?\s*(正午|\d{1,2}時(?:\s*\d{1,2}分)?)",value))
+        if len(times)!=1:return None
+        t=times[0]
         try:
             year=int(t.group(1) or day[:4]);month=int(t.group(2));dd=int(t.group(3))
             clock=t.group(4)
@@ -109,18 +110,19 @@ def parse_kyoto_track(raw,day,source_url,captured_at_utc):
             nums=[float(v.rstrip(" %")) for v in cells[1:]]
             if any(not 0<=v<=100 for v in nums):break
             values[cells[0]]=nums
-        if set(values)=={"芝","ダート"}:moisture.append(values)
+        if set(values)=={"芝","ダート"}:moisture.append((table,values))
     # Preserve measurements with unknown dates, but do not grant target-day credit.
     out["moisture_observation_utc"]=None
     out["undated_moisture_observations"]={}
     if len(moisture)==1:
         blocks=soup.select("div.line.moist")
-        if len(blocks)==1:
+        table,values=moisture[0]
+        if len(blocks)==1 and any(parent is blocks[0] for parent in table.parents):
             times=blocks[0].select("div.grid")
             if len(times)==1 and "測定時刻" in times[0].get_text(" ",strip=True):
                 out["moisture_observation_utc"]=asof(times[0].get_text(" ",strip=True))
         for surface,prefix in (("芝","turf"),("ダート","dirt")):
-            for suffix,value in zip(("finish_pct","turn4_pct"),moisture[0][surface]):
+            for suffix,value in zip(("finish_pct","turn4_pct"),values[surface]):
                 k=prefix+"_moisture_"+suffix
                 if out["moisture_observation_utc"]:out[k]=value
                 else:out["undated_moisture_observations"][k]=value
