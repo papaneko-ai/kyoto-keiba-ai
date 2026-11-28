@@ -47,6 +47,7 @@ def run_name_matches(run,name,filename,day):
         "kyoto-20261128-29-two-source-production-observer.yml":("15 0","15 1","5 2","50 2") if dd=="28" else ("15 0","15 1","10 2","55 2"),
         "kyoto-20261128-29-auxiliary-refresh.yml":("30 3","30 4","30 5","30 6"),
         "kyoto-20261128-29-result-handoff.yml":("0 12",),
+        "kyoto-20261128-29-postrace-evidence.yml":("0 10","0 13"),
     }
     if filename not in slots:return False
     if event=="workflow_dispatch":return run.get("name")=="workflow_dispatch"
