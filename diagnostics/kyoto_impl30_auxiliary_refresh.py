@@ -8,6 +8,8 @@ No profile or historical-result re-fetch. Encrypted originals, not model inputs.
 import argparse,json,os,re,tempfile,time,subprocess
 from datetime import datetime,timedelta,timezone
 from pathlib import Path
+from hashlib import sha256
+from diagnostics.kyoto_nov29_public_forms import PC_HOME,PC_ENTRY,observed_action,post_form
 from urllib.error import HTTPError
 from urllib.request import build_opener,HTTPCookieProcessor
 from http.cookiejar import CookieJar
@@ -70,15 +72,35 @@ def targets(observed,starts,now,*,horizon_minutes=75):
     return [race for race in sorted(observed,key=lambda r:(starts.get(r,"9999"),r))
             if race not in starts or now<_utc(starts[race])<=now+timedelta(minutes=horizon_minutes)]
 
-def collect(root,*,day,starts,fetch,clock):
+def collect(root,*,day,starts,fetch,clock,public_form_navigation=False):
     root=Path(root);root.mkdir()
     report={"schema":"kyoto_impl30_auxiliary_refresh.v1","day":day,"source_only":True,
             "prediction_ready":False,"target_races":[],"verified_races":[]}
     try:
-        selection=fetch(SOURCE)
-        (root/"official_selection.html").write_bytes(selection)
-        meeting_url=unique_observed(selection,SOURCE,lambda label,token: "京都" in label and day in token)
-        meeting=fetch(meeting_url)
+        if public_form_navigation:
+            if day!="20261129":raise ValueError("auxiliary_form_day_invalid")
+            home=fetch(PC_HOME)
+            (root/"official_pc_navigation_home.html").write_bytes(home)
+            report["navigation_home_sha256"]=sha256(home).hexdigest()
+            report["navigation_home_captured_at_utc"]=clock()
+            token,_=observed_action(home,day,"entry")
+            report["selection_action"]=token
+            selection=fetch(PC_ENTRY,token=token,referer=PC_HOME)
+            (root/"official_selection.html").write_bytes(selection)
+            report["selection_sha256"]=sha256(selection).hexdigest()
+            report["selection_captured_at_utc"]=clock()
+            token,_=observed_action(selection,day,"meeting")
+            report["meeting_action"]=token
+            meeting_url=PC_ENTRY
+            meeting=fetch(meeting_url,token=token,referer=PC_ENTRY)
+            report["meeting_sha256"]=sha256(meeting).hexdigest()
+            report["meeting_captured_at_utc"]=clock()
+            report["navigation_mode"]="PUBLIC_FORM_POST"
+        else:
+            selection=fetch(SOURCE)
+            (root/"official_selection.html").write_bytes(selection)
+            meeting_url=unique_observed(selection,SOURCE,lambda label,token: "京都" in label and day in token)
+            meeting=fetch(meeting_url)
         observed=links(meeting,meeting_url,day)
         chosen=targets(observed,starts,_utc(clock()))
         report["target_races"]=chosen
@@ -112,7 +134,7 @@ def collect(root,*,day,starts,fetch,clock):
     (root/"receipt.json").write_text(json.dumps(report,ensure_ascii=False,sort_keys=True,indent=2)+"\n",encoding="utf8")
     return report
 
-def bounded_auxiliary_fetch(client,within,*,monotonic=time.monotonic,pacer=None,read=_read):
+def bounded_auxiliary_fetch(client,within,*,monotonic=time.monotonic,pacer=None,read=_read,post=post_form):
     """Reserve one request and a start-time margin for independent track data.
     Refusal and the existing overall budget still apply to both sources.
     The margin is not a guarantee of HTTP completion (socket timeout is separate).
@@ -126,12 +148,13 @@ def bounded_auxiliary_fetch(client,within,*,monotonic=time.monotonic,pacer=None,
             raise ValueError("auxiliary_request_budget_or_refusal")
         if not track and (state["requests"]>=14 or monotonic()>=end-16):
             raise ValueError("auxiliary_track_reserve")
-    def fetch(url):
+    def fetch(url,*,token=None,referer=None):
+        if token is not None and url!=PC_ENTRY:raise ValueError('auxiliary_invalid_form_target')
         check(url)
         pacer.before_request()
         check(url)  # pacing can cross either deadline or the live window
         state["requests"]+=1
-        try:return read(client,url)
+        try:return post(client,token,referer) if token is not None else read(client,url)
         except HTTPError as exc:
             if exc.code in (401,403,429):state["refused"]=True
             raise
@@ -155,7 +178,7 @@ def main():
     client=build_opener(NoRedirect(),HTTPCookieProcessor(CookieJar()))
     fetch,state=bounded_auxiliary_fetch(client,within)
     with tempfile.TemporaryDirectory(prefix="kyoto_aux_refresh_") as d:
-        root=Path(d)/"raw";report=collect(root,day=day,starts=starts,fetch=fetch,clock=lambda:now().isoformat())
+        root=Path(d)/"raw";report=collect(root,day=day,starts=starts,fetch=fetch,clock=lambda:now().isoformat(),public_form_navigation=day=="20261129")
         encrypt_evidence(root,a.out,key_hex=key,repo=repo,run_id=rid)
     print(json.dumps({"verified_races":report["verified_races"],"observed_field_values":report.get("observed_field_values",0),"http_requests":state["requests"],"source_only":True},sort_keys=True))
 
