@@ -9,9 +9,11 @@ from pathlib import Path
 if __package__:
     from .kyoto_repair_control import recover_collection
     from .kyoto_fixed_risk_worklist import worklist
+    from .kyoto_job_artifact_state import classify_artifact, SKIPPED
 else:
     from kyoto_repair_control import recover_collection
     from kyoto_fixed_risk_worklist import worklist
+    from kyoto_job_artifact_state import classify_artifact, SKIPPED
 
 REPO="papaneko-ai/kyoto-keiba-ai"
 DAYS=("20261128","20261129")
@@ -153,10 +155,15 @@ def collect_metadata(day,now):
                             r["other_target_day_artifact_ids"]=[x["id"] for x in other];continue
                     # Include exact artifact IDs even for expired or missing originals.
                     r["artifacts"]={}
-                    for lane in lanes:
-                        name=f"kyoto-{lane}-{r['id']}-{day}"
-                        a=[x for x in d["artifacts"] if x.get("name")==name]
-                        r["artifacts"][lane]={"state":"PRESENT" if len(a)==1 and a[0].get("expired") is False else "MISSING_EXPIRED_OR_AMBIGUOUS","ids":[x["id"] for x in a]}
+                    matches={lane:[x for x in d["artifacts"] if x.get("name")==f"kyoto-{lane}-{r['id']}-{day}"] for lane in lanes}
+                    jobs=None
+                    if any(not a for a in matches.values()):
+                        attempt=[]
+                        try:jobs=gh(f"actions/runs/{r['id']}/jobs?per_page=100",attempt)
+                        except Exception as exc:r["job_index_error"]=type(exc).__name__
+                        finally:recovery_trace.append({"scope":"job_index","run_id":r["id"],"attempts":attempt})
+                    for lane,a in matches.items():
+                        r["artifacts"][lane]=classify_artifact(filename,lane,r["id"],a,jobs)
                 except Exception as exc:r["artifact_index_error"]=type(exc).__name__
             reports[filename]={"index_complete":True,"runs":runs,"native_slots":slots(day,filename,runs,now),"metadata_recovery":recovery_trace}
         except Exception as exc:
@@ -210,8 +217,9 @@ def review(day,now,out):
     summary=[f"<!-- kyoto-day-review:{day}:{digest(raw)} -->",f"## {day} 全工程・実データ独立点検",f"Evidence SHA256: {digest(raw)}","取得成否と原因閉鎖を区別。元の取得器には変更を加えない。"]
     for name,v in metadata.items():
         missing=[s for s in v["native_slots"] if s["state"] not in ("NOT_DUE","NATIVE_RUN_COMPLETED")]
-        gaps=[(r["id"],k) for r in v["runs"] for k,a in r.get("artifacts",{}).items() if a["state"]!="PRESENT"]
-        summary.append(f"- {name}: index={v['index_complete']}, runs={len(v['runs'])}, native gaps={[(s['cron'],s['state']) for s in missing]}, artifact gaps={gaps}")
+        gaps=[(r["id"],k,a["state"]) for r in v["runs"] for k,a in r.get("artifacts",{}).items() if a["state"] not in ("PRESENT",SKIPPED)]
+        skips=[(r["id"],k,a["job_id"]) for r in v["runs"] for k,a in r.get("artifacts",{}).items() if a["state"]==SKIPPED]
+        summary.append(f"- {name}: index={v['index_complete']}, runs={len(v['runs'])}, native gaps={[(s['cron'],s['state']) for s in missing]}, artifact gaps={gaps}, skipped producer jobs (reason unverified)={skips}")
     if "coverage_replay_error" in report:summary.append("- 原本再検証未完: "+report["coverage_replay_error"])
     if "coverage" in report:
         for f,t in report["coverage"]["counts"].items():summary.append(f"- {f}: {t['verified']}/{t['expected']} (unknown denominator races={t['unknown_denominator_races']})")
