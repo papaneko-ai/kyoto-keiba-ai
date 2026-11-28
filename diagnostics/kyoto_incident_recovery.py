@@ -7,7 +7,7 @@ published. Receipt observations do not certify JRA provenance or model readiness
 import argparse, hashlib, importlib.util, json, os, re, subprocess, tempfile, sys
 from pathlib import Path
 from datetime import datetime, timezone
-from diagnostics.kyoto_job_artifact_state import classify_artifact, SKIPPED
+from diagnostics.kyoto_job_artifact_state import classify_artifact, exact_job, SKIPPED
 
 REPO="papaneko-ai/kyoto-keiba-ai"
 DAYS=("20261128","20261129")
@@ -326,6 +326,85 @@ def safe_jobs(doc):
                 errors.append({"number":small(s.get("number")),"phase":phase,"conclusion":s["conclusion"]})
         out.append({"job_id":j["id"],"conclusion":j.get("conclusion") if j.get("conclusion") in ("success","failure","cancelled","skipped","timed_out","neutral") else "UNKNOWN","steps_available":steps is not None,"failed_steps":errors})
     return out
+# Exact pre-HTTP failure classification. Never publish raw job logs.
+OBSERVER_GUARD="Race date, immutable commit, secret, first attempt and non-replay guard"
+OBSERVER_CAPTURE={"pc":"Capture official PC observed originals (bounded no guessed URLs)",
+                  "sp":"Independently verified SP link, otherwise record zero-request stop"}
+CUSHION_CAPTURE="Independently capture exactly one official cushion fragment"
+LOG_LIMIT=2_000_000
+LOG_ERROR=re.compile(rb"(?m)^([0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(?:\.[0-9]{1,9})?Z) (AssertionError: OUTSIDE_DAY_WINDOW_NO_HTTP|ValueError: cushion_live_guard_no_http)\r?$")
+
+def job_log(job_id):
+    if type(job_id) is not int or job_id<=0:raise ValueError("invalid_job_id")
+    with tempfile.TemporaryFile() as f:
+        subprocess.run(["gh","api",f"repos/{REPO}/actions/jobs/{job_id}/logs"],stdout=f,
+                       stderr=subprocess.DEVNULL,timeout=12,check=True)
+        if not 0<f.tell()<=LOG_LIMIT:raise ValueError("job_log_size")
+        f.seek(0)
+        return f.read(LOG_LIMIT+1)
+
+def prehttp_evidence(run,path,lane,day,job_doc,*,read_log=None):
+    # Full exact run/job identity, not an artifact-name or green-run guess.
+    if read_log is None:read_log=job_log
+    job=exact_job(path[len(PATH_PREFIX):],lane,run["id"],job_doc)
+    if job is None or job["job_conclusion"]!="failure":return None
+    row=next(j for j in job_doc["jobs"] if j["id"]==job["job_id"])
+    steps=row.get("steps")
+    if not isinstance(steps,list):return None
+    def one(name,conclusion):
+        found=[s for s in steps if s.get("name")==name]
+        if (len(found)!=1 or found[0].get("status")!="completed"
+            or found[0].get("conclusion")!=conclusion
+            or type(found[0].get("number")) is not int):return None
+        return found[0]["number"]
+    if lane in OBSERVER_CAPTURE:
+        guard=one(OBSERVER_GUARD,"failure")
+        capture=one(OBSERVER_CAPTURE[lane],"skipped")
+        if guard is None or capture is None or guard>=capture:return None
+        marker=b"AssertionError: OUTSIDE_DAY_WINDOW_NO_HTTP"; cutoff=4
+        result={"job_id":job["job_id"],"guard_step":guard,"capture_step":capture,
+                "capture_step_skipped":True,"code":"PRE_HTTP_GUARD_FAILED_CAPTURE_SKIPPED",
+                "guard_reason_verified":False,"source_success_certified":False}
+    elif lane=="cushion":
+        guard=one(CUSHION_CAPTURE,"failure")
+        if guard is None:return None
+        marker=b"ValueError: cushion_live_guard_no_http";cutoff=8
+        result={"job_id":job["job_id"],"guard_step":guard,"capture_step_skipped":False,
+                "guard_reason_verified":False,"source_success_certified":False}
+    else:return None
+    try:
+        raw=read_log(job["job_id"])
+        if type(raw) is not bytes or not 0<len(raw)<=LOG_LIMIT:raise ValueError("job_log_size")
+        matches=[m for m in LOG_ERROR.finditer(raw) if m.group(2)==marker]
+        if len(matches)!=1:raise ValueError("exact_guard_exception_unavailable")
+        at=stamp(matches[0].group(1).decode("ascii"))
+        created=stamp(run.get("created_at"))
+        if not at or not created or at<created:raise ValueError("guard_timestamp_invalid")
+        t=datetime.fromisoformat(at)
+        if t.strftime("%Y%m%d")!=day or t.hour<cutoff:raise ValueError("outside_window_not_corrob")
+        result.update(guard_reason_verified=True,guard_exception_utc=at,job_log_sha256=digest(raw),
+                      code="OUTSIDE_DAY_WINDOW_NO_HTTP" if lane!="cushion" else "CUSHION_LIVE_GUARD_OUTSIDE_WINDOW_NO_HTTP",
+                      outside_window_verified=True,upstream_scheduler_root_cause_proved=False)
+        if lane in OBSERVER_CAPTURE and run["event"]=="schedule":
+            name=run.get("name","")
+            m=re.fullmatch(r"kyoto-native:(\\d{1,2}) (\\d{1,2}) (\\d{1,2}) 11 \\*",name)
+            if m:
+                minute,hour,dom=map(int,m.groups())
+                if dom==int(day[-2:]) and 0<=minute<60 and 0<=hour<4:
+                    nominal=t.replace(hour=hour,minute=minute,second=0,microsecond=0)
+                    delay=int((datetime.fromisoformat(created)-nominal).total_seconds())
+                    if delay>=0:result.update(nominal_utc=nominal.isoformat(),run_registration_delay_seconds=delay)
+        return result
+    except (OSError,ValueError,TypeError,AttributeError,subprocess.SubprocessError):
+        # Without an exact log, a skipped acquisition is known only for PC/SP.
+        return result if lane in OBSERVER_CAPTURE else None
+
+def prehttp_incident(e):
+    return {"stage":"PRE_HTTP","code":e["code"],"cause_status":"DIRECT_STOP_REASON_VERIFIED_UPSTREAM_CAUSE_OPEN" if e["guard_reason_verified"] else "ROOT_CAUSE_NOT_YET_PROVED",
+            "root_cause_closed":False,"diagnostic_action":"CORRELATE_NOMINAL_RUN_REGISTRATION_AND_GUARD",
+            "repair_direction":"PRESERVE_PRESTART_GUARD_RESTORE_TIMELY_EXTERNAL_DISPATCH",
+            "required_regression":"TEST_LATE_NATIVE_AND_IN_WINDOW_EXTERNAL_TRIGGER_SEPARATELY"}
+
 def read_aes(reader,cipher,raw,day,rid,key):
     os.environ["KYOTO_TARGET_DAY"]=day
     spec=importlib.util.spec_from_file_location("trusted_archive_reader",Path(reader)/"diagnostics/kyoto_nov15_encrypted_evidence.py")
@@ -348,6 +427,8 @@ def diagnose_run(rid,reader,cushion_reader):
             meta.update(source_acquisition_state="PRODUCER_NOT_EXECUTED_SKIP_REASON_UNVERIFIED",incidents=[])
             result["lanes"][lane]=meta
             continue
+        stop=prehttp_evidence(run,path,lane,days[0],job_doc) if len(days)==1 else None
+        if stop is not None:meta["pre_http_guard_evidence"]=stop
         try:
             if len(found)!=1 or len(matches)!=1:raise ValueError("artifact_missing_or_ambiguous")
             a,day=found[0];meta.update(artifact_id=a["id"],target_day=day)
@@ -370,6 +451,16 @@ def diagnose_run(rid,reader,cushion_reader):
                 meta["artifact_authenticated"]=meta.get("ciphertext_authenticated") is True
         except Exception as exc:
             meta.update(error_class=label(type(exc).__name__),error_code=label(str(exc)),incidents=[{"stage":"ARCHIVE","cause_status":"ROOT_CAUSE_NOT_YET_PROVED","root_cause_closed":False,"diagnostic_action":REPAIR["ARCHIVE"][0],"repair_direction":REPAIR["ARCHIVE"][1],"required_regression":REPAIR["ARCHIVE"][2]}])
+            if stop is not None:
+                # Keep original archive error details, but do not confuse the
+                # consequence of a pre-HTTP stop with its direct cause.
+                meta.update(source_acquisition_state="PRE_HTTP_STOP_NO_SOURCE_CREDIT",
+                            archive_error_secondary_unresolved=True,
+                            incidents=[prehttp_incident(stop)])
+        if stop is not None and meta.get("artifact_authenticated") is True:
+            # Unexpected authenticated data must be investigated, not erased.
+            meta["pre_http_evidence_conflicts_with_authenticated_archive"]=True
+            meta.setdefault("incidents",[]).append(prehttp_incident(stop))
         result["lanes"][lane]=meta
     return result
 def write_report(report,out):
@@ -380,6 +471,15 @@ def write_report(report,out):
            "- 原本は既存暗号化保全。原因が未立証の項目を完了扱いしない。"]
     for lane,m in report["lanes"].items():
         lines.append(f"\n**{lane.upper()}** / artifact {m.get('artifact_id','MISSING')} / authenticated {m.get('artifact_authenticated',False)}")
+        if m.get("pre_http_guard_evidence"):
+            e=m["pre_http_guard_evidence"]
+            lines.append(f"- 取得前停止証拠: job {e['job_id']} / {e['code']} / guard_reason_verified={e['guard_reason_verified']} / source_success_certified=False")
+            if e.get("job_log_sha256"):
+                lines.append(f"- 実ログSHA256 {e['job_log_sha256']} / UTC {e['guard_exception_utc']}")
+            if "run_registration_delay_seconds" in e:
+                lines.append(f"- 予約からrun登録まで {e['run_registration_delay_seconds']} 秒（GitHub内部原因は未確定）")
+            if m.get("archive_error_secondary_unresolved"):
+                lines.append("- 原本欠落・復号エラーは二次的な未解決記録として保全し、取得前停止の原因と混同しない。")
         for i in m.get("incidents",[]):
             lines.append(f"- {i['stage']} / {i.get('code','UNKNOWN')} / {i['cause_status']} / blocked_by={i.get('blocked_by')}")
             lines.append(f"  - 再現: {i['diagnostic_action']} → 修正: {i['repair_direction']} → 検証: {i['required_regression']}")

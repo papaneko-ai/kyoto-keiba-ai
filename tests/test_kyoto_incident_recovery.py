@@ -162,4 +162,46 @@ class IncidentRecoveryTests(unittest.TestCase):
    v=inspect_source(root,day,"pc",field_review=replay)
    g=next(s["observations"]["field_review"] for s in v["stages"] if s["stage"]=="G05")
    self.assertEqual(g["missing_target_races"],list(range(1,11))+[12])
+ def test_late_native_actual_step_and_log_evidence(self):
+  from unittest.mock import patch
+  from diagnostics.kyoto_incident_recovery import diagnose_run,prehttp_evidence,OBSERVER_GUARD,OBSERVER_CAPTURE,PATH_PREFIX
+  for rid,stamp,nominal,jids,delay in ((46122141318,"07:38:29",0,(140908775524,140908811758),26609),(46127895288,"08:53:25",1,(140926496313,140926532260),27505)):
+   created="2026-11-28T"+stamp+"Z"
+   path=PATH_PREFIX+"two-source-production-observer.yml"
+   run={"id":rid,"name":f"kyoto-native:15 {nominal} 28 11 *","head_branch":"main","head_repository":{"full_name":REPO},"status":"completed","conclusion":"failure","event":"schedule","path":path,"head_sha":"a"*40,"created_at":created}
+   def step(n,name,c):return {"number":n,"name":name,"status":"completed","conclusion":c}
+   rows=[{"id":jid,"run_id":rid,"name":lane+"-originals-independent","status":"completed","conclusion":"failure","steps":[step(6,OBSERVER_GUARD,"failure"),step(8,OBSERVER_CAPTURE[lane],"skipped")]} for lane,jid in zip(("pc","sp"),jids)]
+   doc={"total_count":2,"jobs":rows}
+   raw=(created+" AssertionError: OUTSIDE_DAY_WINDOW_NO_HTTP\n").encode()
+   with self.subTest(rid=rid),patch("diagnostics.kyoto_incident_recovery.gh",side_effect=[run,doc,{"total_count":0,"artifacts":[]}]),patch("diagnostics.kyoto_incident_recovery.job_log",return_value=raw):
+    v=diagnose_run(rid,"unused","unused")
+    for lane in ("pc","sp"):
+     item=v["lanes"][lane];e=item["pre_http_guard_evidence"]
+     self.assertEqual(item["incidents"][0]["stage"],"PRE_HTTP")
+     self.assertEqual(e["run_registration_delay_seconds"],delay)
+     self.assertTrue(e["guard_reason_verified"])
+     self.assertFalse(e["source_success_certified"])
+     self.assertFalse(e["upstream_scheduler_root_cause_proved"])
+     self.assertTrue(item["archive_error_secondary_unresolved"])
+     self.assertFalse(item["artifact_authenticated"])
+   missing=prehttp_evidence(run,path,"pc","20261128",doc,read_log=lambda _:b"not a verified exception")
+   self.assertFalse(missing["guard_reason_verified"])
+   wrong=prehttp_evidence(run,path,"pc","20261128",doc,read_log=lambda _:b"2026-11-28T01:15:01Z AssertionError: OUTSIDE_DAY_WINDOW_NO_HTTP")
+   self.assertFalse(wrong["guard_reason_verified"])
+   rows[0]["steps"][1]["conclusion"]="success"
+   self.assertIsNone(prehttp_evidence(run,path,"pc","20261128",doc,read_log=lambda _:raw))
+ def test_cushion_actual_late_guard_distinct_from_archive(self):
+  from unittest.mock import patch
+  from diagnostics.kyoto_incident_recovery import diagnose_run,PATH_PREFIX,CUSHION_CAPTURE,prehttp_evidence
+  rid=46127940166;jid=140926589833;path=PATH_PREFIX+"cushion-source.yml"
+  run={"id":rid,"head_branch":"main","head_repository":{"full_name":REPO},"status":"completed","conclusion":"failure","event":"workflow_run","path":path,"head_sha":"a"*40,"created_at":"2026-11-28T08:54:02Z"}
+  doc={"total_count":1,"jobs":[{"id":jid,"run_id":rid,"name":"cushion-source-only","status":"completed","conclusion":"failure","steps":[{"number":5,"name":CUSHION_CAPTURE,"status":"completed","conclusion":"failure"}]}]}
+  raw=b"2026-11-28T08:54:10.6040048Z ValueError: cushion_live_guard_no_http\n"
+  with patch("diagnostics.kyoto_incident_recovery.gh",side_effect=[run,doc,{"total_count":0,"artifacts":[]}]),patch("diagnostics.kyoto_incident_recovery.job_log",return_value=raw):
+   item=diagnose_run(rid,"unused","unused")["lanes"]["cushion"]
+   self.assertEqual(item["incidents"][0]["code"],"CUSHION_LIVE_GUARD_OUTSIDE_WINDOW_NO_HTTP")
+   self.assertTrue(item["pre_http_guard_evidence"]["guard_reason_verified"])
+   self.assertFalse(item["artifact_authenticated"])
+  for other in (b"2026-11-28T08:54:10Z raise ValueError(\"cushion_live_guard_no_http\")",b"2026-11-28T07:54:10Z ValueError: cushion_live_guard_no_http",b""):
+   self.assertIsNone(prehttp_evidence(run,path,"cushion","20261128",doc,read_log=lambda _:other))
 if __name__=="__main__":unittest.main()
