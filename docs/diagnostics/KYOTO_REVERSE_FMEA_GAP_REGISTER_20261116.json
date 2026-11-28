@@ -1231,20 +1231,20 @@
     "diagnostics/kyoto_nov15_encrypted_evidence.py": "9442376e481e47667ed3668778ca23adea286925",
     "diagnostics/jra_benchmark_acceptance.py": "edbd6b5b9479fdbf3fc88c7450c0c7ae3260a76f",
     "diagnostics/jra_market_integrity_gate.py": "6f20257575d7c5aeb232512bb64700dee21c3e06",
-    "diagnostics/jra_market_source_chain.py": "6f69226b1f1f16379681e7bd72b6720e3420f77c",
+    "diagnostics/jra_market_source_chain.py": "b4079417da7ba32a449b1cf4c9faedfcd0188c50",
     "diagnostics/jra_multi_capture_20261106.py": "1566aa2a10b215b267abcce0e37582ee8b36d9d2",
     "diagnostics/jra_odds_matrix_parser.py": "27f73b3be02a48c98d931b99217f9da4aa741a2f",
     "diagnostics/jra_odds_source_archive.py": "04ffb7982da138c611ff622a8fba0c0868b618e4",
     "diagnostics/jra_official_link_repair.py": "b6f451910e0052047bd884dacd99c01df800e715",
     "diagnostics/jra_official_market_navigation.py": "1f2f333a8ff86c0ce01a478dd9a8ce362479d105",
-    "diagnostics/jra_one_shot_market_capture.py": "e6cd4202b09baa466e055c0e20e48f3da1550738",
+    "diagnostics/jra_one_shot_market_capture.py": "9d3dfff82de4e5927b661de2d03df9db00e4d0fe",
     "diagnostics/jra_pc_sp_benchmark.py": "68b93993c7c67b231153a4a6052d36a9ef3763eb",
     "diagnostics/jra_source_router.py": "d7eae104adecd60374ac0b6cc9ee622f9e47df95",
     "diagnostics/kyoto_p1_nov14_official_one_shot_nav.py": "0aa2e6e53cb78f317d77c001ce55e101f45b8c50",
     "diagnostics/kyoto_safe_stop_artifact.py": "01532bc0c3386039988f1430713fdf833544490b",
     "diagnostics/kyoto_g03_all_races.py": "8a297f07cdc42efd86f59124ed315f414c48ae7a",
     "diagnostics/kyoto_g03_weekend_bridge.py": "5f3e4011f84738a057520434ad83351a7d3e0d27",
-    "diagnostics/kyoto_g04_all_horse_profiles.py": "c3db006adc1d88353a55ea18ccaf8c965d42c92f",
+    "diagnostics/kyoto_g04_all_horse_profiles.py": "5948c82294f28fdc8784d2dfcff7ea9433b5a895",
     "diagnostics/jra_pending_profile_plan.py": "eab63366494467f5b52d070c1773436bdca2d398",
     "diagnostics/jra_prior_form_offline.py": "bd986d15d642dd8388643825941893d3a8c69045",
     "diagnostics/kyoto_g03_proof_verify.py": "9eb905f489b050c842b2793bd43e1c5385d77df0",
@@ -1836,5 +1836,32 @@
       }
     ],
     "reason": "Canonical official Kyoto track URL independently identified in public index; old exact origin preserved for authenticated replay. HTTP failures retain status without retries. No fixed risk closure."
+  },
+  "impl37_cross_day_canonical_reopen": {
+    "prior_ledger_blob": "72856cf227e6a369f3e1650641dfacec0cdc0d73",
+    "sources": [
+      {
+        "source": "diagnostics/jra_one_shot_market_capture.py",
+        "old_blob": "e6cd4202b09baa466e055c0e20e48f3da1550738",
+        "new_blob": "9d3dfff82de4e5927b661de2d03df9db00e4d0fe",
+        "review_status": "UNREVIEWED_INDEPENDENT_FMEA",
+        "closed_risks": 0
+      },
+      {
+        "source": "diagnostics/jra_market_source_chain.py",
+        "old_blob": "6f69226b1f1f16379681e7bd72b6720e3420f77c",
+        "new_blob": "b4079417da7ba32a449b1cf4c9faedfcd0188c50",
+        "review_status": "UNREVIEWED_INDEPENDENT_FMEA",
+        "closed_risks": 0
+      },
+      {
+        "source": "diagnostics/kyoto_g04_all_horse_profiles.py",
+        "old_blob": "c3db006adc1d88353a55ea18ccaf8c965d42c92f",
+        "new_blob": "5948c82294f28fdc8784d2dfcff7ea9433b5a895",
+        "review_status": "UNREVIEWED_INDEPENDENT_FMEA",
+        "closed_risks": 0
+      }
+    ],
+    "reason": "Use identical exact official host rules for the two already approved weekend days; independently reopen affected source surfaces. No fixed risk closure."
   }
 }
