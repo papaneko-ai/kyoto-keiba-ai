@@ -150,7 +150,7 @@ def inspect_source(root,day,lane,field_review=None):
             signature={"stage":name,"code":code or "UNKNOWN","blocked_by":blocked}
             checks=REPAIR[name]
             incidents.append({**signature,"signature_sha256":digest(canonical(signature)),
-                "cause_status":"DIRECT_FAILURE_SIGNATURE_OBSERVED" if code else "ROOT_CAUSE_NOT_YET_PROVED",
+                "cause_status":"DIRECT_FAILURE_SIGNATURE_OBSERVED" if code and code!="UNKNOWN" and not code.startswith("UNCLASSIFIED_TEXT_SHA256_") else "ROOT_CAUSE_NOT_YET_PROVED",
                 "root_cause_closed":False,"diagnostic_action":checks[0],"repair_direction":checks[1],
                 "required_regression":checks[2],"evidence_files":ev,
                 "closure_requires":["REPRODUCE_FROM_EXACT_EVIDENCE","ISOLATED_PATCH","REGRESSION_PASS","INDEPENDENT_DEPLOYMENT_RECHECK"],
@@ -232,8 +232,9 @@ def inspect_source(root,day,lane,field_review=None):
     elif lane=="cushion":
         stage("CUSHION",receipt.get("state")=="OFFICIAL_ORIGINAL_PARSED" and "g05_official_cushion_fragment.html" in files,fields(receipt),code(receipt),evidence=("receipt.json","g05_official_cushion_fragment.html"))
     else:raise ValueError("unsupported_lane")
+    from diagnostics.kyoto_forensic_continuity import receipt_refs
     return {"ciphertext_authenticated":True,"receipt_state":fields(receipt),"files":files,"stages":stages,"incidents":incidents,
-            "source_claims_independently_certified":False}
+            "receipt_failure_refs":receipt_refs(root,files),"source_claims_independently_certified":False}
 def replay_adaptive(root,day,lane,repair):
     """Re-open original bytes, search candidates and compare any applied proof.
     
@@ -436,7 +437,7 @@ def replay_postrace(root,day,reader):
     if len({(r["stage"],r["race"]) for r in accepted})!=len(accepted):raise ValueError("postrace_replay_duplicate")
     return accepted
 
-def diagnose_run(rid,reader,cushion_reader,postrace_reader=None):
+def diagnose_run(rid,reader,cushion_reader,postrace_reader=None,*,evidence_out=None):
     run=gh(f"repos/{REPO}/actions/runs/{rid}")
     path,lanes,days=run_identity(run,rid)
     job_doc=gh(f"repos/{REPO}/actions/runs/{rid}/jobs?per_page=100")
@@ -444,6 +445,17 @@ def diagnose_run(rid,reader,cushion_reader,postrace_reader=None):
     arts=gh(f"repos/{REPO}/actions/runs/{rid}/artifacts?per_page=100")
     if arts["total_count"]!=len(arts["artifacts"]) or len(arts["artifacts"])>100:raise ValueError("artifact_index_incomplete")
     result={"schema":"kyoto_incident_recovery.v1","repo":REPO,"source_run_id":rid,"workflow_path":path,"workflow_head_sha":run["head_sha"],"event":run["event"],"created_at":stamp(run.get("created_at")),"jobs":jobs,"lanes":{},"new_source_http_requests":0,"automatic_code_promotion":False}
+    cached_logs=None
+    if evidence_out is not None:
+        from diagnostics.kyoto_forensic_continuity import capture
+        try:
+            forensic,cached_logs=capture(run,job_doc,arts,evidence_out,os.environ.get("ARCHIVE_KEY",""),job_log)
+            result["forensic_evidence"]=forensic
+        except Exception as exc:
+            result["forensic_evidence"]={"state":"FORENSIC_CAPSULE_UNAVAILABLE","error_class":type(exc).__name__,"next_action":"RECOVER_EXACT_SOURCE_RUN_AND_JOB_LOGS"}
+    def cached_log(jid):
+        if jid not in cached_logs:raise ValueError("forensic_log_unavailable")
+        return cached_logs[jid]
     for lane in lanes:
         matches=[(a,d) for d in days for a in arts["artifacts"] if a.get("name")==f"kyoto-{lane}-{rid}-{d}"]
         found=[(a,d) for a,d in matches if a.get("expired") is False]
@@ -453,7 +465,7 @@ def diagnose_run(rid,reader,cushion_reader,postrace_reader=None):
             meta.update(source_acquisition_state="PRODUCER_NOT_EXECUTED_SKIP_REASON_UNVERIFIED",incidents=[])
             result["lanes"][lane]=meta
             continue
-        stop=prehttp_evidence(run,path,lane,days[0],job_doc) if len(days)==1 else None
+        stop=prehttp_evidence(run,path,lane,days[0],job_doc,read_log=cached_log if cached_logs is not None else None) if len(days)==1 else None
         if stop is not None:meta["pre_http_guard_evidence"]=stop
         try:
             if len(found)!=1 or len(matches)!=1:raise ValueError("artifact_missing_or_ambiguous")
@@ -491,6 +503,8 @@ def diagnose_run(rid,reader,cushion_reader,postrace_reader=None):
             meta["pre_http_evidence_conflicts_with_authenticated_archive"]=True
             meta.setdefault("incidents",[]).append(prehttp_incident(stop))
         result["lanes"][lane]=meta
+    from diagnostics.kyoto_forensic_continuity import obligations
+    result["open_repair_obligations"]=obligations(result)
     return result
 def write_report(report,out):
     out=Path(out);out.mkdir(parents=True,exist_ok=True)
@@ -526,9 +540,22 @@ def write_report(report,out):
     # The durable comment retains stage worklists plus exact archive references;
     # full per-item evidence stays in the separately uploaded JSON.
     lines.append("\n全項目の証拠・レース別状態・原本ハッシュは同診断実行の report.json。次回前に再現・修正・検証・本番再照合の証拠を追記する。")
+    if "open_repair_obligations" in report:
+        obligations=report["open_repair_obligations"]
+        (out/"open_repair_obligations.json").write_bytes(canonical({"schema":"kyoto_open_repair_obligations.v1","source_run_id":rid,"rows":obligations})+b"\n")
+        lines.append(f"- 未解決の修復項目: {len(obligations)} 件。原因未特定は保留・次回修復必須。詳細: open_repair_obligations.json")
+    if "forensic_evidence" in report:
+        evidence=report["forensic_evidence"]
+        lines.append(f"- 次回修復用の実行証拠: {evidence['state']} / ciphertext SHA256 {evidence.get('ciphertext_sha256','UNAVAILABLE')}")
+        for log in evidence.get("log_index",[]):
+            lines.append(f"  - job {log['job_id']}: {log['state']} / {log.get('sha256','UNAVAILABLE')}")
     (out/"summary.md").write_text("\n".join(lines)+"\n",encoding="utf-8")
 def main():
     p=argparse.ArgumentParser();p.add_argument("--run-id",type=int,required=True);p.add_argument("--reader",required=True);p.add_argument("--cushion-reader",required=True);p.add_argument("--postrace-reader");p.add_argument("--out",required=True);a=p.parse_args()
     if a.run_id<=0 or os.environ.get("GITHUB_REPOSITORY")!=REPO:raise ValueError("repository_or_run_invalid")
-    write_report(diagnose_run(a.run_id,a.reader,a.cushion_reader,a.postrace_reader),a.out)
+    out=Path(a.out);out.mkdir(parents=True,exist_ok=True)
+    try:write_report(diagnose_run(a.run_id,a.reader,a.cushion_reader,a.postrace_reader,evidence_out=out),out)
+    except Exception as exc:
+        (out/"diagnosis_failure.json").write_bytes(canonical({"schema":"kyoto_diagnosis_failure.v1","source_run_id":a.run_id,"state":"DIAGNOSIS_INCOMPLETE_REPAIR_REQUIRED","error_class":type(exc).__name__,"next_action":"REOPEN_EXACT_SOURCE_RUN_AND_JOB_LOGS","root_cause_proved":False})+b"\n")
+        raise SystemExit("DIAGNOSIS_INCOMPLETE:"+type(exc).__name__) from None
 if __name__=="__main__":main()
