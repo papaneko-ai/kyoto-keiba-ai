@@ -5,7 +5,8 @@ from pathlib import Path
 import yaml
 from diagnostics.kyoto_impl30_collector_selection import DEPLOYED_RECEIPT,POSTRACE_RECEIPT
 POSTRACE_PIN=POSTRACE_RECEIPT['source']
-WORKOUT_PIN="267ee88a79ba8e37fc2e4cb6035ce1e018407655"
+WORKOUT_PIN="ae00d855b34ade5dd405cb0e2105465cb11b2dbd"
+WORKOUT_SP_READER="fed005c89fcfa940c479538ee983f211598a6640"
 SUNDAY_PIN=DEPLOYED_RECEIPT["override"]
 SATURDAY_READER="c289c5ec4e6ad322a7e08acf173da3352ed23dba"
 DAY_REF="${{ inputs.race_day == '20261129' && '"+SUNDAY_PIN+"' || '"+SATURDAY_READER+"' }}"
@@ -61,9 +62,13 @@ class Isolation(unittest.TestCase):
                     j=expected["jobs"]["source-only"]
                     old_pin=j["steps"][0]["with"]["ref"]
                     j["steps"][0]["with"]["ref"]=WORKOUT_PIN
+                    j["steps"].insert(1,{"uses":"actions/checkout@v4","id":"sp_reader",
+                        "if":"${{ env.KYOTO_TARGET_DAY == '20261129' }}","continue-on-error":"true",
+                        "with":{"ref":WORKOUT_SP_READER,"path":"trusted-sp-reader","persist-credentials":"false"}})
                     for step in j["steps"]:
                         if 'test "$(git rev-parse HEAD)"' in step.get("run",""):
                             step["run"]=step["run"].replace(repr(old_pin),repr(WORKOUT_PIN))
+                            step["env"]["KYOTO_WORKOUT_SP_READER"]="${{ steps.sp_reader.outcome == 'success' && 'trusted-sp-reader' || '' }}"
                 elif n=="postrace-evidence":
                     j=expected["jobs"]["postrace-source-evidence"]
                     old_pin=j["steps"][0]["with"]["ref"]

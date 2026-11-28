@@ -35,7 +35,15 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: '267ee88a79ba8e37fc2e4cb6035ce1e018407655'
+          ref: 'ae00d855b34ade5dd405cb0e2105465cb11b2dbd'
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        id: sp_reader
+        if: ${{ env.KYOTO_TARGET_DAY == '20261129' }}
+        continue-on-error: true
+        with:
+          ref: 'fed005c89fcfa940c479538ee983f211598a6640'
+          path: trusted-sp-reader
           persist-credentials: false
       - uses: actions/setup-python@v5
         with:
@@ -45,9 +53,10 @@ jobs:
       - name: Capture and bind workout sources, separately from official core capture
         env:
           ARCHIVE_KEY: ${{ secrets.KYOTO_JRA_ARCHIVE_AES256_HEX }}
+          KYOTO_WORKOUT_SP_READER: ${{ steps.sp_reader.outcome == 'success' && 'trusted-sp-reader' || '' }}
         run: |
           set -euo pipefail
-          test "$(git rev-parse HEAD)" = '267ee88a79ba8e37fc2e4cb6035ce1e018407655'
+          test "$(git rev-parse HEAD)" = 'ae00d855b34ade5dd405cb0e2105465cb11b2dbd'
           python -m diagnostics.kyoto_impl33_workout_runtime
       - name: Upload encrypted source and normalized evidence
         id: upload_workout
