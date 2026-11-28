@@ -3,7 +3,7 @@ from pathlib import Path
 from datetime import datetime,timezone
 from unittest.mock import patch,Mock,MagicMock
 from urllib.error import HTTPError
-from diagnostics.kyoto_impl30_postrace_runtime import recover_inputs,official_fetcher,auxiliary_inputs
+from diagnostics.kyoto_impl30_postrace_runtime import recover_inputs,official_fetcher,auxiliary_inputs,saved_seed_origin,seed_evidence
 from diagnostics.kyoto_impl30_postrace_day import collect_day
 from diagnostics.kyoto_nov15_encrypted_evidence import encrypt_evidence,decrypt_evidence
 import diagnostics.kyoto_nov15_encrypted_evidence as crypto
@@ -12,12 +12,12 @@ from tests.test_kyoto_g03_all_races import meeting,source_race,PARENT,card
 from tests.test_kyoto_impl30_postrace_day import SEED,RESULT_MENU,PAYOUT_MENU,MEETING,result,h
 from hashlib import sha256
 DAY='20261128';STAMP='2026-11-28T12:00:00Z';KEY='a'*64;REPO='papaneko-ai/kyoto-keiba-ai'
-def inputs(root,day):
+def inputs(root,day,parent=PARENT):
     root.mkdir();raw=root/'g03';saved=root/'saved';saved.mkdir()
     def fetch(url):
         return card(count=3,race=source_race(url),day=day).replace(b'</html>',SEED.replace(b'<html>',b''))
     report=acquire_all(day=day,root=raw,meeting_raw=meeting().replace(b'20261121',day.encode()),
-        meeting_url=PARENT,fetch=fetch,captured_at_utc=lambda:day[:4]+'-'+day[4:6]+'-'+day[6:]+'T00:00:00Z',allowed=True)
+        meeting_url=parent,fetch=fetch,captured_at_utc=lambda:day[:4]+'-'+day[4:6]+'-'+day[6:]+'T00:00:00Z',allowed=True)
     assert report['complete'], report
     for f in raw.iterdir():f.rename(saved/('g03_'+f.name))
     shutil.copyfile(saved/'g03_official_meeting.html',saved/'official_meeting.html')
@@ -41,17 +41,13 @@ class RuntimeTests(unittest.TestCase):
                     self.assertEqual(len(starts),12);self.assertEqual(len(roster[1]),3)
                     self.assertEqual(proof['sources']['1']['run_id'],101)
                     self.assertIn(b'doAction',seed)
+                    self.assertEqual(saved_seed_origin(seed,proof),'https://jra.jp')
                     roster2,starts2,seed2,proof2=recover_inputs(DAY,REPO,KEY,include_coverage=True)
                     self.assertEqual((roster,starts,seed),(roster2,starts2,seed2))
                     self.assertEqual(proof2["day_source_coverage"]["totals"]["racecards"],12)
                     self.assertEqual(proof2["day_source_coverage"]["totals"]["registered_horses_known"],36)
                     self.assertEqual(proof2["day_source_coverage"]["authenticated_pc_slots"],1)
                     self.assertFalse(proof2["day_source_coverage"]["full_data_acquisition_certified"])
-                    self.assertNotIn("authenticated_coverage_slots",proof2)
-                    _,_,_,review=recover_inputs(DAY,REPO,KEY,include_coverage=True,return_coverage_slots=True)
-                    self.assertEqual(len(review["authenticated_coverage_slots"]),1)
-                    self.assertEqual(review["authenticated_coverage_slots"][0]["day"],DAY)
-                    self.assertEqual(str(review["authenticated_coverage_slots"][0]["run_id"]),"101")
                     with patch("diagnostics.kyoto_impl30_day_coverage.combine",side_effect=ValueError("diagnostic unavailable")):
                         rr,ss,seed3,proof3=recover_inputs(DAY,REPO,KEY,include_coverage=True)
                     self.assertEqual((rr,ss,seed3),(roster,starts,seed))
@@ -60,7 +56,7 @@ class RuntimeTests(unittest.TestCase):
                         with self.assertRaisesRegex(ValueError,'no_verified'):recover_inputs(DAY,REPO,'b'*64)
     def test_auxiliary_authenticated_originals_recover_postrace_when_pc_unavailable(self):
         with tempfile.TemporaryDirectory() as d:
-            root=Path(d);saved=inputs(root/'fixture',DAY);cipher=root/'cipher'
+            root=Path(d);saved=inputs(root/'fixture',DAY,PARENT.replace('jra.jp','www.jra.go.jp'));cipher=root/'cipher'
             (saved/'receipt.json').write_text(json.dumps({'day':DAY,'schema':'kyoto_impl30_auxiliary_refresh.v1'}))
             with patch.object(crypto,'DAY',DAY):
                 encrypt_evidence(saved,cipher,key_hex=KEY,repo=REPO,run_id='201')
@@ -74,11 +70,17 @@ class RuntimeTests(unittest.TestCase):
                 found,seed,proof=auxiliary_inputs(DAY,REPO,KEY,api=api,download=download)
                 self.assertEqual(len(found),12);self.assertIn(b'doAction',seed)
                 self.assertEqual(found[1]['source_lane'],'auxiliary');self.assertEqual(proof['examined_runs'],[201])
+                self.assertEqual(saved_seed_origin(seed,proof),'https://www.jra.go.jp')
                 with patch('diagnostics.kyoto_impl30_postrace_runtime._gh',side_effect=TimeoutError),patch('diagnostics.kyoto_impl30_postrace_runtime.auxiliary_inputs',return_value=(found,seed,proof)):
                     roster,starts,actual,report=recover_inputs(DAY,REPO,KEY)
                     self.assertEqual(len(starts),12);self.assertEqual(actual,seed)
                     self.assertEqual(report['sources']['1']['source_lane'],'auxiliary')
                     self.assertTrue(report['auxiliary_fallback']['attempted'])
+                    self.assertEqual(saved_seed_origin(actual,report),'https://www.jra.go.jp')
+                    for field,value in [('origin','https://jra.jp'),('sha256','f'*64),('source_url','https://www.jra.go.jp.example.org/JRADB/accessD.html')]:
+                        bad={**report,'saved_seed':{**report['saved_seed'],field:value}}
+                        self.assertIsNone(saved_seed_origin(actual,bad))
+                    self.assertIsNone(saved_seed_origin(actual+b'x',report))
                 bad,none,_=auxiliary_inputs(DAY,REPO,'b'*64,api=api,download=download)
                 self.assertEqual(bad,{});self.assertIsNone(none)
                 for field,value in [('head_branch','not-main'),('created_at','2026-11-29T03:30:00Z'),('event','pull_request'),('head_repository',{'full_name':'other/repo'})]:

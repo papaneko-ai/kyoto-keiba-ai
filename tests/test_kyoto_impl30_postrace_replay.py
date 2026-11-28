@@ -53,3 +53,38 @@ class ReplayTests(unittest.TestCase):
             self.assertFalse(result['prior_artifact_index_complete'])
             self.assertEqual(result['races']['1']['state'],'SOURCE_REVISION_CHAIN')
 if __name__=='__main__':unittest.main()
+
+class PriorNavigationFeedbackTests(unittest.TestCase):
+    def test_authenticated_partial_navigation_is_replayable_without_result_credit(self):
+        from tests.test_kyoto_impl30_postrace_day import a,h,S,H
+        from diagnostics.kyoto_impl30_postrace_replay import saved_navigation_recovery
+        with tempfile.TemporaryDirectory() as d:
+            root=Path(d)/'prior'
+            # Reproduce the exact observed mode-01 layout with the old stop receipt.
+            pm=h(a(H,'pw01hde01082026050720261128/AB','5回京都7日'))
+            rm=RESULT_MENU
+            meeting=h(''.join(a(S,f'pw01sde010820260507{n:02d}20261128/AA',f'{n}R') for n in range(1,13)))
+            def fetch(method,url,token):
+                data=rm if token=='pw01sli00/AF' else pm if token=='pw01hli00/03' else meeting
+                return dict(raw=data,captured_at_utc=STAMP,requested_url=url,method=method,observed_action_token=token)
+            from diagnostics.kyoto_impl30_postrace_day import select_navigation,PostraceRejected
+            def legacy(raw,day,stage,**kw):
+                action,proof=select_navigation(raw,day,stage,**kw)
+                if proof['mode']=='01':raise PostraceRejected('missing_or_ambiguous_observed_navigation')
+                return action,proof
+            with patch('diagnostics.kyoto_impl30_postrace_day.select_navigation',side_effect=legacy):
+                collect_day(root,day=DAY,seed_raw=SEED,seed_sha256=sha256(SEED).hexdigest(),registered={r:None for r in range(1,13)},fetch=fetch,clock=lambda:STAMP,not_before_utc='2026-11-28T10:00:00Z')
+            (root/'postrace_seed.html').write_bytes(SEED)
+            proof=saved_navigation_recovery(root,DAY)
+            self.assertEqual(len(proof['recovery_candidates']),13)
+            self.assertEqual(proof,saved_navigation_recovery(root,DAY))
+            self.assertEqual(len(proof['missing_originals']),13)
+            roster={r:ROSTER for r in range(1,13)};starts={r:START for r in roster}
+            self.assertTrue(all(v['state']=='PENDING' for v in saved_observations(root,DAY,roster,starts).values()))
+            current=Path(d)/'current';captured(current)
+            with patch('diagnostics.kyoto_impl30_postrace_replay.prior_archives',return_value=iter([(101,root,None)])):
+                history=replay_history(current,day=DAY,repo='papaneko-ai/kyoto-keiba-ai',key='a'*64,current_run='102',roster=roster,starts=starts)
+            self.assertTrue(history['prior_artifact_index_complete'])
+            self.assertEqual(len(history['races']['1']['revisions']),1)
+            (root/'payout_menu.html').write_bytes(pm+b'x')
+            with self.assertRaises(ValueError):saved_navigation_recovery(root,DAY)
