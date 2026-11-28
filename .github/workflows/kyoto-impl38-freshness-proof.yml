@@ -1,0 +1,109 @@
+name: Impl38 final G05 freshness and 25-horse authenticated proof
+on:
+  push:
+    branches: ['repair/impl38-g05-freshness-proof-20261128']
+    paths: ['.github/workflows/kyoto-impl38-freshness-proof.yml']
+permissions:
+  contents: read
+  actions: read
+jobs:
+  inspect:
+    if: github.repository == 'papaneko-ai/kyoto-keiba-ai' && github.ref == 'refs/heads/repair/impl38-g05-freshness-proof-20261128'
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    env:
+      KYOTO_TARGET_DAY: '20261128'
+      KYOTO_WEEKEND_HTTP_APPROVED: 'NO'
+      KYOTO_AUX_HTTP_APPROVED: 'NO'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: '67676972baee4000df642604d0a6608a39de8862'
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11.18'
+      - run: python -m pip install --no-deps beautifulsoup4==4.15.0 soupsieve==4.1.3 typing-extensions==4.16.0 cryptography==46.0.7 cffi==2.1.1 pycparser==3.12
+      - name: Fetch newly saved 15:30 and prior 14:30 archives
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          mkdir -p monitor-proof "$RUNNER_TEMP/aux14" "$RUNNER_TEMP/aux15"
+          python - <<'PY'
+          import json,subprocess
+          repo="papaneko-ai/kyoto-keiba-ai"
+          for rid,aid,digest in (
+            (46112551733,15250785307,"444a678b0c8a98f475b369bd3acd858b3be96e1adf64527bc8ca5f4adf780b2c"),
+            (46117060392,15252141771,"e1d2c29a26b62adde8d743b9aee77aeae8cc071830f4fb586976fba0ebc44e1f")):
+              r=json.loads(subprocess.check_output(["gh","api",f"repos/{repo}/actions/runs/{rid}"]))
+              assert r["id"]==rid and r["head_branch"]=="main" and r["head_repository"]["full_name"]==repo and r["status"]=="completed" and r["path"]==".github/workflows/kyoto-20261128-29-auxiliary-refresh.yml"
+              d=json.loads(subprocess.check_output(["gh","api",f"repos/{repo}/actions/runs/{rid}/artifacts?per_page=100"]))
+              assert d["total_count"]==len(d["artifacts"])
+              a=[x for x in d["artifacts"] if x["id"]==aid and x["name"]==f"kyoto-auxiliary-{rid}-20261128" and not x["expired"]]
+              assert len(a)==1 and a[0]["digest"]=="sha256:"+digest
+          PY
+          gh run download 46112551733 --repo papaneko-ai/kyoto-keiba-ai --name kyoto-auxiliary-46112551733-20261128 --dir "$RUNNER_TEMP/aux14"
+          gh run download 46117060392 --repo papaneko-ai/kyoto-keiba-ai --name kyoto-auxiliary-46117060392-20261128 --dir "$RUNNER_TEMP/aux15"
+      - name: Authenticate and distinguish actual current track from historical record markup
+        env:
+          ARCHIVE_KEY: ${{ secrets.KYOTO_JRA_ARCHIVE_AES256_HEX }}
+        run: |
+          python - <<'PY'
+          import json,os,re,tempfile
+          from pathlib import Path
+          from bs4 import BeautifulSoup
+          from unittest.mock import patch
+          from diagnostics.kyoto_nov15_encrypted_evidence import decrypt_evidence
+          from diagnostics.kyoto_g03_independent_partial import verify_partial
+          from diagnostics.kyoto_g05_conditions import _body_weights,_race_fields
+          from diagnostics.kyoto_g05_official_track import parse_kyoto_track
+          from diagnostics.kyoto_impl30_day_coverage import extract_slot,combine
+          def denied(*a,**kw):raise AssertionError("network forbidden")
+          def tag(t):
+              return t.name+"".join("."+x for x in t.get("class",[]) if re.fullmatch(r"[A-Za-z0-9_-]{1,40}",x)) if getattr(t,"name",None) else ""
+          def path(t):
+              parts=[]
+              while getattr(t,"name",None) and len(parts)<12:
+                  parts.append(tag(t));t=t.parent
+              return "/".join(reversed(parts))
+          tokens=re.compile(r"レコードタイム|レコード|基準タイム|過去|前走|馬場状態|馬場|天候|ダート|芝|稍重|不良|良|(?<![不稍])重|晴|曇|雨|雪")
+          report={"source_http_requests":0,"runs":{}}
+          slots=[]
+          with tempfile.TemporaryDirectory() as td,patch("socket.socket.connect",side_effect=denied),patch("socket.create_connection",side_effect=denied):
+              for label,rid in (("aux14",46112551733),("aux15",46117060392)):
+                  root=Path(td)/label
+                  decrypt_evidence(Path(os.environ["RUNNER_TEMP"])/label,root,key_hex=os.environ["ARCHIVE_KEY"],repo="papaneko-ai/kyoto-keiba-ai",run_id=str(rid))
+                  d=json.loads((root/"g03_receipt.json").read_text());v=verify_partial(root,expected_day="20261128")["verified_race_numbers"]
+                  run={"verified_races":v,"races":{}}
+                  p=root/"g05_track_receipt.json"
+                  if p.is_file():
+                      tr=json.loads(p.read_text())
+                      q=parse_kyoto_track((root/"g05_official_kyoto_track.html").read_bytes(),"20261128",tr["source_url"],tr["captured_at_utc"])
+                      assert q["source_sha256"]==tr["source_sha256"] and q["same_day_official_meeting_heading_verified"] is True
+                      assert all(q[k] is None for k in ("weather","turf_going","dirt_going","condition_observation_utc","moisture_observation_utc","turf_moisture_finish_pct","turf_moisture_turn4_pct","dirt_moisture_finish_pct","dirt_moisture_turn4_pct"))
+                      run["track_receipt"]={"prior_measurement_rejected":True,"undated_moisture_preserved":len(q["undated_moisture_observations"]),"current_field_credit":0}
+                      assert len(q["undated_moisture_observations"])==4
+                  for n in v:
+                      raw=(root/f"g03_official_racecard_{n:02d}.html").read_bytes();soup=BeautifulSoup(raw.decode("cp932",errors="replace"),"html.parser")
+                      rr=d["races"][str(n)]["runners"];numbers=[h["number"] for h in rr];cancelled={h["number"] for h in rr if h.get("cancelled") is True}
+                      w=_body_weights(raw,numbers,expected_cancelled=cancelled)
+                      run["races"][str(n)]={"registered_horses":len(numbers),"body_weights":sum(a is not None for a,b in w.values()),"body_weight_changes":sum(b is not None for a,b in w.values()),"current_track_fields":sorted(k for k,x in _race_fields(raw).items() if x is not None)}
+                  report["runs"][str(rid)]=run
+                  slots.append(extract_slot(root,"20261128",rid))
+              report["combined_totals"]=combine("20261128",slots)["totals"]
+              t=report["combined_totals"]
+              assert t["racecards"]==2 and t["registered_horses_known"]==26
+              assert t["body_weight_kg"]==t["body_weight_change_kg"]==25
+              assert t["turf_going"]==t["dirt_going"]==0
+              assert all(not s.get("independent_track") for s in slots)
+          Path("monitor-proof/report.json").write_text(json.dumps(report,sort_keys=True,ensure_ascii=False,indent=2)+"\n")
+          print(json.dumps(report,sort_keys=True,ensure_ascii=False))
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: impl38-freshness-proof
+          path: monitor-proof/
+          retention-days: 90
+          if-no-files-found: error
