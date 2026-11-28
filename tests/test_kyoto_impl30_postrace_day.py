@@ -38,3 +38,23 @@ class Tests(unittest.TestCase):
  def test_conflicting_payout_not_certified(self):
   raw=result(1).replace(b'1-2 400',b'1-3 400');p=parse_result(raw,day=DAY,race=1,url='https://jra.jp/JRADB/accessS.html',registered=ROSTER)
   self.assertEqual(p['reason'],'PAYOUT_VS_PLACING_CONFLICT');self.assertFalse(p['settlement_authorized'])
+
+ def test_public_origin_keeps_all_raw_results_without_registered_roster(self):
+  with tempfile.TemporaryDirectory() as tmp:
+   calls=[]
+   def fetch(method,url,token):
+    self.assertTrue(url.startswith('https://www.jra.go.jp/'))
+    calls.append((method,url,token))
+    if token=='pw01sli00/AF':raw=RESULT_MENU
+    elif token=='pw01hli00/03':raw=PAYOUT_MENU
+    elif 'srl' in token:raw=MEETING
+    elif 'hde' in token:raw=h('払戻金一覧')
+    else:raw=result(int(token[-13:-11]))
+    return dict(raw=raw,captured_at_utc=STAMP,requested_url=url,method=method,observed_action_token=token)
+   root=Path(tmp)/'source';out=collect_day(root,day=DAY,seed_raw=SEED,seed_sha256=sha256(SEED).hexdigest(),registered={r:None for r in range(1,13)},fetch=fetch,clock=lambda:STAMP,not_before_utc='2026-11-28T10:00:00Z',seed_origin='https://www.jra.go.jp')
+   self.assertEqual(len(calls),16)
+   self.assertEqual(out['seed_origin'],'https://www.jra.go.jp')
+   self.assertEqual(out['structured_result_payout_races'],0)
+   self.assertFalse(out['settlement_authorized'])
+   self.assertTrue(all((root/f'r{r:02d}_result.html').is_file() for r in range(1,13)))
+   self.assertTrue((root/'payout_meeting.html').is_file())
