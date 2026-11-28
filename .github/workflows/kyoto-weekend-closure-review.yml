@@ -21,6 +21,7 @@ on:
       - '.github/workflows/kyoto-weekend-closure-review.yml'
       - 'diagnostics/kyoto_weekend_closure_review.py'
       - 'diagnostics/kyoto_day_workout_replay.py'
+      - 'diagnostics/kyoto_day_supplemental_replay.py'
       - 'diagnostics/kyoto_repair_control.py'
       - 'tests/test_kyoto_weekend_closure_review.py'
       - 'diagnostics/kyoto_fixed_risk_worklist.py'
@@ -31,6 +32,7 @@ on:
     paths:
       - 'diagnostics/kyoto_weekend_closure_review.py'
       - 'diagnostics/kyoto_day_workout_replay.py'
+      - 'diagnostics/kyoto_day_supplemental_replay.py'
       - 'tests/test_kyoto_weekend_closure_review.py'
       - 'diagnostics/kyoto_fixed_risk_worklist.py'
       - 'tests/test_kyoto_fixed_risk_worklist.py'
@@ -78,6 +80,11 @@ jobs:
           ref: 'bd800bc30db60919e274eadac419016c963e77de'
           path: trusted-workout-reader
           persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          ref: '301916719e5bc0e3a8e392368434f952c16c05db'
+          path: trusted-cushion-reader
+          persist-credentials: false
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11.18'
@@ -86,6 +93,8 @@ jobs:
         run: |
           export KYOTO_TARGET_DAY="$TARGET_DAY"
           export KYOTO_WORKOUT_READER="$GITHUB_WORKSPACE/trusted-workout-reader"
+          export KYOTO_CUSHION_READER="$GITHUB_WORKSPACE/trusted-cushion-reader"
+          export KYOTO_CUSHION_HTTP_APPROVED=NO
           cd trusted-reader
           PYTHONPATH="$PWD" timeout --signal=TERM --kill-after=5s 900s python ../diagnostics/kyoto_weekend_closure_review.py --day "$TARGET_DAY" --out ../review
       - uses: actions/upload-artifact@v4

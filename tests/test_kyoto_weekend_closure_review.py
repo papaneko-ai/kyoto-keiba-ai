@@ -147,4 +147,47 @@ class ClosureTests(unittest.TestCase):
    self.assertEqual(q["counts"]["body_weight_kg"]["verified"],23,k)
    self.assertFalse(q["all_reviewed_cells_present"],k)
   self.assertEqual(assess(DAY,d,[1,2])["counts"]["body_weight_kg"]["expected"],24)
+ def test_supplemental_sp_reuses_only_present_originals_without_pc_credit(self):
+  from diagnostics.kyoto_day_supplemental_replay import review_sp
+  m={"index_complete":True,"runs":[{"id":i,"event":"workflow_dispatch","status":"completed","artifacts":{"sp":{"state":s}}} for i,s in ((1,"PRESENT"),(2,"JOB_SKIPPED_NO_ARTIFACT"),(3,"MISSING_AFTER_JOB_SUCCESS"),(4,"PRESENT"))]}
+  def invoke(task,end):
+   self.assertEqual(task[:3],("lane",DAY,REPO))
+   self.assertEqual(task[-1],"SP")
+   if task[3]==4:return {"error_class":"TIMEOUT"}
+   self.assertEqual(task[3],1)
+   return {"source_original_sha_utc_checked":True}
+  def aggregate(day,entries):
+   self.assertEqual(day,DAY)
+   self.assertEqual([e["run"]["id"] for e in entries],[1,2,3,4])
+   self.assertEqual(entries[1]["source_assessment"]["SP"],{})
+   self.assertEqual(entries[2]["source_assessment"]["SP"],{})
+   self.assertEqual(entries[3]["source_assessment"]["SP"],{"error_class":"TIMEOUT"})
+   return {"schema":"kyoto_impl32_sp_handoff.v1","day":day,"race_denominator":12,"pc_denominator_modified":False,"prestart_certified":False,"market_verified":False,"live_acquisition_certified":False}
+  v=review_sp(DAY,m,invoke=invoke,aggregate=aggregate)
+  self.assertEqual(v["source_http_requests"],0)
+  self.assertEqual(v["replay_errors"],[{"run_id":4,"error_class":"TIMEOUT"}])
+  self.assertFalse(v["pc_denominator_modified"])
+  self.assertEqual(v["source_inventory"][1]["artifact_state"],"JOB_SKIPPED_NO_ARTIFACT")
+  with self.assertRaises(ValueError):review_sp(DAY,{**m,"runs":m["runs"]+[m["runs"][0]]},invoke=invoke,aggregate=aggregate)
+  def bad(day,entries):return {**aggregate(day,entries),"market_verified":True}
+  with self.assertRaises(ValueError):review_sp(DAY,m,invoke=invoke,aggregate=bad)
+ def test_supplemental_cushion_delegates_authenticated_observations_only(self):
+  from diagnostics.kyoto_day_supplemental_replay import replay_cushions
+  d=data();before=copy.deepcopy(d)
+  def read(rid,path):
+   if rid==2:raise ValueError("bad_cipher")
+   if rid==3:return {"day":"20261128"}
+   return {"day":DAY,"captured_at_utc":"2026-11-29T00:00:00Z","source_sha256":"a"*64}
+  def combine(day,c,obs):
+   self.assertEqual(c,before)
+   self.assertEqual([x[0] for x in obs],[1])
+   return {"schema":"kyoto_impl36_cushion_day.v1","day":day,"race_denominator":12,"races":{str(n):{} for n in range(1,13)},"prediction_ready":False,"full_data_acquisition_certified":False}
+  v=replay_cushions(DAY,d,[(1,"a"),(2,"b"),(3,"c")],read,combine)
+  self.assertEqual(d,before)
+  self.assertEqual([x["run_id"] for x in v["authenticated_observations"]],["1"])
+  self.assertEqual([x["run_id"] for x in v["replay_errors"]],[2,3])
+  self.assertEqual(v["source_http_requests"],0)
+  with self.assertRaises(ValueError):replay_cushions(DAY,d,[(1,"a"),(1,"b")],read,combine)
+  def bad(day,c,obs):return {**combine(day,c,obs),"prediction_ready":True}
+  with self.assertRaises(ValueError):replay_cushions(DAY,d,[(1,"a")],read,bad)
 if __name__=="__main__":unittest.main()
