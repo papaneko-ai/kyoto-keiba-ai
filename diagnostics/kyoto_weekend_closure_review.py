@@ -395,11 +395,11 @@ def review(day,now,out):
     elif "workout_day_replay_error" in report:summary.append("- 調教原本独立再解析未完: "+report["workout_day_replay_error"])
     if "independent_sp_source_coverage" in report:
         s=report["independent_sp_source_coverage"]
-        summary.append(f"- SP独立構造証拠: audited_runs={s[\'audited_sp_runs\']}, native={s[\'scheduled\'][\'structural_roster_races\']}/12, dispatch={s[\'manual\'][\'structural_roster_races\']}/12; separate ledger, no PC/prestart/market credit.")
+        summary.append(f"- SP独立構造証拠: audited_runs={s['audited_sp_runs']}, native={s['scheduled']['structural_roster_races']}/12, dispatch={s['manual']['structural_roster_races']}/12; separate ledger, no PC/prestart/market credit.")
     elif "independent_sp_source_coverage_error" in report:summary.append("- SP独立証拠未完: "+report["independent_sp_source_coverage_error"])
     if "independent_cushion_day_replay" in report:
         c=report["independent_cushion_day_replay"]
-        summary.append(f"- クッション値独立原本: authenticated={len(c[\'authenticated_observations\'])}, prestart={c[\'prestart_verified_races\']}/12, replay_errors={len(c[\'replay_errors\'])}; separate ledger, no full acquisition credit.")
+        summary.append(f"- クッション値独立原本: authenticated={len(c['authenticated_observations'])}, prestart={c['prestart_verified_races']}/12, replay_errors={len(c['replay_errors'])}; separate ledger, no full acquisition credit.")
     elif "independent_cushion_day_replay_error" in report:summary.append("- クッション値独立照合未完: "+report["independent_cushion_day_replay_error"])
     if "cancellation_review" in report:
         c=report["cancellation_review"]
