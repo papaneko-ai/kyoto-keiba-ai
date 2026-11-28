@@ -74,13 +74,26 @@ class NextDay(unittest.TestCase):
                 self.assertEqual(recover(TARGET_DAY,repo=REPO,collector_sha=SHA,key=KEY)[0],expected)
     def test_real_zero_coverage_incident_not_masked_by_green_job_status(self):
         from diagnostics.kyoto_impl30_nextday_adaptation import recover_from_metadata,NOV28_INCIDENT_RUN_IDS,OBSERVER,OBSERVER_NAME
-        rows=[{"id":i,"name":OBSERVER_NAME,"created_at":"2026-11-28T03:00:00Z","event":"workflow_dispatch","head_branch":"main","status":"completed","conclusion":"success","head_repository":{"full_name":REPO},"path":".github/workflows/"+OBSERVER} for i in NOV28_INCIDENT_RUN_IDS]
+        rows=[{"id":i,"name":"workflow_dispatch","created_at":"2026-11-28T03:00:00Z","event":"workflow_dispatch","head_branch":"main","status":"completed","conclusion":"success","head_repository":{"full_name":REPO},"path":".github/workflows/"+OBSERVER} for i in NOV28_INCIDENT_RUN_IDS]
         def api(ep):
             if "/workflows/" in ep:return {"total_count":len(rows),"workflow_runs":rows}
             return {"total_count":0,"jobs":[]}
         self.assertEqual(recover_from_metadata(api,REPO),("MARKET_OR_ROSTER_RECOVERY","NOV28_AUTHENTICATED_SOURCE_GAP_INCIDENT_141"))
         rows.pop()
         self.assertEqual(recover_from_metadata(api,REPO)[0],"BASELINE")
+    def test_actual_run_names_and_wrong_identity(self):
+        from diagnostics.kyoto_impl25_c12_all_runs_handoff import run_name_matches
+        from diagnostics.kyoto_impl30_nextday_adaptation import OBSERVER,OBSERVER_NAME
+        from diagnostics.kyoto_impl31_handoff_budget import _index
+        base={"id":46087080554,"name":"workflow_dispatch","event":"workflow_dispatch","head_branch":"main","created_at":"2026-11-28T00:17:22Z","head_repository":{"full_name":REPO},"path":".github/workflows/"+OBSERVER}
+        self.assertTrue(run_name_matches(base,OBSERVER_NAME,OBSERVER,SOURCE_DAY))
+        self.assertTrue(_index({"total_count":1,"workflow_runs":[base]},SOURCE_DAY,REPO,OBSERVER_NAME,OBSERVER)[1])
+        native={**base,"event":"schedule","name":"kyoto-native:15 0 28 11 *"}
+        self.assertTrue(run_name_matches(native,OBSERVER_NAME,OBSERVER,SOURCE_DAY))
+        for change in ({"head_branch":"other"},{"path":"other"},{"event":"push"},{"name":"kyoto-native:15 0 29 11 *"},{"created_at":"2026-11-29T00:17:22Z"}):
+            self.assertFalse(run_name_matches({**base,**change},OBSERVER_NAME,OBSERVER,SOURCE_DAY))
+        handoff={**base,"name":"kyoto-native:0 12 28 11 *","event":"schedule","path":".github/workflows/"+WORKFLOW}
+        self.assertTrue(run_name_matches(handoff,NAME,WORKFLOW,SOURCE_DAY))
     def test_unavailable_github_does_not_veto(self):
         with patch("diagnostics.kyoto_impl30_nextday_adaptation.subprocess.check_output",side_effect=OSError):
             self.assertEqual(recover(TARGET_DAY,repo=REPO,collector_sha=SHA,key=KEY)[0],"BASELINE")
