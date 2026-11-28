@@ -3,6 +3,10 @@ import copy, subprocess, unittest
 from datetime import datetime,timedelta,timezone
 from pathlib import Path
 import yaml
+from diagnostics.kyoto_impl30_collector_selection import DEPLOYED_RECEIPT
+SUNDAY_PIN=DEPLOYED_RECEIPT["override"]
+SATURDAY_READER="c289c5ec4e6ad322a7e08acf173da3352ed23dba"
+DAY_REF="${{ inputs.race_day == '20261129' && '"+SUNDAY_PIN+"' || '"+SATURDAY_READER+"' }}"
 ROOT=Path(__file__).resolve().parents[1]
 PREFIX="kyoto-20261128-29-"
 BASE="425ba294b939a819038afa446a6158d83e2eef40"
@@ -40,9 +44,25 @@ class Isolation(unittest.TestCase):
                     j["if"]=j["if"].replace("(github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch'","((github.event_name == 'workflow_dispatch'").replace("(github.event.workflow_run.event == 'schedule' || github.event.workflow_run.event == 'workflow_dispatch')","(github.event.workflow_run.event == 'workflow_dispatch')")
                 elif n=="cushion-source":
                     expected["jobs"]["cushion-source-only"]["if"]=CUSHION_IF
+                # Only the separately verified Sunday source selection may change.
+                if n=="two-source-production-observer":
+                    expected["jobs"]["select-collector"]["env"]["SUNDAY_OVERRIDE_SHA"]=SUNDAY_PIN
+                elif n=="auxiliary-refresh":
+                    j=expected["jobs"]["afternoon-auxiliary-source"]
+                    j["steps"][0]["with"]["ref"]=DAY_REF
+                    for s in j["steps"]:
+                        if 'test "$(git rev-parse HEAD)"' in s.get("run",""):
+                            s["run"]=s["run"].replace('test "$(git rev-parse HEAD)" = '+repr(SATURDAY_READER),'test "$(git rev-parse HEAD)" = "'+DAY_REF+'"')
+                elif n=="result-handoff":
+                    expected["jobs"]["authenticated-handoff"]["steps"][0]["with"]["ref"]=DAY_REF
                 self.assertEqual(doc(n),expected)
                 self.assertNotIn("schedule",doc(n)["on"])
                 self.assertEqual(doc(n)["on"]["workflow_dispatch"],original["on"]["workflow_dispatch"])
+    def test_independent_closure_reader_only_sunday_changes(self):
+        path=".github/workflows/kyoto-weekend-closure-review.yml"
+        previous=subprocess.check_output(["git","show","457fcf075143b7f80a769b259fa1b9f5d2987abf:"+path],cwd=ROOT,text=True)
+        expected=previous.replace("ref: '"+SATURDAY_READER+"'","ref: ${{ env.TARGET_DAY == '20261129' && '"+SUNDAY_PIN+"' || '"+SATURDAY_READER+"' }}")
+        self.assertEqual((ROOT/path).read_text(),expected)
     def test_native_probe(self):
         d=doc("native-scheduler-diagnostic")
         self.assertEqual(set(d["on"]),{"schedule"})

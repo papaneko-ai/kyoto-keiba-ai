@@ -24,21 +24,21 @@ def choose(day,baseline,override,verified):
         return baseline,"PREFLIGHT_UNAVAILABLE_BASELINE_RETAINED"
     return baseline,"OVERRIDE_NOT_VERIFIED_BASELINE_RETAINED"
 
-# Exact isolated Impl39 preflight job 140926186771, completed successfully;
-# artifact 15256168435 is bound to the same immutable head. Only when this
+# Exact isolated Impl39 preflight job 140937024828, completed successfully;
+# artifact 15258085866 is bound to the same immutable head. Only when this
 # reviewed configuration is deployed does the second evidence path apply.
-# Previous deployed evidence is preserved in PR #167 and issue #141.
+# Previous deployed evidence is preserved in PR #169 and issue #141.
 DEPLOYED_RECEIPT={
     "repo":"papaneko-ai/kyoto-keiba-ai",
     "day":"20261129",
     "baseline":"3f4b3d77357745ead05a9f78db34eb6ac2d78637",
-    "override":"d588d8a749d7bde37d62c742bfa201d31fc5cbea",
-    "preflight_run":46127810705,
-    "preflight_job":140926186771,
-    "artifact_id":15256168435,
-    "artifact_sha256":"b1d48034ac6cd4f623ae8d30fba1aec4ed0e8be18fd1fdb26cc1cfd608d4dc52",
-    "validation_pr":167,
-    "validation_scope":"Impl39 exact isolated preflight; validation_pr is prior baseline",
+    "override":"74c823836b7099e959d885e1cca778f390fd2195",
+    "preflight_run":46131367242,
+    "preflight_job":140937024828,
+    "artifact_id":15258085866,
+    "artifact_sha256":"f22a501dfb9e1c9c5c312572146ae8409d34eb6aced59d08bd6b385598d7581b",
+    "validation_pr":169,
+    "validation_scope":"Impl39 end-to-end recovery exact isolated preflight; validation_pr is prior baseline",
 }
 
 def choose_deployed(day,baseline,override,verified,*,repo):

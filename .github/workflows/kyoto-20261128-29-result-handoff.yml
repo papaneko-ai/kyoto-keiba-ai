@@ -27,7 +27,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: 'c289c5ec4e6ad322a7e08acf173da3352ed23dba'
+          ref: ${{ inputs.race_day == '20261129' && '74c823836b7099e959d885e1cca778f390fd2195' || 'c289c5ec4e6ad322a7e08acf173da3352ed23dba' }}
           persist-credentials: false
       - uses: actions/setup-python@v5
         with:
