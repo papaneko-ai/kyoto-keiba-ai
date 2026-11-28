@@ -35,7 +35,7 @@ jobs:
                   return None
           client=build_opener(Boundary(),HTTPCookieProcessor(CookieJar()))
           from urllib.parse import urljoin,urlencode
-          for label,url in [("PC_HOME","https://www.jra.go.jp/"),("SP_HOME","https://sp.jra.jp/")]:
+          for label,url,prefix in [("PC","https://www.jra.go.jp/","pw"),("SP","https://sp.jra.jp/","sw")]:
               time.sleep(2)
               try:
                   with client.open(Request(url,headers={"User-Agent":"KyotoRaceAI-Private-ReadOnly/0.1","Accept":"text/html"}),timeout=12) as response:
@@ -44,30 +44,35 @@ jobs:
                   try: text=raw.decode("utf-8")
                   except UnicodeDecodeError: text=raw.decode("cp932",errors="replace")
                   soup=BeautifulSoup(text,"html.parser")
-                  hosts=("www.jra.go.jp","jra.jp") if label=="PC_HOME" else ("sp.jra.jp","app.jra.jp")
-                  scripts=[]
-                  for s in soup.select("script[src]"):
-                      target=urljoin(url,s["src"])
-                      u=urlsplit(target)
-                      if u.scheme=="https" and u.hostname in hosts and u.path.startswith("/common/js/") and re.search(r"/common[^/]*\.js$",u.path) and not u.fragment:
-                          if target not in scripts:scripts.append(target)
-                  print(label,"COMMON_SCRIPT_SOURCES",json.dumps(scripts))
-                  for target in scripts[:3]:
-                      time.sleep(2)
-                      try:
-                          with client.open(Request(target,headers={"User-Agent":"KyotoRaceAI-Private-ReadOnly/0.1","Accept":"application/javascript"}),timeout=12) as res:
-                              raw=res.read(500001)
-                              if res.status!=200 or res.geturl()!=target or len(raw)>500000:continue
-                          js=raw.decode("utf-8",errors="replace")
-                          for m in re.finditer(r"(?:function\s+doAction\s*\(|doAction\s*=\s*function\s*\()",js):
-                              excerpt=js[max(0,m.start()-120):m.start()+1800]
-                              print(label,"DOACTION_DEFINITION",json.dumps(excerpt,ensure_ascii=False))
-                          for line in js.splitlines():
-                              if re.search(r"(?:jra\.jp|jra\.go\.jp)",line) and len(line)<300 and not "http:" in line:
-                                  print(label,"HOST_CONSTANT",json.dumps(line.strip()))
-                      except Exception as exc:
-                          print(label,"SCRIPT_ERROR",type(exc).__name__)
-                          break
+                  forms=[f for f in soup.select("form#commForm01") if str(f.get("method","")).lower()=="post" and f.select_one('input[name="cname"]')]
+                  entries=set()
+                  for a in soup.select("a[onclick]"):
+                      action=a["onclick"]
+                      m=re.fullmatch(r"\s*(?:return\s+)?doAction\(\s*['\"](/JRADB/accessD\.html)['\"]\s*,\s*['\"]("+prefix+r"01dli00/[A-Za-z0-9]{2})['\"]\s*\)\s*;?\s*(?:return\s+false\s*;?)?\s*",action)
+                      if m and a.get_text(" ",strip=True)=="出馬表":entries.add((m.group(1),m.group(2)))
+                  print(label,"FORMS",len(forms),"ENTRIES",len(entries),"BASE",str(soup.find("base"))[:250])
+                  if len(forms)!=1 or len(entries)!=1:continue
+                  path,token=next(iter(entries))
+                  endpoint=urljoin(url,path)
+                  time.sleep(2)
+                  request=Request(endpoint,data=urlencode({"cname":token}).encode("ascii"),method="POST",headers={"User-Agent":"KyotoRaceAI-Private-ReadOnly/0.1","Accept":"text/html","Referer":url,"Content-Type":"application/x-www-form-urlencoded"})
+                  with client.open(request,timeout=12) as response:
+                      raw=response.read(1500001)
+                      print(label,"ENTRY_RESPONSE",response.status,response.geturl(),len(raw),response.headers.get("Content-Type"))
+                      if response.status!=200 or response.geturl()!=endpoint or len(raw)>1500000:continue
+                  try: text=raw.decode("utf-8")
+                  except UnicodeDecodeError: text=raw.decode("cp932",errors="replace")
+                  soup=BeautifulSoup(text,"html.parser")
+                  print(label,"TITLE",soup.title.get_text(" ",strip=True) if soup.title else "")
+                  print(label,"ANCHOR_COUNTS",len(soup.select("a[href]")),len(soup.select("a[onclick]")))
+                  for a in soup.select("a"):
+                      title=a.get_text(" ",strip=True)
+                      href=a.get("href","")
+                      action=a.get("onclick","")
+                      if ("京都" in title or "20261129" in href or "20261129" in action) and len(title)<100:
+                          print(label,"MEETING",json.dumps({"title":title,"href":href[:300],"onclick":action[:300]},ensure_ascii=False))
+              except HTTPError as exc:
+                  print(label,"HTTP",exc.code)
               except Exception as exc:
                   print(label,"ERROR",type(exc).__name__)
           PY
