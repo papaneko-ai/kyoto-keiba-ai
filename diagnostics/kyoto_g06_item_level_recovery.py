@@ -30,6 +30,46 @@ def _utc(value):
         raise ValueError("non_utc_time")
     return dt
 
+def saved_sunday_sp_navigation(directory,steps,race_spec,cutoff):
+    """Reopen actual same-day SP card and every observed POST in saved chain.
+    Called inside authenticated original replay, never synthesizes a route.
+    """
+    from urllib.parse import urlsplit
+    from diagnostics.kyoto_impl31_sp_saved_roster_audit import exact_mobile_race
+    from diagnostics.jra_one_shot_market_capture import exact_odds_action,observed_next_market_action
+    first=steps["racecard"]
+    url=first["requested_url"]
+    if (not exact_mobile_race(url,race_spec.race_day,race_spec.race_number)
+        or (race_spec.sp_racecard_url and race_spec.sp_racecard_url!=url)
+        or first.get("response_url")!=url or first.get("method")!="GET"):
+        raise ValueError("saved_sp_card_origin")
+    host=urlsplit(url).netloc
+    post_url=f"https://{host}/JRADB/accessO.html"
+    start=_utc(first["captured_at_utc"])
+    if start.strftime("%Y%m%d")!=race_spec.race_day or start>=cutoff:
+        raise ValueError("saved_sp_card_time")
+    raw=_read_verified(directory,"official_racecard.html",first)
+    if not _html_race_identity(raw,race_spec.race_day,race_spec.venue,race_spec.race_number):
+        raise ValueError("saved_sp_card_identity")
+    token=exact_odds_action(raw,"SP")
+    nav=sorted(k for k in steps if k.startswith("odds_navigation_"))
+    if nav not in ([],["odds_navigation_1"],["odds_navigation_1","odds_navigation_2"]):
+        raise ValueError("saved_sp_navigation_gap")
+    for i,name in enumerate(["odds_menu",*nav]):
+        st=steps[name]
+        stamp=_utc(st["captured_at_utc"])
+        if (st.get("requested_url")!=post_url or st.get("response_url")!=post_url
+            or st.get("method")!="POST" or st.get("observed_action_token")!=token
+            or stamp.strftime("%Y%m%d")!=race_spec.race_day or not start<=stamp<cutoff):
+            raise ValueError("saved_sp_navigation_origin_action_time")
+        raw=_read_verified(directory,"official_"+name+".html",st)
+        start=stamp
+        if i<len(nav):
+            token=observed_next_market_action(raw,"SP",race_spec,step=i)
+    if not _html_race_identity(raw,race_spec.race_day,race_spec.venue,race_spec.race_number):
+        raise ValueError("saved_sp_menu_identity")
+    return host
+
 def recover_saved_markets(folder, *, race_spec,active_runners,verified_start_utc):
     """Keep individually verified market and time, never equate cross-channel quotes."""
     folder=Path(folder)
@@ -64,6 +104,8 @@ def recover_saved_markets(folder, *, race_spec,active_runners,verified_start_utc
             if not _html_race_identity(menu,race_spec.race_day,race_spec.venue,race_spec.race_number):
                 raise ValueError("menu_identity_mismatch")
             host="sp.jra.jp" if channel=="SP" else ("www.jra.go.jp" if race_spec.race_day in ("20261128","20261129") and race_spec.pc_racecard_url.startswith("https://www.jra.go.jp/") else "jra.jp")
+            if channel=="SP" and race_spec.race_day=="20261129":
+                host=saved_sunday_sp_navigation(directory,steps,race_spec,cutoff)
             links=find_market_links(menu,expected_race_day=race_spec.race_day,
                 expected_race_number=race_spec.race_number,expected_host=host)
             if links["source_final_odds_detected"]:
@@ -79,6 +121,8 @@ def recover_saved_markets(folder, *, race_spec,active_runners,verified_start_utc
                     if _utc(step["captured_at_utc"])>=cutoff or _utc(steps[menu_step]["captured_at_utc"])>=cutoff:
                         raise ValueError("after_start")
                     link=links["markets"][market]
+                    if channel=="SP" and race_spec.race_day=="20261129" and (step.get("response_url")!=link["official_post_url"] or _utc(step["captured_at_utc"]).strftime("%Y%m%d")!=race_spec.race_day or _utc(step["captured_at_utc"])<_utc(steps[menu_step]["captured_at_utc"])):
+                        raise ValueError("saved_sp_market_origin_time")
                     if (step.get("requested_url")!=link["official_post_url"] or
                         step.get("observed_action_token")!=link["cname"] or step.get("method")!="POST"):
                         raise ValueError("unobserved_market_action")

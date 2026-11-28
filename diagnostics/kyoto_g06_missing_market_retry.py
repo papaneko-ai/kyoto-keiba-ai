@@ -81,6 +81,9 @@ def recover_one(*, root,channel,market,race_spec,active_runners,
     if _date(steps[chosen]["captured_at_utc"])>=cutoff:
         raise SourceChainError("navigation_not_pre_cutoff")
     host="sp.jra.jp" if channel=="SP" else ("www.jra.go.jp" if race_spec.race_day in ("20261128","20261129") and race_spec.pc_racecard_url.startswith("https://www.jra.go.jp/") else "jra.jp")
+    if channel=="SP" and race_spec.race_day=="20261129":
+        from diagnostics.kyoto_g06_item_level_recovery import saved_sunday_sp_navigation
+        host=saved_sunday_sp_navigation(source,steps,race_spec,cutoff)
     links=find_market_links(menu,expected_race_day=race_spec.race_day,
                             expected_race_number=race_spec.race_number,expected_host=host)
     if links["source_final_odds_detected"]:
@@ -96,7 +99,11 @@ def recover_one(*, root,channel,market,race_spec,active_runners,
     # prior receipts, so replay can audit the complete recovery independently.
     evidence=[("racecard","official_racecard.html",racecard),
               ("odds_menu","official_odds_menu.html",_verified_file(source,"official_odds_menu.html",steps["odds_menu"]))]
-    if chosen!="odds_menu":
+    if channel=="SP" and race_spec.race_day=="20261129":
+        for step in nav:
+            name="official_"+step+".html"
+            evidence.append((step,name,_verified_file(source,name,steps[step])))
+    elif chosen!="odds_menu":
         evidence.append((chosen,menu_name,menu))
     recovery={"schema":"kyoto_missing_market_recovery.v1","race_id":race_spec.race_id,
               "channel":channel,"state":"CAPTURE_BLOCKED",

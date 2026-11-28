@@ -1250,7 +1250,7 @@
     "diagnostics/kyoto_g03_proof_verify.py": "9eb905f489b050c842b2793bd43e1c5385d77df0",
     "diagnostics/kyoto_g05_conditions.py": "30ceb25aea1328318147df750234501e2bae716e",
     "diagnostics/kyoto_g05_official_track.py": "7c4651e3844124c3b9026c6f97bd106d73b7ccbd",
-    "diagnostics/kyoto_g06_missing_market_retry.py": "15b74dfdcd0a57b9c5aa1187647523f8f31195ba"
+    "diagnostics/kyoto_g06_missing_market_retry.py": "dbc0006d464216c352ee746429d028ea3826906f"
   },
   "revision_note": "Impl30 exact source re-enumeration, 29 registered modules compared; changed source functions reopened, not certified. Historical ledger preserved in parent; all 25 risk records unchanged.",
   "previous_source_commit": "7e88a7d4dadcbdc56495f9c5a4b43fd8806c510f",
@@ -1954,5 +1954,22 @@
       "diagnostics/kyoto_impl39_aux_gap_recovery.py"
     ],
     "reason": "Reopen exact weekend SP host guard and independently observed prior discovery input; no closed risk, no live certification."
+  },
+  "impl39_saved_sp_origin_reopen": {
+    "prior_ledger_blob": "6be8791e701703faf46632d17e3ca4ac67616bea",
+    "sources": [
+      {
+        "source": "diagnostics/kyoto_g06_missing_market_retry.py",
+        "old_blob": "15b74dfdcd0a57b9c5aa1187647523f8f31195ba",
+        "new_blob": "dbc0006d464216c352ee746429d028ea3826906f",
+        "review_status": "UNREVIEWED_INDEPENDENT_FMEA",
+        "closed_risks": 0
+      }
+    ],
+    "dynamic_scope": [
+      "diagnostics/kyoto_g06_item_level_recovery.py",
+      "diagnostics/kyoto_g06_market_link_evidence.py"
+    ],
+    "reason": "B01 saved SP exact origin chain; no FMEA closure or live certification"
   }
 }

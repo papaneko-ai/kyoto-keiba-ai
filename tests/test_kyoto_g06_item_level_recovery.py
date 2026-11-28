@@ -107,6 +107,55 @@ class CanonicalWeekendRecovery(unittest.TestCase):
                 (p/"receipt.json").write_text(json.dumps(rec))
                 self.assertFalse(assess()["both_markets_verified"])
 
+class SundaySPOrigin(unittest.TestCase):
+    def test_saved_actual_origin_and_related_recovery_paths(self):
+        from dataclasses import replace
+        from unittest.mock import patch
+        from diagnostics.kyoto_g06_market_link_evidence import observed_market_links
+        from diagnostics.kyoto_g06_missing_market_retry import recover_one
+        day="20261129";iso="2026-11-29";stamp=iso+"T02:00:00Z";start=iso+"T06:45:00Z"
+        for host in ("sp.jra.jp","app.jra.jp"):
+            with self.subTest(host=host), tempfile.TemporaryDirectory() as tmp:
+                setup(tmp,"SP",["quinella"])
+                p=Path(tmp)/"sp";rp=p/"receipt.json";rec=json.loads(rp.read_text())
+                rec["race_id"]=iso+"_KYOTO_11R"
+                url=f"https://{host}/JRADB/accessD.html?CNAME=sw01dde01082026050611{day}%2FAA"
+                post=f"https://{host}/JRADB/accessO.html";token="swMenu/A0"
+                for step in rec["request_receipts"]:
+                    k=step["step"];name={"racecard":"official_racecard.html","odds_menu":"official_odds_menu.html"}.get(k,k+"_original.html")
+                    raw=(p/name).read_bytes().replace(b"20261107",day.encode()).replace("11月7日".encode("cp932"),"11月29日".encode("cp932"))
+                    if k=="racecard":
+                        raw=raw.replace(b"</body>",'<a onclick="return doAction(\'/JRADB/accessO.html\',\'swMenu/A0\')">オッズ</a></body>'.encode("cp932"))
+                    (p/name).write_bytes(raw)
+                    step.update(bytes=len(raw),sha256=sha256(raw).hexdigest(),captured_at_utc=stamp,requested_url=url if k=="racecard" else post,response_url=url if k=="racecard" else post,method="GET" if k=="racecard" else "POST")
+                    if k=="odds_menu":step["observed_action_token"]=token
+                    elif k!="racecard":step["observed_action_token"]=step["observed_action_token"].replace("20261107",day)
+                def emit():rp.write_text(json.dumps(rec))
+                emit()
+                spec=replace(SPEC,race_day=day,race_id=rec["race_id"],sp_racecard_url="")
+                def assess():return recover_saved_markets(tmp,race_spec=spec,active_runners=RUNNERS,verified_start_utc=start)
+                self.assertEqual(assess()["markets"]["quinella"]["selected"]["source_url"],post)
+                self.assertTrue(observed_market_links(tmp,race_spec=spec,verified_start_utc=start)["SP"]["observed"])
+                raw=html("枠連オッズ",B).replace(b"20261107",day.encode()).replace("11月7日".encode("cp932"),"11月29日".encode("cp932"))
+                def mock(client,channel,uri,**kw):
+                    self.assertEqual(uri,post)
+                    return {"raw":raw,"sha256":sha256(raw).hexdigest(),"bytes":len(raw),"captured_at_utc":stamp,"requested_url":uri,"response_url":uri,"observed_action_token":kw["cname"],"method":"POST"}
+                with patch("diagnostics.kyoto_g06_missing_market_retry.http_fetch",side_effect=mock) as fetch:
+                    recover_one(root=tmp,channel="SP",market="bracket_quinella",race_spec=spec,active_runners=RUNNERS,verified_start_utc=start,now_utc=stamp,opener=object())
+                    self.assertEqual(fetch.call_count,1)
+                self.assertTrue(assess()["both_markets_verified"])
+                import shutil
+                shutil.rmtree(Path(tmp)/"sp_recovery")
+                for field,bad in (("requested_url","https://jra.jp/JRADB/accessO.html"),("response_url","https://example.org/JRADB/accessO.html"),("observed_action_token","swWrong/A0"),("captured_at_utc","2026-11-28T02:00:00Z")):
+                    st=rec["request_receipts"][1];old=st[field];st[field]=bad;emit()
+                    self.assertIsNone(assess()["markets"]["quinella"]["selected"])
+                    self.assertFalse(observed_market_links(tmp,race_spec=spec,verified_start_utc=start)["SP"]["observed"])
+                    with patch("diagnostics.kyoto_g06_missing_market_retry.http_fetch") as fetch:
+                        with self.assertRaises(ValueError):
+                            recover_one(root=tmp,channel="SP",market="bracket_quinella",race_spec=spec,active_runners=RUNNERS,verified_start_utc=start,now_utc=stamp,opener=object())
+                        fetch.assert_not_called()
+                    st[field]=old;emit()
+
 class BatchIntegration(unittest.TestCase):
     def test_batch_keeps_both_saved_markets(self):
         from diagnostics.kyoto_g06_all12_capture import run_twelve

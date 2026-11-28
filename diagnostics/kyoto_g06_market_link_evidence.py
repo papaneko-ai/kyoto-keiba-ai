@@ -44,6 +44,9 @@ def observed_market_links(root, *, race_spec, verified_start_utc):
             if not _html_race_identity(raw,race_spec.race_day,race_spec.venue,race_spec.race_number):
                 raise ValueError("menu_race_identity_mismatch")
             host="sp.jra.jp" if channel=="SP" else ("www.jra.go.jp" if race_spec.race_day=="20261129" and race_spec.pc_racecard_url.startswith("https://www.jra.go.jp/") else "jra.jp")
+            if channel=="SP" and race_spec.race_day=="20261129":
+                from diagnostics.kyoto_g06_item_level_recovery import saved_sunday_sp_navigation
+                host=saved_sunday_sp_navigation(folder,steps,race_spec,_utc(verified_start_utc))
             links=find_market_links(raw,expected_race_day=race_spec.race_day,
                 expected_race_number=race_spec.race_number,expected_host=host)
             if links["source_final_odds_detected"]:
