@@ -7,10 +7,11 @@ from hashlib import sha256
 from pathlib import Path
 from urllib.parse import urlsplit, urljoin
 from urllib.error import HTTPError
+from html.parser import HTMLParser
 from urllib.robotparser import RobotFileParser
 from bs4 import BeautifulSoup
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
-from diagnostics.kyoto_impl33_whitegreen_probe import HOST, AGENT, JST, get, text
+from diagnostics.kyoto_impl33_whitegreen_probe import HOST, AGENT, JST, get, text, inspect
 from diagnostics.kyoto_impl33_workout_generic import discover, bridge, candidate_links, parse_observed
 from diagnostics.kyoto_impl33_hybrid_workout import parse_table_v3,parse_labeled_turf,recover,preserve_partial
 from diagnostics.kyoto_g03_independent_partial import verify_partial
@@ -229,7 +230,7 @@ def previews(day,key,budget):
     except Exception:pass
     return out
 
-def previous(day,key,budget):
+def previous(day,key,budget,*,on_index=lambda x:None):
     out=[]
     try:
         for r in eligible_runs(budget,day,WORKFLOW)[:4]:
@@ -239,6 +240,17 @@ def previous(day,key,budget):
                     p=Path(tmp);budget.download(rid,f'kyoto-workout-{rid}-{day}',p)
                     d=json.loads((p/'receipt.json').read_text())
                     if d['day']!=day or d['run_id']!=rid:raise ValueError('previous_identity')
+                    # Reopen only the already downloaded archive, with exact
+                    # run/day binding. Index failure never blocks snapshots.
+                    try:
+                        m=d.get('primary_index',{})
+                        f=p/'primary_index.aesgcm'
+                        if m.get('state')!='INDEX_SEALED' or m.get('filename')!=f.name or f.is_symlink() or not 28<f.stat().st_size<=4_000_028:raise ValueError('index_identity')
+                        aad=f'kyoto-workout-navigation-v1|{REPO}|{rid}|{day}|PRIMARY_INDEX'.encode()
+                        raw=read_snapshot(f.read_bytes(),m,key,aad)
+                        if len(raw)!=m.get('bytes'):raise ValueError('index_size')
+                        on_index({'raw':raw,'stamp':m['captured_utc'],'run_id':rid})
+                    except Exception:pass
                     for i,m in enumerate(d['snapshots']):
                         if m['kind'] not in ('PRIMARY','SECONDARY') or type(m['race']) is not int or not 1<=m['race']<=12:continue
                         name=f'source_{i:03d}.aesgcm';aad=f'kyoto-workout-runtime-v1|{REPO}|{rid}|{day}|{i}'.encode()
@@ -337,20 +349,91 @@ def race_labels(index,day):
                 if 2<=len(label)<=40 and '未勝利' not in label and '新馬' not in label and '勝クラス' not in label:out[n]=label
     return out
 
-def collect_primary(day,items,rosters,fetch,clock=now,on_snapshot=lambda x:None,*,on_index=lambda raw,stamp:None,on_discovery=lambda races:None):
-    errors=[];labels={}
+class ObservedWorkoutLinks(HTMLParser):
+    def __init__(self):
+        super().__init__(convert_charrefs=True);self.links=[];self.invalid=False
+    def handle_starttag(self,tag,attrs):
+        if tag=='base':self.invalid=True
+        if tag!='a':return
+        href=[v for k,v in attrs if k=='href']
+        if len(href)>1:self.invalid=True
+        if len(href)==1 and isinstance(href[0],str):self.links.append(href[0])
+
+def exact_link_map(raw,day):
+    if type(raw) is not bytes or not 0<len(raw)<=4_000_000:raise ValueError('index_size')
+    try:source=raw.decode('utf8')
+    except UnicodeDecodeError:source=raw.decode('cp932')
+    p=ObservedWorkoutLinks();p.feed(source);p.close()
+    if p.invalid:raise ValueError('index_ambiguous_base_or_href')
+    second={}
+    for href in p.links:
+        u=urljoin(PRIMARY_INDEX,href)
+        m=re.fullmatch(re.escape(HOST)+rf'/race/{day}-kyoto-(0[1-9]|1[0-2])/',u)
+        if m:second[int(m[1])]=u
+    first=discover(raw,day)
+    if first!=second:raise ValueError('index_parser_disagreement')
+    return first
+
+def repair_primary_links(day,items,prior_indexes,current,rosters,observed_now):
+    """Generate an executable, bounded link repair from already authenticated
+    originals; no fabricated path, query, alternative host or race identity.
+    Never replace a current link or request a known poststart race.
+    """
+    out={}
+    target=datetime.fromisoformat(day_iso(day)).date()
+    def eligible(n,stamp):
+        t=utc(stamp)
+        return (target-timedelta(days=31)<=t.astimezone(JST).date()<=target
+            and t<=observed_now and n not in current and (n not in rosters or
+            (t<utc(rosters[n]['start']) and observed_now<utc(rosters[n]['start']))))
+    def add(n,url,raw,stamp,kind,rid=None):
+        if not eligible(n,stamp):return
+        proof={'race':n,'candidate_url_sha256':digest(url.encode()),'source_sha256':digest(raw),
+            'captured_utc':utc(stamp).isoformat(),'basis':kind,'prior_run_id':rid,
+            'new_url_invented':False,'source_success_certified':False}
+        old=out.get(n)
+        if old is None or (proof['captured_utc'],proof['source_sha256'])>(old[1]['captured_utc'],old[1]['source_sha256']):
+            out[n]=(url,proof)
+    for x in prior_indexes[:4]:
+        try:
+            if type(x['run_id']) is not int or x['run_id']<=0:continue
+            for n,url in exact_link_map(x['raw'],day).items():
+                add(n,url,x['raw'],x['stamp'],'AUTHENTICATED_SAVED_INDEX_DUAL_PARSER',x['run_id'])
+        except Exception:continue
+    for x in items:
+        try:
+            n=x['race']
+            if x['kind']!='PRIMARY' or type(n) is not int or not 1<=n<=12 or not eligible(n,x['stamp']):continue
+            # inspect checks the exact canonical URL, visible date/race, and
+            # unambiguous numbered or preview table, not a metadata claim.
+            rec=inspect(x['raw'],day,n,x['url'],x['stamp'],((day,n,x['url']),))
+            if rec['result_section_present']:continue
+            add(n,x['url'],x['raw'],x['stamp'],'AUTHENTICATED_SAVED_RACE_PAGE')
+        except Exception:continue
+    return dict(sorted(out.items()))
+
+def collect_primary(day,items,rosters,fetch,clock=now,on_snapshot=lambda x:None,*,on_index=lambda raw,stamp:None,on_discovery=lambda races:None,prior_indexes=(),on_repair=lambda proof:None):
+    errors=[];labels={};urls={};index=None
     try:index=fetch(PRIMARY_INDEX)
-    except Exception as e:return items,labels,[type(e).__name__]
-    # Reuse the exact already fetched bytes. Preserve before parsing so even
-    # an unfamiliar layout or a parser exception has a reproducible original.
-    try:on_index(index,clock().isoformat())
-    except Exception as e:errors.append('INDEX_ARCHIVE:'+type(e).__name__)
-    try:urls=discover(index,day)
-    except Exception as e:return items,labels,errors+['INDEX_DISCOVERY:'+type(e).__name__]
-    try:on_discovery(sorted(urls))
-    except Exception as e:errors.append('INDEX_RECEIPT:'+type(e).__name__)
-    try:labels=race_labels(index,day)
-    except Exception as e:errors.append('INDEX_LABELS:'+type(e).__name__)
+    except Exception as e:errors.append(type(e).__name__)
+    if index is not None:
+        # Reuse the exact already fetched bytes. Preserve before parsing.
+        try:on_index(index,clock().isoformat())
+        except Exception as e:errors.append('INDEX_ARCHIVE:'+type(e).__name__)
+        try:
+            urls=discover(index,day)
+        except Exception as e:errors.append('INDEX_DISCOVERY:'+type(e).__name__)
+        else:
+            try:on_discovery(sorted(urls))
+            except Exception as e:errors.append('INDEX_RECEIPT:'+type(e).__name__)
+            try:labels=race_labels(index,day)
+            except Exception as e:errors.append('INDEX_LABELS:'+type(e).__name__)
+    candidates=repair_primary_links(day,items,prior_indexes,urls,rosters,clock())
+    for n,(url,proof) in candidates.items():
+        try:on_repair(proof)
+        except Exception as e:
+            errors.append('LINK_REPAIR_CHECKPOINT:'+type(e).__name__);continue
+        urls[n]=url
     for n,url in sorted(urls.items()):
         if n in rosters and clock()>=utc(rosters[n]['start']):continue
         cached=[x for x in items if x['race']==n and x['kind']=='PRIMARY' and primary_final(x,day)]
@@ -530,13 +613,20 @@ def run(day,out,key,rid):
         roster_source_races={lane:sorted(n for n,v in roster.items() if v.get('source_lane','pc')==lane) for lane in ('pc','auxiliary','sp')})
     checkpoint(out,report)
     saved_budget=Budget(55)
-    items=unique_snapshots(previews(day,key,Budget(30))+previous(day,key,saved_budget)+preday_saved(day,key,saved_budget))
+    prior_indexes=[]
+    items=unique_snapshots(previews(day,key,Budget(30))+previous(day,key,saved_budget,on_index=prior_indexes.append)+preday_saved(day,key,saved_budget))
     fetch=PublicFetch(Budget(160))
     save=lambda x:append_snapshot(out,report,key,x)
     for x in items:save(x)
+    def record_repair(proof):
+        report.setdefault('primary_link_repairs',[]).append(proof)
+        try:checkpoint(out,report)
+        except Exception:
+            report['primary_link_repairs'].pop();raise
     items,labels,source_errors=collect_primary(day,items,roster,fetch,on_snapshot=save,
         on_index=lambda raw,stamp:append_primary_index(out,report,key,raw,stamp),
-        on_discovery=lambda races:record_primary_discovery(out,report,races))
+        on_discovery=lambda races:record_primary_discovery(out,report,races),
+        prior_indexes=prior_indexes,on_repair=record_repair)
     report['source_errors']=source_errors;checkpoint(out,report)
     attempted=set()
     # Current observed supplemental pages can be frozen before the official roster.
