@@ -47,6 +47,11 @@ class RuntimeTests(unittest.TestCase):
                     self.assertEqual(proof2["day_source_coverage"]["totals"]["registered_horses_known"],36)
                     self.assertEqual(proof2["day_source_coverage"]["authenticated_pc_slots"],1)
                     self.assertFalse(proof2["day_source_coverage"]["full_data_acquisition_certified"])
+                    self.assertNotIn("authenticated_coverage_slots",proof2)
+                    _,_,_,review=recover_inputs(DAY,REPO,KEY,include_coverage=True,return_coverage_slots=True)
+                    self.assertEqual(len(review["authenticated_coverage_slots"]),1)
+                    self.assertEqual(review["authenticated_coverage_slots"][0]["day"],DAY)
+                    self.assertEqual(str(review["authenticated_coverage_slots"][0]["run_id"]),"101")
                     with patch("diagnostics.kyoto_impl30_day_coverage.combine",side_effect=ValueError("diagnostic unavailable")):
                         rr,ss,seed3,proof3=recover_inputs(DAY,REPO,KEY,include_coverage=True)
                     self.assertEqual((rr,ss,seed3),(roster,starts,seed))

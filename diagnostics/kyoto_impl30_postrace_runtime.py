@@ -82,7 +82,7 @@ def auxiliary_inputs(day,repo,key,*,api=None,download=None,monotonic=time.monoto
             if monotonic()>=end:break
     except Exception as exc:errors.append({'error_class':type(exc).__name__})
     return found,seed,{'examined_runs':rows,'conflicting_races':sorted(conflicts),'errors':errors,'deadline_exhausted':monotonic()>=end}
-def recover_inputs(day,repo,key,*,include_coverage=False,allow_missing_seed=False):
+def recover_inputs(day,repo,key,*,include_coverage=False,allow_missing_seed=False,return_coverage_slots=False):
     if day not in DAYS or not re.fullmatch(r'[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+',repo):raise ValueError('bad_day_or_repository')
     workflow,file,_=WEEKENDS[day]
     roster={r:None for r in range(1,13)};starts={};seed=None;sources={};rejected=[];conflicts=set()
@@ -154,6 +154,8 @@ def recover_inputs(day,repo,key,*,include_coverage=False,allow_missing_seed=Fals
             proof["day_source_coverage"]["authenticated_auxiliary_slots"]=len(auxiliary)
             proof["day_source_coverage"]["auxiliary_errors"]=aux_errors
             proof["day_source_coverage"]["slot_errors"]=coverage_errors
+            if return_coverage_slots:
+                proof["authenticated_coverage_slots"]=coverage_slots+auxiliary
         except Exception as exc:
             proof["day_source_coverage_error"]=type(exc).__name__
     return roster,starts,seed,proof

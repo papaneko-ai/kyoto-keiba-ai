@@ -183,7 +183,7 @@ def repair(root,*,day,prior,transport,clock):
             try:
                 out["markets_attempted"]=True
                 summary=run_twelve(stage,records=missing,authorized_live_http=True,
-                    before_race=before_race,openers={"PC":transport},request_pacer=transport.pacer,
+                    before_race=before_race,openers={"PC":transport,"SP":transport},request_pacer=transport.pacer,
                     capture_deadline_monotonic=transport.market_end,monotonic_clock=transport.monotonic)
                 out["paired_market_races"]=summary["verified_dual_market_races"]
             except Exception as exc:out["market_error_class"]=type(exc).__name__
