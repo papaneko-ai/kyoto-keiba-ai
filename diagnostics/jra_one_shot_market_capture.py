@@ -102,7 +102,7 @@ class ObservedRaceSpec:
                 elif url in ("",None):
                     raise ValueError("required_observed_racecard_url_missing:"+channel)
                 u=urlsplit(url)
-                hosts=(("jra.jp","www.jra.go.jp") if self.race_day=="20261129" else ("jra.jp",)) if channel=="PC" else ("sp.jra.jp",)
+                hosts=(("jra.jp","www.jra.go.jp") if self.race_day in ("20261128","20261129") else ("jra.jp",)) if channel=="PC" else ("sp.jra.jp",)
                 q=parse_qs(u.query,strict_parsing=True)
                 if (u.scheme!="https" or u.hostname not in hosts or u.port is not None
                         or u.username is not None or u.password is not None
