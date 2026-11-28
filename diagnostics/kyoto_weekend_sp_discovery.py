@@ -212,6 +212,15 @@ def discover(root, *, day, opener=None, pacer=None):
                     meeting=("京都" in label and re.fullmatch(r"sw01drl0008[0-9]{8}"+re.escape(day)+r"/[A-Za-z0-9]+",token))
                     if entry or meeting:
                         entries.add((m.group(1),token))
+            if not entries:
+                from diagnostics.kyoto_adaptive_repair import recover_action,RepairRejected
+                try:
+                    stage="entry" if url==SEED else "meeting"
+                    path,token,_,proof=recover_action(raw,day,"SP",stage)
+                    entries.add((path,token))
+                    log[-1]["adaptive_navigation_repair"]=proof
+                except RepairRejected:
+                    pass
             if len(entries)==1:
                 path,token=next(iter(entries))
                 parent=action[0] if action else url

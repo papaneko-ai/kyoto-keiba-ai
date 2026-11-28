@@ -150,7 +150,9 @@ def observe(selection_root, *, now_utc, opener=None, allowed=False,
             receipt["navigation_home_sha256"]=hashlib.sha256(home).hexdigest()
             receipt["navigation_home_bytes"]=len(home)
             receipt["navigation_home_captured_at_utc"]=datetime.now(timezone.utc).isoformat()
-            token,_=observed_action(home,DAY,"entry")
+            repair=[]
+            token,_=observed_action(home,DAY,"entry",repair_evidence=repair)
+            if repair:receipt["adaptive_navigation_repairs"]=repair
             receipt["selection_action"]=token
             receipt["http_requests_started"]+=1
             request_pacer.before_request()
@@ -165,7 +167,8 @@ def observe(selection_root, *, now_utc, opener=None, allowed=False,
         receipt["selection_bytes"]=len(selection)
         _validate_saved_html_encoding(selection)
         if public_form_navigation:
-            token,meeting_label=observed_action(selection,DAY,"meeting")
+            token,meeting_label=observed_action(selection,DAY,"meeting",repair_evidence=repair)
+            if repair:receipt["adaptive_navigation_repairs"]=repair
             meeting_url=PC_ENTRY
             receipt["meeting_action"]=token
         else:
@@ -395,8 +398,11 @@ def accept_observation(folder):
         raise ObservationRejected("selection_source_or_date_invalid")
     try:
         if form_mode:
-            selection_action,_=observed_action((root/"official_pc_navigation_home.html").read_bytes(),DAY,"entry")
-            meeting_action,observed_meeting_label=observed_action((root/"official_selection.html").read_bytes(),DAY,"meeting")
+            repair=[]
+            selection_action,_=observed_action((root/"official_pc_navigation_home.html").read_bytes(),DAY,"entry",repair_evidence=repair)
+            meeting_action,observed_meeting_label=observed_action((root/"official_selection.html").read_bytes(),DAY,"meeting",repair_evidence=repair)
+            if receipt.get("adaptive_navigation_repairs",[])!=repair:
+                raise ObservationRejected("adaptive_navigation_repair_receipt_mismatch")
             observed_meeting_url=PC_ENTRY
             if (selection_action,meeting_action)!=(receipt.get("selection_action"),receipt.get("meeting_action")):
                 raise ObservationRejected("public_form_action_not_bound")

@@ -8,13 +8,18 @@ PC_HOME="https://www.jra.go.jp/"
 PC_ENTRY=PC_HOME+"JRADB/accessD.html"
 LIMIT=1_500_000
 
-def observed_action(raw,day,stage):
+def observed_action(raw,day,stage,*,repair_evidence=None):
+    def recover():
+        from diagnostics.kyoto_adaptive_repair import recover_action
+        _,token,label,proof=recover_action(raw,day,"PC",stage)
+        if repair_evidence is not None:repair_evidence.append(proof)
+        return token,label
     if not isinstance(raw,bytes) or not 0<len(raw)<=LIMIT or not re.fullmatch(r"20\d{6}",day):
         raise ValueError("invalid_public_form_original")
     soup=BeautifulSoup(raw.decode("cp932",errors="replace"),"html.parser")
     forms=soup.select('form#commForm01')
     if soup.find("base") or len(forms)!=1 or str(forms[0].get("method","")).lower()!="post" or str(forms[0].get("action","")).strip() or len(forms[0].select('input[name="cname"]'))!=1:
-        raise ValueError("official_public_form_not_unique")
+        return recover()
     if stage not in ("entry","meeting"):
         raise ValueError("invalid_public_form_stage")
     found=set()
@@ -27,6 +32,7 @@ def observed_action(raw,day,stage):
             found.add((token,label))
         if stage=="meeting" and "京都" in label and re.fullmatch(r"pw01drl0008[0-9]{8}"+re.escape(day)+r"/[A-Za-z0-9]{2}",token):
             found.add((token,label))
+    if not found:return recover()
     if len(found)!=1:raise ValueError("official_public_action_not_unique")
     return next(iter(found))
 
