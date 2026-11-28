@@ -1,0 +1,38 @@
+name: Kyoto Impl37 exact deployed release retention offline
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'diagnostics/kyoto_impl30_collector_selection.py'
+      - 'tests/test_kyoto_impl30_collector_selection.py'
+      - '.github/workflows/kyoto-20261128-29-two-source-production-observer.yml'
+      - '.github/workflows/kyoto-impl37-deployed-release-retention.yml'
+permissions:
+  contents: read
+jobs:
+  release-retention:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    env:
+      KYOTO_WEEKEND_HTTP_APPROVED: 'NO'
+      KYOTO_AUX_HTTP_APPROVED: 'NO'
+      KYOTO_CUSHION_HTTP_APPROVED: 'NO'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11.18'
+      - name: Test exact release selection with network forbidden
+        run: |
+          python - <<'PY'
+          import socket, unittest
+          from unittest.mock import patch
+          def denied(*args,**kwargs):raise AssertionError("network forbidden")
+          with patch.object(socket.socket,"connect",denied),patch.object(socket,"create_connection",denied):
+              s=unittest.defaultTestLoader.loadTestsFromName("tests.test_kyoto_impl30_collector_selection")
+              result=unittest.TextTestRunner(verbosity=2).run(s)
+          raise SystemExit(0 if result.wasSuccessful() else 1)
+          PY

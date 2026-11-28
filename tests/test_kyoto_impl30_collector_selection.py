@@ -1,5 +1,5 @@
 import io,json,unittest
-from diagnostics.kyoto_impl30_collector_selection import choose,verify_preflight,PREFLIGHT
+from diagnostics.kyoto_impl30_collector_selection import choose,verify_preflight,PREFLIGHT,choose_deployed,DEPLOYED_RECEIPT
 A="a"*40;B="b"*40;REPO="papaneko-ai/kyoto-keiba-ai"
 class TestSelection(unittest.TestCase):
     def test_saturday_ignores_override(self):
@@ -29,4 +29,36 @@ class TestSelection(unittest.TestCase):
                           ("event","pull_request"),("head_repository",{"full_name":"other/repo"}),
                           ("path",".github/workflows/old.yml")):
             with self.subTest(key=key):self.assertFalse(check({**good,key:value}))
+    def test_deployed_receipt_retains_verified_sunday_on_api_outage(self):
+        d=DEPLOYED_RECEIPT
+        def offline(x):raise TimeoutError()
+        for failure,reason in ((offline,"PREFLIGHT_UNAVAILABLE_EXACT_DEPLOYED_RECEIPT"),
+                               (lambda x:False,"PREFLIGHT_INDEX_NOT_CONFIRMED_EXACT_DEPLOYED_RECEIPT")):
+            self.assertEqual(choose_deployed(d["day"],d["baseline"],d["override"],failure,repo=d["repo"]),(d["override"],reason))
+        self.assertEqual(choose_deployed(d["day"],d["baseline"],d["override"],lambda x:True,repo=d["repo"]),(d["override"],"EXACT_PREFLIGHT_VERIFIED_OVERRIDE"))
+    def test_deployed_receipt_does_not_authorize_other_release_or_repo(self):
+        d=DEPLOYED_RECEIPT
+        for day,base,override,repo in (
+            ("20261128",d["baseline"],d["override"],d["repo"]),
+            (d["day"],A,d["override"],d["repo"]),
+            (d["day"],d["baseline"],B,d["repo"]),
+            (d["day"],d["baseline"],d["override"],"other/repo"),
+            (d["day"],d["baseline"],"not-a-sha",d["repo"])):
+            with self.subTest(day=day,base=base,override=override,repo=repo):
+                self.assertEqual(choose_deployed(day,base,override,lambda x:False,repo=repo),choose(day,base,override,lambda x:False))
+    def test_production_entry_uses_receipt_and_matches_configured_pins(self):
+        import os,tempfile
+        from pathlib import Path
+        from unittest.mock import patch
+        from diagnostics import kyoto_impl30_collector_selection as selector
+        d=DEPLOYED_RECEIPT
+        wf=(Path(__file__).resolve().parents[1]/".github/workflows/kyoto-20261128-29-two-source-production-observer.yml").read_text()
+        self.assertIn("DEFAULT_COLLECTOR_SHA: '"+d["baseline"]+"'",wf)
+        self.assertIn("SUNDAY_OVERRIDE_SHA: '"+d["override"]+"'",wf)
+        with tempfile.TemporaryDirectory() as td:
+            out=Path(td)/"out"
+            env={"KYOTO_TARGET_DAY":d["day"],"DEFAULT_COLLECTOR_SHA":d["baseline"],"SUNDAY_OVERRIDE_SHA":d["override"],"GITHUB_REPOSITORY":d["repo"],"GITHUB_OUTPUT":str(out)}
+            with patch.dict(os.environ,env),patch.object(selector,"verify_preflight",side_effect=TimeoutError):
+                selector.main()
+            self.assertEqual(out.read_text().splitlines(),["collector_sha="+d["override"],"selection_reason=PREFLIGHT_UNAVAILABLE_EXACT_DEPLOYED_RECEIPT"])
 if __name__=="__main__":unittest.main()
