@@ -61,12 +61,16 @@ def sp_rows(raw):
   if not tables:raise ValueError('sp_missing_table')
   output=[]
   frame=None
+  inferred_count=0
   for tr in tables[0].select('tr'):
     # A true entrant is a row with one SP profile anchor and .uban number.
     anchors=tr.select('a[href*="/JRADB/accessU.html"]')
     numbers=tr.select('.uban')
     if len(anchors)!=1 or len(numbers)!=1:continue
     number_text=numbers[0].get_text(' ',strip=True)
+    if number_text in ("取消","出走取消","除外","競走除外") and "keshi" in numbers[0].get("class",[]):
+      number_text=str(len(output)+1)
+      inferred_count+=1
     if not number_text.isascii() or not number_text.isdigit():raise ValueError('bad_sp_number')
     n=int(number_text)
     if not 1<=n<=18:raise ValueError('sp_number_out_of_range')
@@ -82,7 +86,7 @@ def sp_rows(raw):
     if not name:raise ValueError('empty_sp_name')
     output.append((n,frame,name))
   nums=[x[0] for x in output]
-  if not output or nums!=list(range(1,len(output)+1)):raise ValueError('incomplete_mobile_roster')
+  if not output or nums!=list(range(1,len(output)+1)) or (inferred_count and len(output)-inferred_count<2):raise ValueError('incomplete_mobile_roster')
   if len(output)!=len(set(output)):raise ValueError('duplicate_mobile_roster')
   return tuple(output)
 
