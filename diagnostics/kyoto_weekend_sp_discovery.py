@@ -194,7 +194,7 @@ def discover(root, *, day, opener=None, pacer=None):
         # Nov28 authenticated homepage contains a POST form and literal
         # doAction('/JRADB/accessD.html','sw01dli00/80'). Follow only the
         # exact observed entry action, never execute JavaScript or guess tokens.
-        if day in ("20261128","20261129") and url==SEED:
+        if day in ("20261128","20261129"):
             try:
                 decoded=raw.decode("utf-8")
             except UnicodeDecodeError:
@@ -202,18 +202,23 @@ def discover(root, *, day, opener=None, pacer=None):
             soup=BeautifulSoup(decoded,"html.parser")
             forms=[f for f in soup.select("form") if str(f.get("method","")).lower()=="post" and f.select_one('input[name="cname"]') and not str(f.get("action","")).strip()]
             entries=set()
-            if len(forms)==1:
+            if len(forms)==1 and soup.find("base") is None:
                 for a in soup.select("a[onclick]"):
-                    m=re.fullmatch(r"\s*return\s+doAction\(\s*['\"](/JRADB/accessD\.html)['\"]\s*,\s*['\"](sw01dli00/[A-Za-z0-9]{2})['\"]\s*\)\s*;?\s*",a["onclick"])
-                    if not m or "出馬表" not in a.get_text(" ",strip=True): continue
-                    entries.add((m.group(1),m.group(2)))
+                    m=re.fullmatch(r"\s*(?:return\s+)?doAction\(\s*['\"](/JRADB/accessD\.html)['\"]\s*,\s*['\"](sw[A-Za-z0-9]+/[A-Za-z0-9]+)['\"]\s*\)\s*;?\s*(?:return\s+false\s*;?)?\s*",a["onclick"])
+                    if not m: continue
+                    token=m.group(2)
+                    label=" ".join(a.get_text(" ",strip=True).split())
+                    entry=(url==SEED and label=="出馬表" and re.fullmatch(r"sw01dli00/[A-Za-z0-9]{2}",token))
+                    meeting=("京都" in label and re.fullmatch(r"sw01drl0008[0-9]{8}"+re.escape(day)+r"/[A-Za-z0-9]+",token))
+                    if entry or meeting:
+                        entries.add((m.group(1),token))
             if len(entries)==1:
                 path,token=next(iter(entries))
-                target=urljoin(SEED,path)
-                # Internal queue identity, never sent as a synthetic GET.
+                parent=action[0] if action else url
+                target=urljoin(parent,path)
                 key=target+"?"+urlencode({"CNAME":token})
-                post_actions[key]=(target,SEED,token)
-                if key not in visited and key not in queue: queue.append(key)
+                post_actions[key]=(target,parent,token)
+                if key not in visited and key not in queue: queue.insert(0,key)
         # Record every independently observed Kyoto race anchor, including
         # ambiguous races, without fetching or certifying it.
         for number,urls in observed_kyoto_race_candidates(raw,url,day).items():
