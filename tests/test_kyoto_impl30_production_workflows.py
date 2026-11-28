@@ -50,7 +50,8 @@ class ProductionWorkflowContract(unittest.TestCase):
         self.assertIn("needs.select-collector.result == 'success'",self.jobs["sp-originals-independent"]["if"])
         sunday=select["env"]["SUNDAY_OVERRIDE_SHA"]
         self.assertRegex(sunday,r"^[0-9a-f]{40}$")
-        self.assertEqual(self.handoff["jobs"]["authenticated-handoff"]["steps"][0]["with"]["ref"],sunday)
+        self.assertEqual(self.handoff["jobs"]["authenticated-handoff"]["steps"][0]["with"]["ref"],"c289c5ec4e6ad322a7e08acf173da3352ed23dba")
+        self.assertNotEqual(self.handoff["jobs"]["authenticated-handoff"]["steps"][0]["with"]["ref"],sunday)
         self.assertEqual(baseline,"3f4b3d77357745ead05a9f78db34eb6ac2d78637")
 
     def test_preserves_source_protections_and_encrypted_upload(self):

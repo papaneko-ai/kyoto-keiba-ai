@@ -43,7 +43,7 @@ jobs:
       DEFAULT_COLLECTOR_SHA: '3f4b3d77357745ead05a9f78db34eb6ac2d78637'
       # Emergency Nov29 release: exact immutable SHA verified by existing preflight selector.
       # Preflight run 46102047091; the independent PC and SP lanes share this selected SHA.
-      SUNDAY_OVERRIDE_SHA: 'c289c5ec4e6ad322a7e08acf173da3352ed23dba'
+      SUNDAY_OVERRIDE_SHA: '37f47235d1f5803ea897844924ce2ed78b6b5457'
       GH_TOKEN: ${{ github.token }}
     steps:
       - uses: actions/checkout@v4
