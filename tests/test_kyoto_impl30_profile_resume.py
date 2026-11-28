@@ -61,4 +61,34 @@ class ResumeTests(fixture.AllHorseProfile):
                                  deadline=100,monotonic=lambda:1)
         self.assertEqual(cache,{})
         self.assertTrue(report["errors"])
+    def test_canonical_profile_origin_is_preserved_across_both_weekend_days(self):
+        import tempfile
+        from urllib.parse import urlsplit
+        from diagnostics.kyoto_g03_all_races import acquire_all
+        from tests.test_kyoto_g03_all_races import meeting,source_race
+        for day in ("20261128","20261129"):
+            with tempfile.TemporaryDirectory() as td:
+                base=Path(td);root=base/"pc";root.mkdir();stage=base/"g03"
+                iso=f"{day[:4]}-{day[4:6]}-{day[6:]}"
+                day_label=f"{int(day[:4])}年{int(day[4:6])}月{int(day[6:])}日".encode("cp932")
+                original_label="2026年11月21日".encode("cp932")
+                parent=fixture.PARENT.replace("jra.jp","www.jra.go.jp")
+                result=acquire_all(day=day,root=stage,meeting_raw=meeting().replace(b"20261121",day.encode()),
+                    meeting_url=parent,fetch=lambda url:fixture.horse_card(source_race(url)).replace(original_label,day_label),
+                    captured_at_utc=lambda:iso+"T00:00:00Z",allowed=True)
+                self.assertTrue(result["complete"])
+                for f in stage.iterdir():
+                    f.rename(root/(f.name if f.name in ("official_meeting.html","g03_receipt.json") else "g03_"+f.name))
+                (root/"receipt.json").write_text('{"state":"OFFLINE_G03"}')
+                calls=[]
+                def fetch(url):
+                    self.assertEqual(urlsplit(url).hostname,"www.jra.go.jp")
+                    calls.append(url)
+                    return self.fetch(url)
+                report=capture(root=root,day=day,fetch=fetch,clock=lambda:iso+"T00:01:00Z",allowed=True,allow_partial=True)
+                self.assertEqual(report["profile_verified_count"],36)
+                self.assertEqual(len(calls),36)
+                cached=candidates(root,day,101)
+                self.assertEqual(len(cached),36)
+                self.assertTrue(all(urlsplit(item["url"]).hostname=="www.jra.go.jp" for item in cached.values()))
 if __name__=="__main__":unittest.main()
