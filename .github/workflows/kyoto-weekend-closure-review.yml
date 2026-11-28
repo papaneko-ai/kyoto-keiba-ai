@@ -20,6 +20,7 @@ on:
     paths:
       - '.github/workflows/kyoto-weekend-closure-review.yml'
       - 'diagnostics/kyoto_weekend_closure_review.py'
+      - 'diagnostics/kyoto_day_workout_replay.py'
       - 'diagnostics/kyoto_repair_control.py'
       - 'tests/test_kyoto_weekend_closure_review.py'
       - 'diagnostics/kyoto_fixed_risk_worklist.py'
@@ -29,6 +30,7 @@ on:
     branches: [main]
     paths:
       - 'diagnostics/kyoto_weekend_closure_review.py'
+      - 'diagnostics/kyoto_day_workout_replay.py'
       - 'tests/test_kyoto_weekend_closure_review.py'
       - 'diagnostics/kyoto_fixed_risk_worklist.py'
       - 'tests/test_kyoto_fixed_risk_worklist.py'
@@ -71,6 +73,11 @@ jobs:
           ref: 'c289c5ec4e6ad322a7e08acf173da3352ed23dba'
           path: trusted-reader
           persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          ref: 'bd800bc30db60919e274eadac419016c963e77de'
+          path: trusted-workout-reader
+          persist-credentials: false
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11.18'
@@ -78,6 +85,7 @@ jobs:
       - name: Independent metadata and authenticated original replay
         run: |
           export KYOTO_TARGET_DAY="$TARGET_DAY"
+          export KYOTO_WORKOUT_READER="$GITHUB_WORKSPACE/trusted-workout-reader"
           cd trusted-reader
           PYTHONPATH="$PWD" timeout --signal=TERM --kill-after=5s 900s python ../diagnostics/kyoto_weekend_closure_review.py --day "$TARGET_DAY" --out ../review
       - uses: actions/upload-artifact@v4

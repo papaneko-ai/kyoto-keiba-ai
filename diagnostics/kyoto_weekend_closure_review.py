@@ -3,7 +3,7 @@
 Use existing authenticated source replays. Detect missing executions as well as
 data gaps. Never convert a workflow success or receipt flag into data credit.
 """
-import argparse,hashlib,json,os,re,subprocess,tempfile
+import argparse,hashlib,json,os,re,subprocess,tempfile,sys,time
 from datetime import datetime,timezone,timedelta
 from pathlib import Path
 if __package__:
@@ -81,10 +81,75 @@ def proof_ok(value,cutoff,day,allowed,after=False):
         utc=stamp(value["utc"])
         return (after or value.get("state")=="SOURCE_VERIFIED") and is_sha(value["sha256"]) and is_sha(value["value_digest"]) and str(value.get("run_id")) in allowed and utc.strftime("%Y%m%d")==day and (utc>cutoff if after else utc<cutoff)
     except (TypeError,KeyError,ValueError,AttributeError):return False
-def coverage_gaps(day,coverage,allowed_run_ids):
+WORKOUT_READER_SHA="bd800bc30db60919e274eadac419016c963e77de"
+def workout_proof_ok(v,cutoff,allowed):
+    try:
+        if v["state"]!="INDEPENDENT_WORKOUT_SOURCE_REPLAYED" or not is_sha(v["value_digest"]) or type(v["record_count"]) is not int or v["record_count"]<1:return False
+        proofs=v["source_proofs"]
+        if not isinstance(proofs,list) or not proofs or len(proofs)>300:return False
+        providers=set()
+        for p in proofs:
+            t=stamp(p["utc"])
+            if str(p["run_id"]) not in allowed or not is_sha(p["sha256"]) or not cutoff-timedelta(days=31)<=t<cutoff:return False
+            if p["provider"] not in ("white-green.jp","umasiru.com","talmudic.net"):return False
+            providers.add(p["provider"])
+        return (v["mode"]=="PRIMARY" and providers=={"white-green.jp"}) or (v["mode"]=="SECONDARY_CORROBORATED" and len(providers)>=2 and providers<={"umasiru.com","talmudic.net"})
+    except (ValueError,KeyError,TypeError,AttributeError):return False
+
+def review_workouts(day,metadata,coverage,roster,starts,key,reader):
+    # Bind the same independently replayed official names/frame/numbers used
+    # for the day coverage. Never count a producer's normalized receipt alone.
+    from diagnostics.kyoto_impl30_day_coverage import digest as roster_digest
+    bound={}
+    for n in range(1,13):
+        row=coverage["races"][str(n)]
+        named=roster.get(n)
+        if row.get("state")!="ROSTER_VERIFIED" or not named or not starts.get(n):continue
+        if row.get("named_roster_digest")!=roster_digest(named) or stamp(row["start_utc"])!=stamp(starts[n]):continue
+        names={str(h):name for h,frame,name in named}
+        if set(names)!=set(row["horses"]):continue
+        bound[str(n)]={"roster":names,"start":row["start_utc"],"named_roster_digest":row["named_roster_digest"]}
+    w=metadata["workout-source.yml"]
+    candidates=[r for r in w["runs"] if r.get("artifacts",{}).get("workout",{}).get("state")=="PRESENT"]
+    candidates=sorted(candidates,key=lambda x:x["id"],reverse=True)
+    errors=[];archives=[];end=time.monotonic()+120
+    if not w["index_complete"]:errors.append({"error_class":"WORKOUT_RUN_INDEX_INCOMPLETE"})
+    if len(candidates)>16:errors.append({"error_class":"WORKOUT_ARCHIVE_BOUND"})
+    reader=Path(reader).resolve()
+    if subprocess.check_output(["git","rev-parse","HEAD"],cwd=reader,text=True,stderr=subprocess.DEVNULL,timeout=5).strip()!=WORKOUT_READER_SHA:
+        raise ValueError("workout_reader_revision")
+    with tempfile.TemporaryDirectory(prefix="kyoto_day_workout_") as tmp:
+        root=Path(tmp)
+        for r in candidates[:16]:
+            rid=r["id"]
+            try:
+                left=end-time.monotonic()
+                if left<=0:raise TimeoutError()
+                target=root/str(rid);target.mkdir()
+                subprocess.run(["gh","run","download",str(rid),"--repo",REPO,"--name",f"kyoto-workout-{rid}-{day}","--dir",str(target)],
+                    stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL,timeout=min(25,left),check=True)
+                archives.append([rid,str(target)])
+            except Exception as exc:errors.append({"run_id":str(rid),"error_class":type(exc).__name__})
+        p=root/"config.json";p.write_text(json.dumps({"day":day,"rosters":bound,"archives":archives},ensure_ascii=False),encoding="utf8")
+        script=Path(__file__).with_name("kyoto_day_workout_replay.py").resolve()
+        env={"PATH":os.environ.get("PATH",""),"PYTHONPATH":str(reader),"PYTHONUTF8":"1","ARCHIVE_KEY":key}
+        raw=subprocess.check_output([sys.executable,str(script),str(p)],cwd=reader,env=env,stderr=subprocess.DEVNULL,timeout=120)
+        if len(raw)>5_000_000:raise ValueError("workout_replay_size")
+        doc=json.loads(raw)
+    if doc["day"]!=day or doc["schema"]!="kyoto_independent_workout_day_replay.v1" or doc["source_http_requests"]!=0 or doc["production_coverage_authorized"] is not False:raise ValueError("workout_replay_identity")
+    doc["errors"]+=errors
+    doc["reader_sha"]=WORKOUT_READER_SHA
+    doc["examined_archive_run_ids"]=[str(rid) for rid,p in archives]
+    doc["archive_index_complete"]=not doc["errors"] and len(archives)==len(candidates) and w["index_complete"]
+    return doc
+
+def coverage_gaps(day,coverage,allowed_run_ids,workout_review=None,allowed_workout_run_ids=()):
     """Compute missing cells from independently replayed aggregate, not totals."""
     if coverage.get("day")!=day or coverage.get("schema")!="kyoto_impl30_day_source_coverage.v1" or coverage.get("race_denominator")!=12 or set(coverage.get("races",{}))!=set(RACES):raise ValueError("coverage_identity_incomplete")
     allowed=set(map(str,allowed_run_ids))
+    allowed_workout=set(map(str,allowed_workout_run_ids))
+    workout_review=workout_review or {}
+    workout_rows=workout_review.get("races",{}) if workout_review.get("day")==day and workout_review.get("schema")=="kyoto_independent_workout_day_replay.v1" else {}
     totals={f:{"expected":0,"verified":0,"unknown_denominator_races":0} for f in FAMILIES}
     detail=[]
     for race in RACES:
@@ -108,8 +173,15 @@ def coverage_gaps(day,coverage,allowed_run_ids):
         check("racecard",proof_ok(card,cutoff,day,allowed),proof=card)
         for h in sorted(horses,key=int):
             for f in HORSE:
-                v=horses[h].get(f,{})
-                check(f,proof_ok(v,cutoff,day,allowed),h,v)
+                if f=="workout":
+                    wr=workout_rows.get(race,{})
+                    v=wr.get("horses",{}).get(h,{}) if wr.get("named_roster_digest")==row["named_roster_digest"] and wr.get("start")==row["start_utc"] else {}
+                    ok=workout_proof_ok(v,cutoff,allowed_workout)
+                    check(f,ok,h)
+                    if ok:bound.append({"family":f,"horse":h,"record_count":v["record_count"],"value_digest":v["value_digest"],"source_proofs":v["source_proofs"]})
+                else:
+                    v=horses[h].get(f,{})
+                    check(f,proof_ok(v,cutoff,day,allowed),h,v)
         for section,keys in (("track",TRACK),("supplementary_track_observations",EXTRA)):
             for f in keys:
                 v=row.get(section,{}).get(f,{})
@@ -202,7 +274,15 @@ def review(day,now,out):
                 coverage=include_postrace(coverage,history,roster=roster,starts=starts)
                 report["postrace_history_index_complete"]=history["prior_artifact_index_complete"]
         allowed={r["id"] for filename,lane in (("two-source-production-observer.yml","pc"),("auxiliary-refresh.yml","auxiliary"),("postrace-evidence.yml","postrace")) for r in metadata[filename]["runs"] if r.get("artifacts",{}).get(lane,{}).get("state")=="PRESENT"}
-        report["coverage"]=coverage_gaps(day,coverage,allowed)
+        # Workout replay is independently authenticated, linked to the same
+        # roster, and never allowed to erase other source evidence on failure.
+        wr=None;workout_allowed=[]
+        try:
+            workout_allowed=[r["id"] for r in metadata["workout-source.yml"]["runs"] if r.get("artifacts",{}).get("workout",{}).get("state")=="PRESENT"]
+            wr=review_workouts(day,metadata,coverage,roster,starts,key,os.environ["KYOTO_WORKOUT_READER"])
+            report["workout_day_replay"]=wr
+        except Exception as exc:report["workout_day_replay_error"]=type(exc).__name__
+        report["coverage"]=coverage_gaps(day,coverage,allowed,wr,workout_allowed)
     except Exception as exc:
         report["coverage_replay_error"]=type(exc).__name__
         report["coverage"]={"counts":{},"races":[{"race":n,"state":"NOT_EVALUATED","missing":[{"family":"day_coverage_unavailable"}],"unknown_horse_families":list(HORSE)} for n in range(1,13)],"all_reviewed_cells_present":False,"full_acquisition_certified":False}
@@ -221,6 +301,10 @@ def review(day,now,out):
         skips=[(r["id"],k,a["job_id"]) for r in v["runs"] for k,a in r.get("artifacts",{}).items() if a["state"]==SKIPPED]
         summary.append(f"- {name}: index={v['index_complete']}, runs={len(v['runs'])}, native gaps={[(s['cron'],s['state']) for s in missing]}, artifact gaps={gaps}, skipped producer jobs (reason unverified)={skips}")
     if "coverage_replay_error" in report:summary.append("- 原本再検証未完: "+report["coverage_replay_error"])
+    if "workout_day_replay" in report:
+        w=report["workout_day_replay"]
+        summary.append(f"- 調教原本独立再解析: archives={len(w['examined_archive_run_ids'])}, authenticated_snapshots={w['authenticated_snapshots']}, records={sum(x['canonical_records'] for x in w['races'].values())}, index_complete={w['archive_index_complete']}; source evidence only, no model promotion.")
+    elif "workout_day_replay_error" in report:summary.append("- 調教原本独立再解析未完: "+report["workout_day_replay_error"])
     if "coverage" in report:
         for f,t in report["coverage"]["counts"].items():summary.append(f"- {f}: {t['verified']}/{t['expected']} (unknown denominator races={t['unknown_denominator_races']})")
         for r in report["coverage"]["races"]:
