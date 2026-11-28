@@ -218,3 +218,72 @@ class IncidentRecoveryTests(unittest.TestCase):
   for other in (b"2026-11-28T08:54:10Z raise ValueError(\"cushion_live_guard_no_http\")",b"2026-11-28T07:54:10Z ValueError: cushion_live_guard_no_http",b""):
    self.assertIsNone(prehttp_evidence(run,path,"cushion","20261128",doc,read_log=lambda _:other))
 if __name__=="__main__":unittest.main()
+
+class ForensicContinuityTests(unittest.TestCase):
+ def test_preserve_reopen_and_reject_tampering_without_plaintext(self):
+  from diagnostics.kyoto_forensic_continuity import capture,restore
+  run={"id":101,"head_sha":"a"*40}
+  jobs={"total_count":3,"jobs":[{"id":1,"run_id":101,"conclusion":"success"},{"id":2,"run_id":101,"conclusion":"failure"},{"id":3,"run_id":101,"conclusion":"skipped"}]}
+  arts={"total_count":0,"artifacts":[]}
+  raw=b"secret-token-for-test\nTraceback (most recent call last):\nUnexpectedError: private data"
+  called=[]
+  def logs(jid):
+   called.append(jid)
+   if jid==2:raise ValueError("private unavailable")
+   return raw
+  with tempfile.TemporaryDirectory() as tmp:
+   out=Path(tmp);m,cache=capture(run,jobs,arts,out,"a"*64,logs,clock=lambda:0)
+   self.assertEqual(m["state"],"SEALED_WITH_EVIDENCE_GAPS");self.assertEqual(cache,{1:raw})
+   self.assertEqual(called,[1,2])
+   self.assertEqual(m["log_index"][0]["exception_line_refs"][0]["line"],2)
+   self.assertNotIn(b"secret-token",(out/"forensic.json").read_bytes())
+   self.assertNotIn(raw,(out/"forensic.aesgcm").read_bytes())
+   self.assertIn("1",restore(out,"a"*64,run)["logs"])
+   with self.assertRaises(ValueError):restore(out,"a"*64,{"id":102,"head_sha":"a"*40})
+   p=out/"forensic.aesgcm";p.write_bytes(p.read_bytes()+b"x")
+   with self.assertRaises(ValueError):restore(out,"a"*64,run)
+ def test_unknown_receipt_remains_open_with_exact_reopen_pointer(self):
+  from diagnostics.kyoto_forensic_continuity import obligations
+  import hashlib
+  with tempfile.TemporaryDirectory() as tmp:
+   root=Path(tmp);value="NovelParser: unexpected private token"
+   raw=json.dumps({"day":"20261129","reason":value,"races":{"1":{"reason":value}}}).encode()
+   (root/"receipt.json").write_bytes(raw)
+   meta=inspect_source(root,"20261129","pc")
+   refs=meta["receipt_failure_refs"]["refs"]
+   self.assertEqual(len(refs),2)
+   self.assertEqual(refs[0]["file_sha256"],hashlib.sha256(raw).hexdigest())
+   self.assertEqual(refs[0]["value_sha256"],hashlib.sha256(value.encode()).hexdigest())
+   self.assertNotIn(value,json.dumps(meta))
+   self.assertTrue(any(i["cause_status"]=="ROOT_CAUSE_NOT_YET_PROVED" for i in meta["incidents"]))
+   meta["artifact_authenticated"]=True;meta["artifact_id"]=7
+   report={"source_run_id":3,"workflow_head_sha":"a"*40,"lanes":{"pc":meta},"jobs":[{"job_id":1}]}
+   rows=obligations(report)
+   self.assertTrue(rows);self.assertEqual(rows,obligations(report))
+   self.assertTrue(all(not x["root_cause_proved"] and x["state"]=="OPEN_REPAIR_REQUIRED" for x in rows))
+ def test_skipped_source_not_lost_in_empty_incident_list(self):
+  from diagnostics.kyoto_forensic_continuity import obligations
+  report={"source_run_id":3,"workflow_head_sha":"a"*40,"lanes":{"cushion":{"source_acquisition_state":"PRODUCER_NOT_EXECUTED_SKIP_REASON_UNVERIFIED","incidents":[]}},"jobs":[{"job_id":1}]}
+  rows=obligations(report)
+  self.assertEqual(len(rows),1)
+  self.assertEqual(rows[0]["stage"],"PRODUCER_SKIP")
+  self.assertFalse(rows[0]["root_cause_proved"])
+
+ def test_rendered_fallback_kept_separate_from_raw_guard_evidence(self):
+  from diagnostics.kyoto_forensic_continuity import capture,restore
+  from diagnostics.kyoto_incident_recovery import forensic_job_log
+  from unittest.mock import patch
+  import subprocess
+  run={"id":101,"head_sha":"a"*40}
+  jobs={"total_count":1,"jobs":[{"id":1,"run_id":101,"conclusion":"failure"}]}
+  arts={"total_count":0,"artifacts":[]}
+  def unavailable(jid):raise subprocess.CalledProcessError(1,["gh","api"])
+  def rendered(args,**kw):
+   self.assertEqual(args,["gh","run","view","101","--repo","papaneko-ai/kyoto-keiba-ai","--job","1","--log"])
+   kw["stdout"].write(b"job step 2026-11-28T10:00:00Z NovelError: masked")
+  with tempfile.TemporaryDirectory() as tmp,patch("diagnostics.kyoto_incident_recovery.subprocess.run",side_effect=rendered):
+   m,cache=capture(run,jobs,arts,tmp,"a"*64,lambda jid:forensic_job_log(101,jid,read_raw=unavailable),clock=lambda:0)
+   self.assertEqual(m["state"],"SEALED_WITH_RENDERED_LOGS")
+   self.assertEqual(cache,{})
+   self.assertEqual(m["log_index"][0]["log_format"],"GH_RUN_VIEW_RENDERED")
+   self.assertIn("1",restore(tmp,"a"*64,run)["logs"])
