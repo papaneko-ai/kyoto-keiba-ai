@@ -18,7 +18,7 @@ KINDS={"two-source-production-observer.yml":("pc","sp"),
 READER_SHA="39b9d79c39b986b1b01775957e6a6f93adc29dbc"
 CUSHION_SHA="47cd7f9e881aa989b9f932373cfaf5278dea223a"
 SAFE_KEYS={"state","status","error","error_class","error_code","failure_class","failure_reason","reason","message",
-           "sp_market_state","transport_stop_reason","racecard_error_class","track_error_class",
+           "sp_market_state","transport_stop_reason","racecard_error_class","track_error_class","http_status","observed_field_values",
            "results_meeting_state","payout_meeting_state","candidate_count","racecard_fetched",
            "network_requests_started","http_requests_started","verified_races","expected_horses",
            "profile_verified_count","g03_verified_races","g04_verified_profiles","g05_bound_races",
@@ -108,6 +108,15 @@ def inspect_source(root,day,lane):
         for k in ("error_code","error_class","failure_reason","reason","error"):
             if isinstance(d.get(k),str):return label(d[k])
         return None
+    def track_observed(track):
+        raw=files.get("g05_official_kyoto_track.html",{})
+        return (track.get("schema")=="kyoto_g05_kyoto_track.v1" and track.get("day")==day
+                and track.get("same_day_official_meeting_heading_verified") is True
+                and track.get("source_url") in ("https://www.jra.go.jp/keiba/baba/index2.html","https://jra.jp/keiba/baba/index2.html")
+                and bool(raw) and track.get("source_sha256")==raw.get("sha256")
+                and track.get("bytes")==raw.get("bytes")
+                and any(track.get(k) is not None for k in ("weather","turf_going","dirt_going",
+                       "turf_moisture_finish_pct","turf_moisture_turn4_pct","dirt_moisture_finish_pct","dirt_moisture_turn4_pct")))
     if receipt.get("schema")=="kyoto_archive_salvage.v1":
         saved=receipt.get("saved_originals")
         rejected=receipt.get("rejected_members")
@@ -129,7 +138,7 @@ def inspect_source(root,day,lane):
             if isinstance(r,dict) and r.get("profile_verified") is not True:missing.append(fields(r))
         stage("G04",g04.get("all_profiles_parsed") is True and len(good03)==12 and not missing,{"counts":fields(g04),"missing_profiles":missing[:216]},blocked="G03" if not good03 else None,evidence=("g04_receipt.json",))
         g05=load(root,"g05_receipt.json");track=load(root,"g05_track_receipt.json")
-        stage("G05",bool(g05) and bool(track) and "g05_official_kyoto_track.html" in files,{"conditions":fields(g05),"track":fields(track),"track_independent_of_g03":True},code(track),evidence=("g05_receipt.json","g05_track_receipt.json","g05_official_kyoto_track.html"))
+        stage("G05",bool(g05) and track_observed(track),{"conditions":fields(g05),"track":fields(track),"track_independent_of_g03":True,"track_original_bound_observation":track_observed(track)},code(track),evidence=("g05_receipt.json","g05_track_receipt.json","g05_official_kyoto_track.html"))
         c11=load(root,"c11_per_family_source_proof.json");market={}
         for n,v in c11.get("races",{}).items():
             if str(n) in {str(k) for k in range(1,13)} and isinstance(v,dict):market[str(n)]=fields(v.get("g06",{}))
@@ -155,7 +164,8 @@ def inspect_source(root,day,lane):
         both={str(n):all(f"r{n:02d}_{s}" in files for s in ("official_sp_racecard.html","official_sp_quinella_odds.html","official_sp_bracket_quinella_odds.html")) for n in range(1,13)}
         stage("SP_CAPTURE",all(both.values()),{"race_states":r,"all_three_originals_present":both},blocked="SP_DISCOVERY" if not any(v==1 for v in counts.values()) else None,evidence=("sp_all12_receipt.json",))
     elif lane=="auxiliary":
-        stage("AUXILIARY",bool(receipt.get("verified_races")) and "g05_track_receipt.json" in files,fields(receipt),code(receipt),evidence=("receipt.json","g03_receipt.json","g05_receipt.json","g05_track_receipt.json"))
+        track=load(root,"g05_track_receipt.json")
+        stage("AUXILIARY",bool(receipt.get("verified_races")) and track_observed(track),{"receipt":fields(receipt),"track":fields(track),"track_original_bound_observation":track_observed(track)},code(track) or code(receipt),evidence=("receipt.json","g03_receipt.json","g05_receipt.json","g05_track_receipt.json","g05_official_kyoto_track.html"))
     elif lane=="postrace":
         r=rows(receipt)
         present={str(n):f"r{n:02d}_result.html" in files for n in range(1,13)}
