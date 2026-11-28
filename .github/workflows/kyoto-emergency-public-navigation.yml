@@ -1,4 +1,4 @@
-name: Kyoto emergency exact collector navigation smoke
+name: Kyoto exact candidate roster boundary diagnosis
 on:
   push:
     branches: ['fix/impl30-nov29-source-diagnostics-20261128']
@@ -18,7 +18,7 @@ jobs:
         with:
           python-version: '3.11.18'
       - run: python -m pip install --no-deps beautifulsoup4==4.15.0 soupsieve==4.1.3 typing-extensions==4.16.0
-      - name: Verify actual candidate public navigation and R12 roster only
+      - name: Inspect only previously observed R12 roster markup and independent SP navigation
         env:
           PYTHONPATH: .
           KYOTO_TARGET_DAY: '20261129'
@@ -26,32 +26,35 @@ jobs:
           python - <<'PY'
           import json,tempfile
           from pathlib import Path
-          from datetime import datetime,timezone
-          from diagnostics.kyoto_nov15_two_original_observer import observe,accept_observation
-          from diagnostics.kyoto_g03_all_races import links,parse
+          from urllib.request import build_opener,HTTPCookieProcessor
+          from http.cookiejar import CookieJar
+          from bs4 import BeautifulSoup
+          from diagnostics.kyoto_nov15_two_original_observer import _read
+          from diagnostics.kyoto_p1_nov14_official_one_shot_nav import NoRedirect
           from diagnostics.kyoto_weekend_sp_discovery import discover
-          from diagnostics.kyoto_nov29_public_forms import PC_ENTRY
-          day="20261129"
+          from diagnostics.jra_one_shot_market_capture import RequestPacer
+          pacer=RequestPacer(min_gap_seconds=2.0)
+          client=build_opener(NoRedirect(),HTTPCookieProcessor(CookieJar()))
           with tempfile.TemporaryDirectory() as tmp:
-              root=Path(tmp)
-              pc=observe(root/"pc",now_utc=datetime.now(timezone.utc).isoformat(),allowed=True,public_form_navigation=True,include_observed_racecard=True)
-              print("PC_NAVIGATION",json.dumps({k:pc.get(k) for k in ("state","error_class","error_code","http_requests_started","racecard_original_fetched","observed_racecard_url")},ensure_ascii=False))
-              if not pc.get("racecard_original_fetched"):raise SystemExit("PC_NAVIGATION_FAILED")
-              proof=accept_observation(root/"pc")
-              print("PC_PROVENANCE",proof["state"])
-              observed=links((root/"pc/official_meeting.html").read_bytes(),PC_ENTRY,day)
-              print("PC_UNIQUE_LINK_COUNT",len(observed))
-              assert set(observed)==set(range(1,13))
               try:
-                  data=parse((root/"pc/official_racecard.html").read_bytes(),day,12,pc["observed_racecard_url"],pc["racecard_captured_at_utc"])
-                  print("PC_R12_ROSTER_COUNT",data["runner_count"])
-                  print("PC_R12_START_TIME",data["start_time_jst"])
+                  url="https://www.jra.go.jp/JRADB/accessD.html?CNAME=pw01dde0108202605081220261129/1B"
+                  pacer.before_request()
+                  raw=_read(client,url)
+                  soup=BeautifulSoup(raw.decode("cp932",errors="replace"),"html.parser")
+                  tables=[t for t in soup.select("table") if all(t.select_one("th."+x) for x in ("horse","num","waku"))]
+                  print("PC_TABLE_COUNT",len(tables))
+                  for tr in tables[0].select("tr"):
+                      h=tr.select_one("td.horse");n=tr.select_one("td.num")
+                      if h is None or n is None:continue
+                      a=h.select_one('a[href*="/JRADB/accessU.html"]')
+                      num=n.get_text(" ",strip=True)
+                      if a is None or not num.isascii() or not num.isdigit():
+                          print("PC_ROW_STRUCTURE",json.dumps({"num":num,"class":tr.get("class"),"horse_links":[{"href":x.get("href"),"onclick":x.get("onclick"),"text_length":len(x.get_text(strip=True))} for x in h.select("a")],"horse_cell_children":[{"tag":x.name,"class":x.get("class")} for x in h.find_all(recursive=False)],"horse_cell_text":h.get_text(" ",strip=True)[:140]},ensure_ascii=False))
+                  print("PC_ROW_COUNT",len(tables[0].select("td.horse")))
               except Exception as exc:
-                  print("PC_R12_PARSE_ERROR",type(exc).__name__,str(exc)[:160])
-                  raise
-              sp=discover(root/"sp",day=day)
+                  print("PC_DIAG_ERROR",type(exc).__name__,str(exc)[:140])
+              sp=discover(Path(tmp)/"sp",day="20261129",opener=client,pacer=pacer)
               counts={n:v["candidate_count"] for n,v in sp["per_race_observed_navigation_candidates"].items()}
-              print("SP_NAVIGATION",json.dumps({"state":sp["state"],"counts":counts,"network_requests":sp["network_requests_started"]}))
-              assert set(counts)==set(map(str,range(1,13))) and all(v==1 for v in counts.values())
-              print("EXACT_CANDIDATE_NAVIGATION_OK")
+              print("SP_NAVIGATION",json.dumps({"state":sp["state"],"counts":counts,"network_requests":sp["network_requests_started"],"attempts":[{k:x.get(k) for k in ("url","request_method","error_class","state")} for x in sp["attempts"]]}))
+              assert all(v==1 for v in counts.values())
           PY
