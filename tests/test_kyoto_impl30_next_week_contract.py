@@ -94,15 +94,21 @@ class NewWeekendContract(unittest.TestCase):
             calls.append(path)
             if "auxiliary-refresh.yml/runs?" in path:return {"total_count":0,"workflow_runs":[]}
             if "/runs?" in path:return {"total_count":1,"workflow_runs":[e["run"]]}
-            if "/jobs?" in path:return {"total_count":2,"jobs":e["jobs"]}
-            return {"total_count":1,"artifacts":e["artifacts"]}
+            if "/jobs?" in path:return {"total_count":2,"jobs":[{**j,"id":i+1} for i,j in enumerate(e["jobs"])]}
+            return {"total_count":1,"artifacts":[{**a,"id":i+1} for i,a in enumerate(e["artifacts"])]}
         # Route the isolated worker through the same mocked API, retaining
         # the actual request construction and artifact-name gate.
-        with patch("diagnostics.kyoto_impl25_c12_all_runs_handoff._gh",side_effect=api),patch("diagnostics.kyoto_impl25_c12_all_runs_handoff._download") as download,patch("diagnostics.kyoto_impl31_handoff_budget.gather_bounded",side_effect=lambda d,r:gather_bounded(d,r,invoke=lambda task,end:_worker(*task))):
+        from subprocess import CompletedProcess
+        def cli(args,**kwargs):
+            self.assertEqual(args[:2],["gh","api"])
+            self.assertIn("per_page=100&page=1",args[-1])
+            return CompletedProcess(args,0,stdout=json.dumps(api(args[-1])),stderr="")
+        with patch("diagnostics.kyoto_repair_control.subprocess.run",side_effect=cli),patch("diagnostics.kyoto_impl25_c12_all_runs_handoff._download") as download,patch("diagnostics.kyoto_impl31_handoff_budget.gather_bounded",side_effect=lambda d,r:gather_bounded(d,r,invoke=lambda task,end:_worker(*task))):
             r=gather(day,repo)
         download.assert_not_called()
         self.assertTrue(any("kyoto-20261128-29-two-source-production-observer.yml/runs?created=2026-11-28" in call for call in calls))
         self.assertFalse(r["all_run_metadata_screened"])
+        self.assertEqual(r["metadata_recovery"]["main"],[{"page_size":100,"state":"COMPLETE","count":1}])
         self.assertEqual(r["scheduled_runs"][0]["lanes"]["PC"]["artifact_evidence_state"],"EXACT_ARTIFACT_NOT_FOUND_OR_AMBIGUOUS")
 
 if __name__=="__main__":unittest.main()
