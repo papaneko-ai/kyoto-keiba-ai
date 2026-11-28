@@ -39,7 +39,7 @@ class SourceFirstCoverageTests(unittest.TestCase):
         self.assertIs(result["completeness_demonstrated"],False)
 
     def assert_current_or_reopened(self,source,prior):
-        for key in ("impl37_emergency_source_reopen","impl37_public_form_reopen","impl37_cancelled_number_reopen","impl37_adaptive_repair_reopen","impl37_both_days_aux_reopen","impl37_archive_salvage_reopen","impl37_g05_cancellation_isolation_reopen","impl37_track_canonical_source_reopen","impl37_cross_day_canonical_reopen","impl38_g05_current_layout_reopen","impl38_g05_freshness_reopen","impl38_g05_measurement_binding_reopen","impl39_market_recovery_host_reopen","impl39_independent_sp_market_origin_reopen"):
+        for key in ("impl37_emergency_source_reopen","impl37_public_form_reopen","impl37_cancelled_number_reopen","impl37_adaptive_repair_reopen","impl37_both_days_aux_reopen","impl37_archive_salvage_reopen","impl37_g05_cancellation_isolation_reopen","impl37_track_canonical_source_reopen","impl37_cross_day_canonical_reopen","impl38_g05_current_layout_reopen","impl38_g05_freshness_reopen","impl38_g05_measurement_binding_reopen","impl39_market_recovery_host_reopen","impl39_independent_sp_market_origin_reopen","impl39_aux_sp_transport_reopen"):
             rows=[r for r in self.doc[key]["sources"] if r["source"]==source]
             self.assertLessEqual(len(rows),1)
             if rows:
@@ -142,6 +142,18 @@ class SourceFirstCoverageTests(unittest.TestCase):
             self.assertEqual(set(x["affected_risk_ids"]),{r["id"] for r in self.doc["risks"] if any(source.split("/")[-1]+":" in a for a in r["affected_surfaces"])})
         self.assertEqual(len(self.doc["risks"]),25)
         self.assertTrue(all(r["remediated"] is False and r["test_proven"] is False for r in self.doc["risks"]))
+
+    def test_aux_sp_transport_reopen_exact_and_no_risk_closure(self):
+        import subprocess
+        receipt=self.doc["impl39_aux_sp_transport_reopen"]
+        self.assertEqual(len(receipt["sources"]),1)
+        row=receipt["sources"][0]
+        self.assertEqual(row["source"],"diagnostics/jra_one_shot_market_capture.py")
+        self.assertEqual(row["old_blob"],"9d3dfff82de4e5927b661de2d03df9db00e4d0fe")
+        self.assert_current_or_reopened(row["source"],row["old_blob"])
+        self.assertEqual(row["new_blob"],subprocess.check_output(["git","hash-object",row["source"]],cwd=ROOT,text=True).strip())
+        self.assertEqual(len(self.doc["risks"]),25)
+        self.assertTrue(all(not r["remediated"] and not r["test_proven"] for r in self.doc["risks"]))
 
     def test_function_omission_rejected(self):
         d=copy.deepcopy(self.doc)
