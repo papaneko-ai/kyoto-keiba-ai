@@ -44,3 +44,22 @@ class Tests(unittest.TestCase):
     intake=prepare_intake(root,records=records)
     self.assertEqual(intake['paired_source_races'],int(not conflict))
     self.assertEqual(intake['races'][10]['P4']['markets']['quinella']['cancelled_horses'],[2])
+
+ def test_observed_number_replaced_by_cancellation_marker(self):
+  from diagnostics.jra_multi_capture_20261106 import parse
+  from diagnostics.jra_pc_sp_benchmark import sp_rows
+  raw=card(count=6,race=11,day='20261129').replace(b'<td class="num">2</td>','<td class="num"><span class="cap">取消</span></td>'.encode('cp932'))
+  rows,errors=parse(raw,11,meeting_date='2026-11-29')
+  self.assertEqual(errors,[])
+  self.assertEqual([r['horse_number'] for r in rows],list(range(1,7)))
+  self.assertEqual(rows[1]['number_evidence'],'ORDERED_REGISTERED_ROW_POSITION')
+  self.assertTrue(rows[1]['cancelled'])
+  malformed=raw.replace(b'<td class="num">3</td>',b'<td class="num">4</td>')
+  self.assertIn('cancellation_position_not_verified',parse(malformed,11,meeting_date='2026-11-29')[1])
+  mobile=('<table>'+''.join('<tr><td class="wban">'+str((n+1)//2)+'</td><td class="uban'+(' keshi' if n==2 else '')+'">'+('取消' if n==2 else str(n))+'</td><td><a href="/JRADB/accessU.html?CNAME=x">競走馬'+str(n)+'</a></td></tr>' for n in range(1,7))+'</table>').encode('cp932')
+  self.assertEqual(sp_rows(mobile),tuple((r['horse_number'],r['frame_number'],r['horse_name']) for r in rows))
+  with self.assertRaises(ValueError):sp_rows(mobile.replace(b'uban keshi',b'uban'))
+  q=''.join('<table class="basic narrow-xy umaren">'+str(i)+' '+' '.join(f'{j} '+('取消' if 2 in (i,j) else '3.0') for j in range(i+1,7))+'</table>' for i in range(1,6))
+  result,active=parse_current_market(html('馬連オッズ',q),'quinella',RUNNERS,racecard=raw,racecard_utc='2026-11-29T00:00:00Z',market_utc='2026-11-29T00:01:00Z',start_utc='2026-11-29T06:45:00Z',day='20261129',race=11)
+  self.assertEqual(result['cancelled_horses'],[2])
+  self.assertEqual(len(active),5)
