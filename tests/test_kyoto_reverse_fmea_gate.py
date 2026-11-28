@@ -39,7 +39,7 @@ class SourceFirstCoverageTests(unittest.TestCase):
         self.assertIs(result["completeness_demonstrated"],False)
 
     def assert_current_or_reopened(self,source,prior):
-        for key in ("impl37_emergency_source_reopen","impl37_public_form_reopen","impl37_cancelled_number_reopen","impl37_adaptive_repair_reopen","impl37_both_days_aux_reopen","impl37_archive_salvage_reopen","impl37_g05_cancellation_isolation_reopen","impl37_track_canonical_source_reopen"):
+        for key in ("impl37_emergency_source_reopen","impl37_public_form_reopen","impl37_cancelled_number_reopen","impl37_adaptive_repair_reopen","impl37_both_days_aux_reopen","impl37_archive_salvage_reopen","impl37_g05_cancellation_isolation_reopen","impl37_track_canonical_source_reopen","impl37_cross_day_canonical_reopen"):
             rows=[r for r in self.doc[key]["sources"] if r["source"]==source]
             self.assertLessEqual(len(rows),1)
             if rows:

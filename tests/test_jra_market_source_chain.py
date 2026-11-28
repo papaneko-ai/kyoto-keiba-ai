@@ -54,4 +54,18 @@ class Chain(unittest.TestCase):
   with self.assertRaises(SourceChainError):run(wrong_date=True)
  def test_determinism(self):
   self.assertEqual(run(),run())
+ def test_both_weekend_days_canonical_market_navigation(self):
+  from unittest.mock import patch
+  from diagnostics.jra_official_market_navigation import find_market_links
+  for day in ("20261128","20261129"):
+   iso=f"{day[:4]}-{day[4:6]}-{day[6:]}"
+   def current(raw):
+    return raw.replace("11月7日".encode("cp932"),f"11月{int(day[-2:])}日".encode("cp932")).replace(b"20261107",day.encode())
+   with patch("diagnostics.jra_market_source_chain.find_market_links",wraps=find_market_links) as nav:
+    output=audit_source_originals(current(html("単勝・複勝オッズ",MENU)),{"quinella":current(html("馬連オッズ",Q)),"bracket_quinella":current(html("枠連オッズ",B))},{"quinella":"https://www.jra.go.jp/JRADB/accessO.html","bracket_quinella":"https://www.jra.go.jp/JRADB/accessO.html"},
+       race_key=iso+"_KYOTO_11R",race_day=day,venue="京都",race_number=11,channel="PC",
+       captured_at_utc=iso+"T00:00:00Z",verified_start_utc=iso+"T06:45:00Z",active_runners=RUNNERS)
+    self.assertEqual(nav.call_args.kwargs["expected_host"],"www.jra.go.jp")
+    self.assertEqual(output["classification"],"VALIDATED_LIVE_MARKETS_NOT_PREDICTION_RELEASED")
+    self.assertFalse(output["prediction_ready"])
 if __name__=="__main__":unittest.main()
