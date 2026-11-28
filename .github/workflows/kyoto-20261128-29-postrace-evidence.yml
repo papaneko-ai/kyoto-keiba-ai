@@ -1,11 +1,6 @@
 name: Kyoto Nov28-29 postrace result and payout evidence
 run-name: ${{ github.event_name == 'schedule' && format('kyoto-native:{0}', github.event.schedule) || github.event_name }}
 on:
-  schedule:
-    - cron: '0 10 28 11 *' # 19:00 JST initial observation
-    - cron: '0 13 28 11 *' # 22:00 JST recheck, correction evidence
-    - cron: '0 10 29 11 *'
-    - cron: '0 13 29 11 *'
   workflow_dispatch:
     inputs:
       race_day:
@@ -19,12 +14,12 @@ permissions:
   contents: read
   actions: read
 concurrency:
-  group: kyoto-20261128-29-source-${{ (github.event.schedule == '0 10 28 11 *' || github.event.schedule == '0 13 28 11 *' || inputs.race_day == '20261128') && '20261128' || '20261129' }}
+  group: ${{ github.event_name == 'workflow_dispatch' && format('kyoto-20261128-29-source-{0}', inputs.race_day == '20261128' && '20261128' || '20261129') || format('kyoto-native-isolated-{0}', github.run_id) }}
   cancel-in-progress: false
   queue: max
 jobs:
   postrace-source-evidence:
-    if: ${{ github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.confirmation == 'NOV28-29-POSTRACE-SOURCE-ONLY') }}
+    if: ${{ (github.event_name == 'workflow_dispatch' && inputs.confirmation == 'NOV28-29-POSTRACE-SOURCE-ONLY') }}
     runs-on: ubuntu-latest
     timeout-minutes: 16
     env:

@@ -1,11 +1,6 @@
 name: Kyoto Nov28-29 independent workout source collection
 run-name: ${{ github.event_name == 'schedule' && format('kyoto-native:{0}', github.event.schedule) || github.event_name }}
 on:
-  schedule:
-    - cron: '30 11 27 11 *' # Nov27 20:30 JST, Nov28 preview
-    - cron: '30 22 27 11 *' # Nov28 07:30 JST
-    - cron: '30 11 28 11 *' # Nov28 20:30 JST, Nov29 preview
-    - cron: '30 22 28 11 *' # Nov29 07:30 JST
   workflow_run:
     workflows: ['Kyoto Nov28-29 independent encrypted original collection', 'Kyoto Nov28-29 afternoon auxiliary refresh']
     types: [completed]
@@ -23,12 +18,12 @@ permissions:
   contents: read
   actions: read
 concurrency:
-  group: kyoto-nov28-29-workout-${{ (github.event_name == 'schedule' && (github.event.schedule == '30 11 27 11 *' || github.event.schedule == '30 22 27 11 *') || github.event_name == 'workflow_dispatch' && inputs.race_day == '20261128' || github.event_name == 'workflow_run' && startsWith(github.event.workflow_run.created_at, '2026-11-28')) && '20261128' || '20261129' }}
+  group: ${{ (github.event_name == 'workflow_dispatch' || (github.event_name == 'workflow_run' && github.event.workflow_run.event == 'workflow_dispatch')) && format('kyoto-nov28-29-workout-{0}', (github.event_name == 'workflow_dispatch' && inputs.race_day == '20261128' || github.event_name == 'workflow_run' && startsWith(github.event.workflow_run.created_at, '2026-11-28')) && '20261128' || '20261129') || format('kyoto-native-isolated-{0}', github.run_id) }}
   cancel-in-progress: false
   queue: max
 jobs:
   source-only:
-    if: ${{ github.repository == 'papaneko-ai/kyoto-keiba-ai' && github.ref == 'refs/heads/main' && (github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.confirmation == 'NOV28-29-WORKOUT-SOURCE-ONLY') || (github.event_name == 'workflow_run' && github.event.workflow_run.head_repository.full_name == github.repository && github.event.workflow_run.head_branch == 'main' && (github.event.workflow_run.event == 'schedule' || github.event.workflow_run.event == 'workflow_dispatch') && (startsWith(github.event.workflow_run.created_at, '2026-11-28') || startsWith(github.event.workflow_run.created_at, '2026-11-29')))) }}
+    if: ${{ github.repository == 'papaneko-ai/kyoto-keiba-ai' && github.ref == 'refs/heads/main' && ((github.event_name == 'workflow_dispatch' && inputs.confirmation == 'NOV28-29-WORKOUT-SOURCE-ONLY') || (github.event_name == 'workflow_run' && github.event.workflow_run.head_repository.full_name == github.repository && github.event.workflow_run.head_branch == 'main' && (github.event.workflow_run.event == 'workflow_dispatch') && (startsWith(github.event.workflow_run.created_at, '2026-11-28') || startsWith(github.event.workflow_run.created_at, '2026-11-29')))) }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
     env:

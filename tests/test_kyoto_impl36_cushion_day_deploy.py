@@ -27,5 +27,5 @@ class SidecarContract(unittest.TestCase):
         self.assertTrue(a["with"]["name"].startswith("kyoto-cushion-day-"))
         self.assertEqual(b["with"],dict(a["with"],overwrite="true"))
     def test_two_existing_handoff_slots(self):
-        self.assertEqual([x["cron"] for x in self.doc["on"]["schedule"]],["0 12 28 11 *","0 12 29 11 *"])
+        self.assertNotIn("schedule",self.doc["on"])
 if __name__=="__main__":unittest.main()

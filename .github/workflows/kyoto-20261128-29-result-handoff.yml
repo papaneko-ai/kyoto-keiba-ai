@@ -1,9 +1,6 @@
 name: Kyoto Nov28-29 authenticated all-run handoff
 run-name: ${{ github.event_name == 'schedule' && format('kyoto-native:{0}', github.event.schedule) || github.event_name }}
 on:
-  schedule:
-    - cron: '0 12 28 11 *'
-    - cron: '0 12 29 11 *'
   workflow_dispatch:
     inputs:
       race_day:
@@ -18,7 +15,7 @@ permissions:
   actions: read
 jobs:
   authenticated-handoff:
-    if: ${{ github.event_name == 'schedule' || inputs.confirmation == 'NOV28-29-HANDOFF-ONLY' }}
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.confirmation == 'NOV28-29-HANDOFF-ONLY' }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
     env:

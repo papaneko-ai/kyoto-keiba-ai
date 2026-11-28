@@ -10,6 +10,7 @@ on:
       - 'diagnostics/kyoto_impl30_collector_selection.py'
       - 'tests/test_kyoto_impl30_production_workflows.py'
       - 'tests/test_kyoto_impl30_collector_selection.py'
+      - 'tests/test_kyoto_impl39_native_isolation.py'
 permissions:
   contents: read
 jobs:
@@ -23,6 +24,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
           persist-credentials: false
       - uses: actions/setup-python@v5
         with:
@@ -34,7 +36,7 @@ jobs:
           mkdir -p deployment_contract
           git rev-parse HEAD | tee deployment_contract/head.txt
           test "$(git rev-parse HEAD)" = "${{ github.event.pull_request.head.sha || github.sha }}"
-          python -m unittest -v tests.test_kyoto_impl30_production_workflows tests.test_kyoto_impl30_collector_selection 2>&1 | tee deployment_contract/tests.log
+          python -m unittest -v tests.test_kyoto_impl30_production_workflows tests.test_kyoto_impl30_collector_selection tests.test_kyoto_impl39_native_isolation 2>&1 | tee deployment_contract/tests.log
       - name: Preserve deployment contract evidence
         if: always()
         uses: actions/upload-artifact@v4

@@ -19,7 +19,9 @@ class Reserve(unittest.TestCase):
        self.assertEqual(seal['if'],'always()')
        self.assertTrue(any(s.get('if')=='always()' and s.get('id')=='upload_'+lane+'_primary' for s in j['steps']))
  def test_unchanged_slots(self):
-    self.assertEqual(re.findall(r"- cron: '([^']+)'",self.s),['15 0 28 11 *','15 1 28 11 *','5 2 28 11 *','50 2 28 11 *','15 0 29 11 *','15 1 29 11 *','10 2 29 11 *','55 2 29 11 *'])
+    self.assertEqual(re.findall(r"- cron: '([^']+)'",self.s),[])
+    from tests.test_kyoto_impl39_native_isolation import diagnostic_crons
+    self.assertEqual(diagnostic_crons()[:8],['15 0 28 11 *','15 1 28 11 *','5 2 28 11 *','50 2 28 11 *','15 0 29 11 *','15 1 29 11 *','10 2 29 11 *','55 2 29 11 *'])
     self.assertIn('needs: [select-collector, pc-originals-independent]',self.s)
     self.assertIn('cancel-in-progress: false',self.s)
  def test_actual_timeout_leaves_original_and_exit(self):
