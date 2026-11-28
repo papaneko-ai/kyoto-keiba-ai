@@ -57,6 +57,22 @@ POSTRACE_RECEIPT={
     "validation_pr":174,
 }
 
+# Producer-only feedback fallback. The original independently verified reader and
+# navigation/finality receipt above stay unchanged; this delta changes only the
+# archive reopening control flow, not the saved-original format or verifier.
+POSTRACE_RUNTIME_RECEIPT={
+    "source":"0d46856ad831ab644df92914e6338a5e65914e20",
+    "reader_source":POSTRACE_RECEIPT["source"],
+    "targeted_proof_run":46145061350,
+    "targeted_proof_job":140979159546,
+    "real_fallback_proof_run":46145305565,
+    "real_fallback_proof_job":140979953035,
+    "original_source_run":46133297877,
+    "original_source_artifact":15258294810,
+    "recovered_candidates":13,
+    "verification_scope":"Injected newer missing archive; actual earlier encrypted original; no source HTTP or live acquisition certification",
+}
+
 def choose_deployed(day,baseline,override,verified,*,repo):
     selected,reason=choose(day,baseline,override,verified)
     receipt=DEPLOYED_RECEIPT
