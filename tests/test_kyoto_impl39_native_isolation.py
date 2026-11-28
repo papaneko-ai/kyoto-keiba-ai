@@ -1,4 +1,4 @@
-"""Exact trigger-only delta against approved PR168, without source requests."""
+"""Exact trigger and reviewed Sunday pin delta against approved PR168, without source requests."""
 import copy, subprocess, unittest
 from datetime import datetime,timedelta,timezone
 from pathlib import Path
@@ -40,6 +40,20 @@ class Isolation(unittest.TestCase):
                     j["if"]=j["if"].replace("(github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch'","((github.event_name == 'workflow_dispatch'").replace("(github.event.workflow_run.event == 'schedule' || github.event.workflow_run.event == 'workflow_dispatch')","(github.event.workflow_run.event == 'workflow_dispatch')")
                 elif n=="cushion-source":
                     expected["jobs"]["cushion-source-only"]["if"]=CUSHION_IF
+                # Preserve all approved trigger and safety invariants. Only the exact
+                # successful preflight pin changes on Sunday; Saturday remains fixed.
+                if n=="two-source-production-observer":
+                    expected["jobs"]["select-collector"]["env"]["SUNDAY_OVERRIDE_SHA"]="9ceb07be0c4754bd5119ea8f87c2a87a44103f73"
+                elif n=="auxiliary-refresh":
+                    j=expected["jobs"]["afternoon-auxiliary-source"]
+                    j["steps"][0]["with"]["ref"]="${{ env.KYOTO_TARGET_DAY == '20261128' && 'c289c5ec4e6ad322a7e08acf173da3352ed23dba' || '9ceb07be0c4754bd5119ea8f87c2a87a44103f73' }}"
+                    for s in j["steps"]:
+                        if s.get("name")=="Verify fixed source before afternoon refresh":
+                            s["run"]=s["run"].replace("= 'c289c5ec4e6ad322a7e08acf173da3352ed23dba'",'= "'+"${{ env.KYOTO_TARGET_DAY == '20261128' && 'c289c5ec4e6ad322a7e08acf173da3352ed23dba' || '9ceb07be0c4754bd5119ea8f87c2a87a44103f73' }}"+'"')
+                        if s.get("name")=="Upload encrypted afternoon racecard and track originals only":
+                            s["name"]="Upload encrypted afternoon source originals and recovered gaps"
+                elif n=="result-handoff":
+                    expected["jobs"]["authenticated-handoff"]["steps"][0]["with"]["ref"]="${{ env.KYOTO_TARGET_DAY == '20261128' && 'c289c5ec4e6ad322a7e08acf173da3352ed23dba' || '9ceb07be0c4754bd5119ea8f87c2a87a44103f73' }}"
                 self.assertEqual(doc(n),expected)
                 self.assertNotIn("schedule",doc(n)["on"])
                 self.assertEqual(doc(n)["on"]["workflow_dispatch"],original["on"]["workflow_dispatch"])
