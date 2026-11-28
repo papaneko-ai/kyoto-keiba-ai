@@ -28,6 +28,23 @@ class IncidentRecoveryTests(unittest.TestCase):
  def test_no_secret_or_url_in_error(self):
   for x in ("https://private.invalid/key","A"*64,"token=private"):
    self.assertNotIn(x,label(x));self.assertTrue(label(x).startswith("UNCLASSIFIED_TEXT_SHA256_"))
+ def test_adaptive_replay_does_not_confuse_candidate_and_applied(self):
+  import hashlib
+  from diagnostics.kyoto_incident_recovery import replay_adaptive
+  with tempfile.TemporaryDirectory() as d:
+   r=Path(d);raw=b"<html>new layout</html>";self.put(r,"official_pc_navigation_home.html",raw)
+   p={"source_sha256":hashlib.sha256(raw).hexdigest(),"stage":"entry","channel":"PC","day":"20261129","parser_agreement":True,"counterexamples_rejected":True,"rule_sha256":"a"*64,"action_sha256":"b"*64,"rule":{"grammar":"test"}}
+   def repair(raw_arg,day,channel,stage):
+    self.assertEqual((raw_arg,day,channel,stage),(raw,"20261129","PC","entry"));return "/private","secret","name",p
+   self.put(r,"receipt.json",{"day":"20261129"})
+   self.assertEqual(replay_adaptive(r,"20261129","pc",repair)[0]["state"],"LOCAL_CANDIDATE_VERIFIED_NOT_APPLIED")
+   self.put(r,"receipt.json",{"day":"20261129","adaptive_navigation_repairs":[p]})
+   v=replay_adaptive(r,"20261129","pc",repair)[0]
+   self.assertEqual(v["state"],"APPLIED_REPAIR_REPRODUCED");self.assertFalse(v["root_cause_closed"]);self.assertNotIn("secret",json.dumps(v))
+   self.put(r,"receipt.json",{"day":"20261129","adaptive_navigation_repairs":[{**p,"action_sha256":"c"*64}]})
+   self.assertEqual(replay_adaptive(r,"20261129","pc",repair)[0]["state"],"RECORDED_REPAIR_MISMATCH")
+   def reject(*args):raise ValueError("unknown_layout")
+   self.assertEqual(replay_adaptive(r,"20261129","pc",reject)[0]["state"],"REPAIR_SEARCH_UNRESOLVED")
  def test_wrong_day(self):
   with tempfile.TemporaryDirectory() as d:
    r=Path(d);self.put(r,"receipt.json",{"day":"20261128"})
