@@ -566,3 +566,7 @@
 ## 99. E42-POSTRACE-FEEDBACK-02 新規限定試験成功
 - 隔離proof run 46145061350 / job 140979159546 completed SUCCESS、2026-11-28T12:31:20Z完了。実ログ: test_prior_navigation_falls_back_only_after_failed_reopen ... ok、Ran 1 test in 0.010s、OK、EXACT_SOURCE=0d46856ad831ab644df92914e6338a5e65914e20; JRA_HTTP_REQUESTS=0; PROOF_ONLY=TRUE。単一新規試験内3ケース（最新復号失敗→旧候補回復、最新正常空候補→旧候補を開かない、全候補download失敗→fresh継続）のassertion合格。mockによる制御経路試験であり実開催原本復旧・実取得・本番動作・全体回帰の認定ではない。https://github.com/papaneko-ai/kyoto-keiba-ai/actions/runs/46145061350
 - 隔離source 0d46856ad831ab644df92914e6338a5e65914e20、既存#183は変更なし・承認待ち、main dd30d915dace9f22b9d19619c84b5bc111855fc0 不変更。次は#183 exact HEAD承認後のmain独立検証、夜間source pin/保護試験の整合確認・別PR化。実績未確認の22:02/22:40と11/29全取得の監視を優先。既成功試験を反復しない。固定9群維持、正式0/25。
+
+## 100. E42-RELEASE-03 #183本番反映・独立照合（2026-11-28 21:32 JST）
+- ユーザー明示承認 #183 exact HEAD b624daa539ad017321c682fcc182d11e02b676dd、merge前main/base dd30d915dace9f22b9d19619c84b5bc111855fc0、CI3/3成功。expected_head_sha指定merge成功、merged_at 2026-11-28T12:32:48Z、main=358f383856608b73587e3d949a8eef08f7017b5a。独立GETでtree 6eb926a3ee5ae9194d9574fefe3402dfd0774fcd一致、parents=[dd30d915dace9f22b9d19619c84b5bc111855fc0,b624daa539ad017321c682fcc182d11e02b676dd]、承認head→main差分0、旧main→新main差分2（closure Python/対応試験）のみ。全71workflow path/blob一致。予約枠・通信/時間上限・source pin不変。Secrets/Turso/外部設定未変更（外部直接照合なし）。既合格試験再実行・再merge不要。
+- 本番自動closure run46145200191 in_progress。取得成功・実SP接続は未確認。#182本番実検査および#183事前proofは再利用。次は当run完了/結果確認と第99節候補の限定本番pin/証拠接続検証。固定9群/固定25正式0/25維持。22:02/22:40・11/29全取得優先。
