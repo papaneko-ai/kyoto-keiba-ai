@@ -8,12 +8,12 @@ from datetime import datetime,timezone,timedelta
 from pathlib import Path
 if __package__:
     from .kyoto_repair_control import recover_collection
-    from .kyoto_fixed_risk_worklist import worklist
+    from .kyoto_fixed_risk_worklist import worklist, continuity_worklist, continuity_summary
     from .kyoto_job_artifact_state import classify_artifact, SKIPPED
     from .kyoto_day_supplemental_replay import review_sp, review_cushion
 else:
     from kyoto_repair_control import recover_collection
-    from kyoto_fixed_risk_worklist import worklist
+    from kyoto_fixed_risk_worklist import worklist, continuity_worklist, continuity_summary
     from kyoto_job_artifact_state import classify_artifact, SKIPPED
     from kyoto_day_supplemental_replay import review_sp, review_cushion
 
@@ -351,15 +351,46 @@ def collect_metadata(day,now):
                 except Exception as exc:r["artifact_index_error"]=type(exc).__name__
             reports[filename]={"index_complete":True,"runs":runs,"native_slots":slots(day,filename,runs,now),"external_dispatch_slots":external_slots(day,filename,runs,now),"metadata_recovery":recovery_trace}
         except Exception as exc:
-            reports[filename]={"index_complete":False,"error_class":type(exc).__name__,"runs":[],"native_slots":[],"external_dispatch_slots":[],"metadata_recovery":recovery_trace}
+            unknown=external_slots(day,filename,[],now)
+            for s in unknown:
+                if s["state"]!="NOT_DUE":s["state"]="DISPATCH_INDEX_UNAVAILABLE"
+            reports[filename]={"index_complete":False,"error_class":type(exc).__name__,"runs":[],"native_slots":[],"external_dispatch_slots":unknown,"metadata_recovery":recovery_trace}
             errors.append(filename)
     return reports,errors
-def review(day,now,out):
+def write_checkpoint(day,now,out):
     metadata,errors=collect_metadata(day,now)
     out=Path(out);out.mkdir(parents=True,exist_ok=True)
-    (out/"metadata_checkpoint.json").write_bytes(canon({"day":day,"workflows":metadata,"errors":errors})+b"\n")
+    doc={"schema":"kyoto_closure_metadata_checkpoint.v1","day":day,"observed_utc":now.isoformat(),
+         "review_run_id":os.environ.get("GITHUB_RUN_ID"),"workflows":metadata,"errors":errors}
+    raw=canon(doc)
+    (out/"metadata_checkpoint.json").write_bytes(raw+b"\n")
+    (out/"metadata_checkpoint.sha256").write_text(digest(raw)+"\n",encoding="ascii")
+    obligations=continuity_worklist(day,metadata)
+    (out/"continuity_worklist.json").write_bytes(canon(obligations)+b"\n")
+    return doc
+
+def load_checkpoint(day,out):
+    out=Path(out);raw=(out/"metadata_checkpoint.json").read_bytes().rstrip(b"\n")
+    doc=json.loads(raw)
+    if (canon(doc)!=raw or digest(raw)!=(out/"metadata_checkpoint.sha256").read_text().strip()
+        or doc.get("schema")!="kyoto_closure_metadata_checkpoint.v1" or doc.get("day")!=day
+        or not os.environ.get("GITHUB_RUN_ID") or doc.get("review_run_id")!=os.environ["GITHUB_RUN_ID"]
+        or set(doc.get("workflows",{}))!=set(LANES)):
+        raise ValueError("closure_metadata_checkpoint_identity")
+    stamp(doc["observed_utc"])
+    obligations=continuity_worklist(day,doc["workflows"])
+    if (out/"continuity_worklist.json").read_bytes()!=canon(obligations)+b"\n":
+        raise ValueError("closure_continuity_checkpoint_identity")
+    return doc
+
+def review(day,now,out,*,use_checkpoint=False):
+    doc=load_checkpoint(day,out) if use_checkpoint else write_checkpoint(day,now,out)
+    metadata,errors=doc["workflows"],doc["errors"]
+    now=stamp(doc["observed_utc"])
+    out=Path(out)
     report={"schema":"kyoto_weekend_closure_review.v1","day":day,"observed_utc":now.isoformat(),"workflow_index_errors":errors,"workflows":metadata,
        "new_source_http_requests":0,"full_acquisition_certified":False,"all_risks_closed":False}
+    report["continuity_obligations"]=continuity_worklist(day,metadata)
     sp_attempted=False
     sp_allowed=[]
     sp_roster_slots=[]
@@ -446,6 +477,7 @@ def review(day,now,out):
         gaps=[(r["id"],k,a["state"]) for r in v["runs"] for k,a in r.get("artifacts",{}).items() if a["state"] not in ("PRESENT",SKIPPED)]
         skips=[(r["id"],k,a["job_id"]) for r in v["runs"] for k,a in r.get("artifacts",{}).items() if a["state"]==SKIPPED]
         summary.append(f"- {name}: index={v['index_complete']}, runs={len(v['runs'])}, historical native gaps (not external launch credit)={[(s['cron'],s['state']) for s in missing]}, external dispatch observations={[(s['due_utc'],s['state'],s['run_ids']) for s in v.get('external_dispatch_slots',[])]}, artifact gaps={gaps}, skipped producer jobs (reason unverified)={skips}")
+    summary.extend(continuity_summary(report["continuity_obligations"]))
     if "sp_market_replay" in report:summary.append("- SP市場原本の独立照合: "+str(report["sp_market_replay"]))
     if "independent_sp_market_replay_error" in report:summary.append("- SP市場照合未完: "+report["independent_sp_market_replay_error"])
     if "coverage_replay_error" in report:summary.append("- 原本再検証未完: "+report["coverage_replay_error"])
@@ -481,7 +513,9 @@ def review(day,now,out):
     (out/"summary.md").write_text("\n".join(summary)+"\n",encoding="utf8")
     print("CLOSURE_REVIEW",json.dumps({"day":day,"index_errors":errors,"source_runs":sum(len(x["runs"]) for x in metadata.values()),"native_slots":sum(len(x["native_slots"]) for x in metadata.values()),"coverage_counts":report.get("coverage",{}).get("counts",{}),"coverage_replay_error":report.get("coverage_replay_error"),"fixed_risk_rows":len(report.get("fixed_risks",{}).get("rows",[])),"fixed_risk_worklist_error":report.get("fixed_risk_worklist_error"),"full_acquisition_certified":False},sort_keys=True))
 def main():
-    p=argparse.ArgumentParser();p.add_argument("--day",choices=DAYS,required=True);p.add_argument("--out",required=True);a=p.parse_args()
+    p=argparse.ArgumentParser();p.add_argument("--day",choices=DAYS,required=True);p.add_argument("--out",required=True)
+    mode=p.add_mutually_exclusive_group();mode.add_argument("--metadata-only",action="store_true");mode.add_argument("--use-checkpoint",action="store_true");a=p.parse_args()
     if os.environ.get("GITHUB_REPOSITORY")!=REPO:raise ValueError("repo_identity")
-    review(a.day,datetime.now(timezone.utc),a.out)
+    if a.metadata_only:write_checkpoint(a.day,datetime.now(timezone.utc),a.out)
+    else:review(a.day,datetime.now(timezone.utc),a.out,use_checkpoint=a.use_checkpoint)
 if __name__=="__main__":main()
