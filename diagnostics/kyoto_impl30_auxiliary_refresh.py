@@ -20,7 +20,7 @@ from diagnostics.kyoto_g03_to_g06_input_adapter import records_from_g03
 from diagnostics.kyoto_g05_conditions import compile_saved
 from diagnostics.kyoto_g05_official_track import capture_kyoto_track,KYOTO_TRACK_PAGE
 from diagnostics.kyoto_nov15_encrypted_evidence import encrypt_evidence,decrypt_evidence
-from diagnostics.kyoto_impl25_c12_all_runs_handoff import WEEKENDS,_date,_gh,_download
+from diagnostics.kyoto_impl25_c12_all_runs_handoff import WEEKENDS,_date,_gh,_download,run_name_matches
 from diagnostics.kyoto_g04_all_horse_profiles import _utc
 
 DAYS=("20261128","20261129")
@@ -43,7 +43,7 @@ def prior_starts(day,repo,key):
         if index["total_count"]!=len(runs) or len(runs)>100:return {}
         for run in sorted(runs,key=lambda x:x["id"],reverse=True):
             if time.monotonic()>=deadline:break
-            if run["name"]!=workflow or run["created_at"][:10]!=_date(day) or run["status"]!="completed" or run["event"] not in ("schedule","workflow_dispatch"):continue
+            if not run_name_matches(run,workflow,file,day) or run["created_at"][:10]!=_date(day) or run["status"]!="completed" or run["event"] not in ("schedule","workflow_dispatch"):continue
             rid=run["id"]
             try:
                 with tempfile.TemporaryDirectory(prefix="kyoto_aux_prior_") as tmp:
@@ -172,7 +172,7 @@ def saved_slots(day,repo,key):
             rid=run["id"]
             if rid in seen:raise ValueError("duplicate_auxiliary_run")
             seen.add(rid)
-            if run["name"]!=NAME or run["created_at"][:10]!=_date(day) or run["status"]!="completed" or run["event"] not in ("schedule","workflow_dispatch"):continue
+            if not run_name_matches(run,NAME,WORKFLOW,day) or run["created_at"][:10]!=_date(day) or run["status"]!="completed" or run["event"] not in ("schedule","workflow_dispatch"):continue
             try:
                 with tempfile.TemporaryDirectory(prefix="kyoto_aux_read_") as d:
                     base=Path(d);cipher=base/"cipher";cipher.mkdir();raw=base/"raw"
