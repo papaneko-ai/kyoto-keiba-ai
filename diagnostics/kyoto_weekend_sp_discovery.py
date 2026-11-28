@@ -1,7 +1,7 @@
 """Independent SP official navigation discovery; zero guessed CNAME tokens.
 
 The only seed URL is the public SP homepage; further requests require an
-actual saved <a href> from that exact host. An unknown navigation graph is
+actual saved official href or exact entry form action from that host. An unknown navigation graph is
 recorded as INCOMPLETE, never a synthetic SP racecard claim.
 """
 from __future__ import annotations
@@ -99,10 +99,10 @@ def observed_kyoto_race_candidates(raw, parent, day):
 
 
 def discover(root, *, day, opener=None, pacer=None):
-    """At most 3 Saturday or 6 Sunday no-redirect SP HTML GETs.
+    """At most six no-redirect SP navigation requests, three on Nov21.
 
     This is deliberately independent of the PC selector and tokens.
-    Every successful GET is saved byte-for-byte with SHA256 and UTC.
+    Every successful response is saved byte-for-byte with SHA256 and UTC.
     """
     root=Path(root)
     if root.exists() or root.is_symlink() or not root.parent.is_dir():
@@ -188,24 +188,32 @@ def discover(root, *, day, opener=None, pacer=None):
         name=f"official_sp_discovery_{step+1}.html"
         (root/name).write_bytes(raw)
         digest=hashlib.sha256(raw).hexdigest()
-        log.append({"url":url,"captured_at_utc":datetime.now(timezone.utc).isoformat(),
-                    "sha256":digest,"bytes":len(raw),"file":name,**({"request_method":"POST","observed_action_path":action[0]} if action else {})})
+        log.append({"url":action[0] if action else url,"captured_at_utc":datetime.now(timezone.utc).isoformat(),
+                    "sha256":digest,"bytes":len(raw),"file":name,**({"request_method":"POST","observed_action_path":action[0],"observed_action_token":action[2]} if action else {})})
         anchors=official_sp_anchors(raw,url,day)
         # Nov28 authenticated homepage contains a POST form and literal
         # doAction('/JRADB/accessD.html','sw01dli00/80'). Follow only the
         # exact observed entry action, never execute JavaScript or guess tokens.
         if day in ("20261128","20261129") and url==SEED:
-            soup=BeautifulSoup(raw,"html.parser")
-            forms=[f for f in soup.select("form") if str(f.get("method","")).lower()=="post" and f.select_one('input[name="cname"]')]
+            try:
+                decoded=raw.decode("utf-8")
+            except UnicodeDecodeError:
+                decoded=raw.decode("cp932",errors="replace")
+            soup=BeautifulSoup(decoded,"html.parser")
+            forms=[f for f in soup.select("form") if str(f.get("method","")).lower()=="post" and f.select_one('input[name="cname"]') and not str(f.get("action","")).strip()]
+            entries=set()
             if len(forms)==1:
                 for a in soup.select("a[onclick]"):
                     m=re.fullmatch(r"\s*return\s+doAction\(\s*['\"](/JRADB/accessD\.html)['\"]\s*,\s*['\"](sw01dli00/[A-Za-z0-9]{2})['\"]\s*\)\s*;?\s*",a["onclick"])
                     if not m or "出馬表" not in a.get_text(" ",strip=True): continue
-                    target=urljoin(SEED,m.group(1))
-                    # The internal queue key is not sent as a GET.
-                    key=target+"?"+urlencode({"CNAME":m.group(2)})
-                    post_actions[key]=(target,SEED,m.group(2))
-                    if key not in visited and key not in queue: queue.append(key)
+                    entries.add((m.group(1),m.group(2)))
+            if len(entries)==1:
+                path,token=next(iter(entries))
+                target=urljoin(SEED,path)
+                # Internal queue identity, never sent as a synthetic GET.
+                key=target+"?"+urlencode({"CNAME":token})
+                post_actions[key]=(target,SEED,token)
+                if key not in visited and key not in queue: queue.append(key)
         # Record every independently observed Kyoto race anchor, including
         # ambiguous races, without fetching or certifying it.
         for number,urls in observed_kyoto_race_candidates(raw,url,day).items():
