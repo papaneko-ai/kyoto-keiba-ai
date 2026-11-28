@@ -54,6 +54,22 @@ class HandoffBudget(unittest.TestCase):
             t=time.monotonic(); result=_invoke(('index',DAY,REPO,0,'main'),t+0.1)
             self.assertEqual(result,{'error_class':'HANDOFF_WORKER_TIMEOUT'})
             self.assertLess(time.monotonic()-t,2)
+    def test_runtime_worker_uses_recovery_for_index_and_jobs(self):
+        from diagnostics.kyoto_impl31_handoff_budget import _worker
+        from diagnostics.kyoto_repair_control import recover_collection
+        def recovering(path,field,trace):
+            def fetch(endpoint):
+                if 'per_page=100' in endpoint:return {'total_count':1,field:[]}
+                return {'total_count':1,field:[{'id':7}]}
+            return recover_collection(path,field,fetch=fetch,sleep=lambda _:None,trace=trace)
+        with patch('diagnostics.kyoto_repair_control.recover_collection',side_effect=recovering):
+            x=_worker('index',DAY,REPO,0,'main')
+            self.assertEqual(x['workflow_runs'],[{'id':7}])
+            self.assertEqual([r['state'] for r in x['metadata_recovery']],['REJECTED','COMPLETE'])
+            x=_worker('metadata',DAY,REPO,7,'main')
+            self.assertEqual(x['jobs'],[{'id':7}])
+            self.assertEqual(x['artifacts'],[{'id':7}])
+            self.assertEqual(x['metadata_recovery']['artifacts'][1]['state'],'COMPLETE')
     def test_empty_index_still_returns_partial_report(self):
         r=gather_bounded(DAY,REPO,invoke=lambda t,e:{'error_class':'HANDOFF_WORKER_TIMEOUT'})
         self.assertEqual(r['observed_schedule_count'],0)

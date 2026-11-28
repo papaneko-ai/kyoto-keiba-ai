@@ -17,20 +17,26 @@ ARTIFACT_CAP = 180
 
 def _worker(kind, day, repo, rid, lane):
     from diagnostics.kyoto_impl25_c12_all_runs_handoff import _gh, _download, WEEKENDS, _date
+    if kind in ('index','metadata') and repo != 'papaneko-ai/kyoto-keiba-ai':raise ValueError('metadata_repo_mismatch')
+    from diagnostics.kyoto_repair_control import recover_collection
     if kind == 'index':
         if lane == 'aux':
             from diagnostics.kyoto_impl30_auxiliary_refresh import WORKFLOW
             filename = WORKFLOW
         else:
             filename = WEEKENDS[day][1]
-        return _gh(f'repos/{repo}/actions/workflows/{filename}/runs?created={_date(day)}&per_page=100')
+        trace=[]
+        doc=recover_collection(f'actions/workflows/{filename}/runs?created={_date(day)}&per_page=100','workflow_runs',trace=trace)
+        doc['metadata_recovery']=trace
+        return doc
     if kind == 'metadata':
-        j = _gh(f'repos/{repo}/actions/runs/{rid}/jobs?per_page=100')
-        a = _gh(f'repos/{repo}/actions/runs/{rid}/artifacts?per_page=100')
+        jt=[];at=[]
+        j = recover_collection(f'actions/runs/{rid}/jobs?per_page=100','jobs',trace=jt)
+        a = recover_collection(f'actions/runs/{rid}/artifacts?per_page=100','artifacts',trace=at)
         for doc, field in ((j, 'jobs'), (a, 'artifacts')):
             if not isinstance(doc[field], list) or doc['total_count'] != len(doc[field]) or any(not isinstance(x,dict) for x in doc[field]):
                 raise ValueError('incomplete_metadata')
-        return {'jobs': j['jobs'], 'artifacts': a['artifacts']}
+        return {'jobs': j['jobs'], 'artifacts': a['artifacts'],'metadata_recovery':{'jobs':jt,'artifacts':at}}
     with tempfile.TemporaryDirectory(prefix='kyoto_bounded_handoff_') as tmp:
         root = Path(tmp); cipher = root/'cipher'; cipher.mkdir()
         if kind == 'lane':
@@ -82,9 +88,9 @@ def _index(response, day, repo, name, filename):
     rows=response.get('workflow_runs',[])
     if not isinstance(rows,list): return [],False,None
     total=response.get('total_count')
-    complete=type(total) is int and total==len(rows) and len(rows)<=100
+    complete=type(total) is int and total==len(rows) and len(rows)<=400
     seen=set(); verified=[]
-    for r in rows[:100]:
+    for r in rows[:400]:
         if not isinstance(r,dict): complete=False; continue
         rid=r.get('id')
         if (type(rid) is not int or rid<=0 or rid in seen or not run_name_matches(r,name,filename,day)
@@ -158,6 +164,7 @@ def gather_bounded(day, repo, *, invoke=_invoke, clock=time.monotonic, budget=BU
     except (ValueError,TypeError,KeyError,AttributeError) as exc:
         report['independent_sp_source_coverage_error']=type(exc).__name__
     report['authenticated_applied_policies']=[{'run_id':e['run']['id'],'event':e['run']['event'],'channel':lane,'policy':v['applied_policy']} for e in entries for lane,v in e.get('source_assessment',{}).items() if v.get('ciphertext_authenticated') is True and v.get('source_original_sha_utc_checked') is True and isinstance(v.get('applied_policy'),dict)]
+    report['metadata_recovery']={'main':main.get('metadata_recovery',[]) if isinstance(main,dict) else [],'auxiliary':aux.get('metadata_recovery',[]) if isinstance(aux,dict) else [],'runs':[{'run_id':e['run']['id'],'trace':e.get('metadata_recovery')} for e in entries if e.get('metadata_recovery')]}
     report['handoff_budget']={'limit_seconds':budget,'worker_limit':WORKERS,'source_tasks':len(work),'main_index_complete':complete,'auxiliary_index_complete':aux_complete,'deadline_exhausted':clock()>=end}
     try:
         coverage=combine(day,slots+aux_slots)
