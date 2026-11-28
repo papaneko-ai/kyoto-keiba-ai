@@ -102,9 +102,9 @@ class ObservedRaceSpec:
                 elif url in ("",None):
                     raise ValueError("required_observed_racecard_url_missing:"+channel)
                 u=urlsplit(url)
-                host="jra.jp" if channel=="PC" else "sp.jra.jp"
+                hosts=(("jra.jp","www.jra.go.jp") if self.race_day=="20261129" else ("jra.jp",)) if channel=="PC" else ("sp.jra.jp",)
                 q=parse_qs(u.query,strict_parsing=True)
-                if (u.scheme!="https" or u.hostname!=host or u.port is not None
+                if (u.scheme!="https" or u.hostname not in hosts or u.port is not None
                         or u.username is not None or u.password is not None
                         or u.path!="/JRADB/accessD.html" or u.fragment
                         or set(q)!={"CNAME"} or len(q["CNAME"])!=1
@@ -286,8 +286,8 @@ def observed_next_market_action(raw, channel, spec, *, step):
 
 def http_fetch(opener,channel,path,*,cname=None,referer=None,pacer=None):
     u=urlsplit(path)
-    host="jra.jp" if channel=="PC" else u.hostname
-    if channel=="SP" and host not in ("sp.jra.jp","app.jra.jp"):
+    host=u.hostname
+    if channel not in ("PC","SP") or host not in (("jra.jp","www.jra.go.jp") if channel=="PC" else ("sp.jra.jp","app.jra.jp")):
         raise SourceChainError("invalid_target_origin")
     if (u.scheme!="https" or u.hostname!=host or u.port is not None
         or u.username or u.password or u.fragment
@@ -392,7 +392,7 @@ def capture(out,*,channel,verified_start_utc,active_runners,now_utc=None,opener=
             return result
         opener=build_opener(NoRedirect(),HTTPCookieProcessor(CookieJar()))
     source=spec.pc_racecard_url if channel=="PC" else spec.sp_racecard_url
-    host="jra.jp" if channel=="PC" else "sp.jra.jp"
+    host=urlsplit(source).hostname
     try:
         try:
             racecard=http_fetch(opener,channel,source,pacer=pacer)
