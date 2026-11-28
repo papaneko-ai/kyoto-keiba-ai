@@ -1223,10 +1223,10 @@
   "notes": "Reverse FMEA explicitly finds risk modes not enumerated by the original 30 cases. Counting passing tests is not an independent proof of completeness.",
   "source_git_blob_sha1": {
     "diagnostics/kyoto_weekend_capture.py": "073da06e328f5b4578bec4f003c3e3584183f942",
-    "diagnostics/kyoto_weekend_sp_discovery.py": "1559d0e95b2ccd0aa40f1d2680706d17dedf42b5",
-    "diagnostics/kyoto_weekend_postflight.py": "eb45accfb77e5df6ede87ca4e71d50d355779a05",
+    "diagnostics/kyoto_weekend_sp_discovery.py": "82fb8293d674ad816a126e60993ed1d26799f1da",
+    "diagnostics/kyoto_weekend_postflight.py": "390d205ed60dc9b0ded7590598d2db11042f1e3b",
     "diagnostics/kyoto_weekend_day21_triage.py": "a6639d5cab211d37d1eddefaa9bfc5b23901368d",
-    "diagnostics/kyoto_nov15_two_original_observer.py": "136c8c7799283463354081bc38de07c4ac60afc1",
+    "diagnostics/kyoto_nov15_two_original_observer.py": "62053f01c926f722c27f225a5e102654c824555b",
     "diagnostics/kyoto_sp_observed_source.py": "5f5804e15d4c7af8b16a78663a0634965e16014f",
     "diagnostics/kyoto_nov15_encrypted_evidence.py": "2dbe7572fee81e50ff6b67473ff51d4ec1c9cf48",
     "diagnostics/jra_benchmark_acceptance.py": "edbd6b5b9479fdbf3fc88c7450c0c7ae3260a76f",
@@ -1755,5 +1755,32 @@
       }
     ],
     "reason": "Actual PC span.cap and SP td.uban.keshi cancellation markers replace horse number; both independent registered sequences show 15, cancellation,17. Preserve explicit position-derived number evidence, require complete ordered registration; run 46102915944. No risk closure or live odds claim."
+  },
+  "impl37_adaptive_repair_reopen": {
+    "prior_ledger_blob": "62197733fd7fb9a0e9dce9af5472ff8d685d7f1c",
+    "sources": [
+      {
+        "source": "diagnostics/kyoto_nov15_two_original_observer.py",
+        "old_blob": "136c8c7799283463354081bc38de07c4ac60afc1",
+        "new_blob": "62053f01c926f722c27f225a5e102654c824555b",
+        "review_status": "UNREVIEWED_INDEPENDENT_FMEA",
+        "closed_risks": 0
+      },
+      {
+        "source": "diagnostics/kyoto_weekend_sp_discovery.py",
+        "old_blob": "1559d0e95b2ccd0aa40f1d2680706d17dedf42b5",
+        "new_blob": "82fb8293d674ad816a126e60993ed1d26799f1da",
+        "review_status": "UNREVIEWED_INDEPENDENT_FMEA",
+        "closed_risks": 0
+      },
+      {
+        "source": "diagnostics/kyoto_weekend_postflight.py",
+        "old_blob": "eb45accfb77e5df6ede87ca4e71d50d355779a05",
+        "new_blob": "390d205ed60dc9b0ded7590598d2db11042f1e3b",
+        "review_status": "UNREVIEWED_INDEPENDENT_FMEA",
+        "closed_risks": 0
+      }
+    ],
+    "reason": "Unseen literal navigation recovery: bounded candidate search, independent lexical/structural agreement, immutable raw evidence and recomputation. No certification of unresolved risks."
   }
 }
