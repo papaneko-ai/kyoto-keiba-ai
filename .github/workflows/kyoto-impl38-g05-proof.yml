@@ -1,0 +1,83 @@
+name: Impl38 real saved G05 repaired field proof
+on:
+  push:
+    branches: ['repair/impl38-g05-actual-proof-20261128']
+    paths: ['.github/workflows/kyoto-impl38-g05-proof.yml']
+permissions:
+  contents: read
+  actions: read
+jobs:
+  replay:
+    if: github.repository == 'papaneko-ai/kyoto-keiba-ai' && github.ref == 'refs/heads/repair/impl38-g05-actual-proof-20261128'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      KYOTO_TARGET_DAY: '20261128'
+      KYOTO_WEEKEND_HTTP_APPROVED: 'NO'
+      KYOTO_AUX_HTTP_APPROVED: 'NO'
+      KYOTO_POSTRACE_HTTP_APPROVED: 'NO'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: '58a75eab856c4eb81f28bb48c8750d3caa382d54'
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11.18'
+      - run: python -m pip install --no-deps beautifulsoup4==4.15.0 soupsieve==4.1.3 typing-extensions==4.16.0 cryptography==46.0.7 cffi==2.1.1 pycparser==3.12
+      - name: Reopen only previously authenticated exact artifact
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/aux" field-proof
+          test "$(git rev-parse HEAD)" = '58a75eab856c4eb81f28bb48c8750d3caa382d54'
+          gh api 'repos/papaneko-ai/kyoto-keiba-ai/actions/runs/46112551733/artifacts?per_page=100' > "$RUNNER_TEMP/aux-index.json"
+          python - <<'PY'
+          import os,json
+          from pathlib import Path
+          d=json.loads((Path(os.environ["RUNNER_TEMP"])/"aux-index.json").read_text())
+          assert d["total_count"]==len(d["artifacts"])
+          a=[x for x in d["artifacts"] if x["id"]==15250785307 and x["name"]=="kyoto-auxiliary-46112551733-20261128" and not x["expired"]]
+          assert len(a)==1 and a[0]["digest"]=="sha256:444a678b0c8a98f475b369bd3acd858b3be96e1adf64527bc8ca5f4adf780b2c"
+          PY
+          gh run download 46112551733 --repo papaneko-ai/kyoto-keiba-ai --name kyoto-auxiliary-46112551733-20261128 --dir "$RUNNER_TEMP/aux"
+      - name: Require repaired actual mass and going without inventing unpublished cells
+        env:
+          ARCHIVE_KEY: ${{ secrets.KYOTO_JRA_ARCHIVE_AES256_HEX }}
+        run: |
+          python - <<'PY'
+          import os,json,tempfile
+          from pathlib import Path
+          from unittest.mock import patch
+          from diagnostics.kyoto_nov15_encrypted_evidence import decrypt_evidence
+          from diagnostics.kyoto_g05_conditions import compile_saved
+          from diagnostics.kyoto_impl30_day_coverage import extract_slot,combine
+          def denied(*a,**kw):raise AssertionError("network forbidden")
+          with tempfile.TemporaryDirectory() as td,patch("socket.socket.connect",side_effect=denied),patch("socket.create_connection",side_effect=denied):
+              raw=Path(td)/"raw";day="20261128"
+              decrypt_evidence(Path(os.environ["RUNNER_TEMP"])/"aux",raw,key_hex=os.environ["ARCHIVE_KEY"],repo="papaneko-ai/kyoto-keiba-ai",run_id="46112551733")
+              p=raw/"g05_receipt.json"
+              if p.is_file():p.unlink()
+              g=compile_saved(raw,day=day,allow_partial=True)
+              output={"source_http_requests":0,"source_revision":"58a75eab856c4eb81f28bb48c8750d3caa382d54","selected_races":g["selected_races"],"observed_field_values":g["observed_field_values"],"races":{}}
+              for n,row in g["races"].items():
+                  output["races"][n]={"registered_horses":len(row["horses"]),"body_weight":sum(h["body_weight_kg"]["value"] is not None for h in row["horses"].values()),"body_weight_change":sum(h["body_weight_change_kg"]["value"] is not None for h in row["horses"].values()),"track_fields":sorted(k for k,v in row["track"].items() if v["value"] is not None)}
+              aggregate=combine(day,[extract_slot(raw,day,46112551733)])
+              output["coverage_totals"]=aggregate["totals"]
+              Path("field-proof/report.json").write_text(json.dumps(output,sort_keys=True,indent=2)+"\n")
+              print(json.dumps(output,sort_keys=True))
+              assert output["selected_races"]==[10,11] and output["observed_field_values"]==34
+              assert output["races"]["10"]["body_weight"]==output["races"]["10"]["body_weight_change"]==15
+              assert output["races"]["11"]["body_weight"]==output["races"]["11"]["body_weight_change"]==0
+              assert all(r["track_fields"]==["turf_going","weather"] for r in output["races"].values())
+              assert aggregate["totals"]["body_weight_kg"]==aggregate["totals"]["body_weight_change_kg"]==15
+              assert aggregate["totals"]["turf_going"]==2
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: impl38-g05-actual-field-proof
+          path: field-proof/
+          retention-days: 90
+          if-no-files-found: error
