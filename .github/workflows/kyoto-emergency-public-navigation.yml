@@ -1,4 +1,4 @@
-name: Kyoto emergency public navigation diagnostic
+name: Kyoto emergency exact collector navigation smoke
 on:
   push:
     branches: ['fix/impl30-nov29-source-diagnostics-20261128']
@@ -12,102 +12,46 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
+          ref: '0b64019a0ca47bf1c389119e3169c06a4a033fef'
           persist-credentials: false
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11.18'
       - run: python -m pip install --no-deps beautifulsoup4==4.15.0 soupsieve==4.1.3 typing-extensions==4.16.0
-      - name: Inspect bounded public navigation only
+      - name: Verify actual candidate public navigation and R12 roster only
         env:
           PYTHONPATH: .
+          KYOTO_TARGET_DAY: '20261129'
         run: |
           python - <<'PY'
-          import json,re,time
-          from urllib.request import Request,build_opener,HTTPRedirectHandler,HTTPCookieProcessor
-          from urllib.error import HTTPError
-          from urllib.parse import urlsplit,parse_qs
-          from http.cookiejar import CookieJar
-          from bs4 import BeautifulSoup
-          class Boundary(HTTPRedirectHandler):
-              def redirect_request(self,request,fp,code,msg,headers,newurl):
-                  u=urlsplit(newurl)
-                  print("REDIRECT_NOT_FOLLOWED",json.dumps({"code":code,"scheme":u.scheme,"host":u.hostname,"path":u.path,"query_keys":sorted(parse_qs(u.query))},ensure_ascii=False))
-                  return None
-          client=build_opener(Boundary(),HTTPCookieProcessor(CookieJar()))
-          from urllib.parse import urljoin,urlencode
-          for label,url,prefix in [("PC","https://www.jra.go.jp/","pw"),("SP","https://sp.jra.jp/","sw")]:
-              time.sleep(2)
+          import json,tempfile
+          from pathlib import Path
+          from datetime import datetime,timezone
+          from diagnostics.kyoto_nov15_two_original_observer import observe,accept_observation
+          from diagnostics.kyoto_g03_all_races import links,parse
+          from diagnostics.kyoto_weekend_sp_discovery import discover
+          from diagnostics.kyoto_nov29_public_forms import PC_ENTRY
+          day="20261129"
+          with tempfile.TemporaryDirectory() as tmp:
+              root=Path(tmp)
+              pc=observe(root/"pc",now_utc=datetime.now(timezone.utc).isoformat(),allowed=True,public_form_navigation=True,include_observed_racecard=True)
+              print("PC_NAVIGATION",json.dumps({k:pc.get(k) for k in ("state","error_class","error_code","http_requests_started","racecard_original_fetched","observed_racecard_url")},ensure_ascii=False))
+              if not pc.get("racecard_original_fetched"):raise SystemExit("PC_NAVIGATION_FAILED")
+              proof=accept_observation(root/"pc")
+              print("PC_PROVENANCE",proof["state"])
+              observed=links((root/"pc/official_meeting.html").read_bytes(),PC_ENTRY,day)
+              print("PC_UNIQUE_LINK_COUNT",len(observed))
+              assert set(observed)==set(range(1,13))
               try:
-                  with client.open(Request(url,headers={"User-Agent":"KyotoRaceAI-Private-ReadOnly/0.1","Accept":"text/html"}),timeout=12) as response:
-                      raw=response.read(1500001)
-                      if response.status!=200 or response.geturl()!=url or len(raw)>1500000: continue
-                  try: text=raw.decode("utf-8")
-                  except UnicodeDecodeError: text=raw.decode("cp932",errors="replace")
-                  soup=BeautifulSoup(text,"html.parser")
-                  forms=[f for f in soup.select("form#commForm01") if str(f.get("method","")).lower()=="post" and f.select_one('input[name="cname"]')]
-                  entries=set()
-                  for a in soup.select("a[onclick]"):
-                      action=a["onclick"]
-                      m=re.fullmatch(r"\s*(?:return\s+)?doAction\(\s*['\"](/JRADB/accessD\.html)['\"]\s*,\s*['\"]("+prefix+r"01dli00/[A-Za-z0-9]{2})['\"]\s*\)\s*;?\s*(?:return\s+false\s*;?)?\s*",action)
-                      if m and a.get_text(" ",strip=True)=="出馬表":entries.add((m.group(1),m.group(2)))
-                  print(label,"FORMS",len(forms),"ENTRIES",len(entries),"BASE",str(soup.find("base"))[:250])
-                  if len(forms)!=1 or len(entries)!=1:continue
-                  path,token=next(iter(entries))
-                  endpoint=urljoin(url,path)
-                  time.sleep(2)
-                  request=Request(endpoint,data=urlencode({"cname":token}).encode("ascii"),method="POST",headers={"User-Agent":"KyotoRaceAI-Private-ReadOnly/0.1","Accept":"text/html","Referer":url,"Content-Type":"application/x-www-form-urlencoded"})
-                  with client.open(request,timeout=12) as response:
-                      raw=response.read(1500001)
-                      print(label,"ENTRY_RESPONSE",response.status,response.geturl(),len(raw),response.headers.get("Content-Type"))
-                      if response.status!=200 or response.geturl()!=endpoint or len(raw)>1500000:continue
-                  try: text=raw.decode("utf-8")
-                  except UnicodeDecodeError: text=raw.decode("cp932",errors="replace")
-                  soup=BeautifulSoup(text,"html.parser")
-                  print(label,"TITLE",soup.title.get_text(" ",strip=True) if soup.title else "")
-                  print(label,"ANCHOR_COUNTS",len(soup.select("a[href]")),len(soup.select("a[onclick]")))
-                  for a in soup.select("a"):
-                      title=a.get_text(" ",strip=True)
-                      href=a.get("href","")
-                      action=a.get("onclick","")
-                      if ("京都" in title or "20261129" in href or "20261129" in action) and len(title)<100:
-                          print(label,"MEETING",json.dumps({"title":title,"href":href[:300],"onclick":action[:300]},ensure_ascii=False))
-                  meetings=set()
-                  for a in soup.select("a[onclick]"):
-                      m=re.fullmatch(r"\s*(?:return\s+)?doAction\(\s*['\"](/JRADB/accessD\.html)['\"]\s*,\s*['\"]("+prefix+r"01drl0008[0-9]{8}20261129/[A-Za-z0-9]+)['\"]\s*\)\s*;?\s*(?:return\s+false\s*;?)?\s*",a["onclick"])
-                      if m and "京都" in a.get_text(" ",strip=True):meetings.add((m.group(1),m.group(2)))
-                  if len(meetings)!=1 or soup.find("base") is not None:continue
-                  path,token=next(iter(meetings))
-                  time.sleep(2)
-                  request=Request(urljoin(endpoint,path),data=urlencode({"cname":token}).encode("ascii"),method="POST",headers={"User-Agent":"KyotoRaceAI-Private-ReadOnly/0.1","Accept":"text/html","Referer":endpoint,"Content-Type":"application/x-www-form-urlencoded"})
-                  with client.open(request,timeout=12) as response:
-                      raw=response.read(1500001)
-                      print(label,"MEETING_RESPONSE",response.status,response.geturl(),len(raw))
-                      if response.status!=200 or response.geturl()!=endpoint or len(raw)>1500000:continue
-                  try: text=raw.decode("utf-8")
-                  except UnicodeDecodeError: text=raw.decode("cp932",errors="replace")
-                  soup=BeautifulSoup(text,"html.parser")
-                  print(label,"MEETING_TITLE",soup.title.get_text(" ",strip=True) if soup.title else "")
-                  races={}
-                  for a in soup.select("a[href]"):
-                      href=a.get("href","")
-                      target=urljoin(endpoint,href)
-                      u=urlsplit(target)
-                      if u.scheme!="https" or u.hostname not in (urlsplit(endpoint).hostname,"app.jra.jp" if label=="SP" else "jra.jp") or u.path!="/JRADB/accessD.html":continue
-                      q=parse_qs(u.query)
-                      if set(q)!={"CNAME"} or len(q["CNAME"])!=1:continue
-                      m=re.fullmatch(prefix+r"01dde(?:01|10)08[0-9]{8}(0[1-9]|1[0-2])20261129/[A-Za-z0-9]+",q["CNAME"][0])
-                      if m:
-                          races.setdefault(m.group(1),set()).add(target)
-                          print(label,"RACE_ANCHOR",json.dumps({"race":m.group(1),"title":a.get_text(" ",strip=True)[:100],"url":target},ensure_ascii=False))
-                  print(label,"RACE_COUNTS",json.dumps({n:len(v) for n,v in races.items()},sort_keys=True))
-                  if len(races.get("12",[]))==1:
-                      target=next(iter(races["12"]))
-                      time.sleep(2)
-                      with client.open(Request(target,headers={"User-Agent":"KyotoRaceAI-Private-ReadOnly/0.1","Accept":"text/html","Referer":endpoint}),timeout=12) as response:
-                          raw=response.read(1500001)
-                          print(label,"RACE12_RESPONSE",response.status,response.geturl(),len(raw))
-              except HTTPError as exc:
-                  print(label,"HTTP",exc.code)
+                  data=parse((root/"pc/official_racecard.html").read_bytes(),day,12,pc["observed_racecard_url"],pc["racecard_captured_at_utc"])
+                  print("PC_R12_ROSTER_COUNT",data["runner_count"])
+                  print("PC_R12_START_TIME",data["start_time_jst"])
               except Exception as exc:
-                  print(label,"ERROR",type(exc).__name__)
+                  print("PC_R12_PARSE_ERROR",type(exc).__name__,str(exc)[:160])
+                  raise
+              sp=discover(root/"sp",day=day)
+              counts={n:v["candidate_count"] for n,v in sp["per_race_observed_navigation_candidates"].items()}
+              print("SP_NAVIGATION",json.dumps({"state":sp["state"],"counts":counts,"network_requests":sp["network_requests_started"]}))
+              assert set(counts)==set(map(str,range(1,13))) and all(v==1 for v in counts.values())
+              print("EXACT_CANDIDATE_NAVIGATION_OK")
           PY
