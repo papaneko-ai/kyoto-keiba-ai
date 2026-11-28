@@ -82,6 +82,16 @@ jobs:
                                   if u.scheme=="https" and u.hostname in ("sp.jra.jp","app.jra.jp","www.jra.go.jp","jra.jp") and not u.username and not u.password:
                                       nav.append({"host":u.hostname,"path":u.path,"query_present":bool(u.query),"category":next(k for k in ("出馬表","レース情報","競馬メニュー","開催","オッズ") if k in label)})
                               out["sp_navigation"]=nav[:30]
+                              out["sp_navigation_markup"]=[]
+                              for tag in soup.select("a"):
+                                  label=tag.get_text(" ",strip=True)
+                                  if "出馬表" not in label and "オッズ" not in label: continue
+                                  attrs={}
+                                  for k in ("href","onclick","data-url","data-href","class","id"):
+                                      v=tag.get(k)
+                                      if isinstance(v,str) and len(v)<200 and re.fullmatch(r"[A-Za-z0-9_./#?&=%'():; ,+-]+",v): attrs[k]=v
+                                  out["sp_navigation_markup"].append(attrs)
+                              out["sp_navigation_markup"]=out["sp_navigation_markup"][:12]
                               try:
                                   anchors=official_sp_anchors(b,"https://sp.jra.jp/",day)
                                   out["sp_anchor_count"]=len(anchors)
