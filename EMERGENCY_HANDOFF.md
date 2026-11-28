@@ -1,5 +1,5 @@
 # 京都競馬AI｜緊急改修・再開正本
-更新日: 2026-11-28 JST / checkpoint E37-158-02
+更新日: 2026-11-28 JST / checkpoint E37-158-03
 状態: 本番反映済み、最終総合検査は未合格。P0-1の隔離検証・修正着手。
 対象: papaneko-ai/kyoto-keiba-ai。本書はスマホからの緊急開発・チャット移行用。実装36までの完全移行パックを破棄・置換するものではない。
 
@@ -87,3 +87,8 @@
 - main 1fed7e79796d91de76d2c5f85486f6625d69ef3f の不変を再確認。
 - P0-1の基準collector ba7d5bb4c05698dfb92119460b45e730b5eb512b。隔離作業ブランチ repair/impl37-cross-day-original-replay-20261128 を作成予定。既存の実artifact 15250785307を再利用し、旧版と修正版のG03/G06 adapter/日次集計の差を数値・安全な理由コードのみで比較する。既存のAES鍵はGitHub内の認証済み読取処理でのみ利用し、外部に出さない。JRA通信・本番変更なし。成功済みの検査の無条件反復なし。
 - 状態: 着手前記録。候補の試験・承認・本番反映は未実施。
+
+## 9. 作業中チェックポイント E37-158-03
+- P0-1隔離候補 PR #159、HEAD c3b15355ba5a184e22cd87c34bc645538ce33200、基準 ba7d5bb4c05698dfb92119460b45e730b5eb512b、base repair/impl37-cross-day-original-replay-base-20261128。公式ホスト許容条件の4か所をG03の既存土日条件に整合。11/28・29の12R結合、プロフィール、両市場、誤ホスト/日付/経路/発走後の反例を追加。FMEAの対象3 blobを再開、リスク閉鎖なし。旧ホスト/他日/既存時点基準は維持。書込接続断1回後、旧HEAD確認し修正書込みを完了。
+- 現時点CI: [{"id":46115187062,"name":"Nov22 keep saved official R1 and preserve AES/12R source checks","status":"in_progress","conclusion":null},{"id":46115187068,"name":"Kyoto Impl30 Nov28-29 offline release preflight","status":"in_progress","conclusion":null},{"id":46115187113,"name":"Nov22 independently observed SP anchor repair and AES guard","status":"in_progress","conclusion":null},{"id":46115187050,"name":"Nov22 actual official JRA mobile app host and full SP provenance","status":"in_progress","conclusion":null}]。実artifact 15250785307のAES認証・平文再解析は未実施。次は exact HEAD の既存offline preflight結果を読み、失敗原因を修正。実原本で直接原因を確認できる証拠を確保。承認済みmainへの反映は未実施。P0-2/3未完。
+- main 1fed7e79796d91de76d2c5f85486f6625d69ef3f。本番取得・予約・Secrets/Turso・外部タイマーに変更なし。追加JRA通信なし。
