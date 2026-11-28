@@ -1222,8 +1222,8 @@
   },
   "notes": "Reverse FMEA explicitly finds risk modes not enumerated by the original 30 cases. Counting passing tests is not an independent proof of completeness.",
   "source_git_blob_sha1": {
-    "diagnostics/kyoto_weekend_capture.py": "81576727a84ed4f84f900b389892ef9dac023ee3",
-    "diagnostics/kyoto_weekend_sp_discovery.py": "caf81848545fd48796527064d3d359db0683798a",
+    "diagnostics/kyoto_weekend_capture.py": "2f6306fd99221b78fe1d88724e6c769c126a1b9e",
+    "diagnostics/kyoto_weekend_sp_discovery.py": "4d2d99b25368fb23c41ef1b85cdf3a461c383df5",
     "diagnostics/kyoto_weekend_postflight.py": "b1b52eee94c486058d8cbb009e3c89fd6257a584",
     "diagnostics/kyoto_weekend_day21_triage.py": "a6639d5cab211d37d1eddefaa9bfc5b23901368d",
     "diagnostics/kyoto_nov15_two_original_observer.py": "0858ed767e61f9669301b4ed46c039e5cdb621a1",
@@ -1611,5 +1611,25 @@
       }
     ],
     "reason": "GAP-16: absent local originals cannot establish zero requests; new weekend receipt and downstream triage preserve UNKNOWN. Historical frozen replay unaffected."
+  },
+  "impl37_emergency_source_reopen": {
+    "prior_ledger_blob": "a78b565dd1c2ac2d633b3a7a406acbf804463292",
+    "sources": [
+      {
+        "source": "diagnostics/kyoto_weekend_capture.py",
+        "old_blob": "81576727a84ed4f84f900b389892ef9dac023ee3",
+        "new_blob": "2f6306fd99221b78fe1d88724e6c769c126a1b9e",
+        "review_status": "UNREVIEWED_INDEPENDENT_FMEA",
+        "closed_risks": 0
+      },
+      {
+        "source": "diagnostics/kyoto_weekend_sp_discovery.py",
+        "old_blob": "caf81848545fd48796527064d3d359db0683798a",
+        "new_blob": "4d2d99b25368fb23c41ef1b85cdf3a461c383df5",
+        "review_status": "UNREVIEWED_INDEPENDENT_FMEA",
+        "closed_risks": 0
+      }
+    ],
+    "reason": "Authenticated Nov28 source diagnostics: actual SP homepage uses a POST navigation action not an href. Preserve exact original and failure code. No live acquisition or FMEA closure certified."
   }
 }
