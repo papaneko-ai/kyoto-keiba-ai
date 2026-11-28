@@ -114,3 +114,7 @@
 ## 13. E38-161-04 本番候補と追加同根障害（2026-11-28）
 - #161 main候補 HEAD 40421a1709d15cfbfe6b229f0e0d02cca222f2ec (base 1fed7e79796d91de76d2c5f85486f6625d69ef3f), 11ファイルのpin/receipt/register/契約差分。8/8 CI成功: 46116104367,46116104426,46116104404,46116104456,46116104398,46116104437,46116104417,46116104376。未承認・未merge。
 - ユーザーの14:56監視指摘を受け、既存調教版5855874f3f6dc9711d9b6f0444786ea2be0e05e7 の official() が同じadapterを使用し、ObservedRaceSpecのwww.jra.go.jp許可が11/29限定、market source chainにも同根の条件が残ることを直接確認。実調教artifact 15250370911 (run46112621733, digest e1d93ff1c0be9dda7b389359a628ba2f6941af49ae357f4be1e33262d07c85dd)、既存午後artifact 15250785307を再利用。調教は再開発せず既存2条件の差分と土日・実原本結合の回帰を隔離修正。予定branch repair/impl38-workout-same-root-20261128。馬体重・馬場の0件はG05 layout/実原本に別原因の可能性、G05 DOMを安全な件数/列情報だけ確認。native起動なし・外部直接証明未確認は別障害。固定枠・Cushion/Turso/Secrets変更なし。固定25リスク正式0/25。
+
+## 14. E38-161-05 調教同根修正・既存原本比較の起動
+- 既存調教pin 5855874f3f6dc9711d9b6f0444786ea2be0e05e7 から2箇所の同根公式host条件だけ修正し、土日・誤host/誤日・改ざん回帰を追加。隔離候補 bd800bc30db60919e274eadac419016c963e77de (repair/impl38-workout-same-root-20261128)。検証専用branch repair/impl38-workout-replay-20261128 HEAD 16f347d3a35c7833ab67e8f74f960432c02fbc45、run46116229567/job140890572809 起動。既存調教19原本と午後10/11RをAES認証し、保存済み原本だけで旧/新調教結合を比較。G05実原本の列構造・重量書式・観測値件数を値や馬名を出さず診断。追加JRA通信なし。CI/実再解析は実行中、まだ合格としない。
+- #161は8/8 CI合格・mergeable=true。未承認。本番main 1fed7e79796d91de76d2c5f85486f6625d69ef3f 不変。#161の調教pinは未変更のため、追加修正の検証後に本番候補へ統合するか別exact PRを作成する。15:30枠を手動起動しない。native予約の未観測は別問題。
