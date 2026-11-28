@@ -9,15 +9,19 @@ import hashlib,json,re
 from datetime import datetime,timezone,date
 from pathlib import Path
 from urllib.parse import urlsplit
+from urllib.error import HTTPError
 from bs4 import BeautifulSoup
 from diagnostics.kyoto_g04_all_horse_profiles import _utc
 
-KYOTO_TRACK_PAGE="https://jra.jp/keiba/baba/index2.html"
+# Public JRA Kyoto page indexed at this exact canonical origin, 2026-11-28.
+# Preserve the old exact URL for authenticated historical replay only.
+KYOTO_TRACK_PAGE="https://www.jra.go.jp/keiba/baba/index2.html"
+LEGACY_KYOTO_TRACK_PAGE="https://jra.jp/keiba/baba/index2.html"
 MAX_HTML=1_500_000
 class G05TrackRejected(ValueError):pass
 
 def parse_kyoto_track(raw,day,source_url,captured_at_utc):
-    if source_url!=KYOTO_TRACK_PAGE:
+    if source_url not in (KYOTO_TRACK_PAGE,LEGACY_KYOTO_TRACK_PAGE):
         raise G05TrackRejected("nonofficial_or_wrong_venue_track_source")
     if type(raw) is not bytes or not 0<len(raw)<=MAX_HTML:
         raise G05TrackRejected("invalid_official_track_original")
@@ -38,7 +42,7 @@ def parse_kyoto_track(raw,day,source_url,captured_at_utc):
     date_marker=f"{int(day[:4])}年{int(day[4:6])}月{int(day[6:])}日"
     headings=[h.get_text(" ",strip=True) for h in soup.select("h1,h2,h3")]
     meeting=[s for s in headings if "京都競馬" in s and date_marker in s]
-    fresh=len(meeting)==1
+    fresh=len(meeting)==1 and "前日" not in meeting[0]
     out={"schema":"kyoto_g05_kyoto_track.v1","day":day,
          "source_url":source_url,"captured_at_utc":stamp.isoformat(),
          "source_sha256":hashlib.sha256(raw).hexdigest(),"bytes":len(raw),
@@ -95,12 +99,32 @@ def capture_kyoto_track(root,day,fetch,clock,*,allowed=False):
     if (root/"g05_official_kyoto_track.html").exists() or (root/"g05_track_receipt.json").exists():
         raise G05TrackRejected("track_capture_already_exists")
     before=_utc(clock())
-    raw=fetch(KYOTO_TRACK_PAGE)
-    stamp=_utc(clock())
-    if type(raw) is not bytes or not 0<len(raw)<=MAX_HTML:
-        raise G05TrackRejected("invalid_http_original")
-    (root/"g05_official_kyoto_track.html").write_bytes(raw)
-    report=parse_kyoto_track(raw,day,KYOTO_TRACK_PAGE,stamp.isoformat())
+    phase="FETCH"
+    try:
+        raw=fetch(KYOTO_TRACK_PAGE)
+        phase="VALIDATE_ORIGINAL"
+        stamp=_utc(clock())
+        if type(raw) is not bytes or not 0<len(raw)<=MAX_HTML:
+            raise G05TrackRejected("invalid_http_original")
+        (root/"g05_official_kyoto_track.html").write_bytes(raw)
+        phase="PARSE"
+        report=parse_kyoto_track(raw,day,KYOTO_TRACK_PAGE,stamp.isoformat())
+    except Exception as exc:
+        # Preserve a safe, authenticated failure receipt; never credit a failed
+        # response as data, follow a redirect, or spend another HTTP request.
+        failed={"schema":"kyoto_g05_track_failure.v1","day":day,
+                "source_url":KYOTO_TRACK_PAGE,"requested_at_utc":before.isoformat(),
+                "state":"TRACK_"+phase+"_FAILED","error_class":type(exc).__name__,
+                "prediction_ready":False}
+        if isinstance(exc,HTTPError) and type(exc.code) is int and 100<=exc.code<=599:
+            failed["http_status"]=exc.code
+            failed["error_code"]="HTTP_STATUS_"+str(exc.code)
+        if phase=="PARSE":
+            failed.update(source_sha256=hashlib.sha256(raw).hexdigest(),bytes=len(raw),
+                          captured_at_utc=stamp.isoformat())
+        (root/"g05_track_receipt.json").write_text(
+            json.dumps(failed,ensure_ascii=False,sort_keys=True,indent=2)+"\n",encoding="utf8")
+        raise
     report["requested_at_utc"]=before.isoformat()
     (root/"g05_track_receipt.json").write_text(
         json.dumps(report,ensure_ascii=False,sort_keys=True,indent=2)+"\n",encoding="utf8")
