@@ -25,15 +25,16 @@ def visible(raw):
     if type(raw) is not bytes or not 0<len(raw)<=LIMIT:raise PostraceRejected('invalid_source_bytes')
     return BeautifulSoup(raw.decode('cp932',errors='strict'),'html.parser')
 
-def observed_actions(raw,path):
+def observed_actions(raw,path,*,origin=HOST):
+    if origin not in (HOST,'https://www.jra.go.jp'):raise PostraceRejected('unapproved_source_origin')
     found=set()
     for a in visible(raw).select('a'):
         label=a.get_text(' ',strip=True)
         act=ACTION.fullmatch(a.get('onclick','').strip())
-        if act and act.group(1)==path:found.add((label,act.group(2),'POST',HOST+path))
+        if act and act.group(1)==path:found.add((label,act.group(2),'POST',origin+path))
         href=a.get('href','')
-        u=urlsplit(urljoin(HOST,href));q=parse_qs(u.query)
-        if u.scheme=='https' and u.netloc in ('jra.jp','www.jra.go.jp') and u.path==path and not u.fragment and set(q)=={'CNAME'} and len(q['CNAME'])==1 and re.fullmatch(r'pw[0-9A-Za-z]+/[0-9A-Za-z]+',q['CNAME'][0]):
+        u=urlsplit(urljoin(origin,href));q=parse_qs(u.query)
+        if u.scheme=='https' and u.netloc==urlsplit(origin).netloc and u.path==path and not u.fragment and set(q)=={'CNAME'} and len(q['CNAME'])==1 and re.fullmatch(r'pw[0-9A-Za-z]+/[0-9A-Za-z]+',q['CNAME'][0]):
             found.add((label,q['CNAME'][0],'GET',u.geturl()))
     return sorted(found)
 
@@ -64,7 +65,7 @@ def parse_result(raw,*,day,race,url,registered):
         return {**result,'quinella':q,'bracket_quinella':b,'reason':'REFUND_CORRECTION_OR_EXCEPTION_REVIEW'}
     return {**result,'state':'RESULT_AND_PAYOUT_PARSED_FINAL_NOT_CERTIFIED','quinella':q,'bracket_quinella':b}
 
-def collect_day(root,*,day,seed_raw,seed_sha256,registered,fetch,clock,not_before_utc,verified_starts=None):
+def collect_day(root,*,day,seed_raw,seed_sha256,registered,fetch,clock,not_before_utc,verified_starts=None,seed_origin=HOST):
     """All 12 slots retained; observed raw pages saved before any parsing.
 
     fetch(method,url,token) returns {raw, captured_at_utc, requested_url, method,
@@ -72,13 +73,14 @@ def collect_day(root,*,day,seed_raw,seed_sha256,registered,fetch,clock,not_befor
     No fabricated URL, no settlement, no authentication claim from hash alone.
     """
     if day not in ('20261128','20261129') or set(registered)!=set(range(1,13)):raise PostraceRejected('day_or_roster_contract')
+    if seed_origin not in (HOST,'https://www.jra.go.jp'):raise PostraceRejected('unapproved_seed_origin')
     if sha256(seed_raw).hexdigest()!=seed_sha256:raise PostraceRejected('seed_hash_mismatch')
     now=utc(clock());cutoff=utc(not_before_utc)
     # This entry point is for a separate evening observation, not live pre-race.
     if now<cutoff or now.strftime('%Y%m%d')!=day or cutoff.strftime('%Y%m%d')!=day or cutoff.hour<10:raise PostraceRejected('postrace_window_not_proven')
     root=Path(root)
     if root.exists() or root.is_symlink() or not root.parent.is_dir():raise PostraceRejected('fresh_root_required')
-    root.mkdir();report={'schema':'kyoto_impl30_postrace_day.v1','day':day,'seed_sha256':seed_sha256,'requests':[],'races':{},'source_only':True,'settlement_authorized':False}
+    root.mkdir();report={'schema':'kyoto_impl30_postrace_day.v1','day':day,'seed_sha256':seed_sha256,'seed_origin':seed_origin,'requests':[],'races':{},'source_only':True,'settlement_authorized':False}
     def save(name,action):
         label,token,method,url=action
         response=fetch(method,url,token)
@@ -93,12 +95,12 @@ def collect_day(root,*,day,seed_raw,seed_sha256,registered,fetch,clock,not_befor
     try:
         for market,(path,label) in MENU.items():
             try:
-                raw,_=save(market+'_menu.html',one([a for a in observed_actions(seed_raw,path) if a[0]==label]))
+                raw,menu_url=save(market+'_menu.html',one([a for a in observed_actions(seed_raw,path,origin=seed_origin) if a[0]==label]))
                 family='srl' if market=='results' else 'hde'
-                candidates=[a for a in observed_actions(raw,path) if re.fullmatch(r'\d+回京都\d+日',a[0]) and re.fullmatch(r'pw01'+family+r'[01]008'+day[:4]+r'\d{4}'+day+r'/[A-Za-z0-9]+',a[1])]
-                meeting,_=save(market+'_meeting.html',one(candidates))
+                candidates=[a for a in observed_actions(raw,path,origin='https://'+urlsplit(menu_url).netloc) if re.fullmatch(r'\d+回京都\d+日',a[0]) and re.fullmatch(r'pw01'+family+r'[01]008'+day[:4]+r'\d{4}'+day+r'/[A-Za-z0-9]+',a[1])]
+                meeting,meeting_url=save(market+'_meeting.html',one(candidates))
                 report[market+'_meeting_state']='ORIGINAL_OBSERVED_NOT_FINAL_PROOF'
-                if market=='results':result_meeting=meeting
+                if market=='results':result_meeting=meeting;result_meeting_origin='https://'+urlsplit(meeting_url).netloc
                 else:
                     payout_meeting=meeting
                     payout_stamp=report['requests'][-1]['captured_at_utc']
@@ -107,7 +109,7 @@ def collect_day(root,*,day,seed_raw,seed_sha256,registered,fetch,clock,not_befor
             row={'state':'RESULT_NOT_OBSERVED'}
             try:
                 if result_meeting is None:raise PostraceRejected('result_meeting_not_available')
-                candidates=[a for a in observed_actions(result_meeting,MENU['results'][0]) if re.fullmatch(r'pw01sde[01]008'+day[:4]+r'\d{4}'+f'{race:02d}'+day+r'/[A-Za-z0-9]+',a[1])]
+                candidates=[a for a in observed_actions(result_meeting,MENU['results'][0],origin=result_meeting_origin) if re.fullmatch(r'pw01sde[01]008'+day[:4]+r'\d{4}'+f'{race:02d}'+day+r'/[A-Za-z0-9]+',a[1])]
                 raw,url=save(f'r{race:02d}_result.html',one(candidates))
                 if registered[race] is None:raise PostraceRejected('independent_registered_roster_missing')
                 row=parse_result(raw,day=day,race=race,url=url,registered=registered[race])
