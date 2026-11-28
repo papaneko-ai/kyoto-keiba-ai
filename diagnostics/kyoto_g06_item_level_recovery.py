@@ -63,7 +63,7 @@ def recover_saved_markets(folder, *, race_spec,active_runners,verified_start_utc
             menu=_read_verified(directory,menu_file,steps[menu_step])
             if not _html_race_identity(menu,race_spec.race_day,race_spec.venue,race_spec.race_number):
                 raise ValueError("menu_identity_mismatch")
-            host="sp.jra.jp" if channel=="SP" else "jra.jp"
+            host="sp.jra.jp" if channel=="SP" else ("www.jra.go.jp" if race_spec.race_day=="20261129" and race_spec.pc_racecard_url.startswith("https://www.jra.go.jp/") else "jra.jp")
             links=find_market_links(menu,expected_race_day=race_spec.race_day,
                 expected_race_number=race_spec.race_number,expected_host=host)
             if links["source_final_odds_detected"]:
