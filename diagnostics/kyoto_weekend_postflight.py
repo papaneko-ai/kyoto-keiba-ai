@@ -54,6 +54,7 @@ def check_originals(root, *, day, channel):
             report["state"]="PC_OBSERVER_ORIGINALS_AND_RECEIPT_INTEGRITY_VERIFIED_ONLY"
             report["source_verified"]=True
             for basename,key in (
+                ("official_pc_navigation_home.html","navigation_home"),
                 ("official_selection.html","selection"),
                 ("official_meeting.html","meeting"),
                 ("official_racecard.html","racecard"),
