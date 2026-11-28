@@ -24,20 +24,20 @@ def choose(day,baseline,override,verified):
         return baseline,"PREFLIGHT_UNAVAILABLE_BASELINE_RETAINED"
     return baseline,"OVERRIDE_NOT_VERIFIED_BASELINE_RETAINED"
 
-# Independently read from completed preflight job 140876345770 and artifact
-# 15250255075; exact checkout and artifact head_sha matched. PR #150 deployed
-# this immutable collector. This is a second, reviewed evidence path, not a
-# wildcard bypass or a new release certification.
+# Exact isolated PR #155 preflight job 140881758434, completed successfully;
+# artifact 15250937142 is bound to the same immutable head. Only when this
+# reviewed configuration is deployed does the second evidence path apply.
+# Previous deployed evidence is preserved in PR #153 and issue #141.
 DEPLOYED_RECEIPT={
     "repo":"papaneko-ai/kyoto-keiba-ai",
     "day":"20261129",
     "baseline":"3f4b3d77357745ead05a9f78db34eb6ac2d78637",
-    "override":"b66249fbef412f76befba022f406ff422fbd3ffd",
-    "preflight_run":46111670555,
-    "preflight_job":140876345770,
-    "artifact_id":15250255075,
-    "artifact_sha256":"043f903e7cf78adffbe3ad5eb1e52ea72d1a1569e91f34ad66d9b12478646b77",
-    "deployment_pr":150,
+    "override":"39b9d79c39b986b1b01775957e6a6f93adc29dbc",
+    "preflight_run":46113409157,
+    "preflight_job":140881758434,
+    "artifact_id":15250937142,
+    "artifact_sha256":"41ffb85a5afae64d1d2bff1244ea6957c13ca96f2d7cc6664444d7c7fbf96abd",
+    "validation_pr":155,
 }
 
 def choose_deployed(day,baseline,override,verified,*,repo):
