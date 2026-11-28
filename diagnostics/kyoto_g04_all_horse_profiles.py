@@ -113,7 +113,7 @@ def capture(*,root,day,fetch,clock,allowed=False,allow_partial=False,
             if key in seen:raise G04Rejected("duplicate_runner")
             seen.add(key)
             try:
-                url=trusted_url(horse["profile_navigation"],parent_host="www.jra.go.jp" if day=="20261129" and info.get("source_url","").startswith("https://www.jra.go.jp/") else "jra.jp")
+                url=trusted_url(horse["profile_navigation"],parent_host="www.jra.go.jp" if day in ("20261128","20261129") and info.get("source_url","").startswith("https://www.jra.go.jp/") else "jra.jp")
                 if isolate_invalid_links and url in seen_urls:
                     raise G04Rejected("duplicate_profile_url_identity")
             except (PlanningError,G04Rejected,ValueError,TypeError,KeyError) as exc:
