@@ -15,7 +15,7 @@ PATH_PREFIX=".github/workflows/kyoto-20261128-29-"
 KINDS={"two-source-production-observer.yml":("pc","sp"),
        "auxiliary-refresh.yml":("auxiliary",),"postrace-evidence.yml":("postrace",),
        "workout-source.yml":("workout",),"cushion-source.yml":("cushion",)}
-READER_SHA="ba7d5bb4c05698dfb92119460b45e730b5eb512b"
+READER_SHA="c3b15355ba5a184e22cd87c34bc645538ce33200"
 CUSHION_SHA="47cd7f9e881aa989b9f932373cfaf5278dea223a"
 SAFE_KEYS={"state","status","error","error_class","error_code","failure_class","failure_reason","reason","message",
            "sp_market_state","transport_stop_reason","racecard_error_class","track_error_class","http_status","observed_field_values",
