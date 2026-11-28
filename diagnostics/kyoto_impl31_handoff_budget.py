@@ -77,7 +77,7 @@ def _invoke(task, end, clock=time.monotonic):
         return {'error_class':type(exc).__name__}
 
 def _index(response, day, repo, name, filename):
-    from diagnostics.kyoto_impl25_c12_all_runs_handoff import _date
+    from diagnostics.kyoto_impl25_c12_all_runs_handoff import _date,run_name_matches
     if not isinstance(response,dict): return [],False,None
     rows=response.get('workflow_runs',[])
     if not isinstance(rows,list): return [],False,None
@@ -87,7 +87,7 @@ def _index(response, day, repo, name, filename):
     for r in rows[:100]:
         if not isinstance(r,dict): complete=False; continue
         rid=r.get('id')
-        if (type(rid) is not int or rid<=0 or rid in seen or r.get('name')!=name
+        if (type(rid) is not int or rid<=0 or rid in seen or not run_name_matches(r,name,filename,day)
             or str(r.get('created_at',''))[:10]!=_date(day)
             or not isinstance(r.get('head_repository'),dict) or r['head_repository'].get('full_name')!=repo
             or str(r.get('path','')).split('@',1)[0]!='.github/workflows/'+filename):
