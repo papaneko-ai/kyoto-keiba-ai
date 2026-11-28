@@ -6,7 +6,9 @@ published. Receipt observations do not certify JRA provenance or model readiness
 """
 import argparse, hashlib, importlib.util, json, os, re, subprocess, tempfile, sys
 from pathlib import Path
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
+from html.parser import HTMLParser
+from urllib.parse import urljoin,urlsplit
 from diagnostics.kyoto_job_artifact_state import classify_artifact, exact_job, SKIPPED
 
 REPO="papaneko-ai/kyoto-keiba-ai"
@@ -280,7 +282,87 @@ def replay_adaptive(root,day,lane,repair):
         result.append(row)
     return result
 
-def workout(root,day,rid,key):
+class WorkoutIndexAnchors(HTMLParser):
+    def __init__(self):
+        super().__init__(convert_charrefs=True);self.links=[]
+    def handle_starttag(self,tag,attrs):
+        if tag.lower()=="a":
+            self.links.extend(v for k,v in attrs if k.lower()=="href" and isinstance(v,str))
+
+def workout_index_review(root,d,day,rid,key):
+    from cryptography.hazmat.primitives.ciphers.aead import AESGCM
+    meta=d.get("primary_index")
+    if not isinstance(meta,dict) or meta.get("state")!="INDEX_SEALED":
+        return {"state":"PRIMARY_INDEX_NOT_PRESERVED","source_success_certified":False}
+    try:
+        p=Path(root)/"primary_index.aesgcm"
+        aad=f"kyoto-workout-navigation-v1|{REPO}|{rid}|{day}|PRIMARY_INDEX".encode()
+        if (meta.get("filename")!=p.name or meta.get("archive_aad")!=aad.decode() or p.is_symlink()
+            or not 28<p.stat().st_size<=4_000_028 or stamp(meta.get("captured_utc")) is None):
+            raise ValueError("index_identity")
+        blob=p.read_bytes()
+        if digest(blob)!=meta.get("ciphertext_sha256"):raise ValueError("index_ciphertext")
+        raw=AESGCM(bytes.fromhex(key)).decrypt(blob[:12],blob[12:],aad)
+        if not 0<len(raw)<=4_000_000 or digest(raw)!=meta.get("source_sha256") or len(raw)!=meta.get("bytes"):
+            raise ValueError("index_plaintext")
+        parser=WorkoutIndexAnchors();parser.feed(raw.decode("utf-8",errors="replace"));parser.close()
+        exact=set();variants=set()
+        for link in parser.links:
+            try:
+                u=urlsplit(urljoin("https://white-green.jp/keiba/",link))
+                if u.scheme!="https" or u.netloc!="white-green.jp":continue
+                m=re.fullmatch(r"/race/"+day+r"-kyoto-(0[1-9]|1[0-2])/?",u.path)
+                if not m:continue
+                n=int(m[1])
+                if u.path.endswith("/") and not u.query and not u.fragment:exact.add(n)
+                else:variants.add(n)
+            except ValueError:continue
+        declared=meta.get("discovered_races")
+        valid=isinstance(declared,list) and all(type(n) is int and 1<=n<=12 for n in declared) and declared==sorted(set(declared))
+        state=("PARSER_INVENTORY_DISAGREEMENT" if sorted(exact)!=declared else "OBSERVED_ALTERNATE_LINK_SHAPE" if variants-exact else "EXACT_INDEX_INVENTORY_AGREES") if meta.get("discovery_state")=="PARSER_RETURNED_RACES" and valid else "PARSER_INVENTORY_UNAVAILABLE"
+        return {"state":state,"source_sha256":digest(raw),"captured_utc":stamp(meta["captured_utc"]),"independent_exact_races":sorted(exact),
+                "alternate_shape_races":sorted(variants),"declared_races":declared if valid else [],"index_missing_exact_races":sorted(set(range(1,13))-exact),
+                "source_success_certified":False}
+    except Exception:
+        return {"state":"PRIMARY_INDEX_AUTHENTICATION_OR_REPLAY_FAILED","source_success_certified":False}
+
+def workout_incidents(day,created_at,rows,proof,bad,index_review):
+    incidents=[]
+    def add(code,action,repair,regression,needed,**extra):
+        incidents.append({"stage":"WORKOUT","cause_status":"ROOT_CAUSE_NOT_YET_PROVED","code":code,"root_cause_closed":False,
+            "diagnostic_action":action,"repair_direction":repair,"required_regression":regression,"missing_evidence":needed,**extra})
+    race_ids=[r.get("race") for r in rows]
+    valid_rows=all(type(n) is int for n in race_ids) and sorted(race_ids)==list(range(1,13))
+    created=stamp(created_at)
+    preday=False
+    if created and day in DAYS:
+        preday=(datetime.fromisoformat(created).astimezone(timezone(timedelta(hours=9))).date()==datetime.strptime(day,"%Y%m%d").date()-timedelta(days=1))
+    pending=preday and valid_rows and all(r.get("status")=="OFFICIAL_ROSTER_NOT_AVAILABLE" for r in rows)
+    if pending:
+        add("WORKOUT_PREDAY_ROSTER_JOIN_PENDING","REPLAY_ON_SAME_DAY_WITH_AUTHENTICATED_OFFICIAL_ROSTER","REUSE_EXISTING_PREDAY_SNAPSHOTS","VERIFY_PER_HORSE_PRESTART_COVERAGE","same-day verified roster/start and per-horse join")
+    elif not valid_rows or any(r.get("status")!="SOURCE_JOINED" or type(r.get("official_horses")) is not int or r["official_horses"]<=0 or r.get("covered_horses")!=r.get("official_horses") for r in rows):
+        add("WORKOUT_COVERAGE_OR_AUTHENTICATION_GAP",*REPAIR["WORKOUT"],"authenticated same-race original, roster, clocks and missing horse records")
+    if bad or not proof:
+        add("WORKOUT_SNAPSHOT_AUTHENTICATION_GAP","REOPEN_EXACT_ENCRYPTED_SNAPSHOTS","RESTORE_ORIGINAL_AND_AUTHENTICATE","REJECT_TAMPERED_OR_MISSING_SNAPSHOT","original ciphertext, receipt digest, exact run and day")
+    captured=sorted({p["race"] for p in proof if type(p.get("race")) is int and 1<=p["race"]<=12})
+    missing=sorted(set(range(1,13))-set(captured))
+    if missing:
+        code=index_review.get("state","PRIMARY_INDEX_NOT_PRESERVED")
+        actions={
+            "PRIMARY_INDEX_NOT_PRESERVED":("PRESERVE_EXACT_NEXT_FETCHED_INDEX","saved source index and parser output"),
+            "PRIMARY_INDEX_AUTHENTICATION_OR_REPLAY_FAILED":("RESTORE_AUTHENTICATED_INDEX","valid ciphertext and source digest"),
+            "PARSER_INVENTORY_DISAGREEMENT":("REPLAY_OBSERVED_LINK_AND_PARSER","independent exact link and parser disagreement"),
+            "OBSERVED_ALTERNATE_LINK_SHAPE":("REPLAY_OBSERVED_ALTERNATE_LINK_SHAPE","actual observed alternative link and verified current day/race"),
+            "PARSER_INVENTORY_UNAVAILABLE":("REPLAY_SAVED_INDEX_WITH_EXACT_PARSER","complete parser output for saved index"),
+            "EXACT_INDEX_INVENTORY_AGREES":("COMPARE_SAVED_INDEX_AND_PER_RACE_CAPTURE","missing link or capture proof and alternative observed source"),
+        }
+        action,needed=actions.get(code,("REOPEN_INDEX_AND_SOURCE_RECEIPT","exact index and race capture evidence"))
+        add("WORKOUT_SOURCE_RACES_NOT_PRESERVED",action,"FIX_OBSERVED_LINK_OR_CAPTURE_BOUNDARY","TEST_PER_RACE_SOURCE_AND_ORIGIN",needed,missing_races=missing,index_state=code)
+    elif index_review.get("state")!="EXACT_INDEX_INVENTORY_AGREES":
+        add("WORKOUT_NAVIGATION_EVIDENCE_GAP","REOPEN_OR_PRESERVE_EXACT_INDEX","PRESERVE_SOURCE_DISCOVERY_EVIDENCE","VERIFY_EXACT_INDEX_AND_RACE_LINKS","authenticated index and independently matching discovery inventory")
+    return incidents
+
+def workout(root,day,rid,key,created_at=None):
     from cryptography.hazmat.primitives.ciphers.aead import AESGCM
     root=Path(root);d=load(root,"receipt.json")
     if d.get("day")!=day or str(d.get("run_id"))!=str(rid):raise ValueError("workout_identity_mismatch")
@@ -297,12 +379,10 @@ def workout(root,day,rid,key):
             proof.append({"index":i,"race":small(m.get("race")),"sha256":digest(raw),"utc":stamp(m.get("captured_utc"))})
         except Exception:bad.append(i)
     rows=[fields(r) for r in d.get("races",[])[:12] if isinstance(r,dict)]
-    incomplete=[r for r in rows if r.get("status")!="SOURCE_JOINED" or r.get("covered_horses")!=r.get("official_horses")]
-    gap=bool(bad or incomplete or len(rows)!=12 or not proof)
+    index_review=workout_index_review(root,d,day,rid,key)
     return {"ciphertext_authenticated":bool(proof) and not bad,"receipt_sha256":digest((root/"receipt.json").read_bytes()),
         "authenticated_snapshots":proof,"rejected_snapshot_indices":bad,"race_receipt_claims":rows,
-        "incidents":[{"stage":"WORKOUT","cause_status":"ROOT_CAUSE_NOT_YET_PROVED","code":"WORKOUT_COVERAGE_OR_AUTHENTICATION_GAP","root_cause_closed":False,
-            "diagnostic_action":REPAIR["WORKOUT"][0],"repair_direction":REPAIR["WORKOUT"][1],"required_regression":REPAIR["WORKOUT"][2]}] if gap else [],
+        "primary_index_review":index_review,"incidents":workout_incidents(day,created_at,rows,proof,bad,index_review),
         "source_claims_independently_certified":False}
 def gh(endpoint):
     return json.loads(subprocess.check_output(["gh","api",endpoint],text=True,stderr=subprocess.DEVNULL,timeout=25))
@@ -486,7 +566,7 @@ def diagnose_run(rid,reader,cushion_reader,postrace_reader=None,*,evidence_out=N
                 root=Path(t);cipher=root/"cipher";cipher.mkdir();raw=root/"raw"
                 subprocess.run(["gh","run","download",str(rid),"--repo",REPO,"--name",a["name"],"--dir",str(cipher)],check=True,stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL,timeout=90)
                 key=os.environ.get("ARCHIVE_KEY","")
-                if lane=="workout":meta.update(workout(cipher,day,rid,key))
+                if lane=="workout":meta.update(workout(cipher,day,rid,key,result["created_at"]))
                 else:
                     read_aes(cushion_reader if lane=="cushion" else reader,cipher,raw,day,rid,key)
                     field_review=review_g05_originals(raw,day,reader) if lane in ("pc","auxiliary") else None
@@ -538,6 +618,8 @@ def write_report(report,out):
         for i in m.get("incidents",[]):
             lines.append(f"- {i['stage']} / {i.get('code','UNKNOWN')} / {i['cause_status']} / blocked_by={i.get('blocked_by')}")
             lines.append(f"  - 再現: {i['diagnostic_action']} → 修正: {i['repair_direction']} → 検証: {i['required_regression']}")
+            if i.get("missing_evidence"):lines.append(f"  - 不足証拠: {i['missing_evidence']}")
+            if i.get("missing_races"):lines.append(f"  - 原本未保存R: {i['missing_races']} / index {i.get('index_state','UNKNOWN')}")
         for r in m.get("adaptive_repair_replay",[]):
             lines.append(f"- 自動修復再検証: {r['stage']} / {r['state']} / 原本 {r.get('source_sha256','UNKNOWN')} / 規則 {r.get('rule_sha256','UNKNOWN')} / {r.get('error_code','')}")
         if "postrace_navigation_replay" in m:

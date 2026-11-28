@@ -128,5 +128,19 @@ def obligations(report):
         for x in incidents:
             origin={"run_id":report["source_run_id"],"lane":lane,"stage":x["stage"],"code":x.get("code") or "UNKNOWN"}
             files=[{"name":n,**meta["files"][n]} for n in x.get("evidence_files",[]) if n in meta.get("files",{})]
-            rows.append({**origin,"incident_id":"INC-"+sha(canon(origin))[:24],"state":"OPEN_REPAIR_REQUIRED","root_cause_proved":False,"blocked_by":x.get("blocked_by"),"source_head_sha":report["workflow_head_sha"],"artifact_id":meta.get("artifact_id"),"artifact_authenticated":meta.get("artifact_authenticated") is True,"source_files":files,"receipt_failure_refs":meta.get("receipt_failure_refs",{}),"log_job_ids":[j["job_id"] for j in report.get("jobs",[])],"next_action":x.get("diagnostic_action","REOPEN_EXACT_METADATA_AND_SOURCE_EVIDENCE"),"closure_requires":["EXACT_CAUSE_REPRODUCED","ISOLATED_FIX","NEGATIVE_CASE","DEPLOYMENT_CHECK","NEXT_ACTUAL_CAPTURE"]})
+            rows.append({**origin,"incident_id":"INC-"+sha(canon(origin))[:24],"state":"OPEN_REPAIR_REQUIRED","root_cause_proved":False,"blocked_by":x.get("blocked_by"),"source_head_sha":report["workflow_head_sha"],"artifact_id":meta.get("artifact_id"),"artifact_authenticated":meta.get("artifact_authenticated") is True,"source_files":files,"receipt_failure_refs":meta.get("receipt_failure_refs",{}),"log_job_ids":[j["job_id"] for j in report.get("jobs",[])],"next_action":x.get("diagnostic_action","REOPEN_EXACT_METADATA_AND_SOURCE_EVIDENCE"),"repair_direction":x.get("repair_direction"),"required_regression":x.get("required_regression"),"target_day":meta.get("target_day"),"missing_evidence":x.get("missing_evidence"),"missing_races":x.get("missing_races",[]),"closure_requires":["EXACT_CAUSE_REPRODUCED","ISOLATED_FIX","NEGATIVE_CASE","DEPLOYMENT_CHECK","NEXT_ACTUAL_CAPTURE"]})
+    evidence=report.get("forensic_evidence",{})
+    gaps=[]
+    if evidence.get("state")=="FORENSIC_CAPSULE_UNAVAILABLE":
+        gaps.append(("FORENSIC_CAPSULE_UNAVAILABLE",None,evidence.get("next_action","RECOVER_EXACT_SOURCE_RUN_AND_JOB_LOGS")))
+    for log in evidence.get("log_index",[]):
+        if log.get("state") in ("LOG_UNAVAILABLE","LOG_BUDGET_EXHAUSTED"):
+            gaps.append((log["state"],log["job_id"],log.get("next_action","FETCH_EXACT_JOB_LOG_BEFORE_EXPIRY")))
+    for code,jid,action in gaps:
+        origin={"run_id":report["source_run_id"],"lane":"forensic","stage":"LOG_EVIDENCE","code":code,"job_id":jid}
+        rows.append({**origin,"incident_id":"INC-"+sha(canon(origin))[:24],"state":"OPEN_REPAIR_REQUIRED","root_cause_proved":False,
+            "source_head_sha":report["workflow_head_sha"],"artifact_id":None,"artifact_authenticated":False,"source_files":[],
+            "log_job_ids":[jid] if jid is not None else [j["job_id"] for j in report.get("jobs",[])],
+            "next_action":action,"missing_evidence":"exact source run/job logs and authenticated capsule restoration",
+            "closure_requires":["EXACT_EVIDENCE_RECOVERED","AUTHENTICATED_RESTORE"]})
     return rows

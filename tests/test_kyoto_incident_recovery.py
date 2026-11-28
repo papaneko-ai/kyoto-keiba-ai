@@ -287,3 +287,34 @@ class ForensicContinuityTests(unittest.TestCase):
    self.assertEqual(cache,{})
    self.assertEqual(m["log_index"][0]["log_format"],"GH_RUN_VIEW_RENDERED")
    self.assertIn("1",restore(tmp,"a"*64,run)["logs"])
+ def test_workout_preday_roster_pending_and_missing_races_distinct(self):
+  from diagnostics.kyoto_incident_recovery import workout_incidents
+  rows=[{"race":i,"status":"OFFICIAL_ROSTER_NOT_AVAILABLE"} for i in range(1,13)]
+  proof=[{"race":i} for i in (9,10,11,12,9,10,11,12)]
+  index={"state":"PRIMARY_INDEX_NOT_PRESERVED"}
+  got=workout_incidents("20261129","2026-11-28T11:32:13Z",rows,proof,[],index)
+  self.assertEqual({x["code"] for x in got},{"WORKOUT_PREDAY_ROSTER_JOIN_PENDING","WORKOUT_SOURCE_RACES_NOT_PRESERVED"})
+  self.assertEqual(next(x for x in got if x["code"]=="WORKOUT_SOURCE_RACES_NOT_PRESERVED")["missing_races"],list(range(1,9)))
+  self.assertTrue(all(not x["root_cause_closed"] for x in got))
+  self.assertNotIn("WORKOUT_PREDAY_ROSTER_JOIN_PENDING",{x["code"] for x in workout_incidents("20261129","2026-11-29T00:00:00Z",rows,proof,[],index)})
+ def test_workout_index_independent_shape_and_tamper(self):
+  from diagnostics.kyoto_incident_recovery import workout_index_review,REPO,digest
+  from cryptography.hazmat.primitives.ciphers.aead import AESGCM
+  raw=b'<a href="/race/20261129-kyoto-09/">9</a><a href="/race/20261129-kyoto-01">1</a><a href="https://other.example/race/20261129-kyoto-02/">2</a>'
+  key="a"*64;aad=f"kyoto-workout-navigation-v1|{REPO}|123|20261129|PRIMARY_INDEX".encode();nonce=b"n"*12
+  blob=nonce+AESGCM(bytes.fromhex(key)).encrypt(nonce,raw,aad)
+  with tempfile.TemporaryDirectory() as tmp:
+   p=Path(tmp)/"primary_index.aesgcm";p.write_bytes(blob)
+   m={"state":"INDEX_SEALED","filename":p.name,"archive_aad":aad.decode(),"captured_utc":"2026-11-28T11:32:13Z","ciphertext_sha256":digest(blob),"source_sha256":digest(raw),"bytes":len(raw),"discovery_state":"PARSER_RETURNED_RACES","discovered_races":[9]}
+   v=workout_index_review(tmp,{"primary_index":m},"20261129",123,key)
+   self.assertEqual(v["state"],"OBSERVED_ALTERNATE_LINK_SHAPE");self.assertEqual(v["alternate_shape_races"],[1]);self.assertEqual(v["independent_exact_races"],[9])
+   self.assertEqual(workout_index_review(tmp,{"primary_index":dict(m,discovered_races=[8])},"20261129",123,key)["state"],"PARSER_INVENTORY_DISAGREEMENT")
+   self.assertFalse(v["source_success_certified"])
+   p.write_bytes(blob+b"x")
+   self.assertEqual(workout_index_review(tmp,{"primary_index":m},"20261129",123,key)["state"],"PRIMARY_INDEX_AUTHENTICATION_OR_REPLAY_FAILED")
+ def test_log_gap_always_has_open_repair_obligation(self):
+  from diagnostics.kyoto_forensic_continuity import obligations
+  report={"source_run_id":3,"workflow_head_sha":"a"*40,"lanes":{},"jobs":[{"job_id":1},{"job_id":2}],"forensic_evidence":{"state":"SEALED_WITH_EVIDENCE_GAPS","log_index":[{"job_id":1,"state":"LOG_UNAVAILABLE"},{"job_id":2,"state":"LOG_BUDGET_EXHAUSTED"}]}}
+  rows=obligations(report)
+  self.assertEqual(len(rows),2);self.assertEqual(len({x["incident_id"] for x in rows}),2)
+  self.assertTrue(all(x["state"]=="OPEN_REPAIR_REQUIRED" and not x["root_cause_proved"] for x in rows))
