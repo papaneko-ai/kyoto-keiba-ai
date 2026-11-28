@@ -1,5 +1,5 @@
 """Preserve bounded evidence for the next repair. Never grant acquisition credit."""
-import base64,gzip,hashlib,json,os,re,time
+import base64,gzip,hashlib,io,json,os,re,time,zipfile
 from pathlib import Path
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 
@@ -88,6 +88,42 @@ def restore(out,key,run):
         elif val is not None:raise ValueError("forensic_index_mismatch")
     return doc
 
+def validate_run_zip(raw):
+    if type(raw) is not bytes or not 0<len(raw)<=MAX_TOTAL:raise ValueError("run_zip_size")
+    with zipfile.ZipFile(io.BytesIO(raw)) as z:
+        rows=z.infolist()
+        if (not rows or len(rows)>500 or len({x.filename for x in rows})!=len(rows)
+            or sum(x.file_size for x in rows)>32_000_000 or any(x.flag_bits&1 for x in rows)):
+            raise ValueError("run_zip_inventory")
+        # Never extract or attribute any member to a job. CRC check is bounded
+        # by the advertised total uncompressed size.
+        if z.testzip() is not None:raise ValueError("run_zip_crc")
+        return len(rows)
+
+def restore_run_zip(run,out,key):
+    out=Path(out);bind={**identity(run),"schema":"kyoto_forensic_run_log_zip.v1"}
+    m=json.loads((out/"run_log_zip.json").read_bytes())
+    raw=(out/"run_log_zip.aesgcm").read_bytes()
+    if (any(m.get(k)!=v for k,v in bind.items()) or not re.fullmatch(r"[a-f0-9]{24}",m.get("nonce_hex",""))
+        or sha(raw)!=m.get("ciphertext_sha256")):raise ValueError("run_zip_binding")
+    plain=AESGCM(key_bytes(key)).decrypt(bytes.fromhex(m["nonce_hex"]),raw,canon(bind))
+    if (sha(plain)!=m.get("zip_sha256") or len(plain)!=m.get("bytes") or validate_run_zip(plain)!=m.get("member_count")
+        or m.get("job_attribution_verified") is not False):raise ValueError("run_zip_integrity")
+    return plain
+
+def preserve_run_zip(run,out,key,read_zip):
+    out=Path(out);out.mkdir(parents=True,exist_ok=True)
+    bind={**identity(run),"schema":"kyoto_forensic_run_log_zip.v1"}
+    k=key_bytes(key);raw=read_zip(run["id"]);count=validate_run_zip(raw)
+    nonce=os.urandom(12);sealed=AESGCM(k).encrypt(nonce,raw,canon(bind))
+    m={**bind,"state":"RUN_LOG_ZIP_RECOVERED_NOT_JOB_ATTRIBUTED","nonce_hex":nonce.hex(),
+       "ciphertext_sha256":sha(sealed),"zip_sha256":sha(raw),"bytes":len(raw),"member_count":count,
+       "job_attribution_verified":False,"new_source_http_requests":0}
+    for name,data in (("run_log_zip.aesgcm",sealed),("run_log_zip.json",canon(m)+b"\n")):
+        p=out/name;tmp=out/(name+".tmp");tmp.write_bytes(data);tmp.replace(p)
+    if restore_run_zip(run,out,key)!=raw:raise ValueError("run_zip_roundtrip")
+    return m
+
 FAIL_FIELDS={"reason","error","error_class","error_code","failure_reason","failure_class","results_meeting_state","payout_meeting_state","transport_stop_reason","racecard_error_class","track_error_class"}
 SAFE_PATH={"races","requests","attempts","records","errors","failures","stages","observations","market","markets","profile","profiles","horses","results","payout","quinella","bracket_quinella","navigation","independent_reconciliation"}|FAIL_FIELDS
 
@@ -129,6 +165,13 @@ def obligations(report):
             origin={"run_id":report["source_run_id"],"lane":lane,"stage":x["stage"],"code":x.get("code") or "UNKNOWN"}
             files=[{"name":n,**meta["files"][n]} for n in x.get("evidence_files",[]) if n in meta.get("files",{})]
             rows.append({**origin,"incident_id":"INC-"+sha(canon(origin))[:24],"state":"OPEN_REPAIR_REQUIRED","root_cause_proved":False,"blocked_by":x.get("blocked_by"),"source_head_sha":report["workflow_head_sha"],"artifact_id":meta.get("artifact_id"),"artifact_authenticated":meta.get("artifact_authenticated") is True,"source_files":files,"receipt_failure_refs":meta.get("receipt_failure_refs",{}),"log_job_ids":[j["job_id"] for j in report.get("jobs",[])],"next_action":x.get("diagnostic_action","REOPEN_EXACT_METADATA_AND_SOURCE_EVIDENCE"),"repair_direction":x.get("repair_direction"),"required_regression":x.get("required_regression"),"target_day":meta.get("target_day"),"missing_evidence":x.get("missing_evidence"),"missing_races":x.get("missing_races",[]),"closure_requires":["EXACT_CAUSE_REPRODUCED","ISOLATED_FIX","NEGATIVE_CASE","DEPLOYMENT_CHECK","NEXT_ACTUAL_CAPTURE"]})
+    for field,meta in sorted(report.get("metadata_recovery",{}).items()):
+        if meta.get("complete") is True:continue
+        origin={"run_id":report["source_run_id"],"lane":"forensic","stage":"METADATA_RECOVERY","code":field.upper()+"_INDEX_UNAVAILABLE"}
+        rows.append({**origin,"incident_id":"INC-"+sha(canon(origin))[:24],"state":"OPEN_REPAIR_REQUIRED","root_cause_proved":False,
+          "source_head_sha":report["workflow_head_sha"],"artifact_id":None,"artifact_authenticated":False,"source_files":[],
+          "log_job_ids":[j["job_id"] for j in report.get("jobs",[])],"next_action":"RESTORE_EXACT_"+field.upper()+"_INDEX",
+          "missing_evidence":"complete run-bound index; no absence inferred","closure_requires":["EXACT_EVIDENCE_RECOVERED"]})
     evidence=report.get("forensic_evidence",{})
     gaps=[]
     if evidence.get("state")=="FORENSIC_CAPSULE_UNAVAILABLE":

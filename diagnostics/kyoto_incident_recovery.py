@@ -384,8 +384,33 @@ def workout(root,day,rid,key,created_at=None):
         "authenticated_snapshots":proof,"rejected_snapshot_indices":bad,"race_receipt_claims":rows,
         "primary_index_review":index_review,"incidents":workout_incidents(day,created_at,rows,proof,bad,index_review),
         "source_claims_independently_certified":False}
-def gh(endpoint):
+def gh(endpoint,trace=None):
+    # Reuse the independently tested paginated recovery; do not keep a
+    # second, weaker metadata transport in the incident diagnosis.
+    m=re.fullmatch(r"repos/"+re.escape(REPO)+r"/(actions/runs/[1-9][0-9]*/(jobs|artifacts)\?per_page=100)",endpoint)
+    if m:
+        from diagnostics.kyoto_repair_control import recover_collection
+        return recover_collection(m[1],m[2],trace=trace)
     return json.loads(subprocess.check_output(["gh","api",endpoint],text=True,stderr=subprocess.DEVNULL,timeout=25))
+
+def incident_index(rid,field,trace):
+    if field not in ("jobs","artifacts"):raise ValueError("incident_index_scope")
+    doc=gh(f"repos/{REPO}/actions/runs/{rid}/{field}?per_page=100",trace=trace)
+    rows=doc[field]
+    if (not isinstance(rows,list) or type(doc.get("total_count")) is not int or doc["total_count"]!=len(rows)
+        or len(rows)>100 or any(not isinstance(r,dict) or type(r.get("id")) is not int or r["id"]<=0 for r in rows)
+        or len({r["id"] for r in rows})!=len(rows)):
+        raise ValueError("incident_index_incomplete")
+    if field=="jobs" and any(r.get("run_id")!=rid for r in rows):raise ValueError("incident_job_run_mismatch")
+    return doc
+
+def run_log_zip(rid):
+    if type(rid) is not int or rid<=0:raise ValueError("run_log_identity")
+    with tempfile.TemporaryFile() as f:
+        subprocess.run(["gh","api",f"repos/{REPO}/actions/runs/{rid}/logs"],stdout=f,
+                       stderr=subprocess.DEVNULL,timeout=12,check=True)
+        if not 0<f.tell()<=8_000_000:raise ValueError("run_log_zip_size")
+        f.seek(0);return f.read(8_000_001)
 def run_identity(run,rid):
     p=run.get("path","").split("@",1)[0]
     if run.get("id")!=rid or run.get("head_branch")!="main" or run.get("head_repository",{}).get("full_name")!=REPO or run.get("status")!="completed" or run.get("event") not in ("schedule","workflow_dispatch","workflow_run") or not p.startswith(PATH_PREFIX) or p[len(PATH_PREFIX):] not in KINDS:
@@ -532,23 +557,41 @@ def forensic_job_log(run_id,job_id,*,read_raw=None):
 def diagnose_run(rid,reader,cushion_reader,postrace_reader=None,*,evidence_out=None):
     run=gh(f"repos/{REPO}/actions/runs/{rid}")
     path,lanes,days=run_identity(run,rid)
-    job_doc=gh(f"repos/{REPO}/actions/runs/{rid}/jobs?per_page=100")
-    jobs=safe_jobs(job_doc)
-    arts=gh(f"repos/{REPO}/actions/runs/{rid}/artifacts?per_page=100")
-    if arts["total_count"]!=len(arts["artifacts"]) or len(arts["artifacts"])>100:raise ValueError("artifact_index_incomplete")
-    result={"schema":"kyoto_incident_recovery.v1","repo":REPO,"source_run_id":rid,"workflow_path":path,"workflow_head_sha":run["head_sha"],"event":run["event"],"created_at":stamp(run.get("created_at")),"jobs":jobs,"lanes":{},"new_source_http_requests":0,"automatic_code_promotion":False}
+    metadata={}
+    job_doc=None;arts=None;jobs=[]
+    for field in ("jobs","artifacts"):
+        attempts=[]
+        try:
+            doc=incident_index(rid,field,attempts)
+            if field=="jobs":jobs=safe_jobs(doc);job_doc=doc
+            else:arts=doc
+            metadata[field]={"complete":True,"attempts":attempts}
+        except Exception as exc:
+            metadata[field]={"complete":False,"attempts":attempts,"error_class":type(exc).__name__}
+    result={"schema":"kyoto_incident_recovery.v1","repo":REPO,"source_run_id":rid,"workflow_path":path,"workflow_head_sha":run["head_sha"],"event":run["event"],"created_at":stamp(run.get("created_at")),"jobs":jobs,"lanes":{},"metadata_recovery":metadata,"new_source_http_requests":0,"automatic_code_promotion":False}
     cached_logs=None
     if evidence_out is not None:
         from diagnostics.kyoto_forensic_continuity import capture
         try:
+            if job_doc is None or arts is None:raise ValueError("incomplete_forensic_indexes")
             forensic,cached_logs=capture(run,job_doc,arts,evidence_out,os.environ.get("ARCHIVE_KEY",""),lambda jid:forensic_job_log(rid,jid))
             result["forensic_evidence"]=forensic
         except Exception as exc:
             result["forensic_evidence"]={"state":"FORENSIC_CAPSULE_UNAVAILABLE","error_class":type(exc).__name__,"next_action":"RECOVER_EXACT_SOURCE_RUN_AND_JOB_LOGS"}
+        # The run-level archive is a third independent recovery channel.
+        # Do not infer job identity from ZIP member names, or use it as the
+        # job API raw-log proof. Only invoke after other evidence is incomplete.
+        if result["forensic_evidence"]["state"] in ("FORENSIC_CAPSULE_UNAVAILABLE","SEALED_WITH_EVIDENCE_GAPS"):
+            from diagnostics.kyoto_forensic_continuity import preserve_run_zip
+            try:result["run_log_zip_recovery"]=preserve_run_zip(run,evidence_out,os.environ.get("ARCHIVE_KEY",""),run_log_zip)
+            except Exception as exc:result["run_log_zip_recovery"]={"state":"RUN_LOG_ZIP_UNAVAILABLE","error_class":type(exc).__name__,"job_attribution_verified":False}
     def cached_log(jid):
         if jid not in cached_logs:raise ValueError("forensic_log_unavailable")
         return cached_logs[jid]
     for lane in lanes:
+        if arts is None:
+            result["lanes"][lane]={"artifact_authenticated":False,"artifact_evidence":{"state":"ARTIFACT_INDEX_UNAVAILABLE","ids":[]},"source_acquisition_state":"ARTIFACT_INDEX_UNAVAILABLE_NO_ABSENCE_CLAIM","incidents":[{"stage":"ARCHIVE","code":"ARTIFACT_INDEX_UNAVAILABLE","cause_status":"ROOT_CAUSE_NOT_YET_PROVED","root_cause_closed":False,"diagnostic_action":"RETRY_EXACT_ARTIFACT_INDEX","repair_direction":"RECOVER_AUTHENTICATED_ARTIFACT_INDEX","required_regression":"TEST_UNAVAILABLE_INDEX_NOT_MISSING_ORIGINAL"}]}
+            continue
         matches=[(a,d) for d in days for a in arts["artifacts"] if a.get("name")==f"kyoto-{lane}-{rid}-{d}"]
         found=[(a,d) for a,d in matches if a.get("expired") is False]
         evidence=classify_artifact(path[len(PATH_PREFIX):],lane,rid,[a for a,d in matches],job_doc)
@@ -638,6 +681,12 @@ def write_report(report,out):
         obligations=report["open_repair_obligations"]
         (out/"open_repair_obligations.json").write_bytes(canonical({"schema":"kyoto_open_repair_obligations.v1","source_run_id":rid,"rows":obligations})+b"\n")
         lines.append(f"- 未解決の修復項目: {len(obligations)} 件。原因未特定は保留・次回修復必須。詳細: open_repair_obligations.json")
+    if "metadata_recovery" in report:
+        for field,row in report["metadata_recovery"].items():
+            lines.append(f"- {field} メタデータ自動復旧: complete={row['complete']} / {row['attempts']}")
+    if "run_log_zip_recovery" in report:
+        z=report["run_log_zip_recovery"]
+        lines.append(f"- 第三ログ経路: {z['state']} / ZIP SHA256 {z.get('zip_sha256','UNAVAILABLE')} / 個別job帰属未認定")
     if "forensic_evidence" in report:
         evidence=report["forensic_evidence"]
         lines.append(f"- 次回修復用の実行証拠: {evidence['state']} / ciphertext SHA256 {evidence.get('ciphertext_sha256','UNAVAILABLE')}")

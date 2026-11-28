@@ -318,3 +318,57 @@ class ForensicContinuityTests(unittest.TestCase):
   rows=obligations(report)
   self.assertEqual(len(rows),2);self.assertEqual(len({x["incident_id"] for x in rows}),2)
   self.assertTrue(all(x["state"]=="OPEN_REPAIR_REQUIRED" and not x["root_cause_proved"] for x in rows))
+
+class IncidentMetadataRepairTests(unittest.TestCase):
+ def test_uses_existing_recovery_transport(self):
+  from unittest.mock import patch
+  from diagnostics.kyoto_incident_recovery import gh
+  trace=[];expected={"total_count":0,"artifacts":[]}
+  with patch("diagnostics.kyoto_repair_control.recover_collection",return_value=expected) as f:
+   self.assertEqual(gh("repos/"+REPO+"/actions/runs/123/artifacts?per_page=100",trace),expected)
+   f.assert_called_once_with("actions/runs/123/artifacts?per_page=100","artifacts",trace=trace)
+ def test_failed_job_index_does_not_stop_artifact_index(self):
+  from unittest.mock import patch
+  from diagnostics.kyoto_incident_recovery import diagnose_run
+  run={"id":123,"head_branch":"main","head_repository":{"full_name":REPO},"status":"completed","event":"workflow_dispatch","path":".github/workflows/kyoto-20261128-29-cushion-source.yml","head_sha":"a"*40,"created_at":"2026-11-28T03:00:00Z"}
+  with patch("diagnostics.kyoto_incident_recovery.gh",side_effect=[run,TimeoutError(),{"total_count":0,"artifacts":[]}]):
+   r=diagnose_run(123,"unused","unused")
+  self.assertFalse(r["metadata_recovery"]["jobs"]["complete"])
+  self.assertTrue(r["metadata_recovery"]["artifacts"]["complete"])
+  self.assertTrue(any(x["code"]=="JOBS_INDEX_UNAVAILABLE" for x in r["open_repair_obligations"]))
+ def test_failed_artifact_index_does_not_infer_missing_or_skip(self):
+  from unittest.mock import patch
+  from diagnostics.kyoto_incident_recovery import diagnose_run
+  run={"id":123,"head_branch":"main","head_repository":{"full_name":REPO},"status":"completed","event":"workflow_dispatch","path":".github/workflows/kyoto-20261128-29-cushion-source.yml","head_sha":"a"*40,"created_at":"2026-11-28T03:00:00Z"}
+  job={"id":1,"run_id":123,"name":"cushion-source-only","status":"completed","conclusion":"success","steps":[]}
+  with patch("diagnostics.kyoto_incident_recovery.gh",side_effect=[run,{"total_count":1,"jobs":[job]},TimeoutError()]):
+   r=diagnose_run(123,"unused","unused")
+  self.assertTrue(r["metadata_recovery"]["jobs"]["complete"])
+  self.assertEqual(r["lanes"]["cushion"]["artifact_evidence"]["state"],"ARTIFACT_INDEX_UNAVAILABLE")
+  self.assertTrue(any(x["code"]=="ARTIFACTS_INDEX_UNAVAILABLE" for x in r["open_repair_obligations"]))
+ def test_run_zip_third_channel_restoration_and_no_job_credit(self):
+  import io,zipfile
+  from diagnostics.kyoto_forensic_continuity import preserve_run_zip,restore_run_zip
+  bio=io.BytesIO()
+  with zipfile.ZipFile(bio,"w") as z:z.writestr("job/1.txt",b"private log")
+  raw=bio.getvalue();run={"id":123,"head_sha":"a"*40}
+  with tempfile.TemporaryDirectory() as td:
+   m=preserve_run_zip(run,td,"a"*64,lambda rid:raw)
+   self.assertFalse(m["job_attribution_verified"])
+   self.assertEqual(restore_run_zip(run,td,"a"*64),raw)
+   self.assertNotIn(b"private log",(Path(td)/"run_log_zip.aesgcm").read_bytes())
+   with self.assertRaises(ValueError):restore_run_zip({"id":124,"head_sha":"a"*40},td,"a"*64)
+   p=Path(td)/"run_log_zip.aesgcm";p.write_bytes(p.read_bytes()+b"x")
+   with self.assertRaises(ValueError):restore_run_zip(run,td,"a"*64)
+ def test_third_channel_invoked_when_both_indexes_unavailable(self):
+  import io,zipfile
+  from unittest.mock import patch
+  from diagnostics.kyoto_incident_recovery import diagnose_run
+  run={"id":123,"head_branch":"main","head_repository":{"full_name":REPO},"status":"completed","event":"workflow_dispatch","path":".github/workflows/kyoto-20261128-29-cushion-source.yml","head_sha":"a"*40,"created_at":"2026-11-28T03:00:00Z"}
+  b=io.BytesIO()
+  with zipfile.ZipFile(b,"w") as z:z.writestr("job.txt","log")
+  with tempfile.TemporaryDirectory() as td,patch.dict("os.environ",{"ARCHIVE_KEY":"a"*64}),patch("diagnostics.kyoto_incident_recovery.gh",side_effect=[run,TimeoutError(),TimeoutError()]),patch("diagnostics.kyoto_incident_recovery.run_log_zip",return_value=b.getvalue()) as z:
+   r=diagnose_run(123,"unused","unused",evidence_out=td)
+   z.assert_called_once_with(123)
+   self.assertEqual(r["run_log_zip_recovery"]["state"],"RUN_LOG_ZIP_RECOVERED_NOT_JOB_ATTRIBUTED")
+   self.assertEqual(r["forensic_evidence"]["state"],"FORENSIC_CAPSULE_UNAVAILABLE")

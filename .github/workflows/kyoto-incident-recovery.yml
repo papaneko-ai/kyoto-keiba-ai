@@ -19,6 +19,7 @@ on:
     paths:
       - 'diagnostics/kyoto_incident_recovery.py'
       - 'diagnostics/kyoto_forensic_continuity.py'
+      - 'diagnostics/kyoto_repair_control.py'
       - 'diagnostics/kyoto_incident_g05_replay.py'
       - 'tests/test_kyoto_incident_recovery.py'
       - '.github/workflows/kyoto-incident-recovery.yml'
@@ -27,6 +28,7 @@ on:
     paths:
       - 'diagnostics/kyoto_incident_recovery.py'
       - 'diagnostics/kyoto_forensic_continuity.py'
+      - 'diagnostics/kyoto_repair_control.py'
       - 'diagnostics/kyoto_incident_g05_replay.py'
       - 'tests/test_kyoto_incident_recovery.py'
       - '.github/workflows/kyoto-incident-recovery.yml'
