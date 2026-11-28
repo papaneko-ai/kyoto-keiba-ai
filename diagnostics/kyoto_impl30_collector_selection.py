@@ -24,20 +24,20 @@ def choose(day,baseline,override,verified):
         return baseline,"PREFLIGHT_UNAVAILABLE_BASELINE_RETAINED"
     return baseline,"OVERRIDE_NOT_VERIFIED_BASELINE_RETAINED"
 
-# Exact isolated PR #157 preflight job 140883276948, completed successfully;
-# artifact 15250008446 is bound to the same immutable head. Only when this
+# Exact isolated PR #162 preflight job 140901194619, completed successfully;
+# artifact 15252869150 is bound to the same immutable head. Only when this
 # reviewed configuration is deployed does the second evidence path apply.
 # Previous deployed evidence is preserved in PR #153 and issue #141.
 DEPLOYED_RECEIPT={
     "repo":"papaneko-ai/kyoto-keiba-ai",
     "day":"20261129",
     "baseline":"3f4b3d77357745ead05a9f78db34eb6ac2d78637",
-    "override":"ba7d5bb4c05698dfb92119460b45e730b5eb512b",
-    "preflight_run":46113899999,
-    "preflight_job":140883276948,
-    "artifact_id":15250008446,
-    "artifact_sha256":"9cb5145c137a7c767163968deaa89230b468623042acdda4a9048548e174a5aa",
-    "validation_pr":157,
+    "override":"c289c5ec4e6ad322a7e08acf173da3352ed23dba",
+    "preflight_run":46119675702,
+    "preflight_job":140901194619,
+    "artifact_id":15252869150,
+    "artifact_sha256":"0e2e513d9bb27c49fc03355ceb5dc2daf16f5b016db12d7122f033ffea90c710",
+    "validation_pr":162,
 }
 
 def choose_deployed(day,baseline,override,verified,*,repo):

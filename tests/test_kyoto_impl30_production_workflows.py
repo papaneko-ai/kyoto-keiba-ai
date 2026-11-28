@@ -88,7 +88,7 @@ class ProductionWorkflowContract(unittest.TestCase):
         self.assertTrue(doc["concurrency"]["group"].startswith("kyoto-20261128-29-source-"))
         job=doc["jobs"]["postrace-source-evidence"]
         pin=self.jobs["select-collector"]["env"]["DEFAULT_COLLECTOR_SHA"]
-        expected_postrace_pin="ba7d5bb4c05698dfb92119460b45e730b5eb512b"
+        expected_postrace_pin="c289c5ec4e6ad322a7e08acf173da3352ed23dba"
         self.assertEqual(job["steps"][0]["with"]["ref"],expected_postrace_pin)
         self.assertNotEqual(expected_postrace_pin,pin)
         self.assertIn('test "$(git rev-parse HEAD)" = '+repr(expected_postrace_pin),raw)
@@ -121,7 +121,7 @@ class ProductionWorkflowContract(unittest.TestCase):
         self.assertTrue(doc["concurrency"]["group"].startswith("kyoto-20261128-29-source-"))
         job=doc["jobs"]["afternoon-auxiliary-source"]
         pin=self.jobs["select-collector"]["env"]["DEFAULT_COLLECTOR_SHA"]
-        expected_aux_pin="ba7d5bb4c05698dfb92119460b45e730b5eb512b"
+        expected_aux_pin="c289c5ec4e6ad322a7e08acf173da3352ed23dba"
         self.assertEqual(job["steps"][0]["with"]["ref"],expected_aux_pin)
         self.assertNotEqual(expected_aux_pin,pin)
         self.assertIn('test "$(git rev-parse HEAD)" = '+repr(expected_aux_pin),raw)
