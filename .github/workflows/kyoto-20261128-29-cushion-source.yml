@@ -16,6 +16,23 @@ on:
 permissions:
   contents: read
 jobs:
+  trigger-evidence:
+    if: ${{ github.repository == 'papaneko-ai/kyoto-keiba-ai' && github.ref == 'refs/heads/main' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - name: Preserve exact parent event without source requests
+        run: python3 -m diagnostics.kyoto_cushion_trigger_evidence --out trigger_evidence
+      - uses: actions/upload-artifact@v4
+        with:
+          name: kyoto-cushion-trigger-${{ github.run_id }}
+          path: trigger_evidence/
+          if-no-files-found: error
+          retention-days: 90
   cushion-source-only:
     if: ${{ github.repository == 'papaneko-ai/kyoto-keiba-ai' && github.ref == 'refs/heads/main' && ((github.event_name == 'workflow_dispatch' && inputs.confirmation == 'NOV28-29-CUSHION-SOURCE-ONLY') || (github.event_name == 'workflow_run' && github.event.workflow_run.head_repository.full_name == github.repository && github.event.workflow_run.head_branch == 'main' && (startsWith(github.event.workflow_run.created_at, '2026-11-28') || startsWith(github.event.workflow_run.created_at, '2026-11-29')) && github.event.workflow_run.event == 'workflow_dispatch' && (contains(github.event.workflow_run.created_at, 'T00:') || contains(github.event.workflow_run.created_at, 'T01:') || contains(github.event.workflow_run.created_at, 'T03:')))) }}
     runs-on: ubuntu-latest
