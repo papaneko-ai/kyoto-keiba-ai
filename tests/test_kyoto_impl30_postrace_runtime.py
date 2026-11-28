@@ -1,7 +1,7 @@
 import json,shutil,tempfile,unittest
 from pathlib import Path
 from datetime import datetime,timezone
-from unittest.mock import patch,Mock
+from unittest.mock import patch,Mock,MagicMock
 from urllib.error import HTTPError
 from diagnostics.kyoto_impl30_postrace_runtime import recover_inputs,official_fetcher,auxiliary_inputs
 from diagnostics.kyoto_impl30_postrace_day import collect_day
@@ -125,7 +125,7 @@ class RuntimeTests(unittest.TestCase):
     def test_public_home_single_get_and_refusal_boundary(self):
         from diagnostics.kyoto_nov29_public_forms import PC_HOME
         from diagnostics.kyoto_impl30_postrace_day import observed_actions,MENU
-        opener=Mock();pacer=Mock()
+        opener=MagicMock();pacer=Mock()
         response=opener.open.return_value.__enter__.return_value
         response.geturl.return_value=PC_HOME;response.read.return_value=SEED
         response.status=200;response.headers={'Content-Type':'text/html'}
