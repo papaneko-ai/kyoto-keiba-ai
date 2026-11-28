@@ -1,0 +1,109 @@
+name: Impl39 independent SP and cushion original integration proof
+on:
+  push:
+    branches: ['repair/impl39-supplemental-original-proof-20261128']
+permissions:
+  contents: read
+  actions: read
+jobs:
+  proof:
+    if: github.repository == 'papaneko-ai/kyoto-keiba-ai' && github.ref == 'refs/heads/repair/impl39-supplemental-original-proof-20261128'
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    env:
+      GH_TOKEN: ${{ github.token }}
+      ARCHIVE_KEY: ${{ secrets.KYOTO_JRA_ARCHIVE_AES256_HEX }}
+      KYOTO_TARGET_DAY: '20261128'
+      KYOTO_WEEKEND_HTTP_APPROVED: 'NO'
+      KYOTO_AUX_HTTP_APPROVED: 'NO'
+      KYOTO_POSTRACE_HTTP_APPROVED: 'NO'
+      KYOTO_CUSHION_HTTP_APPROVED: 'NO'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: 'f4da936dbcaec79f3a0b3ea757f74acad12d6296'
+          path: candidate
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          ref: 'c289c5ec4e6ad322a7e08acf173da3352ed23dba'
+          path: trusted-reader
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          ref: '301916719e5bc0e3a8e392368434f952c16c05db'
+          path: trusted-cushion-reader
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11.18'
+      - run: python -m pip install --no-deps beautifulsoup4==4.15.0 soupsieve==4.1.3 typing-extensions==4.16.0 cryptography==46.0.7 cffi==2.1.1 pycparser==3.12
+      - name: Reuse exact prior independent review and replay only new supplemental links
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git -C candidate rev-parse HEAD)" = 'f4da936dbcaec79f3a0b3ea757f74acad12d6296'
+          test "$(git -C trusted-reader rev-parse HEAD)" = 'c289c5ec4e6ad322a7e08acf173da3352ed23dba'
+          test "$(git -C trusted-cushion-reader rev-parse HEAD)" = '301916719e5bc0e3a8e392368434f952c16c05db'
+          mkdir -p prior proof
+          gh api repos/$GITHUB_REPOSITORY/actions/runs/46125712697 > prior/run.json
+          gh api repos/$GITHUB_REPOSITORY/actions/runs/46125712697/artifacts > prior/artifacts.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          r=json.loads(Path("prior/run.json").read_text())
+          assert r["head_sha"]=="d6db3de1c9f37622128454f47a615f6a433e0750" and r["head_branch"]=="main" and r["conclusion"]=="success" and r["event"]=="push"
+          a=json.loads(Path("prior/artifacts.json").read_text())
+          assert a["total_count"]==len(a["artifacts"])
+          x=[v for v in a["artifacts"] if v["name"]=="kyoto-weekend-closure-review"]
+          assert len(x)==1 and x[0]["id"]==15256055433 and x[0]["expired"] is False
+          assert x[0]["digest"]=="sha256:7ef777547cac61d5dad94e02a2ac81269c546bbac40b3a66b6a5a17448d87409"
+          PY
+          gh run download 46125712697 --repo "$GITHUB_REPOSITORY" --name kyoto-weekend-closure-review --dir prior/review
+          cd trusted-reader
+          PYTHONPATH="$PWD" python - <<'PY'
+          import hashlib,json,os,sys
+          from pathlib import Path
+          root=Path(os.environ["GITHUB_WORKSPACE"])
+          sys.path.insert(0,str(root/"candidate/diagnostics"))
+          from kyoto_day_supplemental_replay import review_sp,review_cushion
+          data=(root/"prior/review/review.json").read_bytes().rstrip(b"\n")
+          summary=(root/"prior/review/summary.md").read_text()
+          assert summary.startswith("<!-- kyoto-day-review:20261128:"+hashlib.sha256(data).hexdigest()+" -->\n")
+          prior=json.loads(data)
+          assert prior["day"]=="20261128" and not prior["workflow_index_errors"] and not prior.get("coverage_replay_error")
+          assert prior["new_source_http_requests"]==0
+          assert prior["coverage"]["counts"]["body_weight_kg"]=={"expected":25,"verified":25,"unknown_denominator_races":10}
+          cr=prior["cancellation_review"]
+          assert cr["day"]=="20261128" and cr["schema"]=="kyoto_independent_cancellation_review.v1" and not cr["errors"]
+          assert set(cr["races"])=={"10","11"}
+          # Existing independently revalidated selected G03 cards supply only
+          # their verified cutoff. No raw PC reprocessing and no new roster credit.
+          coverage={"day":"20261128","race_denominator":12,"races":{str(n):{"state":"NO_VERIFIED_ROSTER"} for n in range(1,13)}}
+          for n,v in cr["races"].items():
+              assert v["state"]=="CANCELLATION_STATUS_FROM_REPLAYED_CARD" and v["day"]=="20261128"
+              coverage["races"][n]={"state":"ROSTER_VERIFIED","start_utc":v["start_utc"]}
+          metadata=prior["workflows"]
+          sp=review_sp("20261128",metadata["two-source-production-observer.yml"])
+          cu=review_cushion("20261128",metadata["cushion-source.yml"],coverage,os.environ["ARCHIVE_KEY"],root/"trusted-cushion-reader")
+          assert all(sp[k] is False for k in ("pc_denominator_modified","prestart_certified","market_verified","live_acquisition_certified"))
+          assert set(sp["scheduled"]["races"])==set(sp["manual"]["races"])==set(coverage["races"])
+          assert sp["source_http_requests"]==cu["source_http_requests"]==0
+          assert cu["full_data_acquisition_certified"] is False and cu["prediction_ready"] is False
+          assert {int(x["run_id"]) for x in cu["authenticated_observations"]}=={46087151962,46092412738,46103343334,46122176181}
+          assert cu["all_present_archives_replayed"] is True and not cu["replay_errors"]
+          assert cu["prestart_verified_races"]==2
+          assert all(cu["races"][n]["state"]=="SOURCE_VERIFIED_PRESTART" for n in ("10","11"))
+          assert all(cu["races"][str(n)]["state"]=="ROSTER_OR_START_UNVERIFIED" for n in range(1,13) if n not in (10,11))
+          out={"candidate":"f4da936dbcaec79f3a0b3ea757f74acad12d6296","prior_review_run":46125712697,"source_http_requests":0,
+               "sp_audited_runs":sp["audited_sp_runs"],"sp_native_structural_races":sp["scheduled"]["structural_roster_races"],"sp_dispatch_structural_races":sp["manual"]["structural_roster_races"],"sp_replay_errors":sp["replay_errors"],"sp_unavailable":sp["unavailable"],
+               "cushion_authenticated_archives":len(cu["authenticated_observations"]),"cushion_prestart_verified_races":cu["prestart_verified_races"],"unknown_race_denominators":10,"cushion_replay_errors":cu["replay_errors"],"pc_denominator_modified":False,"full_acquisition_certified":False}
+          print(json.dumps(out,sort_keys=True))
+          (root/"proof/report.json").write_text(json.dumps(out,sort_keys=True,indent=2)+"\n")
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: impl39-supplemental-original-proof
+          path: proof/report.json
+          if-no-files-found: error
+          retention-days: 90
