@@ -220,7 +220,17 @@ def review_cancellations(day,metadata,coverage,key):
         except Exception as exc:errors.append({"run_id":rid,"error_class":type(exc).__name__})
     return {"schema":"kyoto_independent_cancellation_review.v1","day":day,"races":result,"errors":errors,"source_http_requests":0}
 
-def coverage_gaps(day,coverage,allowed_run_ids,workout_review=None,allowed_workout_run_ids=(),cancellation_review=None,allowed_sp_market_run_ids=()):
+def coverage_gaps(day,coverage,allowed_run_ids,workout_review=None,allowed_workout_run_ids=(),cancellation_review=None,allowed_sp_market_run_ids=(),verified_sp_roster_slots=()):
+    # Only the exact, independently reopened SP card may establish its own
+    # denominator. An SP market-run ID alone is not permission for any roster.
+    sp_cards={}
+    if day=="20261129":
+        for slot in verified_sp_roster_slots:
+            if slot.get("day")!=day or str(slot.get("run_id")) not in set(map(str,allowed_sp_market_run_ids)):continue
+            for n,p in slot.get("races",{}).items():
+                card=p.get("racecard",{})
+                if card.get("channel")=="SP" and card.get("source_kind")=="INDEPENDENT_SP_PRESTART_ROSTER":
+                    sp_cards.setdefault(n,[]).append((str(slot["run_id"]),p))
     """Compute missing cells from independently replayed aggregate, not totals."""
     if coverage.get("day")!=day or coverage.get("schema")!="kyoto_impl30_day_source_coverage.v1" or coverage.get("race_denominator")!=12 or set(coverage.get("races",{}))!=set(RACES):raise ValueError("coverage_identity_incomplete")
     allowed=set(map(str,allowed_run_ids))
@@ -244,6 +254,21 @@ def coverage_gaps(day,coverage,allowed_run_ids,workout_review=None,allowed_worko
             horses=row["horses"]
             roster=(row.get("state")=="ROSTER_VERIFIED" and is_sha(row["roster_digest"]) and is_sha(row["named_roster_digest"]) and cutoff.strftime("%Y%m%d")==day and isinstance(horses,dict) and 2<=len(horses)<=18 and set(horses)=={str(n) for n in range(1,len(horses)+1)})
         except (ValueError,KeyError,TypeError,AttributeError):roster=False
+        standalone=row.get("roster_source_channel")=="SP" or row.get("racecard",{}).get("channel")=="SP"
+        if roster and standalone:
+            card=row.get("racecard",{})
+            verified=False
+            for rid,p in sp_cards.get(race,[]):
+                try:
+                    exact_card={"state":"SOURCE_VERIFIED","run_id":rid,**p["racecard"]}
+                    if (row.get("roster_source_channel")=="SP" and card==exact_card
+                        and proof_ok(card,cutoff,day,{rid})
+                        and all(row[k]==p[k] for k in ("roster_digest","named_roster_digest","start_utc"))
+                        and set(horses)==set(p["horses"])
+                        and not any(p["horses"].values())):
+                        verified=True
+                except (KeyError,TypeError,ValueError,AttributeError):continue
+            roster=verified
         if not roster:
             for f in FAMILIES:
                 if f in HORSE:totals[f]["unknown_denominator_races"]+=1
@@ -251,8 +276,8 @@ def coverage_gaps(day,coverage,allowed_run_ids,workout_review=None,allowed_worko
             detail.append({"race":int(race),"state":"ROSTER_OR_START_UNPROVED","missing":missing,"unknown_horse_families":list(HORSE)})
             continue
         card=row.get("racecard",{})
-        check("racecard",proof_ok(card,cutoff,day,allowed),proof=card)
-        cancelled_weights=cancellation_set(day,row,cancel_rows.get(race,{}),allowed)
+        check("racecard",proof_ok(card,cutoff,day,{card["run_id"]} if standalone else allowed),proof=card)
+        cancelled_weights=None if standalone else cancellation_set(day,row,cancel_rows.get(race,{}),allowed)
         not_applicable=[]
         for h in sorted(horses,key=int):
             for f in HORSE:
@@ -268,7 +293,7 @@ def coverage_gaps(day,coverage,allowed_run_ids,workout_review=None,allowed_worko
                     if ok:bound.append({"family":f,"horse":h,"record_count":v["record_count"],"value_digest":v["value_digest"],"source_proofs":v["source_proofs"]})
                 else:
                     v=horses[h].get(f,{})
-                    check(f,proof_ok(v,cutoff,day,allowed),h,v)
+                    check(f,not standalone and proof_ok(v,cutoff,day,allowed),h,v)
         for section,keys in (("track",TRACK),("supplementary_track_observations",EXTRA)):
             for f in keys:
                 v=row.get(section,{}).get(f,{})
@@ -337,6 +362,7 @@ def review(day,now,out):
        "new_source_http_requests":0,"full_acquisition_certified":False,"all_risks_closed":False}
     sp_attempted=False
     sp_allowed=[]
+    sp_roster_slots=[]
     # Reuse production's authenticated PC/auxiliary/market/result replay, not
     # unverified handoff totals. Same-day correction chain is reopened.
     try:
@@ -364,7 +390,9 @@ def review(day,now,out):
                     merged[k]=coverage[k]
                 coverage=merged
                 sp_allowed=[int(s["run_id"]) for s in market_slots]
+                sp_roster_slots=market_slots
                 report["sp_market_replay"]={"authenticated_run_ids":sp_allowed,"source_http_requests":0}
+                report["independent_sp_only_roster_races"]=[int(n) for n,r in coverage["races"].items() if r.get("roster_source_channel")=="SP"]
             except Exception as exc:report["independent_sp_market_replay_error"]=type(exc).__name__
         # Existing replay_history includes the current run. For day close
         # use the latest actual postrace archive as current (not this workflow).
@@ -394,7 +422,7 @@ def review(day,now,out):
             cr=review_cancellations(day,metadata,coverage,key)
             report["cancellation_review"]=cr
         except Exception as exc:report["cancellation_review_error"]=type(exc).__name__
-        report["coverage"]=coverage_gaps(day,coverage,allowed,wr,workout_allowed,cr,allowed_sp_market_run_ids=sp_allowed)
+        report["coverage"]=coverage_gaps(day,coverage,allowed,wr,workout_allowed,cr,allowed_sp_market_run_ids=sp_allowed,verified_sp_roster_slots=sp_roster_slots)
         try:
             report["independent_cushion_day_replay"]=review_cushion(day,metadata["cushion-source.yml"],coverage,key,os.environ["KYOTO_CUSHION_READER"])
         except Exception as exc:report["independent_cushion_day_replay_error"]=type(exc).__name__

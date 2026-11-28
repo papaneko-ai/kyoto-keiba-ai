@@ -39,6 +39,28 @@ class ClosureTests(unittest.TestCase):
   self.assertEqual(v["counts"]["quinella"]["verified"],12)
   self.assertEqual(v["counts"]["paired_market_same_slot"]["verified"],12)
   self.assertEqual(v["counts"]["racecard"]["verified"],11)
+ def test_sp_only_roster_credit_requires_exact_independent_card_not_market_id(self):
+  d=data();r=d["races"]["1"];r["roster_source_channel"]="SP"
+  r["racecard"].update(run_id="8",channel="SP",source_kind="INDEPENDENT_SP_PRESTART_ROSTER")
+  p={k:r[k] for k in ("roster_digest","named_roster_digest","start_utc")}
+  p["racecard"]={k:v for k,v in r["racecard"].items() if k not in ("state","run_id")}
+  p["horses"]={"1":{},"2":{}}
+  slots=[{"day":DAY,"run_id":"8","races":{"1":p}}]
+  def check(doc,source=slots,allowed=(8,)):
+   return coverage_gaps(DAY,doc,[1,8],workouts(doc),[3],allowed_sp_market_run_ids=allowed,verified_sp_roster_slots=source)
+  good=check(d)
+  self.assertEqual(good["counts"]["racecard"]["verified"],12)
+  self.assertEqual(good["counts"]["profile"]["verified"],22)
+  self.assertEqual(good["counts"]["prior_form"]["verified"],22)
+  self.assertFalse(good["all_reviewed_cells_present"])
+  self.assertEqual(check(d,[])["counts"]["racecard"]["verified"],11)
+  self.assertEqual(check(d,slots,())["counts"]["racecard"]["verified"],11)
+  for field,value in (("sha256","f"*64),("run_id","9"),("utc","2026-11-29T00:01:00Z"),("source_kind","OTHER")):
+   bad=copy.deepcopy(d);bad["races"]["1"]["racecard"][field]=value
+   result=check(bad);self.assertEqual(result["counts"]["racecard"]["verified"],11)
+   self.assertEqual(result["counts"]["profile"]["unknown_denominator_races"],1)
+  bad=copy.deepcopy(d);bad["races"]["1"]["named_roster_digest"]="f"*64
+  self.assertEqual(check(bad)["counts"]["racecard"]["verified"],11)
  def test_duplicate_native_and_index(self):
   rs=[run(),run(2)]
   self.assertEqual(slots(DAY,FILE,index(DAY,FILE,{"total_count":2,"workflow_runs":rs}),NOW)[0]["state"],"NATIVE_SLOT_AMBIGUOUS")
