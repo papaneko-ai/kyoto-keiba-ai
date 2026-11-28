@@ -7,6 +7,7 @@ on:
     paths:
       - '.github/workflows/kyoto-20261128-29-*.yml'
       - '.github/workflows/kyoto-impl30-*.yml'
+      - '.github/workflows/kyoto-weekend-closure-review.yml'
       - 'diagnostics/kyoto_impl30_collector_selection.py'
       - 'tests/test_kyoto_impl30_production_workflows.py'
       - 'tests/test_kyoto_impl30_collector_selection.py'

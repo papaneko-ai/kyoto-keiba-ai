@@ -5,6 +5,7 @@ from pathlib import Path
 import yaml
 from diagnostics.kyoto_impl30_collector_selection import DEPLOYED_RECEIPT,POSTRACE_RECEIPT
 POSTRACE_PIN=POSTRACE_RECEIPT['source']
+WORKOUT_PIN="267ee88a79ba8e37fc2e4cb6035ce1e018407655"
 SUNDAY_PIN=DEPLOYED_RECEIPT["override"]
 SATURDAY_READER="c289c5ec4e6ad322a7e08acf173da3352ed23dba"
 DAY_REF="${{ inputs.race_day == '20261129' && '"+SUNDAY_PIN+"' || '"+SATURDAY_READER+"' }}"
@@ -56,6 +57,13 @@ class Isolation(unittest.TestCase):
                             s["run"]=s["run"].replace('test "$(git rev-parse HEAD)" = '+repr(SATURDAY_READER),'test "$(git rev-parse HEAD)" = "'+DAY_REF+'"')
                 elif n=="result-handoff":
                     expected["jobs"]["authenticated-handoff"]["steps"][0]["with"]["ref"]=DAY_REF
+                elif n=="workout-source":
+                    j=expected["jobs"]["source-only"]
+                    old_pin=j["steps"][0]["with"]["ref"]
+                    j["steps"][0]["with"]["ref"]=WORKOUT_PIN
+                    for step in j["steps"]:
+                        if 'test "$(git rev-parse HEAD)"' in step.get("run",""):
+                            step["run"]=step["run"].replace(repr(old_pin),repr(WORKOUT_PIN))
                 elif n=="postrace-evidence":
                     j=expected["jobs"]["postrace-source-evidence"]
                     old_pin=j["steps"][0]["with"]["ref"]
@@ -68,8 +76,10 @@ class Isolation(unittest.TestCase):
                 self.assertEqual(doc(n)["on"]["workflow_dispatch"],original["on"]["workflow_dispatch"])
     def test_independent_closure_reader_matches_exact_evening_source(self):
         path=".github/workflows/kyoto-weekend-closure-review.yml"
-        previous=subprocess.check_output(["git","show","457fcf075143b7f80a769b259fa1b9f5d2987abf:"+path],cwd=ROOT,text=True)
-        expected=previous.replace("ref: '"+SATURDAY_READER+"'","ref: '"+POSTRACE_PIN+"'")
+        # PR177 approved and independently verified the entire closure workflow.
+        # Use its exact immutable text; keep the full-file protection, not a partial check.
+        expected=subprocess.check_output(["git","show","cacb274c3918d086bfe4e16b3690ca539716f780:"+path],cwd=ROOT,text=True)
+        self.assertIn("ref: '"+POSTRACE_PIN+"'",expected)
         self.assertEqual((ROOT/path).read_text(),expected)
     def test_native_probe(self):
         d=doc("native-scheduler-diagnostic")
