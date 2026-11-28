@@ -92,6 +92,13 @@ jobs:
                                       if isinstance(v,str) and len(v)<200 and re.fullmatch(r"[A-Za-z0-9_./#?&=%'():; ,+-]+",v): attrs[k]=v
                                   out["sp_navigation_markup"].append(attrs)
                               out["sp_navigation_markup"]=out["sp_navigation_markup"][:12]
+                              out["sp_action_function"]=[]
+                              for script in soup.select("script"):
+                                  txt=script.get_text()
+                                  m=re.search(r"function\s+doAction\s*\([^)]*\)\s*\{[^}]{0,1500}\}",txt)
+                                  if m: out["sp_action_function"].append(m.group(0))
+                              out["sp_form_shapes"]=[{"method":str(f.get("method","")),"action":str(f.get("action","")),"fields":[str(i.get("name","")) for i in f.select("input[name]")]} for f in soup.select("form")][:10]
+                              out["sp_script_paths"]=[urlsplit(urljoin("https://sp.jra.jp/",s["src"])).path for s in soup.select("script[src]")][:20]
                               try:
                                   anchors=official_sp_anchors(b,"https://sp.jra.jp/",day)
                                   out["sp_anchor_count"]=len(anchors)
