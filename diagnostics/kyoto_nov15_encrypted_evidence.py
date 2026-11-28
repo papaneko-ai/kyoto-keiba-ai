@@ -13,6 +13,7 @@ if not re.fullmatch(r"20[0-9]{6}",DAY):
     raise ValueError("race_day_invalid")
 
 FILES={"observer_partial_receipt.json","source_verification.json","sp_discovery_receipt.json","official_sp_discovery_1.html","official_sp_discovery_2.html","official_sp_discovery_3.html","official_sp_discovery_4.html","official_sp_discovery_5.html","official_sp_discovery_6.html","official_selection.html","official_meeting.html","official_racecard.html","official_odds_menu.html","official_odds_navigation_1.html","official_odds_navigation_2.html","official_quinella_odds.html","official_bracket_quinella_odds.html","observed_race_links.json","official_sp_navigation.html","official_sp_racecard.html","official_sp_odds_menu.html","official_sp_odds_navigation_1.html","official_sp_odds_navigation_2.html","official_sp_quinella_odds.html","official_sp_bracket_quinella_odds.html","sp_receipt.json","pc_sp_comparison.json","receipt.json"}
+FILES.add("official_pc_navigation_home.html")
 # Explicit G03 1R-12R archive allowlist; arbitrary source filenames stay forbidden.
 FILES |= {"g03_official_meeting.html","g03_g03_receipt.json","g03_receipt.json"}
 FILES |= {f"g03_official_racecard_{n:02d}.html" for n in range(1,13)}
