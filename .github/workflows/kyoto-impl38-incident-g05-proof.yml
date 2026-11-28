@@ -1,0 +1,92 @@
+name: Impl38 independent incident G05 actual false-negative replay
+on:
+  push:
+    branches: ['repair/impl38-incident-g05-actual-proof-20261128']
+    paths: ['.github/workflows/kyoto-impl38-incident-g05-proof.yml']
+permissions:
+  contents: read
+  actions: read
+jobs:
+  replay:
+    if: github.repository == 'papaneko-ai/kyoto-keiba-ai' && github.ref == 'refs/heads/repair/impl38-incident-g05-actual-proof-20261128'
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    env:
+      KYOTO_TARGET_DAY: '20261128'
+      KYOTO_WEEKEND_HTTP_APPROVED: 'NO'
+      KYOTO_AUX_HTTP_APPROVED: 'NO'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: 'd7a910a888480bb8c21d04f9dbe0358d2d3c2809'
+          path: candidate
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          ref: 'c289c5ec4e6ad322a7e08acf173da3352ed23dba'
+          path: trusted-reader
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11.18'
+      - run: python -m pip install --no-deps beautifulsoup4==4.15.0 soupsieve==4.1.3 typing-extensions==4.16.0 cryptography==46.0.7 cffi==2.1.1 pycparser==3.12
+      - name: Verify exact original identity and download without new JRA requests
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          test "$(git -C candidate rev-parse HEAD)" = 'd7a910a888480bb8c21d04f9dbe0358d2d3c2809'
+          test "$(git -C trusted-reader rev-parse HEAD)" = 'c289c5ec4e6ad322a7e08acf173da3352ed23dba'
+          mkdir -p "$RUNNER_TEMP/aux14" "$RUNNER_TEMP/aux15" proof
+          python - <<'PY'
+          import json,subprocess
+          repo="papaneko-ai/kyoto-keiba-ai"
+          for rid,aid,digest in ((46112551733,15250785307,"444a678b0c8a98f475b369bd3acd858b3be96e1adf64527bc8ca5f4adf780b2c"),(46117060392,15252141771,"e1d2c29a26b62adde8d743b9aee77aeae8cc071830f4fb586976fba0ebc44e1f")):
+              d=json.loads(subprocess.check_output(["gh","api",f"repos/{repo}/actions/runs/{rid}/artifacts?per_page=100"]))
+              assert d["total_count"]==len(d["artifacts"])
+              a=[x for x in d["artifacts"] if x["id"]==aid and x["name"]==f"kyoto-auxiliary-{rid}-20261128" and x["expired"] is False]
+              assert len(a)==1 and a[0]["digest"]=="sha256:"+digest
+          PY
+          gh run download 46112551733 --repo papaneko-ai/kyoto-keiba-ai --name kyoto-auxiliary-46112551733-20261128 --dir "$RUNNER_TEMP/aux14"
+          gh run download 46117060392 --repo papaneko-ai/kyoto-keiba-ai --name kyoto-auxiliary-46117060392-20261128 --dir "$RUNNER_TEMP/aux15"
+      - name: Independently diagnose both exact saved originals
+        env:
+          ARCHIVE_KEY: ${{ secrets.KYOTO_JRA_ARCHIVE_AES256_HEX }}
+        run: |
+          set -euo pipefail
+          cd candidate
+          python - <<'PY'
+          import os,json,tempfile
+          from pathlib import Path
+          from unittest.mock import patch
+          from diagnostics.kyoto_incident_recovery import read_aes,review_g05_originals,inspect_source,G05_COURSE_FIELDS
+          def denied(*a,**kw):raise AssertionError("source_network_forbidden")
+          proof={"source_http_requests":0,"candidate":"d7a910a888480bb8c21d04f9dbe0358d2d3c2809","reader":"c289c5ec4e6ad322a7e08acf173da3352ed23dba","runs":{}}
+          temp=Path(os.environ["RUNNER_TEMP"]);reader=Path("../trusted-reader").resolve()
+          with tempfile.TemporaryDirectory() as td,patch("socket.socket.connect",side_effect=denied),patch("socket.create_connection",side_effect=denied):
+              for label,rid in (("aux14",46112551733),("aux15",46117060392)):
+                  raw=Path(td)/label
+                  read_aes(reader,temp/label,raw,"20261128",rid,os.environ["ARCHIVE_KEY"])
+                  g=review_g05_originals(raw,"20261128",reader)
+                  v=inspect_source(raw,"20261128","auxiliary",field_review=g)
+                  s=next(x for x in v["stages"] if x["stage"]=="AUXILIARY")
+                  assert g["replay_complete"] is True and g["roster_replay_available"] is True
+                  assert s["state"]=="GAP_REQUIRES_DIAGNOSIS" and v["incidents"] and v["source_claims_independently_certified"] is False
+                  assert s["observations"]["field_review"]["course_missing_fields"]==list(G05_COURSE_FIELDS)
+                  if label=="aux14":
+                      assert g["verified_races"]==[10,11] and g["race_rows"]["10"]["missing_body_weight_kg"]==[]
+                      assert len(g["race_rows"]["11"]["missing_body_weight_kg"])==10
+                  else:
+                      assert g["verified_races"]==[11] and g["race_rows"]["11"]["missing_body_weight_kg"]==[]
+                      assert g["race_rows"]["11"]["missing_body_weight_change_kg"]==[]
+                  proof["runs"][str(rid)]={"verified_races":g["verified_races"],"race_rows":g["race_rows"],"stage":s["state"],"field_review":s["observations"]["field_review"],"incident_codes":[x["code"] for x in v["incidents"]]}
+          Path("../proof/report.json").write_text(json.dumps(proof,sort_keys=True,indent=2)+"\n")
+          print(json.dumps(proof,sort_keys=True))
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: impl38-incident-g05-actual-proof
+          path: proof/
+          if-no-files-found: error
+          retention-days: 90
