@@ -1250,7 +1250,7 @@
     "diagnostics/kyoto_g03_proof_verify.py": "9eb905f489b050c842b2793bd43e1c5385d77df0",
     "diagnostics/kyoto_g05_conditions.py": "30ceb25aea1328318147df750234501e2bae716e",
     "diagnostics/kyoto_g05_official_track.py": "7c4651e3844124c3b9026c6f97bd106d73b7ccbd",
-    "diagnostics/kyoto_g06_missing_market_retry.py": "95429900253d6131c4d20aaa484245c8fa34e54d"
+    "diagnostics/kyoto_g06_missing_market_retry.py": "15b74dfdcd0a57b9c5aa1187647523f8f31195ba"
   },
   "revision_note": "Impl30 exact source re-enumeration, 29 registered modules compared; changed source functions reopened, not certified. Historical ledger preserved in parent; all 25 risk records unchanged.",
   "previous_source_commit": "7e88a7d4dadcbdc56495f9c5a4b43fd8806c510f",
@@ -1911,5 +1911,18 @@
       }
     ],
     "reason": "Require exactly one timestamp and bind measurement table to its own block. Dated positive fixtures retained, old undated fixture becomes negative."
+  },
+  "impl39_market_recovery_host_reopen": {
+    "prior_ledger_blob": "151588271ec1ced97c4487e2ea721465d6e34602",
+    "sources": [
+      {
+        "source": "diagnostics/kyoto_g06_missing_market_retry.py",
+        "old_blob": "95429900253d6131c4d20aaa484245c8fa34e54d",
+        "new_blob": "15b74dfdcd0a57b9c5aa1187647523f8f31195ba",
+        "review_status": "UNREVIEWED_INDEPENDENT_FMEA",
+        "closed_risks": 0
+      }
+    ],
+    "reason": "Reopen cross-day recovery host binding; both Nov28 and Nov29 canonical host. No formal risk closure."
   }
 }

@@ -81,6 +81,32 @@ class Tests(unittest.TestCase):
             x=recover_saved_markets(d,race_spec=SPEC,active_runners=RUNNERS,verified_start_utc=START)
             self.assertFalse(x["both_markets_verified"])
 
+class CanonicalWeekendRecovery(unittest.TestCase):
+    def test_saved_market_origin_matches_both_days(self):
+        from dataclasses import replace
+        for day in ("20261128","20261129"):
+            iso="2026-11-"+day[-2:]
+            with self.subTest(day=day), tempfile.TemporaryDirectory() as tmp:
+                setup(tmp,"PC",["quinella","bracket_quinella"])
+                p=Path(tmp)/"pc"
+                rec=json.loads((p/"receipt.json").read_text())
+                rec["race_id"]=iso+"_KYOTO_11R"
+                for step in rec["request_receipts"]:
+                    name={"racecard":"official_racecard.html","odds_menu":"official_odds_menu.html"}.get(step["step"],step["step"]+"_original.html")
+                    raw=(p/name).read_bytes().replace(b"20261107",day.encode()).replace("11月7日".encode("cp932"),("11月"+day[-2:]+"日").encode("cp932"))
+                    (p/name).write_bytes(raw)
+                    step.update(bytes=len(raw),sha256=sha256(raw).hexdigest(),captured_at_utc=iso+"T00:00:00Z",requested_url=step["requested_url"].replace("https://jra.jp/","https://www.jra.go.jp/"))
+                    if step["observed_action_token"]:
+                        step["observed_action_token"]=step["observed_action_token"].replace("20261107",day)
+                (p/"receipt.json").write_text(json.dumps(rec))
+                spec=replace(SPEC,race_day=day,race_id=rec["race_id"],pc_racecard_url=SPEC.pc_racecard_url.replace("https://jra.jp/","https://www.jra.go.jp/"))
+                def assess():
+                    return recover_saved_markets(tmp,race_spec=spec,active_runners=RUNNERS,verified_start_utc=iso+"T06:45:00Z")
+                self.assertTrue(assess()["both_markets_verified"])
+                rec["request_receipts"][-1]["requested_url"]="https://example.org/JRADB/accessO.html"
+                (p/"receipt.json").write_text(json.dumps(rec))
+                self.assertFalse(assess()["both_markets_verified"])
+
 class BatchIntegration(unittest.TestCase):
     def test_batch_keeps_both_saved_markets(self):
         from diagnostics.kyoto_g06_all12_capture import run_twelve
