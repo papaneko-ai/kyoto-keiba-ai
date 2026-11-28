@@ -126,3 +126,7 @@
 
 ## 16. E38-G05-07 NOV28-16 実DOMから馬体重・馬場の具体的原因を確定
 - run46116349346/job140890948043 SUCCESS、artifact15252231098 digest sha256:88b2e0c26cbcb39925339415f92893917476c6f30cdfb28c13d8cb8e53f43992。元artifact15250785307を再認証。10Rの全15登録馬の th.horse に対応する td.horse > div.result_line > div.cell.weight に現在の体重/増減形式 NNNkg (+N/-N/N) が存在、子 span.transition。11Rの同要素は全行不在（取消1）。過去成績・斤量を誤認しない。芝状態は両Rの div.record_unit.mt30 > div.data > div.inner > div.cell.date > span に専用ラベル（芝：良形式）。旧G05は馬名複合セル全文をmass regexに掛け、当該芝状態の専用構造も見ていなかった。旧再解析天候2、重量0、増減0、芝0。次は exact source c3b15355ba5a184e22cd87c34bc645538ce33200 からこの構造のみ追加、未掲載/取消/紛らわしい過去成績・複数候補・時点不一致を負例で拒否。新しいG05候補とFMEA登録を作り、実原本差分・必要CIを検証。調教候補bd800bc30db60919e274eadac419016c963e77deは合格済み、クッションは維持。本番#161のHEADはまだ未承認・main未変更。
+
+## 17. E38-MON-08 15:32緊急監視報告と新実原本を反映
+- 自動監視最新run fc3ad96e-3868-832e-8f04-dda6a880ebb5（15:32 JST）を直接取得。既報の実原本10/11R・26頭・調教273件・G05構造原因と一致。15:30 native未確認、15:32:13 workflow_dispatch起動、Cloudflare直接ログ未確認。GitHub独立再照合では run46117060392/job140893135640 SUCCESS、旧本番main 1fed7e79796d91de76d2c5f85486f6625d69ef3f、artifact15252141771 digest sha256:e1d2c29a26b62adde8d743b9aee77aeae8cc071830f4fb586976fba0ebc44e1f。原本11R・observed_field_values=1（旧版）、15 HTTP。15:30原本はG05追補検査に追加。起動成功と全取得を区別。
+- G05候補58a75eab856c4eb81f28bb48c8750d3caa382d54、preflight46116443971/job140891250118 SUCCESS（延べ821試験）、artifact15251538379。実原本比較run46116472162/job140891340049はFAIL：体重15/15・増減15/15復旧、天候2R、計32値、ただし芝状態0Rで期待34値に未達。証拠artifact15251219863保存。これは模擬合格でも実原本未達が残るため全合格としない。次の候補は両時刻の認証済み原本で芝header正確形式を特定、未掲載値を捏造せず体重と日次統合を確認。#161・調教候補未merge。本番承認手順維持。
