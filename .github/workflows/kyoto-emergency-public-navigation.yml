@@ -34,7 +34,8 @@ jobs:
                   print("REDIRECT_NOT_FOLLOWED",json.dumps({"code":code,"scheme":u.scheme,"host":u.hostname,"path":u.path,"query_keys":sorted(parse_qs(u.query))},ensure_ascii=False))
                   return None
           client=build_opener(Boundary(),HTTPCookieProcessor(CookieJar()))
-          for label,url in [("PC_HOME","https://www.jra.go.jp/"),("PC_ENTRY","https://jra.jp/JRADB/accessD.html?CNAME=pw01dli00%2FF3"),("SP_HOME","https://sp.jra.jp/")]:
+          from urllib.parse import urljoin,urlencode
+          for label,url in [("PC_HOME","https://www.jra.go.jp/"),("SP_HOME","https://sp.jra.jp/")]:
               time.sleep(2)
               try:
                   with client.open(Request(url,headers={"User-Agent":"KyotoRaceAI-Private-ReadOnly/0.1","Accept":"text/html"}),timeout=12) as response:
@@ -43,18 +44,30 @@ jobs:
                   try: text=raw.decode("utf-8")
                   except UnicodeDecodeError: text=raw.decode("cp932",errors="replace")
                   soup=BeautifulSoup(text,"html.parser")
-                  print(label,"bytes",len(raw))
-                  for a in soup.select("a"):
-                      title=a.get_text(" ",strip=True)
-                      if "出馬表" in title and len(title)<35:
-                          action=a.get("onclick","")
-                          href=a.get("href","")
-                          if re.fullmatch(r"[\w\s'\x22(),./:;?=%#&-]{0,200}",action) and re.fullmatch(r"[\w\s'\x22(),./:;?=%#&-]{0,200}",href):
-                              print("ENTRY",json.dumps({"title":title,"action":action,"href":href},ensure_ascii=False))
-                  for f in soup.select("form"):
-                      print("FORM",json.dumps({"method":str(f.get("method","")),"action":str(f.get("action",""))[:150],"names":[str(i.get("name","")) for i in f.select("input") if i.get("name")]},ensure_ascii=False))
-              except HTTPError as exc:
-                  print(label,"HTTP",exc.code)
+                  hosts=("www.jra.go.jp","jra.jp") if label=="PC_HOME" else ("sp.jra.jp","app.jra.jp")
+                  scripts=[]
+                  for s in soup.select("script[src]"):
+                      target=urljoin(url,s["src"])
+                      u=urlsplit(target)
+                      if u.scheme=="https" and u.hostname in hosts and u.path.startswith("/common/js/") and re.search(r"/common[^/]*\.js$",u.path) and not u.fragment:
+                          if target not in scripts:scripts.append(target)
+                  print(label,"COMMON_SCRIPT_SOURCES",json.dumps(scripts))
+                  for target in scripts[:3]:
+                      time.sleep(2)
+                      try:
+                          with client.open(Request(target,headers={"User-Agent":"KyotoRaceAI-Private-ReadOnly/0.1","Accept":"application/javascript"}),timeout=12) as res:
+                              raw=res.read(500001)
+                              if res.status!=200 or res.geturl()!=target or len(raw)>500000:continue
+                          js=raw.decode("utf-8",errors="replace")
+                          for m in re.finditer(r"(?:function\s+doAction\s*\(|doAction\s*=\s*function\s*\()",js):
+                              excerpt=js[max(0,m.start()-120):m.start()+1800]
+                              print(label,"DOACTION_DEFINITION",json.dumps(excerpt,ensure_ascii=False))
+                          for line in js.splitlines():
+                              if re.search(r"(?:jra\.jp|jra\.go\.jp)",line) and len(line)<300 and not "http:" in line:
+                                  print(label,"HOST_CONSTANT",json.dumps(line.strip()))
+                      except Exception as exc:
+                          print(label,"SCRIPT_ERROR",type(exc).__name__)
+                          break
               except Exception as exc:
                   print(label,"ERROR",type(exc).__name__)
           PY
